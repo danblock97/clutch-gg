@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 const useProfileData = () => {
 	const [profileData, setProfileData] = useState(null);
 	const [accountData, setAccountData] = useState(null);
+	const [rankedData, setRankedData] = useState(null);
 	const [error, setError] = useState(null);
 	const router = useRouter();
 	const gameName = useSearchParams().get("gameName");
@@ -19,6 +20,7 @@ const useProfileData = () => {
 				.then((data) => {
 					setProfileData(data.profileData);
 					setAccountData(data.accountData);
+					setRankedData(data.rankedData);
 				})
 				.catch((error) => {
 					setError(error.message || "Failed to fetch data");
@@ -26,7 +28,7 @@ const useProfileData = () => {
 		}
 	}, [router.query, gameName, tagLine]);
 
-	return { profileData, accountData, error };
+	return { profileData, accountData, rankedData, error };
 };
 
 export default useProfileData;
