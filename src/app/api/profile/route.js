@@ -43,9 +43,10 @@ export async function GET(req, res) {
 
 	let profileResponse;
 	let profileData;
-	for (const region of regions) {
+	let region; // Store the region here
+	for (const r of regions) {
 		profileResponse = await fetch(
-			`https://${region}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${encryptedPUUID}`,
+			`https://${r}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${encryptedPUUID}`,
 			{
 				headers: {
 					"X-Riot-Token": process.env.RIOT_API_KEY,
@@ -55,6 +56,7 @@ export async function GET(req, res) {
 		);
 		if (profileResponse.ok) {
 			profileData = await profileResponse.json();
+			region = r; // Store the region if profile is found
 			break;
 		}
 	}
@@ -63,9 +65,30 @@ export async function GET(req, res) {
 		return NextResponse.error("Failed to fetch profile");
 	}
 
+	if (!region) {
+		return NextResponse.error("Region not found");
+	}
+
+	const rankedResponse = await fetch(
+		`https://${region}.api.riotgames.com/lol/league/v4/entries/by-summoner/${profileData.id}`,
+		{
+			headers: {
+				"X-Riot-Token": process.env.RIOT_API_KEY,
+			},
+			revalidatePath: revalidatePath(req.nextUrl.pathname),
+		}
+	);
+
+	if (!rankedResponse.ok) {
+		return NextResponse.error("Failed to fetch ranked data");
+	}
+
+	const rankedData = await rankedResponse.json();
+
 	const data = {
 		profileData,
 		accountData,
+		rankedData,
 	};
 
 	return NextResponse.json(data);
