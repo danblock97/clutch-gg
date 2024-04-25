@@ -1,11 +1,13 @@
 "use client";
 
 import Profile from "@/components/Profile";
-import useProfileData from "../hooks/useProfileData";
 import RankedInfo from "@/components/RankedInfo";
+import ChampionMastery from "@/components/ChampionMastery";
+import useProfileData from "../hooks/useProfileData";
 
 const ProfilePage = () => {
-	const { profileData, accountData, rankedData, error } = useProfileData();
+	const { profileData, accountData, rankedData, championMasteryData, error } =
+		useProfileData();
 
 	return (
 		<div className="min-h-screen bg-gray-700 overflow-hidden">
@@ -19,6 +21,13 @@ const ProfilePage = () => {
 			<div className="flex p-4">
 				{rankedData ? (
 					<RankedInfo rankedData={rankedData} />
+				) : (
+					<p>Loading...</p>
+				)}
+			</div>
+			<div className="flex p-4">
+				{championMasteryData ? (
+					<ChampionMastery championMasteryData={championMasteryData} />
 				) : (
 					<p>Loading...</p>
 				)}

@@ -1,4 +1,3 @@
-// RankedInfo component
 import Image from "next/image";
 
 const RankedInfo = ({ rankedData }) => {
@@ -16,7 +15,7 @@ const RankedInfo = ({ rankedData }) => {
 			const winrate = (data.wins / (data.wins + data.losses)) * 100;
 
 			return (
-				<div className=" rounded-lg overflow-hidden shadow-lg p-6 mb-4">
+				<div className="rounded-lg overflow-hidden shadow-lg p-6 mb-4">
 					<h2 className="text-white text-lg font-semibold">
 						{getQueueName(data.queueType)}
 					</h2>

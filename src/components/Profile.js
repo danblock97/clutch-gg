@@ -1,4 +1,3 @@
-// Profile component
 import Image from "next/image";
 
 const Profile = ({ accountData, profileData }) => {
