@@ -110,12 +110,52 @@ export async function GET(req, res) {
 	// Slice the champion mastery data to return only the first 5 champions
 	championMasteryData = championMasteryData.slice(0, 5);
 
+	//MATCH-V5 - Get the last 10 matches
+	const matchResponse = await fetch(
+		`https://europe.api.riotgames.com/lol/match/v5/matches/by-puuid/${encryptedPUUID}/ids?start=0&count=10`,
+		{
+			headers: {
+				"X-Riot-Token": process.env.RIOT_API_KEY,
+			},
+			revalidatePath: revalidatePath(req.nextUrl.pathname),
+		}
+	);
+
+	if (!matchResponse.ok) {
+		return NextResponse.error("Failed to fetch match data");
+	}
+
+	const matchData = await matchResponse.json();
+
+	//MATCH-V5 - Get the match details for each match
+	const matchDetails = await Promise.all(
+		matchData.map(async (matchId) => {
+			const matchDetailResponse = await fetch(
+				`https://europe.api.riotgames.com/lol/match/v5/matches/${matchId}`,
+				{
+					headers: {
+						"X-Riot-Token": process.env.RIOT_API_KEY,
+					},
+					revalidatePath: revalidatePath(req.nextUrl.pathname),
+				}
+			);
+
+			if (!matchDetailResponse.ok) {
+				return null;
+			}
+
+			return matchDetailResponse.json();
+		})
+	);
+
 	//Combine all data and return
 	const data = {
 		profileData,
 		accountData,
 		rankedData,
 		championMasteryData,
+		matchData,
+		matchDetails,
 	};
 
 	return NextResponse.json(data);
