@@ -90,11 +90,32 @@ export async function GET(req, res) {
 
 	const rankedData = await rankedResponse.json();
 
+	//CHAMPION-MASTERY-V4
+	const championMasteryResponse = await fetch(
+		`https://${region}.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-puuid/${encryptedPUUID}`,
+		{
+			headers: {
+				"X-Riot-Token": process.env.RIOT_API_KEY,
+			},
+			revalidatePath: revalidatePath(req.nextUrl.pathname),
+		}
+	);
+
+	if (!championMasteryResponse.ok) {
+		return NextResponse.error("Failed to fetch champion mastery data");
+	}
+
+	let championMasteryData = await championMasteryResponse.json();
+
+	// Slice the champion mastery data to return only the first 5 champions
+	championMasteryData = championMasteryData.slice(0, 5);
+
 	//Combine all data and return
 	const data = {
 		profileData,
 		accountData,
 		rankedData,
+		championMasteryData,
 	};
 
 	return NextResponse.json(data);
