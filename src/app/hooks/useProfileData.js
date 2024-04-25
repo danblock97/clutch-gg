@@ -6,6 +6,8 @@ const useProfileData = () => {
 	const [accountData, setAccountData] = useState(null);
 	const [rankedData, setRankedData] = useState(null);
 	const [championMasteryData, setChampionMasteryData] = useState(null);
+	const [matchData, setMatchesData] = useState(null);
+	const [matchDetails, setMatchDetails] = useState(null);
 	const [error, setError] = useState(null);
 	const router = useRouter();
 	const gameName = useSearchParams().get("gameName");
@@ -23,6 +25,8 @@ const useProfileData = () => {
 					setAccountData(data.accountData);
 					setRankedData(data.rankedData);
 					setChampionMasteryData(data.championMasteryData);
+					setMatchesData(data.matchData);
+					setMatchDetails(data.matchDetails);
 				})
 				.catch((error) => {
 					setError(error.message || "Failed to fetch data");
@@ -30,7 +34,15 @@ const useProfileData = () => {
 		}
 	}, [router.query, gameName, tagLine]);
 
-	return { profileData, accountData, rankedData, championMasteryData, error };
+	return {
+		profileData,
+		accountData,
+		rankedData,
+		championMasteryData,
+		matchData,
+		matchDetails,
+		error,
+	};
 };
 
 export default useProfileData;
