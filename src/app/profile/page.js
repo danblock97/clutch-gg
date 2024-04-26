@@ -1,10 +1,11 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Profile from "@/components/Profile";
 import RankedInfo from "@/components/RankedInfo";
 import ChampionMastery from "@/components/ChampionMastery";
 import MatchHistory from "@/components/MatchHistory";
+import Loading from "@/components/Loading";
 import useProfileData from "../hooks/useProfileData";
 
 const ProfilePage = () => {
@@ -15,9 +16,14 @@ const ProfilePage = () => {
 		championMasteryData,
 		matchDetails, // Add matchDetails from useProfileData hook
 		error,
+		isLoading, // Add isLoading state from useProfileData hook
 	} = useProfileData();
 
 	const selectedSummonerPUUID = profileData ? profileData.puuid : null;
+
+	if (error) {
+		return <p className="text-red-500">{error}</p>;
+	}
 
 	return (
 		<div className="min-h-screen bg-[#0e1015] flex justify-center items-start p-4">
@@ -28,21 +34,21 @@ const ProfilePage = () => {
 						{profileData && accountData ? (
 							<Profile accountData={accountData} profileData={profileData} />
 						) : (
-							<p className="text-red-500">{error ? error : "Loading..."}</p>
+							isLoading && <Loading />
 						)}
 					</div>
 					<div className="pb-4">
 						{rankedData ? (
 							<RankedInfo rankedData={rankedData} />
 						) : (
-							<p>Loading...</p>
+							isLoading && <Loading />
 						)}
 					</div>
 					<div>
 						{championMasteryData ? (
 							<ChampionMastery championMasteryData={championMasteryData} />
 						) : (
-							<p>Loading...</p>
+							isLoading && <Loading />
 						)}
 					</div>
 				</div>
@@ -54,7 +60,7 @@ const ProfilePage = () => {
 							selectedSummonerPUUID={selectedSummonerPUUID}
 						/>
 					) : (
-						<p>Loading...</p>
+						isLoading && <Loading />
 					)}
 				</div>
 			</div>

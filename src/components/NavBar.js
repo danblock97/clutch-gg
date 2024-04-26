@@ -7,14 +7,18 @@ const NavBar = () => {
 	return (
 		<nav className="bg-[#13151b] text-white py-4 px-6 flex items-center justify-between">
 			<div className="flex items-center space-x-4">
-				<Image
-					src="/images/logo.png"
-					alt="Logo"
-					className="h-8 w-8"
-					width={14}
-					height={14}
-				/>
-				<span className="text-lg font-bold">League Luminaries</span>
+				<Link href="/">
+					<Image
+						src="/images/logo.png"
+						alt="Logo"
+						className="h-8 w-8"
+						width={14}
+						height={14}
+					/>
+				</Link>
+				<Link href="/" className="text-lg font-bold">
+					League Luminaries
+				</Link>
 			</div>
 
 			<div className="flex mx-4">
