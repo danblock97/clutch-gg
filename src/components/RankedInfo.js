@@ -8,7 +8,7 @@ const RankedInfo = ({ rankedData }) => {
 		(item) => item.queueType === "RANKED_FLEX_SR"
 	);
 
-	const renderRankedItem = (data) => {
+	const renderRankedItem = (data, queueType) => {
 		if (data) {
 			const rankedIcon = `/images/rankedEmblems/${data.tier.toLowerCase()}.webp`;
 			const progressBarWidth = (data.leaguePoints / 100) * 300;
@@ -17,7 +17,7 @@ const RankedInfo = ({ rankedData }) => {
 			return (
 				<div className="overflow-hidden p-6 mb-4">
 					<h2 className="text-[#979aa0] text-lg font-semibold">
-						{getQueueName(data.queueType)}
+						{getQueueName(queueType)}
 					</h2>
 					<div className="flex items-center mt-4">
 						<Image src={rankedIcon} alt="Ranked Icon" width={75} height={75} />
@@ -40,7 +40,14 @@ const RankedInfo = ({ rankedData }) => {
 				</div>
 			);
 		} else {
-			return <div className="bg-gray-400 rounded-full w-20 h-20"></div>;
+			return (
+				<div className="overflow-hidden p-6 mb-4">
+					<h2 className="text-[#979aa0] text-lg font-semibold">
+						{getQueueName(queueType)}
+					</h2>
+					<p className="text-gray-400 text-sm">Unranked</p>
+				</div>
+			);
 		}
 	};
 
@@ -57,8 +64,8 @@ const RankedInfo = ({ rankedData }) => {
 
 	return (
 		<div className="bg-[#13151b] rounded-lg overflow-hidden shadow-lg p-6">
-			{renderRankedItem(soloRankedData)}
-			{renderRankedItem(flexRankedData)}
+			{renderRankedItem(soloRankedData, "RANKED_SOLO_5x5")}
+			{renderRankedItem(flexRankedData, "RANKED_FLEX_SR")}
 		</div>
 	);
 };

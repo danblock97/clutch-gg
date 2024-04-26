@@ -39,18 +39,32 @@ const MatchHistory = ({ matchDetails, selectedSummonerPUUID }) => {
 				return "Normal (Blind)";
 			case 400:
 				return "Normal (Draft)";
+			case 450:
+				return "ARAM";
+			case 900:
+				return "URF";
+			case 1020:
+				return "One for All";
+			case 1300:
+				return "Nexus Blitz";
 			default:
 				return "Unknown Queue";
 		}
 	};
 
-	const getLaneName = (lane) => {
+	const getLaneName = (lane, queueId) => {
+		// Check if the game is ARAM (queueId 450)
+		if (queueId === 450) {
+			return null;
+		}
+
+		// Handle lanes for non-ARAM games
 		switch (lane) {
 			case "TOP":
 				return "Top";
 			case "JUNGLE":
 				return "Jungle";
-			case "MID":
+			case "MIDDLE":
 				return "Mid";
 			case "BOTTOM":
 				return "Bottom";
@@ -88,7 +102,8 @@ const MatchHistory = ({ matchDetails, selectedSummonerPUUID }) => {
 				).toFixed(2);
 				const totalCS =
 					currentPlayerParticipant.totalMinionsKilled +
-					currentPlayerParticipant.totalJungleMinionsKilled;
+					currentPlayerParticipant.totalAllyJungleMinionsKilled +
+					currentPlayerParticipant.totalEnemyJungleMinionsKilled;
 				const dmgPerMin =
 					currentPlayerParticipant.totalDamageDealtToChampions /
 					(match.info.gameDuration / 60);
@@ -124,16 +139,24 @@ const MatchHistory = ({ matchDetails, selectedSummonerPUUID }) => {
 							</p>
 						</div>
 						<div className="flex flex-row items-end">
-							<div className="text-xs lg:text-md font-semibold mr-2 flex items-center">
-								<Image
-									src={`https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-champ-select/global/default/svg/position-${currentPlayerParticipant.lane.toLowerCase()}.svg`}
-									alt="Lane Icon"
-									className="mr-2"
-									width={16}
-									height={16}
-								/>
-								{getLaneName(currentPlayerParticipant.lane)}
-							</div>
+							{getLaneName(
+								currentPlayerParticipant.lane,
+								match.info.queueId
+							) && (
+								<div className="text-xs lg:text-md font-semibold mr-2 flex items-center">
+									<Image
+										src={`https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-champ-select/global/default/svg/position-${currentPlayerParticipant.lane.toLowerCase()}.svg`}
+										alt="Lane Icon"
+										className="mr-2"
+										width={16}
+										height={16}
+									/>
+									{getLaneName(
+										currentPlayerParticipant.lane,
+										match.info.queueId
+									)}
+								</div>
+							)}
 							<div className="flex flex-grow items-end">
 								{" "}
 								{/* Added a flex container */}
