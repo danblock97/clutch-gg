@@ -12,8 +12,13 @@ const regions = [
 	"LA2",
 	"NA1",
 	"OC1",
-	"TR1",
+	"PH2",
 	"RU",
+	"SG2",
+	"TH2",
+	"TR1",
+	"TW2",
+	"VN2",
 ];
 
 export async function GET(req, res) {
