@@ -50,6 +50,18 @@ const MatchHistory = ({ matchDetails, selectedSummonerPUUID }) => {
 					currentPlayerParticipant.totalAllyJungleMinionsKilled +
 					currentPlayerParticipant.totalEnemyJungleMinionsKilled;
 
+				// Calculate DMG/Min
+				const dmgPerMin =
+					currentPlayerParticipant.totalDamageDealtToChampions /
+					(match.info.gameDuration / 60);
+
+				// Calculate Vis/Min
+				const visPerMin =
+					currentPlayerParticipant.visionScore / (match.info.gameDuration / 60);
+
+				// Calculate CS/Min
+				const csPerMin = totalCS / (match.info.gameDuration / 60);
+
 				return (
 					<div
 						key={index}
@@ -86,7 +98,7 @@ const MatchHistory = ({ matchDetails, selectedSummonerPUUID }) => {
 							</div>
 							<div className="flex-grow">
 								<p className="text-xs md:text-sm lg:text-lg">
-									{currentPlayerParticipant.visionScore} Vis/Min
+									{visPerMin.toFixed(2)} Vis/Min
 								</p>
 								<p className="text-xs md:text-sm lg:text-lg">
 									{(
@@ -97,13 +109,13 @@ const MatchHistory = ({ matchDetails, selectedSummonerPUUID }) => {
 							</div>
 							<div className="flex-grow">
 								<p className="text-xs md:text-sm lg:text-lg">
-									CS/Min: {currentPlayerParticipant.csPerMin}
+									CS/Min: {csPerMin.toFixed(1)}
 								</p>
 								<p className="text-xs md:text-sm lg:text-lg">{totalCS} CS</p>
 							</div>
 							<div className="flex-grow">
 								<p className="text-xs md:text-sm lg:text-lg">
-									DMG/Min: {currentPlayerParticipant.damageDealtToChampions}
+									DMG/Min: {dmgPerMin.toFixed(0)}
 								</p>
 							</div>
 						</div>
