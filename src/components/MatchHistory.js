@@ -10,7 +10,7 @@ const calculateKDA = (kills, deaths, assists) => {
 const MatchHistory = ({ matchDetails, selectedSummonerPUUID }) => {
 	if (!matchDetails || matchDetails.length === 0) {
 		return (
-			<div className="bg-gray-900 text-white p-4 rounded-md">
+			<div className="bg-[#18141c] text-[#979aa0] p-4 rounded-md">
 				No match history available
 			</div>
 		);
@@ -24,14 +24,14 @@ const MatchHistory = ({ matchDetails, selectedSummonerPUUID }) => {
 
 	if (filteredMatches.length === 0) {
 		return (
-			<div className="bg-gray-900 text-white p-4 rounded-md">
+			<div className="bg-[#18141c] text-[#979aa0] p-4 rounded-md">
 				No match history available for this summoner
 			</div>
 		);
 	}
 
 	return (
-		<div className=" text-white p-4">
+		<div className=" text-[#979aa0] p-4">
 			{filteredMatches.map((match, index) => {
 				const currentPlayerParticipant = match.info.participants.find(
 					(participant) => participant.puuid === selectedSummonerPUUID
@@ -65,7 +65,7 @@ const MatchHistory = ({ matchDetails, selectedSummonerPUUID }) => {
 				return (
 					<div
 						key={index}
-						className="bg-gray-800 rounded-md shadow-md p-4 mb-4 flex flex-wrap justify-between items-center"
+						className="bg-[#13151b] rounded-md shadow-md p-4 mb-4 flex flex-wrap justify-between items-center"
 					>
 						<div className="flex items-center mb-2">
 							{/* Show champion icon */}
@@ -89,18 +89,20 @@ const MatchHistory = ({ matchDetails, selectedSummonerPUUID }) => {
 						</div>
 						<div className="flex flex-wrap w-full">
 							<div className="flex-grow">
-								<p className="text-xs md:text-sm lg:text-lg">{kda} KDA</p>
-								<p className="text-xs md:text-sm lg:text-lg">
+								<p className="text-xs md:text-sm lg:text-md font-bold">
+									{kda} KDA
+								</p>
+								<p className="text-xs md:text-sm lg:text-md font-semibold">
 									{currentPlayerParticipant.kills}/
 									{currentPlayerParticipant.deaths}/
 									{currentPlayerParticipant.assists}
 								</p>
 							</div>
 							<div className="flex-grow">
-								<p className="text-xs md:text-sm lg:text-lg">
+								<p className="text-xs md:text-sm lg:text-md font-bold">
 									{visPerMin.toFixed(2)} Vis/Min
 								</p>
-								<p className="text-xs md:text-sm lg:text-lg">
+								<p className="text-xs md:text-sm lg:text-md font-semibold">
 									{(
 										currentPlayerParticipant.challenges.killParticipation * 100
 									).toFixed(0)}
@@ -108,14 +110,22 @@ const MatchHistory = ({ matchDetails, selectedSummonerPUUID }) => {
 								</p>
 							</div>
 							<div className="flex-grow">
-								<p className="text-xs md:text-sm lg:text-lg">
+								<p className="text-xs md:text-sm lg:text-md font-bold">
 									CS/Min: {csPerMin.toFixed(1)}
 								</p>
-								<p className="text-xs md:text-sm lg:text-lg">{totalCS} CS</p>
+								<p className="text-xs md:text-sm lg:text-md font-semibold">
+									{totalCS} CS
+								</p>
 							</div>
 							<div className="flex-grow">
-								<p className="text-xs md:text-sm lg:text-lg">
+								<p className="text-xs md:text-sm lg:text-md font-semibold">
 									DMG/Min: {dmgPerMin.toFixed(0)}
+								</p>
+								<p className="text-xs md:text-sm lg:text-md font-semibold">
+									{currentPlayerParticipant.goldEarned
+										.toFixed(0)
+										.toLocaleString()}{" "}
+									Gold
 								</p>
 							</div>
 						</div>

@@ -3,7 +3,7 @@ import React from "react";
 
 const Home = () => {
 	return (
-		<div className="flex items-center justify-center h-screen bg-gray-700">
+		<div className="flex items-center justify-center h-screen bg-[#0e1015]">
 			<SearchBar />
 		</div>
 	);

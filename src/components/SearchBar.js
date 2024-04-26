@@ -21,7 +21,7 @@ const SearchBar = () => {
 	return (
 		<div className="flex flex-col sm:flex-row items-center justify-center p-4 bg-gray-800 rounded-lg">
 			<input
-				className="flex-1 p-2 mb-4 sm:mb-0 sm:mr-2 border border-gray-300 rounded bg-gray-700 text-white placeholder-gray-400"
+				className="flex-1 p-2 mb-4 sm:mb-0 sm:mr-2 border border-gray-300 rounded bg-gray-700 text-[#979aa0] placeholder-gray-400"
 				type="text"
 				placeholder="gameName#tagLine"
 				value={combinedInput}
@@ -31,7 +31,7 @@ const SearchBar = () => {
 
 			{/* Search button */}
 			<button
-				className="p-2 bg-blue-500 text-white rounded w-full sm:w-auto"
+				className="p-2 bg-blue-500 text-[#979aa0] rounded w-full sm:w-auto"
 				onClick={handleSearch}
 			>
 				Search

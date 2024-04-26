@@ -15,14 +15,14 @@ const RankedInfo = ({ rankedData }) => {
 			const winrate = (data.wins / (data.wins + data.losses)) * 100;
 
 			return (
-				<div className="rounded-lg overflow-hidden shadow-lg p-6 mb-4">
-					<h2 className="text-white text-lg font-semibold">
+				<div className="overflow-hidden p-6 mb-4">
+					<h2 className="text-[#979aa0] text-lg font-semibold">
 						{getQueueName(data.queueType)}
 					</h2>
 					<div className="flex items-center mt-4">
 						<Image src={rankedIcon} alt="Ranked Icon" width={75} height={75} />
 						<div className="ml-4">
-							<h3 className="text-white text-lg font-semibold">
+							<h3 className="text-[#979aa0] text-lg font-semibold">
 								{data.tier} {data.rank}
 							</h3>
 							<p className="text-gray-400 text-sm">{data.leaguePoints} LP</p>
@@ -56,7 +56,7 @@ const RankedInfo = ({ rankedData }) => {
 	};
 
 	return (
-		<div className="bg-gray-800 rounded-lg overflow-hidden shadow-lg p-6">
+		<div className="bg-[#13151b] rounded-lg overflow-hidden shadow-lg p-6">
 			{renderRankedItem(soloRankedData)}
 			{renderRankedItem(flexRankedData)}
 		</div>

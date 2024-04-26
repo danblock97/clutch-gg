@@ -13,7 +13,7 @@ const ChampionMastery = ({ championMasteryData }) => {
 	}
 
 	return (
-		<div className="bg-gray-800 rounded-lg overflow-hidden shadow-lg p-6">
+		<div className="bg-[#13151b] rounded-lg overflow-hidden shadow-lg p-6">
 			<h2 className="text-white text-lg font-semibold">Champion Mastery</h2>
 			<div className="flex flex-col justify-start mt-4">
 				{championMasteryData.map((mastery) => {
@@ -23,7 +23,7 @@ const ChampionMastery = ({ championMasteryData }) => {
 					return (
 						<div
 							key={mastery.championId}
-							className="flex flex-row items-center justify-center rounded-lg p-2 mr-4"
+							className="flex flex-row items-center  rounded-lg p-2 mr-4"
 						>
 							<div className="relative">
 								<Image

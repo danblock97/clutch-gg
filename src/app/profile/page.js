@@ -20,7 +20,7 @@ const ProfilePage = () => {
 	const selectedSummonerPUUID = profileData ? profileData.puuid : null;
 
 	return (
-		<div className="min-h-screen bg-gray-700 flex justify-center items-start p-4">
+		<div className="min-h-screen bg-[#0e1015] flex justify-center items-start p-4">
 			<div className="max-w-screen-xl flex flex-col sm:flex-row w-full">
 				{/* Left Section - Profile, Ranked, Champion */}
 				<div className="w-full md:w-1/3 pr-4">
