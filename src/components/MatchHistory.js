@@ -1,10 +1,21 @@
 import Image from "next/image";
 import React from "react";
 
-// Function to get the KDA ratio
-const calculateKDA = (kills, deaths, assists) => {
-	const kda = (kills + assists) / deaths;
-	return isNaN(kda) || !isFinite(kda) ? 0 : kda.toFixed(2);
+const getQueueName = (queueType) => {
+	switch (queueId) {
+		case 420:
+			return "Ranked Solo/Duo";
+		case 470:
+			return "Ranked Flex";
+		case 490:
+			return "Normal (Quickplay)";
+		case 430:
+			return "Normal (Blind)";
+		case 400:
+			return "Normal (Draft)";
+		default:
+			return "Unknown Queue";
+	}
 };
 
 const MatchHistory = ({ matchDetails, selectedSummonerPUUID }) => {
@@ -15,6 +26,40 @@ const MatchHistory = ({ matchDetails, selectedSummonerPUUID }) => {
 			</div>
 		);
 	}
+
+	const getQueueName = (queueId) => {
+		switch (queueId) {
+			case 420:
+				return "Ranked Solo/Duo";
+			case 470:
+				return "Ranked Flex";
+			case 490:
+				return "Normal (Quickplay)";
+			case 430:
+				return "Normal (Blind)";
+			case 400:
+				return "Normal (Draft)";
+			default:
+				return "Unknown Queue";
+		}
+	};
+
+	const getLaneName = (lane) => {
+		switch (lane) {
+			case "TOP":
+				return "Top";
+			case "JUNGLE":
+				return "Jungle";
+			case "MID":
+				return "Mid";
+			case "BOTTOM":
+				return "Bottom";
+			case "UTILITY":
+				return "Support";
+			default:
+				return "Unknown Lane";
+		}
+	};
 
 	const filteredMatches = matchDetails.filter((match) =>
 		match.info.participants.some(
@@ -37,38 +82,30 @@ const MatchHistory = ({ matchDetails, selectedSummonerPUUID }) => {
 					(participant) => participant.puuid === selectedSummonerPUUID
 				);
 
-				// Calculate KDA
-				const kda = calculateKDA(
-					currentPlayerParticipant.kills,
-					currentPlayerParticipant.deaths,
-					currentPlayerParticipant.assists
-				);
-
-				// Calculate total CS
+				const kda = (
+					(currentPlayerParticipant.kills + currentPlayerParticipant.assists) /
+					currentPlayerParticipant.deaths
+				).toFixed(2);
 				const totalCS =
 					currentPlayerParticipant.totalMinionsKilled +
-					currentPlayerParticipant.totalAllyJungleMinionsKilled +
-					currentPlayerParticipant.totalEnemyJungleMinionsKilled;
-
-				// Calculate DMG/Min
+					currentPlayerParticipant.totalJungleMinionsKilled;
 				const dmgPerMin =
 					currentPlayerParticipant.totalDamageDealtToChampions /
 					(match.info.gameDuration / 60);
-
-				// Calculate Vis/Min
 				const visPerMin =
 					currentPlayerParticipant.visionScore / (match.info.gameDuration / 60);
-
-				// Calculate CS/Min
 				const csPerMin = totalCS / (match.info.gameDuration / 60);
+
+				const gameDuration =
+					new Date().getTime() - new Date(match.info.gameCreation).getTime();
+				const daysAgo = Math.floor(gameDuration / (1000 * 60 * 60 * 24));
 
 				return (
 					<div
 						key={index}
-						className="bg-[#13151b] rounded-md shadow-md p-4 mb-4 flex flex-wrap justify-between items-center"
+						className="bg-[#13151b] rounded-md shadow-md p-4 mb-4 flex flex-wrap justify-between items-center px-6 py-4 w-full"
 					>
 						<div className="flex items-center mb-2">
-							{/* Show champion icon */}
 							<Image
 								src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${currentPlayerParticipant.championId}.png`}
 								alt="Champion Icon"
@@ -76,7 +113,6 @@ const MatchHistory = ({ matchDetails, selectedSummonerPUUID }) => {
 								width={40}
 								height={40}
 							/>
-							{/* Show champion name */}
 							<p
 								className={`font-semibold ${
 									currentPlayerParticipant.win
@@ -87,11 +123,34 @@ const MatchHistory = ({ matchDetails, selectedSummonerPUUID }) => {
 								{currentPlayerParticipant.win ? "Victory" : "Defeat"}
 							</p>
 						</div>
+						<div className="flex flex-row items-end">
+							<div className="text-xs lg:text-md font-semibold mr-2 flex items-center">
+								<Image
+									src={`https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-champ-select/global/default/svg/position-${currentPlayerParticipant.lane.toLowerCase()}.svg`}
+									alt="Lane Icon"
+									className="mr-2"
+									width={16}
+									height={16}
+								/>
+								{getLaneName(currentPlayerParticipant.lane)}
+							</div>
+							<div className="flex flex-grow items-end">
+								{" "}
+								{/* Added a flex container */}
+								<div className="text-xs lg:text-md font-semibold mr-2">
+									{getQueueName(match.info.queueId)}
+								</div>
+								<div className="text-xs lg:text-md font-semibold mr-2">
+									{daysAgo === 0
+										? "Today"
+										: `${daysAgo} day${daysAgo > 1 ? "s" : ""} ago`}
+								</div>
+							</div>
+						</div>
+
 						<div className="flex flex-wrap w-full">
 							<div className="flex-grow">
-								<p className="text-xs md:text-sm lg:text-md font-bold">
-									{kda} KDA
-								</p>
+								<p className="text-xs  lg:text-md font-bold">{kda} KDA</p>
 								<p className="text-xs md:text-sm lg:text-md font-semibold">
 									{currentPlayerParticipant.kills}/
 									{currentPlayerParticipant.deaths}/
