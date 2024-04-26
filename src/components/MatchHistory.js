@@ -111,9 +111,12 @@ const MatchHistory = ({ matchDetails, selectedSummonerPUUID }) => {
 					currentPlayerParticipant.visionScore / (match.info.gameDuration / 60);
 				const csPerMin = totalCS / (match.info.gameDuration / 60);
 
-				const gameDuration =
+				const gameDurationMs =
 					new Date().getTime() - new Date(match.info.gameCreation).getTime();
-				const daysAgo = Math.floor(gameDuration / (1000 * 60 * 60 * 24));
+				const daysAgo = Math.floor(gameDurationMs / (1000 * 60 * 60 * 24));
+				const hoursAgo = Math.floor(gameDurationMs / (1000 * 60 * 60));
+				const minutesAgo = Math.floor(gameDurationMs / (1000 * 60));
+				const secondsAgo = Math.floor(gameDurationMs / 1000);
 
 				return (
 					<div
@@ -164,9 +167,19 @@ const MatchHistory = ({ matchDetails, selectedSummonerPUUID }) => {
 									{getQueueName(match.info.queueId)}
 								</div>
 								<div className="text-xs lg:text-md font-semibold mr-2">
-									{daysAgo === 0
-										? "Today"
-										: `${daysAgo} day${daysAgo > 1 ? "s" : ""} ago`}
+									{daysAgo === 0 ? (
+										<p className="text-xs lg:text-md font-semibold">
+											{hoursAgo === 0
+												? `${minutesAgo} minute${
+														minutesAgo !== 1 ? "s" : ""
+												  } ago`
+												: `${hoursAgo} hour${hoursAgo !== 1 ? "s" : ""} ago`}
+										</p>
+									) : (
+										<p className="text-xs lg:text-md font-semibold">
+											{daysAgo} day{daysAgo !== 1 ? "s" : ""} ago
+										</p>
+									)}
 								</div>
 							</div>
 						</div>

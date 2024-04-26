@@ -14,7 +14,7 @@ const NavBar = () => {
 					width={14}
 					height={14}
 				/>
-				<span className="text-lg font-bold">Your App Name</span>
+				<span className="text-lg font-bold">League Luminaries</span>
 			</div>
 
 			<div className="flex mx-4">

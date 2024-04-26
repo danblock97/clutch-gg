@@ -11,7 +11,10 @@ const RankedInfo = ({ rankedData }) => {
 	const renderRankedItem = (data, queueType) => {
 		if (data) {
 			const rankedIcon = `/images/rankedEmblems/${data.tier.toLowerCase()}.webp`;
-			const progressBarWidth = (data.leaguePoints / 100) * 300;
+			const maxLeaguePoints = 100; // Define the maximum league points in a tier (you may need to adjust this)
+			const progressBarWidth = (data.leaguePoints / maxLeaguePoints) * 100; // Calculate progress relative to max points
+			const clampedProgressBarWidth = Math.min(progressBarWidth, 100); // Clamp the progress between 0 and 100
+
 			const winrate = (data.wins / (data.wins + data.losses)) * 100;
 
 			return (
@@ -32,7 +35,7 @@ const RankedInfo = ({ rankedData }) => {
 							<div className="bg-gray-600 h-2 mt-1 rounded">
 								<div
 									className="bg-green-400 h-2 rounded"
-									style={{ width: `${progressBarWidth}px` }}
+									style={{ width: `${clampedProgressBarWidth}%` }} // Adjusted width calculation
 								></div>
 							</div>
 						</div>
