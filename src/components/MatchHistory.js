@@ -52,14 +52,14 @@ const MatchHistory = ({ matchDetails, selectedSummonerPUUID }) => {
 		}
 	};
 
-	const getLaneName = (lane, queueId) => {
+	const getLaneName = (individualPosition, queueId) => {
 		// Check if the game is ARAM (queueId 450)
 		if (queueId === 450) {
 			return null;
 		}
 
 		// Handle lanes for non-ARAM games
-		switch (lane) {
+		switch (individualPosition) {
 			case "TOP":
 				return "Top";
 			case "JUNGLE":
@@ -143,19 +143,19 @@ const MatchHistory = ({ matchDetails, selectedSummonerPUUID }) => {
 						</div>
 						<div className="flex flex-row items-end">
 							{getLaneName(
-								currentPlayerParticipant.lane,
+								currentPlayerParticipant.individualPosition,
 								match.info.queueId
 							) && (
 								<div className="text-xs lg:text-md font-semibold mr-2 flex items-center">
 									<Image
-										src={`https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-champ-select/global/default/svg/position-${currentPlayerParticipant.lane.toLowerCase()}.svg`}
+										src={`https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-champ-select/global/default/svg/position-${currentPlayerParticipant.individualPosition.toLowerCase()}.svg`}
 										alt="Lane Icon"
 										className="mr-2"
 										width={16}
 										height={16}
 									/>
 									{getLaneName(
-										currentPlayerParticipant.lane,
+										currentPlayerParticipant.individualPosition,
 										match.info.queueId
 									)}
 								</div>
