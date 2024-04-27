@@ -1,24 +1,9 @@
 import Image from "next/image";
 import React from "react";
-
-const getQueueName = (queueType) => {
-	switch (queueId) {
-		case 420:
-			return "Ranked Solo/Duo";
-		case 470:
-			return "Ranked Flex";
-		case 490:
-			return "Normal (Quickplay)";
-		case 430:
-			return "Normal (Blind)";
-		case 400:
-			return "Normal (Draft)";
-		default:
-			return "Unknown Queue";
-	}
-};
+import { useRouter } from "next/navigation";
 
 const MatchHistory = ({ matchDetails, selectedSummonerPUUID }) => {
+	const router = useRouter();
 	if (!matchDetails || matchDetails.length === 0) {
 		return (
 			<div className="bg-[#18141c] text-[#979aa0] p-4 rounded-md">
@@ -116,12 +101,14 @@ const MatchHistory = ({ matchDetails, selectedSummonerPUUID }) => {
 				const daysAgo = Math.floor(gameDurationMs / (1000 * 60 * 60 * 24));
 				const hoursAgo = Math.floor(gameDurationMs / (1000 * 60 * 60));
 				const minutesAgo = Math.floor(gameDurationMs / (1000 * 60));
-				const secondsAgo = Math.floor(gameDurationMs / 1000);
 
 				return (
 					<div
 						key={index}
 						className="bg-[#13151b] rounded-md shadow-md p-4 mb-4 flex flex-wrap justify-between items-center px-6 py-4 w-full"
+						onClick={() => {
+							router.push(`/match?matchId=${match.metadata.matchId}`);
+						}}
 					>
 						<div className="flex items-center mb-2">
 							<Image
