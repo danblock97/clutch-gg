@@ -106,9 +106,6 @@ const MatchHistory = ({ matchDetails, selectedSummonerPUUID }) => {
 					<div
 						key={index}
 						className="bg-[#13151b] rounded-md shadow-md p-4 mb-4 flex flex-wrap justify-between items-center px-6 py-4 w-full"
-						onClick={() => {
-							router.push(`/match?matchId=${match.metadata.matchId}`);
-						}}
 					>
 						<div className="flex items-center mb-2">
 							<Image
