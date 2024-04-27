@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Profile from "@/components/Profile";
 import RankedInfo from "@/components/RankedInfo";
 import ChampionMastery from "@/components/ChampionMastery";
@@ -14,15 +14,19 @@ const ProfilePage = () => {
 		accountData,
 		rankedData,
 		championMasteryData,
-		matchDetails, // Add matchDetails from useProfileData hook
+		matchDetails,
 		error,
-		isLoading, // Add isLoading state from useProfileData hook
+		isLoading,
 	} = useProfileData();
 
 	const selectedSummonerPUUID = profileData ? profileData.puuid : null;
 
 	if (error) {
 		return <p className="text-red-500">{error}</p>;
+	}
+
+	if (isLoading) {
+		return <Loading />;
 	}
 
 	return (
@@ -33,23 +37,15 @@ const ProfilePage = () => {
 					<div className="pb-4">
 						{profileData && accountData ? (
 							<Profile accountData={accountData} profileData={profileData} />
-						) : (
-							isLoading && <Loading />
-						)}
+						) : null}
 					</div>
 					<div className="pb-4">
-						{rankedData ? (
-							<RankedInfo rankedData={rankedData} />
-						) : (
-							isLoading && <Loading />
-						)}
+						{rankedData ? <RankedInfo rankedData={rankedData} /> : null}
 					</div>
 					<div>
 						{championMasteryData ? (
 							<ChampionMastery championMasteryData={championMasteryData} />
-						) : (
-							isLoading && <Loading />
-						)}
+						) : null}
 					</div>
 				</div>
 				{/* Right Section - Match History */}
@@ -59,9 +55,7 @@ const ProfilePage = () => {
 							matchDetails={matchDetails}
 							selectedSummonerPUUID={selectedSummonerPUUID}
 						/>
-					) : (
-						isLoading && <Loading />
-					)}
+					) : null}
 				</div>
 			</div>
 		</div>

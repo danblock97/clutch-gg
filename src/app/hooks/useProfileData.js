@@ -8,6 +8,7 @@ const useProfileData = () => {
 	const [championMasteryData, setChampionMasteryData] = useState(null);
 	const [matchData, setMatchesData] = useState(null);
 	const [matchDetails, setMatchDetails] = useState(null);
+	const [isLoading, setIsLoading] = useState(false); // New loading state
 	const [error, setError] = useState(null);
 	const router = useRouter();
 	const gameName = useSearchParams().get("gameName");
@@ -15,6 +16,7 @@ const useProfileData = () => {
 
 	useEffect(() => {
 		if (gameName && tagLine) {
+			setIsLoading(true); // Set loading state to true when fetching data starts
 			fetch(`/api/profile?gameName=${gameName}&tagLine=${tagLine}`)
 				.then((response) => {
 					if (!response.ok) throw new Error("Failed to fetch");
@@ -27,9 +29,11 @@ const useProfileData = () => {
 					setChampionMasteryData(data.championMasteryData);
 					setMatchesData(data.matchData);
 					setMatchDetails(data.matchDetails);
+					setIsLoading(false); // Set loading state to false when data fetching completes
 				})
 				.catch((error) => {
 					setError(error.message || "Failed to fetch data");
+					setIsLoading(false); // Set loading state to false in case of error
 				});
 		}
 	}, [router.query, gameName, tagLine]);
@@ -41,6 +45,7 @@ const useProfileData = () => {
 		championMasteryData,
 		matchData,
 		matchDetails,
+		isLoading, // Return isLoading state
 		error,
 	};
 };

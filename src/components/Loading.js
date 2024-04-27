@@ -2,10 +2,9 @@ import React from "react";
 
 const Loading = () => {
 	return (
-		<div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50">
-			{/* You can replace this with your preferred loading animation or spinner */}
-			<div className="spinner-border text-primary" role="status">
-				<span className="sr-only">Loading...</span>
+		<div className="">
+			<div className="bg-[#0e1015] flex items-center justify-center h-screen">
+				<div className="w-20 h-20 border-t-4 border-b-4 border-blue-500 rounded-full animate-spin"></div>
 			</div>
 		</div>
 	);
