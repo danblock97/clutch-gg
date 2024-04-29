@@ -24,7 +24,18 @@ const MatchDetails = ({ matchDetails, matchId, accountData }) => {
 						participant.win ? "bg-blue-900" : "bg-red-900"
 					}`}
 				>
+					{/* Position Icon */}
 					<div className="flex items-center space-x-2">
+						<Image
+							className="w-6 h-6"
+							src={`https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-champ-select/global/default/svg/position-${participant.individualPosition.toLowerCase()}.svg`}
+							alt={`${participant.individualPosition} Position Icon`}
+							width={24}
+							height={24}
+						/>
+					</div>
+					{/* Champion Icon */}
+					<div>
 						<Image
 							className="w-10 h-10 rounded-full"
 							src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${participant.championId}.png`}
@@ -32,19 +43,24 @@ const MatchDetails = ({ matchDetails, matchId, accountData }) => {
 							width={40}
 							height={40}
 						/>
-						<span className="font-semibold">
-							{participant.summonerName || "Unknown Player"}
-						</span>
 					</div>
-					<div className="flex items-center space-x-3">
-						<span className="font-semibold">{`${participant.kills} / ${participant.deaths} / ${participant.assists}`}</span>
-						<span className="font-semibold">{`${(
-							(participant.kills + participant.assists) /
-							Math.max(1, participant.deaths)
-						).toFixed(2)} KDA`}</span>
-						<span className="font-semibold">{`${participant.totalMinionsKilled} CS`}</span>
-						<span className="font-semibold">{`${participant.totalDamageDealtToChampions.toLocaleString()} DMG`}</span>
+					{/* Riot ID */}
+					<span className="font-semibold">{`${participant.riotIdGameName}#${participant.riotIdTagline}`}</span>
+					{/* Summoner Spells */}
+					<div className="flex space-x-1">
+						{[participant.summoner1Id, participant.summoner2Id].map(
+							(spellId, idx) => (
+								<Image
+									key={idx}
+									src={`/images/summonerSpells/${spellId}.png`}
+									alt={`Summoner Spell ${idx + 1}`}
+									width={24}
+									height={24}
+								/>
+							)
+						)}
 					</div>
+					{/* Items */}
 					<div className="flex space-x-1">
 						{Array.from({ length: 7 }, (_, i) => participant[`item${i}`])
 							.filter((itemId) => itemId > 0)
@@ -59,19 +75,12 @@ const MatchDetails = ({ matchDetails, matchId, accountData }) => {
 								/>
 							))}
 					</div>
-					<div className="flex space-x-2">
-						{[participant.summoner1Id, participant.summoner2Id].map(
-							(spellId, idx) => (
-								<Image
-									key={idx}
-									src={`/images/summonerSpells/${spellId}.png`}
-									alt={`Summoner Spell ${idx + 1}`}
-									width={24}
-									height={24}
-								/>
-							)
-						)}
-					</div>
+					{/* K/D/A */}
+					<span className="font-semibold">{`${participant.kills} / ${participant.deaths} / ${participant.assists}`}</span>
+					{/* Total CS */}
+					<span className="font-semibold">{`${participant.totalMinionsKilled} CS`}</span>
+					{/* Total Damage */}
+					<span className="font-semibold">{`${participant.totalDamageDealtToChampions.toLocaleString()} DMG`}</span>
 				</div>
 			))}
 		</div>
