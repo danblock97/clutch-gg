@@ -1,4 +1,6 @@
-const MatchDetails = ({ matchDetails, matchId }) => {
+import Image from "next/image";
+
+const MatchDetails = ({ matchDetails, matchId, accountData }) => {
 	if (!matchDetails) {
 		return (
 			<div className="text-center text-white">Loading match details...</div>
@@ -14,61 +16,48 @@ const MatchDetails = ({ matchDetails, matchId }) => {
 	}
 
 	return (
-		<div className="bg-gray-800 text-white p-4">
+		<div className="bg-gray-900 p-4 text-white">
 			{match.info.participants.map((participant, index) => (
 				<div
 					key={index}
-					className={`flex items-center justify-between p-2 my-1 rounded ${
-						participant.win ? "bg-green-500" : "bg-red-500"
+					className={`flex justify-between items-center p-3 my-1 rounded-lg ${
+						participant.win ? "bg-blue-900" : "bg-red-900"
 					}`}
 				>
-					<div className="flex items-center">
-						<img
-							className="w-10 h-10 rounded-full mr-2"
+					<div className="flex items-center space-x-2">
+						<Image
+							className="w-10 h-10 rounded-full"
 							src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${participant.championId}.png`}
 							alt="Champion"
+							width={40}
+							height={40}
 						/>
-						<span className="font-bold">{participant.summonerName}</span>
+						<span className="font-semibold">
+							{participant.summonerName || "Unknown Player"}
+						</span>
 					</div>
-					<div className="flex items-center">
-						<div className="text-center mx-2">
-							<span className="font-bold">{participant.kills}</span> /{" "}
-							<span className="text-red-300">{participant.deaths}</span> /{" "}
-							<span className="font-bold">{participant.assists}</span>
-						</div>
-						<div className="text-center mx-2">
-							<span className="font-bold">
-								{(participant.kills + participant.assists) /
-									Math.max(1, participant.deaths).toFixed(1)}{" "}
-								KDA
-							</span>
-						</div>
-						<div className="text-center mx-2">
-							<span className="font-bold">
-								{participant.totalMinionsKilled}
-							</span>{" "}
-							CS
-						</div>
-						<div className="text-center mx-2">
-							<span className="font-bold">
-								{participant.totalDamageDealtToChampions.toLocaleString()}
-							</span>{" "}
-							DMG
-						</div>
+					<div className="flex items-center space-x-3">
+						<span className="font-semibold">{`${participant.kills} / ${participant.deaths} / ${participant.assists}`}</span>
+						<span className="font-semibold">{`${(
+							(participant.kills + participant.assists) /
+							Math.max(1, participant.deaths)
+						).toFixed(2)} KDA`}</span>
+						<span className="font-semibold">{`${participant.totalMinionsKilled} CS`}</span>
+						<span className="font-semibold">{`${participant.totalDamageDealtToChampions.toLocaleString()} DMG`}</span>
 					</div>
-					<div className="flex">
-						{Array.isArray(participant.items) &&
-							participant.items.map(
-								(itemId, idx) =>
-									itemId && (
-										<img
-											key={idx}
-											className="w-6 h-6 rounded mr-1"
-											src={`/path/to/items/${itemId}.png`}
-											alt="Item"
-										/>
-									)
-							)}
+					<div className="flex space-x-1">
+						{Array.from({ length: 7 }, (_, i) => participant[`item${i}`])
+							.filter((itemId) => itemId > 0)
+							.map((itemId, idx) => (
+								<Image
+									key={idx}
+									className="w-8 h-8"
+									src={`https://ddragon.leagueoflegends.com/cdn/14.8.1/img/item/${itemId}.png`}
+									alt="Item"
+									width={32}
+									height={32}
+								/>
+							))}
 					</div>
 				</div>
 			))}

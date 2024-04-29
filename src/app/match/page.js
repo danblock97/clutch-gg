@@ -8,7 +8,7 @@ import useProfileData from "../hooks/useProfileData";
 const MatchPage = () => {
 	const searchParams = useSearchParams();
 	const matchId = searchParams.get("matchId");
-	const { matchDetails } = useProfileData();
+	const { matchDetails, accountData } = useProfileData();
 
 	// Log gameName and tagLine
 	useEffect(() => {
@@ -19,7 +19,11 @@ const MatchPage = () => {
 	return (
 		<div>
 			{matchId && (
-				<MatchDetails matchId={matchId} matchDetails={matchDetails} />
+				<MatchDetails
+					matchId={matchId}
+					matchDetails={matchDetails}
+					accountData={accountData}
+				/>
 			)}
 		</div>
 	);
