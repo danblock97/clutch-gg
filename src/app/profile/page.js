@@ -21,6 +21,9 @@ const ProfilePage = () => {
 
 	const selectedSummonerPUUID = profileData ? profileData.puuid : null;
 
+	const gameName = accountData ? accountData.gameName : null;
+	const tagLine = accountData ? accountData.tagLine : null;
+
 	if (error) {
 		return <p className="text-red-500">{error}</p>;
 	}
@@ -54,6 +57,8 @@ const ProfilePage = () => {
 						<MatchHistory
 							matchDetails={matchDetails}
 							selectedSummonerPUUID={selectedSummonerPUUID}
+							gameName={gameName}
+							tagLine={tagLine}
 						/>
 					) : null}
 				</div>

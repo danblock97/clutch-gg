@@ -1,8 +1,14 @@
 import Image from "next/image";
 import React from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
-const MatchHistory = ({ matchDetails, selectedSummonerPUUID }) => {
+const MatchHistory = ({
+	matchDetails,
+	selectedSummonerPUUID,
+	gameName,
+	tagLine,
+}) => {
 	const router = useRouter();
 	if (!matchDetails || matchDetails.length === 0) {
 		return (
@@ -103,112 +109,115 @@ const MatchHistory = ({ matchDetails, selectedSummonerPUUID }) => {
 				const minutesAgo = Math.floor(gameDurationMs / (1000 * 60));
 
 				return (
-					<div
+					<Link
 						key={index}
-						className="bg-[#13151b] rounded-md shadow-md p-4 mb-4 flex flex-wrap justify-between items-center px-6 py-4 w-full"
+						href={`/match?gameName=${gameName}&tagLine=${tagLine}&matchId=${match.metadata.matchId}`}
 					>
-						<div className="flex items-center mb-2">
-							<Image
-								src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${currentPlayerParticipant.championId}.png`}
-								alt="Champion Icon"
-								className="w-10 h-10 mr-2"
-								width={40}
-								height={40}
-							/>
-							<p
-								className={`font-semibold ${
-									currentPlayerParticipant.win
-										? "text-green-500"
-										: "text-red-500"
-								}`}
-							>
-								{currentPlayerParticipant.win ? "Victory" : "Defeat"}
-							</p>
-						</div>
-						<div className="flex flex-row items-end">
-							{getLaneName(
-								currentPlayerParticipant.individualPosition,
-								match.info.queueId
-							) && (
-								<div className="text-xs lg:text-md font-semibold mr-2 flex items-center">
-									<Image
-										src={`https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-champ-select/global/default/svg/position-${currentPlayerParticipant.individualPosition.toLowerCase()}.svg`}
-										alt="Lane Icon"
-										className="mr-2"
-										width={16}
-										height={16}
-									/>
-									{getLaneName(
-										currentPlayerParticipant.individualPosition,
-										match.info.queueId
-									)}
-								</div>
-							)}
-							<div className="flex flex-grow items-end">
-								{" "}
-								{/* Added a flex container */}
-								<div className="text-xs lg:text-md font-semibold mr-2">
-									{getQueueName(match.info.queueId)}
-								</div>
-								<div className="text-xs lg:text-md font-semibold mr-2">
-									{daysAgo === 0 ? (
-										<p className="text-xs lg:text-md font-semibold">
-											{hoursAgo === 0
-												? `${minutesAgo} minute${
-														minutesAgo !== 1 ? "s" : ""
-												  } ago`
-												: `${hoursAgo} hour${hoursAgo !== 1 ? "s" : ""} ago`}
-										</p>
-									) : (
-										<p className="text-xs lg:text-md font-semibold">
-											{daysAgo} day{daysAgo !== 1 ? "s" : ""} ago
-										</p>
-									)}
+						<div className="bg-[#13151b] rounded-md shadow-md p-4 mb-4 flex flex-wrap justify-between items-center px-6 py-4 w-full">
+							<div className="flex items-center mb-2">
+								<Image
+									src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${currentPlayerParticipant.championId}.png`}
+									alt="Champion Icon"
+									className="w-10 h-10 mr-2"
+									width={40}
+									height={40}
+								/>
+								<p
+									className={`font-semibold ${
+										currentPlayerParticipant.win
+											? "text-green-500"
+											: "text-red-500"
+									}`}
+								>
+									{currentPlayerParticipant.win ? "Victory" : "Defeat"}
+								</p>
+							</div>
+							<div className="flex flex-row items-end">
+								{getLaneName(
+									currentPlayerParticipant.individualPosition,
+									match.info.queueId
+								) && (
+									<div className="text-xs lg:text-md font-semibold mr-2 flex items-center">
+										<Image
+											src={`https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-champ-select/global/default/svg/position-${currentPlayerParticipant.individualPosition.toLowerCase()}.svg`}
+											alt="Lane Icon"
+											className="mr-2"
+											width={16}
+											height={16}
+										/>
+										{getLaneName(
+											currentPlayerParticipant.individualPosition,
+											match.info.queueId
+										)}
+									</div>
+								)}
+								<div className="flex flex-grow items-end">
+									{" "}
+									{/* Added a flex container */}
+									<div className="text-xs lg:text-md font-semibold mr-2">
+										{getQueueName(match.info.queueId)}
+									</div>
+									<div className="text-xs lg:text-md font-semibold mr-2">
+										{daysAgo === 0 ? (
+											<p className="text-xs lg:text-md font-semibold">
+												{hoursAgo === 0
+													? `${minutesAgo} minute${
+															minutesAgo !== 1 ? "s" : ""
+													  } ago`
+													: `${hoursAgo} hour${hoursAgo !== 1 ? "s" : ""} ago`}
+											</p>
+										) : (
+											<p className="text-xs lg:text-md font-semibold">
+												{daysAgo} day{daysAgo !== 1 ? "s" : ""} ago
+											</p>
+										)}
+									</div>
 								</div>
 							</div>
-						</div>
 
-						<div className="flex flex-wrap w-full">
-							<div className="flex-grow">
-								<p className="text-xs  lg:text-md font-bold">{kda} KDA</p>
-								<p className="text-xs md:text-sm lg:text-md font-semibold">
-									{currentPlayerParticipant.kills}/
-									{currentPlayerParticipant.deaths}/
-									{currentPlayerParticipant.assists}
-								</p>
-							</div>
-							<div className="flex-grow">
-								<p className="text-xs md:text-sm lg:text-md font-bold">
-									{visPerMin.toFixed(2)} Vis/Min
-								</p>
-								<p className="text-xs md:text-sm lg:text-md font-semibold">
-									{(
-										currentPlayerParticipant.challenges.killParticipation * 100
-									).toFixed(0)}
-									% KP
-								</p>
-							</div>
-							<div className="flex-grow">
-								<p className="text-xs md:text-sm lg:text-md font-bold">
-									CS/Min: {csPerMin.toFixed(1)}
-								</p>
-								<p className="text-xs md:text-sm lg:text-md font-semibold">
-									{totalCS} CS
-								</p>
-							</div>
-							<div className="flex-grow">
-								<p className="text-xs md:text-sm lg:text-md font-semibold">
-									DMG/Min: {dmgPerMin.toFixed(0)}
-								</p>
-								<p className="text-xs md:text-sm lg:text-md font-semibold">
-									{currentPlayerParticipant.goldEarned
-										.toFixed(0)
-										.toLocaleString()}{" "}
-									Gold
-								</p>
+							<div className="flex flex-wrap w-full">
+								<div className="flex-grow">
+									<p className="text-xs  lg:text-md font-bold">{kda} KDA</p>
+									<p className="text-xs md:text-sm lg:text-md font-semibold">
+										{currentPlayerParticipant.kills}/
+										{currentPlayerParticipant.deaths}/
+										{currentPlayerParticipant.assists}
+									</p>
+								</div>
+								<div className="flex-grow">
+									<p className="text-xs md:text-sm lg:text-md font-bold">
+										{visPerMin.toFixed(2)} Vis/Min
+									</p>
+									<p className="text-xs md:text-sm lg:text-md font-semibold">
+										{(
+											currentPlayerParticipant.challenges.killParticipation *
+											100
+										).toFixed(0)}
+										% KP
+									</p>
+								</div>
+								<div className="flex-grow">
+									<p className="text-xs md:text-sm lg:text-md font-bold">
+										CS/Min: {csPerMin.toFixed(1)}
+									</p>
+									<p className="text-xs md:text-sm lg:text-md font-semibold">
+										{totalCS} CS
+									</p>
+								</div>
+								<div className="flex-grow">
+									<p className="text-xs md:text-sm lg:text-md font-semibold">
+										DMG/Min: {dmgPerMin.toFixed(0)}
+									</p>
+									<p className="text-xs md:text-sm lg:text-md font-semibold">
+										{currentPlayerParticipant.goldEarned
+											.toFixed(0)
+											.toLocaleString()}{" "}
+										Gold
+									</p>
+								</div>
 							</div>
 						</div>
-					</div>
+					</Link>
 				);
 			})}
 		</div>
