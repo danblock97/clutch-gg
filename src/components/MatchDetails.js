@@ -59,6 +59,19 @@ const MatchDetails = ({ matchDetails, matchId, accountData }) => {
 								/>
 							))}
 					</div>
+					<div className="flex space-x-2">
+						{[participant.summoner1Id, participant.summoner2Id].map(
+							(spellId, idx) => (
+								<Image
+									key={idx}
+									src={`/images/summonerSpells/${spellId}.png`}
+									alt={`Summoner Spell ${idx + 1}`}
+									width={24}
+									height={24}
+								/>
+							)
+						)}
+					</div>
 				</div>
 			))}
 		</div>
