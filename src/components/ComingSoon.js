@@ -17,18 +17,6 @@ const ComingSoon = () => {
 					width={400}
 					height={400}
 				/>
-				<p className="text-gray-600">Follow us on social media for updates:</p>
-				<div className="flex justify-center space-x-4 mt-4">
-					<Link href="#" className="text-blue-500 hover:text-blue-700">
-						Twitter
-					</Link>
-					<Link href="#" className="text-blue-500 hover:text-blue-700">
-						Facebook
-					</Link>
-					<Link href="#" className="text-blue-500 hover:text-blue-700">
-						Instagram
-					</Link>
-				</div>
 			</div>
 		</div>
 	);
