@@ -4,9 +4,9 @@ import Loading from "./Loading";
 
 const ParticipantDetails = ({ participant }) => {
 	return (
-		<div className="flex justify-between items-center p-4 my-2 rounded-lg bg-gray-800">
+		<div className="grid grid-cols-8 gap-x-4 p-4 my-2 rounded-lg bg-gray-800">
 			{/* Position Icon and Champion Name */}
-			<div className="flex items-center space-x-2">
+			<div className="col-span-2 flex items-center space-x-2">
 				<Image
 					className="w-8 h-8"
 					src={`https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-champ-select/global/default/svg/position-${participant.individualPosition.toLowerCase()}.svg`}
@@ -26,15 +26,17 @@ const ParticipantDetails = ({ participant }) => {
 				</span>
 			</div>
 			{/* Rune Icon */}
-			<Image
-				className="w-8 h-8"
-				src={`/images/runeIcons/${participant.perks.styles[0].selections[0].perk}.png`}
-				alt="Champion"
-				width={32}
-				height={32}
-			/>
+			<div className="col-span-1 flex items-center space-x-4">
+				<Image
+					className="w-8 h-8"
+					src={`/images/runeIcons/${participant.perks.styles[0].selections[0].perk}.png`}
+					alt="Rune Icon"
+					width={32}
+					height={32}
+				/>
+			</div>
 			{/* Summoner Spells */}
-			<div className="flex items-center space-x-2">
+			<div className="col-span-1 flex items-center space-x-2">
 				{[participant.summoner1Id, participant.summoner2Id].map(
 					(spellId, idx) => (
 						<div key={idx} className="flex items-center">
@@ -49,7 +51,7 @@ const ParticipantDetails = ({ participant }) => {
 				)}
 			</div>
 			{/* Items */}
-			<div className="flex items-center space-x-2">
+			<div className="col-span-2 flex items-center space-x-2">
 				{Array.from({ length: 7 }, (_, i) => participant[`item${i}`]).map(
 					(itemId, idx) => (
 						<div key={idx} className="flex items-center">
@@ -74,11 +76,12 @@ const ParticipantDetails = ({ participant }) => {
 					)
 				)}
 			</div>
+
 			{/* Stats */}
-			<div className="flex flex-wrap items-center space-x-2">
-				<span className="text-xs font-semibold">{`${participant.kills} / ${participant.deaths} / ${participant.assists}`}</span>
-				<span className="text-xs font-semibold">{`${participant.totalMinionsKilled} CS`}</span>
-				<span className="text-xs font-semibold">{`${participant.totalDamageDealtToChampions.toLocaleString()} DMG`}</span>
+			<div className="col-span-2 flex items-center space-x-11">
+				<span className="text-sm font-semibold">{`${participant.kills} / ${participant.deaths} / ${participant.assists}`}</span>
+				<span className="text-sm font-semibold">{`${participant.totalMinionsKilled} CS`}</span>
+				<span className="text-sm font-semibold">{`${participant.totalDamageDealtToChampions.toLocaleString()} DMG`}</span>
 			</div>
 		</div>
 	);
