@@ -87,10 +87,18 @@ const MatchHistory = ({
 					(participant) => participant.puuid === selectedSummonerPUUID
 				);
 
-				const kda = (
-					(currentPlayerParticipant.kills + currentPlayerParticipant.assists) /
-					currentPlayerParticipant.deaths
-				).toFixed(2);
+				const kda =
+					currentPlayerParticipant.deaths === 0
+						? (
+								currentPlayerParticipant.kills +
+								currentPlayerParticipant.assists
+						  ).toFixed(1)
+						: (
+								(currentPlayerParticipant.kills +
+									currentPlayerParticipant.assists) /
+								currentPlayerParticipant.deaths
+						  ).toFixed(1);
+
 				const totalCS =
 					currentPlayerParticipant.totalMinionsKilled +
 					currentPlayerParticipant.totalAllyJungleMinionsKilled +

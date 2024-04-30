@@ -3,8 +3,16 @@ import Image from "next/image";
 import Loading from "./Loading";
 
 const ParticipantDetails = ({ participant }) => {
+	const kda =
+		participant.deaths === 0
+			? (participant.kills + participant.assists).toFixed(1)
+			: (
+					(participant.kills + participant.assists) /
+					participant.deaths
+			  ).toFixed(1);
+
 	return (
-		<div className="grid grid-cols-8 gap-x-4 p-4 my-2 rounded-lg bg-gray-800">
+		<div className="grid grid-cols-8 gap-x-4 p-2 my-2 rounded-lg bg-gray-800">
 			{/* Position Icon and Champion Name */}
 			<div className="col-span-2 flex items-center space-x-2">
 				<Image
@@ -79,9 +87,23 @@ const ParticipantDetails = ({ participant }) => {
 
 			{/* Stats */}
 			<div className="col-span-2 flex items-center space-x-11">
-				<span className="text-sm font-semibold">{`${participant.kills} / ${participant.deaths} / ${participant.assists}`}</span>
-				<span className="text-sm font-semibold">{`${participant.totalMinionsKilled} CS`}</span>
-				<span className="text-sm font-semibold">{`${participant.totalDamageDealtToChampions.toLocaleString()} DMG`}</span>
+				<div>
+					<span className="text-sm font-semibold">{`${participant.kills} / ${participant.deaths} / ${participant.assists}`}</span>{" "}
+					<br />
+					<span className="text-xs text-gray-400">{`${kda} KDA`}</span>
+				</div>
+				<div>
+					<span className="text-sm font-semibold">{`${participant.totalMinionsKilled} CS`}</span>
+					<br />
+					<span className="text-xs text-gray-400">
+						{(participant.challenges.killParticipation * 100).toFixed(0)}% KP
+					</span>
+				</div>
+				<div>
+					<span className="text-sm font-semibold">{`${participant.totalDamageDealtToChampions.toLocaleString()} DMG`}</span>
+					<br />
+					<span className="text-xs text-gray-400">{`${participant.goldEarned.toLocaleString()} Gold`}</span>
+				</div>
 			</div>
 		</div>
 	);
@@ -112,7 +134,7 @@ const MatchDetails = ({ matchDetails, matchId, accountData }) => {
 	);
 
 	return (
-		<div className="bg-gray-900 min-h-screen flex items-center justify-center px-6">
+		<div className="bg-gray-900 min-h-screen flex items-center justify-center px-4 py-2">
 			<div className="bg-gray-900 text-white max-w-screen-xl w-full">
 				{/* Team 1 */}
 				<div className="mb-4">
