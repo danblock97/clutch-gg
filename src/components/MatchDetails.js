@@ -1,9 +1,12 @@
 import Image from "next/image";
+import Loading from "./Loading";
 
 const MatchDetails = ({ matchDetails, matchId, accountData }) => {
 	if (!matchDetails) {
 		return (
-			<div className="text-center text-white">Loading match details...</div>
+			<div className="text-center text-white">
+				<Loading />
+			</div>
 		);
 	}
 
@@ -60,6 +63,13 @@ const MatchDetails = ({ matchDetails, matchId, accountData }) => {
 								<span className="text-sm font-semibold">
 									{participant.riotIdGameName}#{participant.riotIdTagline}
 								</span>
+								<Image
+									className="w-8 h-8"
+									src={`/images/runeIcons/${participant.perks.styles[0].selections[0].perk}.png`}
+									alt="Champion"
+									width={32}
+									height={32}
+								/>
 							</div>
 							{/* Spells, Items, KDA, CS, Damage */}
 							<div className="flex items-center space-x-4">
@@ -77,10 +87,12 @@ const MatchDetails = ({ matchDetails, matchId, accountData }) => {
 									)
 								)}
 								{/* Items */}
-								{Array.from({ length: 7 }, (_, i) => participant[`item${i}`])
-									.filter((itemId) => itemId > 0)
-									.map((itemId, idx) => (
-										<div key={idx} className="flex items-center">
+								{Array.from(
+									{ length: 7 },
+									(_, i) => participant[`item${i}`]
+								).map((itemId, idx) => (
+									<div key={idx} className="flex items-center">
+										{itemId > 0 ? (
 											<Image
 												className="w-8 h-8"
 												src={`https://ddragon.leagueoflegends.com/cdn/14.8.1/img/item/${itemId}.png`}
@@ -88,8 +100,17 @@ const MatchDetails = ({ matchDetails, matchId, accountData }) => {
 												width={32}
 												height={32}
 											/>
-										</div>
-									))}
+										) : (
+											<Image
+												className="w-8 h-8"
+												src="/images/placeholder.png" // Replace this with the actual path to your placeholder image
+												alt="No item"
+												width={32}
+												height={32}
+											/>
+										)}
+									</div>
+								))}
 								{/* Stats */}
 								<div className="flex flex-wrap items-center space-x-2">
 									<span className="text-xs font-semibold">{`${participant.kills} / ${participant.deaths} / ${participant.assists}`}</span>
@@ -134,6 +155,13 @@ const MatchDetails = ({ matchDetails, matchId, accountData }) => {
 								<span className="text-sm font-semibold">
 									{participant.riotIdGameName}#{participant.riotIdTagline}
 								</span>
+								<Image
+									className="w-8 h-8"
+									src={`/images/runeIcons/${participant.perks.styles[0].selections[0].perk}.png`}
+									alt="Champion"
+									width={32}
+									height={32}
+								/>
 							</div>
 							{/* Spells, Items, KDA, CS, Damage */}
 							<div className="flex items-center space-x-4">
