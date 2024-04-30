@@ -1,4 +1,4 @@
-import { revalidatePath } from "next/cache";
+/*import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 
 export async function GET(req, res) {
@@ -64,4 +64,4 @@ function isValidTier(tier) {
 		"IRON",
 	];
 	return validTiers.includes(tier);
-}
+}*/
