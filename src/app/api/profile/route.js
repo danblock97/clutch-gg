@@ -22,7 +22,7 @@ const regions = [
 ];
 
 // Delay between requests in milliseconds
-const DELAY_BETWEEN_REQUESTS = 2000;
+const DELAY_BETWEEN_REQUESTS = 1000;
 
 // Function to delay execution by a specified amount of time
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));

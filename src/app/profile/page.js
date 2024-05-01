@@ -52,13 +52,14 @@ const ProfilePage = () => {
 					</div>
 				</div>
 				{/* Right Section - Match History */}
-				<div className="w-full  md:w-2/3  pl-4">
+				<div className="w-full md:w-2/3 pl-4">
 					{matchDetails ? (
 						<MatchHistory
 							matchDetails={matchDetails}
 							selectedSummonerPUUID={selectedSummonerPUUID}
 							gameName={gameName}
 							tagLine={tagLine}
+							isMobile={window.innerWidth <= 768}
 						/>
 					) : null}
 				</div>

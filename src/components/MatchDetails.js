@@ -12,6 +12,11 @@ const ParticipantDetails = ({ participant }) => {
 					participant.deaths
 			  ).toFixed(1);
 
+	const totalCS =
+		participant.totalMinionsKilled +
+		participant.totalAllyJungleMinionsKilled +
+		participant.totalEnemyJungleMinionsKilled;
+
 	return (
 		<Link
 			href={`/profile?gameName=${participant.riotIdGameName}&tagLine=${participant.riotIdTagline}`}
@@ -97,7 +102,7 @@ const ParticipantDetails = ({ participant }) => {
 						<span className="text-xs text-gray-400">{`${kda} KDA`}</span>
 					</div>
 					<div>
-						<span className="text-sm font-semibold">{`${participant.totalMinionsKilled} CS`}</span>
+						<span className="text-sm font-semibold">{`${totalCS} CS`}</span>
 						<br />
 						<span className="text-xs text-gray-400">
 							{(participant.challenges.killParticipation * 100).toFixed(0)}% KP

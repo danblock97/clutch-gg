@@ -8,14 +8,15 @@ const Profile = ({ accountData, profileData }) => {
 			<div className="flex items-center">
 				{profileData?.profileIconId ? (
 					<div className="relative">
-						<Image
-							src={profileIcon}
-							alt="Player Icon"
-							width={80}
-							height={80}
-							className="rounded-full border-4 border-[#979aa0]"
-						/>
-						<div className="absolute bottom-0 left-5 rounded-full bg-gray-800 text-[#979aa0] text-xs font-semibold py-1 px-2">
+						<div className="rounded-full border-4 border-[#979aa0] overflow-hidden w-20 h-20">
+							<Image
+								src={profileIcon}
+								alt="Player Icon"
+								layout="fill"
+								objectFit="cover"
+							/>
+						</div>
+						<div className="absolute bottom-0 left-5 bg-gray-800 text-[#979aa0] text-xs font-semibold py-1 px-2 rounded-full">
 							{profileData?.summonerLevel}
 						</div>
 					</div>
@@ -23,8 +24,8 @@ const Profile = ({ accountData, profileData }) => {
 					<div className="bg-gray-600 rounded-full w-20 h-20"></div>
 				)}
 				<div className="ml-6">
-					<h1 className="text-[#979aa0] text-3xl font-semibold">
-						{accountData.gameName}#{accountData.tagLine}
+					<h1 className="text-[#979aa0] text-xl sm:text-3xl font-semibold">
+						{`${accountData.gameName}#${accountData.tagLine}`}
 					</h1>
 				</div>
 			</div>
