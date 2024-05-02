@@ -21,38 +21,35 @@ const ParticipantDetails = ({ participant }) => {
 		<Link
 			href={`/profile?gameName=${participant.riotIdGameName}&tagLine=${participant.riotIdTagline}`}
 		>
-			<div className="grid grid-cols-8 gap-x-4 p-2 my-2 rounded-lg bg-gray-800">
-				{/* Position Icon and Champion Name */}
+			<div className="grid grid-cols-8 gap-x-4 p-2 my-2 rounded-lg bg-[#13151b]">
 				<div className="col-span-2 flex items-center space-x-2">
 					<Image
-						className="w-8 h-8"
 						src={`https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-champ-select/global/default/svg/position-${participant.individualPosition.toLowerCase()}.svg`}
 						alt={`${participant.individualPosition} Position Icon`}
 						width={32}
 						height={32}
+						className="w-8 h-8"
 					/>
 					<Image
-						className="w-8 h-8"
 						src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${participant.championId}.png`}
 						alt="Champion"
 						width={32}
 						height={32}
+						className="w-8 h-8"
 					/>
 					<span className="text-sm font-semibold">
 						{participant.riotIdGameName}#{participant.riotIdTagline}
 					</span>
 				</div>
-				{/* Rune Icon */}
 				<div className="col-span-1 flex items-center space-x-4">
 					<Image
-						className="w-8 h-8"
 						src={`/images/runeIcons/${participant.perks.styles[0].selections[0].perk}.png`}
 						alt="Rune Icon"
 						width={32}
 						height={32}
+						className="w-8 h-8"
 					/>
 				</div>
-				{/* Summoner Spells */}
 				<div className="col-span-1 flex items-center space-x-2">
 					{[participant.summoner1Id, participant.summoner2Id].map(
 						(spellId, idx) => (
@@ -67,37 +64,34 @@ const ParticipantDetails = ({ participant }) => {
 						)
 					)}
 				</div>
-				{/* Items */}
 				<div className="col-span-2 flex items-center space-x-2">
 					{Array.from({ length: 7 }, (_, i) => participant[`item${i}`]).map(
 						(itemId, idx) => (
 							<div key={idx} className="flex items-center">
 								{itemId > 0 ? (
 									<Image
-										className="w-8 h-8"
 										src={`https://ddragon.leagueoflegends.com/cdn/14.8.1/img/item/${itemId}.png`}
 										alt="Item"
 										width={32}
 										height={32}
+										className="w-8 h-8"
 									/>
 								) : (
 									<Image
-										className="w-8 h-8"
 										src="/images/placeholder.png"
 										alt="No item"
 										width={32}
 										height={32}
+										className="w-8 h-8"
 									/>
 								)}
 							</div>
 						)
 					)}
 				</div>
-
-				{/* Stats */}
 				<div className="col-span-2 flex items-center space-x-11">
 					<div>
-						<span className="text-sm font-semibold">{`${participant.kills} / ${participant.deaths} / ${participant.assists}`}</span>{" "}
+						<span className="text-sm font-semibold">{`${participant.kills} / ${participant.deaths} / ${participant.assists}`}</span>
 						<br />
 						<span className="text-xs text-gray-400">{`${kda} KDA`}</span>
 					</div>
@@ -119,7 +113,7 @@ const ParticipantDetails = ({ participant }) => {
 	);
 };
 
-const MatchDetails = ({ matchDetails, matchId, accountData }) => {
+const MatchDetails = ({ matchDetails, matchId }) => {
 	if (!matchDetails) {
 		return (
 			<div className="text-center text-white">
@@ -129,41 +123,96 @@ const MatchDetails = ({ matchDetails, matchId, accountData }) => {
 	}
 
 	const match = matchDetails.find((m) => m.metadata.matchId === matchId);
-
 	if (!match) {
 		return (
 			<div className="text-center text-white">Match details not found.</div>
 		);
 	}
 
-	const team1 = match.info.participants.filter(
-		(participant) => participant.teamId === 100
-	);
-	const team2 = match.info.participants.filter(
-		(participant) => participant.teamId === 200
-	);
+	// Calculate team stats
+	const calculateTeamStats = (participants) => {
+		return participants.reduce(
+			(acc, participant) => {
+				acc.kills += participant.kills;
+				acc.deaths += participant.deaths;
+				acc.assists += participant.assists;
+				return acc;
+			},
+			{
+				kills: 0,
+				deaths: 0,
+				assists: 0,
+			}
+		);
+	};
+
+	const team1 = match.info.participants.filter((p) => p.teamId === 100);
+	const team2 = match.info.participants.filter((p) => p.teamId === 200);
+	const team1Stats = calculateTeamStats(team1);
+	const team2Stats = calculateTeamStats(team2);
+	const bans = {
+		team1: match.info.teams.find((t) => t.teamId === 100).bans,
+		team2: match.info.teams.find((t) => t.teamId === 200).bans,
+	};
 
 	return (
-		<div className="bg-gray-900 min-h-screen flex items-center justify-center px-4 py-2">
-			<div className="bg-gray-900 text-white max-w-screen-xl w-full">
-				{/* Team 1 */}
-				<div className="mb-4">
-					<span className="text-xs font-semibold" style={{ color: "#3182CE" }}>
-						Team 1
-					</span>
-					{team1.map((participant, index) => (
-						<ParticipantDetails key={index} participant={participant} />
-					))}
+		<div className="bg-[#13151b] min-h-screen flex items-center justify-center px-4 py-2">
+			<div className="bg-[#13151b] text-white max-w-screen-xl w-full">
+				<div className="flex justify-between items-center mb-4">
+					<div className="flex-1">
+						<span className="text-xs font-semibold text-[#3182CE]">Team 1</span>
+					</div>
+					<div className="flex-1 flex justify-center">
+						<span className="text-xs font-semibold text-[#3182CE]">
+							{`${team1Stats.kills} / ${team1Stats.deaths} / ${team1Stats.assists}`}
+						</span>
+					</div>
+					<div className="flex-1 flex justify-end">
+						<span className="text-xs font-semibold text-[#3182CE] mr-2">
+							Bans:
+						</span>
+						{bans.team1.map((ban) => (
+							<Image
+								key={ban.championId}
+								src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${ban.championId}.png`}
+								alt="Champion Ban"
+								width={20}
+								height={20}
+							/>
+						))}
+					</div>
 				</div>
-				{/* Team 2 */}
-				<div>
-					<span className="text-xs font-semibold" style={{ color: "#C53030" }}>
-						Team 2
-					</span>
-					{team2.map((participant, index) => (
-						<ParticipantDetails key={index} participant={participant} />
-					))}
+				{team1.map((participant, index) => (
+					<ParticipantDetails key={index} participant={participant} />
+				))}
+				<div className="flex justify-between items-center">
+					<div className="flex-1">
+						<span className="text-xs font-semibold text-[#C53030]">Team 2</span>
+					</div>
+					<div className="flex-1 flex justify-center">
+						<span className="text-xs font-semibold text-[#C53030]">
+							{`${team2Stats.kills} / ${team2Stats.deaths} / ${team2Stats.assists}`}
+						</span>
+					</div>
+					<div className="flex-1 flex justify-end">
+						<span className="text-xs font-semibold text-[#C53030] mr-2">
+							Bans:
+						</span>
+						{bans.team2.map((ban) => (
+							<Image
+								key={ban.championId}
+								src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${ban.championId}.png`}
+								alt="Champion Ban"
+								width={20}
+								height={20}
+							/>
+						))}
+					</div>
 				</div>
+
+				{team2.map((participant, index) => (
+					<ParticipantDetails key={index} participant={participant} />
+				))}
 			</div>
 		</div>
 	);
