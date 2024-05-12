@@ -1,7 +1,6 @@
 import Image from "next/image";
 import React from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 
 const MatchHistory = ({
 	matchDetails,
@@ -20,6 +19,29 @@ const MatchHistory = ({
 	}
 
 	const isMobile = window.innerWidth <= 768;
+
+	const getPlacementColor = (placement) => {
+		switch (placement) {
+			case 1:
+				return "text-yellow-500";
+			case 2:
+				return "text-pink-500";
+			case 3:
+				return "text-orange-500";
+			case 4:
+				return "text-blue-500";
+			case 5:
+				return "text-red-500";
+			case 6:
+				return "text-green-500";
+			case 7:
+				return "text-purple-500";
+			case 8:
+				return "text-indigo-500";
+			default:
+				return "text-white";
+		}
+	};
 
 	const getQueueName = (queueId) => {
 		switch (queueId) {
@@ -41,15 +63,16 @@ const MatchHistory = ({
 				return "One for All";
 			case 1300:
 				return "Nexus Blitz";
+			case 1700:
+				return "Arena";
 			default:
 				return "Unknown Queue";
 		}
 	};
 
 	const getLaneName = (individualPosition, queueId) => {
-		// Check if the game is ARAM (queueId 450)
-		if (queueId === 450) {
-			return null;
+		if (queueId === 450 || individualPosition === "Invalid") {
+			return null; // Hide lane for ARAM and "Invalid" positions
 		}
 
 		// Handle lanes for non-ARAM games
@@ -89,6 +112,8 @@ const MatchHistory = ({
 				const currentPlayerParticipant = match.info.participants.find(
 					(participant) => participant.puuid === selectedSummonerPUUID
 				);
+				const placement = currentPlayerParticipant.missions.playerScore0;
+				const isArena = match.info.queueId === 1700;
 
 				const kda =
 					currentPlayerParticipant.deaths === 0
@@ -145,12 +170,26 @@ const MatchHistory = ({
 							/>
 							<p
 								className={`font-semibold ${
-									currentPlayerParticipant.win
+									isArena
+										? getPlacementColor(placement)
+										: currentPlayerParticipant.win
 										? "text-green-500"
 										: "text-red-500"
 								}`}
 							>
-								{currentPlayerParticipant.win ? "Victory" : "Defeat"}
+								{isArena
+									? `${placement}${
+											placement.toString().endsWith("1")
+												? "st"
+												: placement.toString().endsWith("2")
+												? "nd"
+												: placement.toString().endsWith("3")
+												? "rd"
+												: "th"
+									  } Place`
+									: currentPlayerParticipant.win
+									? "Victory"
+									: "Defeat"}
 							</p>
 						</div>
 						<div className="flex flex-row items-end">
