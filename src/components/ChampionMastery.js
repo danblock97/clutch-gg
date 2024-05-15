@@ -18,33 +18,38 @@ const ChampionMastery = ({ championMasteryData }) => {
 			<div className="flex flex-col justify-start mt-4">
 				{championMasteryData.map((mastery) => {
 					const championIcon = `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${mastery.championId}.png`;
-					const masteryIcon = `/images/masteryEmblems/lvl${mastery.championLevel}.png`;
+					const masteryLevel =
+						mastery.championLevel > 10 ? 10 : mastery.championLevel;
+					const masteryIcon = `https://raw.communitydragon.org/pbe/game/assets/ux/mastery/legendarychampionmastery/masterycrest_level_${masteryLevel}_art.png`;
 
 					return (
 						<div
 							key={mastery.championId}
-							className="flex flex-row items-center  rounded-lg p-2 mr-4"
+							className="flex flex-row items-center rounded-lg p-2 mr-4"
 						>
+							<Image
+								src={championIcon}
+								alt="Champion Icon"
+								width={50}
+								height={50}
+								className="rounded-full"
+							/>
 							<div className="relative">
-								<Image
-									src={championIcon}
-									alt="Champion Icon"
-									width={50}
-									height={50}
-									className="rounded-full"
-								/>
 								<Image
 									src={masteryIcon}
 									alt="Mastery Icon"
-									width={16}
-									height={16}
-									className="absolute top-0 right-0"
+									width={80}
+									height={80}
+									className="mx-2"
 								/>
+								<span className="absolute bottom-1 left-1/2 transform -translate-x-1/2 text-white font-bold text-xs  px-1 py-0.5 rounded">
+									{mastery.championLevel}
+								</span>
 							</div>
-							<h3 className="text-white text-lg font-semibold mt-4">
+							<h3 className="text-white text-lg font-semibold ml-4">
 								{mastery.championName}
 							</h3>
-							<p className="text-white text-sm font-bold ml-4">
+							<p className="text-white text-sm font-bold ml-2">
 								{mastery.championPoints.toLocaleString()}
 							</p>
 						</div>
