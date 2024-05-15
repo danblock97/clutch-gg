@@ -21,12 +21,6 @@ const regions = [
 	"VN2",
 ];
 
-// Delay between requests in milliseconds
-const DELAY_BETWEEN_REQUESTS = 1000;
-
-// Function to delay execution by a specified amount of time
-const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
 export async function GET(req, res) {
 	const gameName = req.nextUrl.searchParams.get("gameName");
 	const tagLine = req.nextUrl.searchParams.get("tagLine");
@@ -74,8 +68,6 @@ export async function GET(req, res) {
 			region = r; // Store the region if profile is found
 			break;
 		}
-		// Add a delay before making the next request
-		await delay(DELAY_BETWEEN_REQUESTS);
 	}
 
 	if (!profileResponse || !profileResponse.ok) {
