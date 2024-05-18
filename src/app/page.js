@@ -4,9 +4,7 @@ import React from "react";
 const Home = () => {
 	return (
 		<div className="flex flex-col items-center justify-center min-h-screen bg-[#0e1015] text-white p-4">
-			<h1 className="text-3xl md:text-4xl mb-8 text-center">
-				Welcome to League Luminaries
-			</h1>
+			<h1 className="text-3xl md:text-4xl mb-8 text-center">RiftSpy.GG</h1>
 
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 w-full max-w-6xl">
 				{/* Leaderboards */}

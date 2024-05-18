@@ -40,7 +40,7 @@ const NavBar = () => {
 					/>
 				</Link>
 				<Link href="/" className="text-lg font-bold hidden md:block">
-					League Luminaries
+					RiftSpy.GG
 				</Link>
 			</div>
 
