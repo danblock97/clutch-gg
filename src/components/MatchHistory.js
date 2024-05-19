@@ -1,6 +1,14 @@
 import Image from "next/image";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+
+const fetchArenaAugments = async () => {
+	const response = await fetch(
+		"https://raw.communitydragon.org/latest/cdragon/arena/en_us.json"
+	);
+	const data = await response.json();
+	return data.augments;
+};
 
 const MatchHistory = ({
 	matchDetails,
@@ -8,7 +16,23 @@ const MatchHistory = ({
 	gameName,
 	tagLine,
 }) => {
+	const [augments, setAugments] = useState([]);
 	const router = useRouter();
+
+	useEffect(() => {
+		const getAugments = async () => {
+			const data = await fetchArenaAugments();
+			setAugments(data);
+		};
+		getAugments();
+	}, []);
+
+	const getAugmentIcon = (id) => {
+		const augment = augments.find((aug) => aug.id === id);
+		return augment
+			? `https://raw.communitydragon.org/latest/game/${augment.iconSmall}`
+			: null;
+	};
 
 	if (!matchDetails || matchDetails.length === 0) {
 		return (
@@ -17,8 +41,6 @@ const MatchHistory = ({
 			</div>
 		);
 	}
-
-	const isMobile = window.innerWidth <= 768;
 
 	const getPlacementColor = (placement) => {
 		switch (placement) {
@@ -72,10 +94,9 @@ const MatchHistory = ({
 
 	const getLaneName = (individualPosition, queueId) => {
 		if (queueId === 450 || individualPosition === "Invalid") {
-			return null; // Hide lane for ARAM and "Invalid" positions
+			return null;
 		}
 
-		// Handle lanes for non-ARAM games
 		switch (individualPosition) {
 			case "TOP":
 				return "Top";
@@ -107,13 +128,14 @@ const MatchHistory = ({
 	}
 
 	return (
-		<div className=" text-[#979aa0] p-4">
+		<div className="text-[#979aa0] p-4 w-full">
 			{filteredMatches.map((match, index) => {
 				const currentPlayerParticipant = match.info.participants.find(
 					(participant) => participant.puuid === selectedSummonerPUUID
 				);
-				const placement = currentPlayerParticipant.missions.playerScore0;
+				const placement = currentPlayerParticipant.missions?.playerScore0;
 				const isArena = match.info.queueId === 1700;
+				const isRemake = match.info.gameDuration < 300; // 5 minutes
 
 				const kda =
 					currentPlayerParticipant.deaths === 0
@@ -145,7 +167,7 @@ const MatchHistory = ({
 				const minutesAgo = Math.floor(gameDurationMs / (1000 * 60));
 
 				const handleClick = () => {
-					if (!isMobile) {
+					if (window.innerWidth > 768) {
 						router.push(
 							`/match?gameName=${gameName}&tagLine=${tagLine}&matchId=${match.metadata.matchId}`
 						);
@@ -157,8 +179,8 @@ const MatchHistory = ({
 						key={index}
 						onClick={handleClick}
 						className={`${
-							isMobile ? "cursor-default" : "cursor-pointer"
-						} bg-[#13151b] rounded-md shadow-md p-4 mb-4 flex flex-wrap justify-between items-center px-6 py-4 w-full`}
+							window.innerWidth <= 768 ? "cursor-default" : "cursor-pointer"
+						} bg-[#13151b] rounded-md shadow-md p-4 mb-4 flex flex-wrap justify-between items-center w-full`}
 					>
 						<div className="flex items-center mb-2">
 							<Image
@@ -170,14 +192,18 @@ const MatchHistory = ({
 							/>
 							<p
 								className={`font-semibold ${
-									isArena
+									isRemake
+										? "text-gray-500"
+										: isArena
 										? getPlacementColor(placement)
 										: currentPlayerParticipant.win
 										? "text-green-500"
 										: "text-red-500"
 								}`}
 							>
-								{isArena
+								{isRemake
+									? "Remake"
+									: isArena
 									? `${placement}${
 											placement.toString().endsWith("1")
 												? "st"
@@ -192,7 +218,7 @@ const MatchHistory = ({
 									: "Defeat"}
 							</p>
 						</div>
-						<div className="flex flex-row items-end">
+						<div className="flex flex-row items-end mb-4">
 							{getLaneName(
 								currentPlayerParticipant.individualPosition,
 								match.info.queueId
@@ -235,39 +261,77 @@ const MatchHistory = ({
 							</div>
 						</div>
 
-						<div className="flex flex-wrap w-full">
-							<div className="flex-grow">
-								<p className="text-xs  lg:text-md font-bold">{kda} KDA</p>
-								<p className="text-xs md:text-sm lg:text-md font-semibold">
+						<div
+							className={`${
+								isArena ? "grid grid-cols-3 gap-4" : "flex flex-wrap"
+							} w-full`}
+						>
+							<div
+								className={`${
+									isArena ? "flex flex-col items-start ml-8" : "flex-grow mb-2"
+								}`}
+							>
+								<p className="text-sm lg:text-md font-bold">{kda} KDA</p>
+								<p className="text-sm md:text-md lg:text-lg font-semibold">
 									{currentPlayerParticipant.kills}/
 									{currentPlayerParticipant.deaths}/
 									{currentPlayerParticipant.assists}
 								</p>
 							</div>
-							<div className="flex-grow">
-								<p className="text-xs md:text-sm lg:text-md font-bold">
-									{visPerMin.toFixed(2)} Vis/Min
-								</p>
-								<p className="text-xs md:text-sm lg:text-md font-semibold">
-									{(
-										currentPlayerParticipant.challenges.killParticipation * 100
-									).toFixed(0)}
-									% KP
-								</p>
-							</div>
-							<div className="flex-grow">
-								<p className="text-xs md:text-sm lg:text-md font-bold">
-									CS/Min: {csPerMin.toFixed(1)}
-								</p>
-								<p className="text-xs md:text-sm lg:text-md font-semibold">
-									{totalCS} CS
-								</p>
-							</div>
-							<div className="flex-grow">
-								<p className="text-xs md:text-sm lg:text-md font-semibold">
+							{isArena ? (
+								<div className="flex items-center justify-center">
+									{[
+										currentPlayerParticipant.playerAugment1,
+										currentPlayerParticipant.playerAugment2,
+										currentPlayerParticipant.playerAugment3,
+										currentPlayerParticipant.playerAugment4,
+									].map((augmentId, index) => {
+										const augmentIcon = getAugmentIcon(augmentId);
+										return augmentIcon ? (
+											<Image
+												key={index}
+												src={augmentIcon}
+												alt={`Augment ${index + 1}`}
+												className="w-8 h-8 mr-1"
+												width={32}
+												height={32}
+											/>
+										) : null;
+									})}
+								</div>
+							) : (
+								<>
+									<div className="flex-grow mb-2">
+										<p className="text-sm md:text-md lg:text-lg font-bold">
+											{visPerMin.toFixed(2)} Vis/Min
+										</p>
+										<p className="text-sm md:text-md lg:text-lg font-semibold">
+											{(
+												currentPlayerParticipant.challenges.killParticipation *
+												100
+											).toFixed(0)}
+											% KP
+										</p>
+									</div>
+									<div className="flex-grow mb-2">
+										<p className="text-sm md:text-md lg:text-lg font-bold">
+											CS/Min: {csPerMin.toFixed(1)}
+										</p>
+										<p className="text-sm md:text-md lg:text-lg font-semibold">
+											{totalCS} CS
+										</p>
+									</div>
+								</>
+							)}
+							<div
+								className={`${
+									isArena ? "flex flex-col items-start ml-8" : "flex-grow mb-2"
+								}`}
+							>
+								<p className="text-sm md:text-md lg:text-lg font-semibold">
 									DMG/Min: {dmgPerMin.toFixed(0)}
 								</p>
-								<p className="text-xs md:text-sm lg:text-md font-semibold">
+								<p className="text-sm md:text-md lg:text-lg font-semibold">
 									{currentPlayerParticipant.goldEarned
 										.toFixed(0)
 										.toLocaleString()}{" "}

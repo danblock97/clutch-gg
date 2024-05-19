@@ -1,9 +1,34 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Loading from "./Loading";
 import Link from "next/link";
 
+const fetchArenaAugments = async () => {
+	const response = await fetch(
+		"https://raw.communitydragon.org/latest/cdragon/arena/en_us.json"
+	);
+	const data = await response.json();
+	return data.augments;
+};
+
 const MatchDetails = ({ matchDetails, matchId }) => {
+	const [augments, setAugments] = useState([]);
+
+	useEffect(() => {
+		const getAugments = async () => {
+			const data = await fetchArenaAugments();
+			setAugments(data);
+		};
+		getAugments();
+	}, []);
+
+	const getAugmentIcon = (id) => {
+		const augment = augments.find((aug) => aug.id === id);
+		return augment
+			? `https://raw.communitydragon.org/latest/game/${augment.iconSmall}`
+			: null;
+	};
+
 	if (!matchDetails) {
 		return (
 			<div className="text-center text-white">
@@ -91,6 +116,7 @@ const MatchDetails = ({ matchDetails, matchId }) => {
 							key={participant.participantId}
 							participant={participant}
 							isArena={true}
+							getAugmentIcon={getAugmentIcon}
 						/>
 					))}
 				</div>
@@ -99,7 +125,7 @@ const MatchDetails = ({ matchDetails, matchId }) => {
 
 		return (
 			<div className="bg-[#13151b] min-h-screen flex flex-col items-center justify-center px-4 py-2">
-				{teamComponents}
+				<div className="max-w-6xl w-full">{teamComponents}</div>
 			</div>
 		);
 	}
@@ -130,7 +156,7 @@ const MatchDetails = ({ matchDetails, matchId }) => {
 	};
 	return (
 		<div className="bg-[#13151b] min-h-screen flex items-center justify-center px-4 py-2">
-			<div className="bg-[#13151b] text-white max-w-screen-xl w-full">
+			<div className="bg-[#13151b] text-white max-w-6xl w-full">
 				<div className="flex justify-between items-center mb-4">
 					<div className="flex-1">
 						<span className="text-xs font-semibold text-[#3182CE]">Team 1</span>
@@ -192,7 +218,7 @@ const MatchDetails = ({ matchDetails, matchId }) => {
 };
 
 // ParticipantDetails component remains internal
-const ParticipantDetails = ({ participant, isArena }) => {
+const ParticipantDetails = ({ participant, isArena, getAugmentIcon }) => {
 	const kda =
 		participant.deaths === 0
 			? (participant.kills + participant.assists).toFixed(1)
@@ -253,27 +279,50 @@ const ParticipantDetails = ({ participant, isArena }) => {
 					)}
 				</div>
 				<div className="col-span-2 flex items-center space-x-2">
-					{Array.from({ length: 7 }, (_, i) => participant[`item${i}`]).map(
-						(itemId, idx) => (
-							<div key={idx} className="flex items-center">
-								{itemId > 0 ? (
+					{isArena ? (
+						<div className="flex items-center">
+							{[
+								participant.playerAugment1,
+								participant.playerAugment2,
+								participant.playerAugment3,
+								participant.playerAugment4,
+							].map((augmentId, index) => {
+								const augmentIcon = getAugmentIcon(augmentId);
+								return augmentIcon ? (
 									<Image
-										src={`https://ddragon.leagueoflegends.com/cdn/14.9.1/img/item/${itemId}.png`}
-										alt="Item"
+										key={index}
+										src={augmentIcon}
+										alt={`Augment ${index + 1}`}
+										className="w-8 h-8 mr-1"
 										width={32}
 										height={32}
-										className="w-8 h-8"
 									/>
-								) : (
-									<Image
-										src="/images/placeholder.png"
-										alt="No item"
-										width={32}
-										height={32}
-										className="w-8 h-8"
-									/>
-								)}
-							</div>
+								) : null;
+							})}
+						</div>
+					) : (
+						Array.from({ length: 7 }, (_, i) => participant[`item${i}`]).map(
+							(itemId, idx) => (
+								<div key={idx} className="flex items-center">
+									{itemId > 0 ? (
+										<Image
+											src={`https://ddragon.leagueoflegends.com/cdn/14.9.1/img/item/${itemId}.png`}
+											alt="Item"
+											width={32}
+											height={32}
+											className="w-8 h-8"
+										/>
+									) : (
+										<Image
+											src="/images/placeholder.png"
+											alt="No item"
+											width={32}
+											height={32}
+											className="w-8 h-8"
+										/>
+									)}
+								</div>
+							)
 						)
 					)}
 				</div>
