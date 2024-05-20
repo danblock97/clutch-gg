@@ -217,7 +217,6 @@ const MatchDetails = ({ matchDetails, matchId }) => {
 	);
 };
 
-// ParticipantDetails component remains internal
 const ParticipantDetails = ({ participant, isArena, getAugmentIcon }) => {
 	const kda =
 		participant.deaths === 0
@@ -231,54 +230,65 @@ const ParticipantDetails = ({ participant, isArena, getAugmentIcon }) => {
 		<Link
 			href={`/profile?gameName=${participant.riotIdGameName}&tagLine=${participant.riotIdTagline}`}
 		>
-			<div className="grid grid-cols-8 gap-x-4 p-2 my-2 rounded-lg bg-[#13151b]">
-				{!isArena && (
-					<>
-						<div className="col-span-1 flex items-center space-x-4">
-							<Image
-								src={`/images/runeIcons/${participant.perks.styles[0].selections[0].perk}.png`}
-								alt="Rune Icon"
-								width={32}
-								height={32}
-								className="w-8 h-8"
-							/>
+			<div className="grid grid-cols-9 gap-x-2 p-2 my-2 rounded-lg bg-[#13151b]">
+				{/* Lane Icon */}
+
+				{/* Champion Icon & Player Name */}
+				<div className="col-span-2 flex items-center space-x-1">
+					{!isArena && (
+						<div className="col-span-1 flex items-center">
 							<Image
 								src={`https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-champ-select/global/default/svg/position-${participant.individualPosition.toLowerCase()}.svg`}
 								alt={`${participant.individualPosition} Position Icon`}
-								width={32}
-								height={32}
+								width={28}
+								height={28}
 								className="w-8 h-8"
 							/>
 						</div>
-					</>
-				)}
-				<div className="col-span-2 flex items-center space-x-2">
+					)}
 					<Image
 						src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${participant.championId}.png`}
 						alt="Champion"
-						width={32}
-						height={32}
+						width={28}
+						height={28}
 						className="w-8 h-8"
 					/>
 					<span className="text-sm font-semibold">
 						{participant.riotIdGameName}#{participant.riotIdTagline}
 					</span>
 				</div>
-				<div className="col-span-1 flex items-center space-x-2">
+
+				{/* Rune Icon */}
+				{!isArena && (
+					<div className="col-span-1 flex items-center">
+						<Image
+							src={`/images/runeIcons/${participant.perks.styles[0].selections[0].perk}.png`}
+							alt="Rune Icon"
+							width={28}
+							height={28}
+							className="w-8 h-8"
+						/>
+					</div>
+				)}
+
+				{/* Summoner Icons */}
+				<div className="col-span-1 flex items-center space-x-1">
 					{[participant.summoner1Id, participant.summoner2Id].map(
 						(spellId, idx) => (
 							<div key={idx} className="flex items-center">
 								<Image
 									src={`/images/summonerSpells/${spellId}.png`}
 									alt={`Summoner Spell ${idx + 1}`}
-									width={32}
-									height={32}
+									width={28}
+									height={28}
 								/>
 							</div>
 						)
 					)}
 				</div>
-				<div className="col-span-2 flex items-center space-x-2">
+
+				{/* Items */}
+				<div className="col-span-2 flex items-center space-x-1">
 					{isArena ? (
 						<div className="flex items-center">
 							{[
@@ -294,8 +304,8 @@ const ParticipantDetails = ({ participant, isArena, getAugmentIcon }) => {
 										src={augmentIcon}
 										alt={`Augment ${index + 1}`}
 										className="w-8 h-8 mr-1"
-										width={32}
-										height={32}
+										width={28}
+										height={28}
 									/>
 								) : null;
 							})}
@@ -308,8 +318,8 @@ const ParticipantDetails = ({ participant, isArena, getAugmentIcon }) => {
 										<Image
 											src={`https://ddragon.leagueoflegends.com/cdn/14.10.1/img/item/${itemId}.png`}
 											alt="Item"
-											width={32}
-											height={32}
+											width={28}
+											height={28}
 											className="w-8 h-8"
 										/>
 									) : (
@@ -326,13 +336,19 @@ const ParticipantDetails = ({ participant, isArena, getAugmentIcon }) => {
 						)
 					)}
 				</div>
-				<div className="col-span-2 flex items-center space-x-11">
+
+				{/* KDA & K/D/A */}
+				<div className="col-span-1 flex items-center space-x-4">
 					<div>
 						<span className="text-sm font-semibold">{`${participant.kills} / ${participant.deaths} / ${participant.assists}`}</span>
 						<br />
 						<span className="text-xs text-gray-400">{`${kda} KDA`}</span>
 					</div>
-					{!isArena && (
+				</div>
+
+				{/* CS & KP */}
+				{!isArena && (
+					<div className="col-span-1 flex items-center space-x-4">
 						<div>
 							<span className="text-sm font-semibold">{`${
 								participant.totalMinionsKilled +
@@ -345,7 +361,11 @@ const ParticipantDetails = ({ participant, isArena, getAugmentIcon }) => {
 								KP
 							</span>
 						</div>
-					)}
+					</div>
+				)}
+
+				{/* Damage & Gold */}
+				<div className="col-span-1 flex items-center space-x-4">
 					<div>
 						<span className="text-sm font-semibold">{`${participant.totalDamageDealtToChampions.toLocaleString()} DMG`}</span>
 						<br />
@@ -356,5 +376,4 @@ const ParticipantDetails = ({ participant, isArena, getAugmentIcon }) => {
 		</Link>
 	);
 };
-
 export default MatchDetails;

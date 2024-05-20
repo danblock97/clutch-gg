@@ -268,18 +268,18 @@ const MatchHistory = ({
 						>
 							<div
 								className={`${
-									isArena ? "flex flex-col items-start ml-8" : "flex-grow mb-2"
+									isArena ? "flex flex-col items-start ml-2" : "flex-grow mb-2"
 								}`}
 							>
-								<p className="text-sm lg:text-md font-bold">{kda} KDA</p>
-								<p className="text-sm md:text-md lg:text-lg font-semibold">
+								<p className="text-xs lg:text-sm font-bold">{kda} KDA</p>
+								<p className="text-xs md:text-sm lg:text-md font-semibold">
 									{currentPlayerParticipant.kills}/
 									{currentPlayerParticipant.deaths}/
 									{currentPlayerParticipant.assists}
 								</p>
 							</div>
 							{isArena ? (
-								<div className="flex items-center justify-center">
+								<div className="flex items-center justify-start">
 									{[
 										currentPlayerParticipant.playerAugment1,
 										currentPlayerParticipant.playerAugment2,
@@ -292,7 +292,7 @@ const MatchHistory = ({
 												key={index}
 												src={augmentIcon}
 												alt={`Augment ${index + 1}`}
-												className="w-8 h-8 mr-1"
+												className="w-10 h-10 mr-1"
 												width={32}
 												height={32}
 											/>
@@ -302,10 +302,10 @@ const MatchHistory = ({
 							) : (
 								<>
 									<div className="flex-grow mb-2">
-										<p className="text-sm md:text-md lg:text-lg font-bold">
+										<p className="text-xs lg:text-sm font-bold">
 											{visPerMin.toFixed(2)} Vis/Min
 										</p>
-										<p className="text-sm md:text-md lg:text-lg font-semibold">
+										<p className="text-xs md:text-sm lg:text-md font-semibold">
 											{(
 												currentPlayerParticipant.challenges.killParticipation *
 												100
@@ -314,10 +314,10 @@ const MatchHistory = ({
 										</p>
 									</div>
 									<div className="flex-grow mb-2">
-										<p className="text-sm md:text-md lg:text-lg font-bold">
-											CS/Min: {csPerMin.toFixed(1)}
+										<p className="text-xs lg:text-sm font-bold">
+											{csPerMin.toFixed(1)} CS/Min
 										</p>
-										<p className="text-sm md:text-md lg:text-lg font-semibold">
+										<p className="text-xs md:text-sm lg:text-md font-semibold">
 											{totalCS} CS
 										</p>
 									</div>
@@ -328,10 +328,10 @@ const MatchHistory = ({
 									isArena ? "flex flex-col items-start ml-8" : "flex-grow mb-2"
 								}`}
 							>
-								<p className="text-sm md:text-md lg:text-lg font-semibold">
-									DMG/Min: {dmgPerMin.toFixed(0)}
+								<p className="text-xs lg:text-sm font-bold">
+									{dmgPerMin.toFixed(0)} DMG/Min
 								</p>
-								<p className="text-sm md:text-md lg:text-lg font-semibold">
+								<p className="text-xs md:text-sm lg:text-md font-semibold">
 									{currentPlayerParticipant.goldEarned
 										.toFixed(0)
 										.toLocaleString()}{" "}
