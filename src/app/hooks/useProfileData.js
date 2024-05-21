@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 const useProfileData = () => {
@@ -8,35 +8,38 @@ const useProfileData = () => {
 	const [championMasteryData, setChampionMasteryData] = useState(null);
 	const [matchData, setMatchesData] = useState(null);
 	const [matchDetails, setMatchDetails] = useState(null);
-	const [isLoading, setIsLoading] = useState(false); // New loading state
+	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState(null);
 	const router = useRouter();
 	const gameName = useSearchParams().get("gameName");
 	const tagLine = useSearchParams().get("tagLine");
 
+	const fetchData = useCallback(async () => {
+		setIsLoading(true);
+		try {
+			const response = await fetch(
+				`/api/profile?gameName=${gameName}&tagLine=${tagLine}`
+			);
+			if (!response.ok) throw new Error("Failed to fetch");
+			const data = await response.json();
+			setProfileData(data.profileData);
+			setAccountData(data.accountData);
+			setRankedData(data.rankedData);
+			setChampionMasteryData(data.championMasteryData);
+			setMatchesData(data.matchData);
+			setMatchDetails(data.matchDetails);
+		} catch (error) {
+			setError(error.message || "Failed to fetch data");
+		} finally {
+			setIsLoading(false);
+		}
+	}, [gameName, tagLine]);
+
 	useEffect(() => {
 		if (gameName && tagLine) {
-			setIsLoading(true); // Set loading state to true when fetching data starts
-			fetch(`/api/profile?gameName=${gameName}&tagLine=${tagLine}`)
-				.then((response) => {
-					if (!response.ok) throw new Error("Failed to fetch");
-					return response.json();
-				})
-				.then((data) => {
-					setProfileData(data.profileData);
-					setAccountData(data.accountData);
-					setRankedData(data.rankedData);
-					setChampionMasteryData(data.championMasteryData);
-					setMatchesData(data.matchData);
-					setMatchDetails(data.matchDetails);
-					setIsLoading(false); // Set loading state to false when data fetching completes
-				})
-				.catch((error) => {
-					setError(error.message || "Failed to fetch data");
-					setIsLoading(false); // Set loading state to false in case of error
-				});
+			fetchData();
 		}
-	}, [router.query, gameName, tagLine]);
+	}, [fetchData, gameName, tagLine]);
 
 	return {
 		profileData,
@@ -45,7 +48,7 @@ const useProfileData = () => {
 		championMasteryData,
 		matchData,
 		matchDetails,
-		isLoading, // Return isLoading state
+		isLoading,
 		error,
 	};
 };

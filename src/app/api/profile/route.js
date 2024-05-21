@@ -1,7 +1,7 @@
+import clientPromise from "@/lib/mongodb";
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 
-//List of regions for looping through
 const regions = [
 	"BR1",
 	"EUN1",
@@ -22,14 +22,27 @@ const regions = [
 ];
 
 export async function GET(req, res) {
+	const client = await clientPromise;
+	const db = client.db("lol-tracker");
+	const profilesCollection = db.collection("profiles");
+
 	const gameName = req.nextUrl.searchParams.get("gameName");
 	const tagLine = req.nextUrl.searchParams.get("tagLine");
 
 	if (!gameName || !tagLine) {
-		return NextResponse.error("Missing required query parameters");
+		return NextResponse.json(
+			{ error: "Missing required query parameters" },
+			{ status: 400 }
+		);
 	}
 
-	//ACCOUNT-V1
+	// Check if profile is cached
+	const cachedProfile = await profilesCollection.findOne({ gameName, tagLine });
+	if (cachedProfile) {
+		return NextResponse.json(cachedProfile);
+	}
+
+	// Fetch data from Riot API
 	const accountResponse = await fetch(
 		`https://europe.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${gameName}/${tagLine}`,
 		{
@@ -41,18 +54,19 @@ export async function GET(req, res) {
 	);
 
 	if (!accountResponse.ok) {
-		return NextResponse.error("Failed to fetch profile");
+		return NextResponse.json(
+			{ error: "Failed to fetch profile" },
+			{ status: accountResponse.status }
+		);
 	}
 
 	const accountData = await accountResponse.json();
-
-	// Get the encrypted PUUID from the account data
 	const encryptedPUUID = accountData.puuid;
 
-	// Loop through regions to find the profile
 	let profileResponse;
 	let profileData;
 	let region;
+
 	for (const r of regions) {
 		profileResponse = await fetch(
 			`https://${r}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${encryptedPUUID}`,
@@ -65,20 +79,18 @@ export async function GET(req, res) {
 		);
 		if (profileResponse.ok) {
 			profileData = await profileResponse.json();
-			region = r; // Store the region if profile is found
+			region = r;
 			break;
 		}
 	}
 
 	if (!profileResponse || !profileResponse.ok) {
-		return NextResponse.error("Failed to fetch profile");
+		return NextResponse.json(
+			{ error: "Failed to fetch profile from any region" },
+			{ status: 404 }
+		);
 	}
 
-	if (!region) {
-		return NextResponse.error("Region not found");
-	}
-
-	//LEAGUE-V4
 	const rankedResponse = await fetch(
 		`https://${region}.api.riotgames.com/lol/league/v4/entries/by-summoner/${profileData.id}`,
 		{
@@ -90,12 +102,14 @@ export async function GET(req, res) {
 	);
 
 	if (!rankedResponse.ok) {
-		return NextResponse.error("Failed to fetch ranked data");
+		return NextResponse.json(
+			{ error: "Failed to fetch ranked data" },
+			{ status: rankedResponse.status }
+		);
 	}
 
 	const rankedData = await rankedResponse.json();
 
-	//CHAMPION-MASTERY-V4
 	const championMasteryResponse = await fetch(
 		`https://${region}.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-puuid/${encryptedPUUID}`,
 		{
@@ -107,15 +121,15 @@ export async function GET(req, res) {
 	);
 
 	if (!championMasteryResponse.ok) {
-		return NextResponse.error("Failed to fetch champion mastery data");
+		return NextResponse.json(
+			{ error: "Failed to fetch champion mastery data" },
+			{ status: championMasteryResponse.status }
+		);
 	}
 
 	let championMasteryData = await championMasteryResponse.json();
-
-	// Slice the champion mastery data to return only the first 5 champions
 	championMasteryData = championMasteryData.slice(0, 5);
 
-	//MATCH-V5 - Get the last 10 matches
 	const matchResponse = await fetch(
 		`https://europe.api.riotgames.com/lol/match/v5/matches/by-puuid/${encryptedPUUID}/ids?start=0&count=10`,
 		{
@@ -127,12 +141,14 @@ export async function GET(req, res) {
 	);
 
 	if (!matchResponse.ok) {
-		return NextResponse.error("Failed to fetch match data");
+		return NextResponse.json(
+			{ error: "Failed to fetch match data" },
+			{ status: matchResponse.status }
+		);
 	}
 
 	const matchData = await matchResponse.json();
 
-	//MATCH-V5 - Get the match details for each match
 	const matchDetails = await Promise.all(
 		matchData.map(async (matchId) => {
 			const matchDetailResponse = await fetch(
@@ -153,7 +169,6 @@ export async function GET(req, res) {
 		})
 	);
 
-	//Combine all data and return
 	const data = {
 		profileData,
 		accountData,
@@ -161,7 +176,15 @@ export async function GET(req, res) {
 		championMasteryData,
 		matchData,
 		matchDetails,
+		createdAt: new Date(),
 	};
+
+	// Upsert data in MongoDB
+	await profilesCollection.updateOne(
+		{ gameName, tagLine },
+		{ $set: data },
+		{ upsert: true }
+	);
 
 	return NextResponse.json(data);
 }
