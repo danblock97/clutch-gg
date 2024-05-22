@@ -23,13 +23,4 @@ if (process.env.NODE_ENV === "development") {
 	clientPromise = client.connect();
 }
 
-clientPromise.then((client) => {
-	const db = client.db("lol-tracker");
-	db.collection("profiles")
-		.createIndex({ createdAt: 1 }, { expireAfterSeconds: 180 })
-		.catch((error) => {
-			console.error("Index creation failed:", error);
-		});
-});
-
 export default clientPromise;
