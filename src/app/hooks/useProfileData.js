@@ -50,6 +50,7 @@ const useProfileData = () => {
 		matchDetails,
 		isLoading,
 		error,
+		fetchData, // Export fetchData function
 	};
 };
 

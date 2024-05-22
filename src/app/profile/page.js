@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import Profile from "@/components/Profile";
 import RankedInfo from "@/components/RankedInfo";
 import ChampionMastery from "@/components/ChampionMastery";
@@ -17,12 +17,17 @@ const ProfilePage = () => {
 		matchDetails,
 		error,
 		isLoading,
+		fetchData, // Add fetchData to manually trigger re-fetch
 	} = useProfileData();
 
-	const selectedSummonerPUUID = profileData ? profileData.puuid : null;
+	// Use useEffect to set up the interval for refreshing the data
+	useEffect(() => {
+		const intervalId = setInterval(() => {
+			fetchData(); // Manually trigger re-fetching of data
+		}, 180000); // 180000 ms = 3 minutes
 
-	const gameName = accountData ? accountData.gameName : null;
-	const tagLine = accountData ? accountData.tagLine : null;
+		return () => clearInterval(intervalId); // Clear interval on component unmount
+	}, [fetchData]);
 
 	if (error) {
 		return <p className="text-red-500">{error}</p>;
@@ -50,9 +55,9 @@ const ProfilePage = () => {
 					{matchDetails && (
 						<MatchHistory
 							matchDetails={matchDetails}
-							selectedSummonerPUUID={selectedSummonerPUUID}
-							gameName={gameName}
-							tagLine={tagLine}
+							selectedSummonerPUUID={profileData ? profileData.puuid : null}
+							gameName={accountData ? accountData.gameName : null}
+							tagLine={accountData ? accountData.tagLine : null}
 						/>
 					)}
 				</div>
