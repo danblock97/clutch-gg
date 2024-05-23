@@ -166,7 +166,6 @@ const fetchAndUpdateProfileData = async (gameName, tagLine) => {
 		createdAt: new Date(),
 	};
 
-	// Upsert data in MongoDB
 	await profilesCollection.updateOne(
 		{ gameName, tagLine },
 		{ $set: data },
