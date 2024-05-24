@@ -52,9 +52,6 @@ const NavBar = () => {
 				<Link href="/comingsoon" className="hover:text-gray-300">
 					Leaderboards
 				</Link>
-				<Link href="/comingsoon" className="hover:text-gray-300">
-					Live Game
-				</Link>
 			</div>
 
 			{/* Mobile Menu */}

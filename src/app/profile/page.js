@@ -6,7 +6,9 @@ import RankedInfo from "@/components/RankedInfo";
 import ChampionMastery from "@/components/ChampionMastery";
 import MatchHistory from "@/components/MatchHistory";
 import Loading from "@/components/Loading";
+import LiveGameBanner from "@/components/LiveGameBanner";
 import useProfileData from "../hooks/useProfileData";
+import { useRouter } from "next/navigation";
 
 const ProfilePage = () => {
 	const {
@@ -15,9 +17,12 @@ const ProfilePage = () => {
 		rankedData,
 		championMasteryData,
 		matchDetails,
+		liveGameData,
 		error,
 		isLoading,
 	} = useProfileData();
+
+	const router = useRouter();
 
 	const selectedSummonerPUUID = profileData ? profileData.puuid : null;
 
@@ -46,7 +51,14 @@ const ProfilePage = () => {
 					)}
 				</div>
 				{/* Right Section - Match History */}
-				<div className="w-full md:w-2/3 sm:pl-4">
+				<div className="w-full md:w-2/3 sm:pl-4 flex flex-col gap-4">
+					{liveGameData && (
+						<LiveGameBanner
+							liveGameData={liveGameData}
+							gameName={gameName}
+							tagLine={tagLine}
+						/>
+					)}
 					{matchDetails && (
 						<MatchHistory
 							matchDetails={matchDetails}

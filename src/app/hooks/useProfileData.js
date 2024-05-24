@@ -8,6 +8,7 @@ const useProfileData = () => {
 	const [championMasteryData, setChampionMasteryData] = useState(null);
 	const [matchData, setMatchesData] = useState(null);
 	const [matchDetails, setMatchDetails] = useState(null);
+	const [liveGameData, setLiveGameData] = useState(null);
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState(null);
 	const router = useRouter();
@@ -28,6 +29,7 @@ const useProfileData = () => {
 			setChampionMasteryData(data.championMasteryData);
 			setMatchesData(data.matchData);
 			setMatchDetails(data.matchDetails);
+			setLiveGameData(data.liveGameData);
 		} catch (error) {
 			setError(error.message || "Failed to fetch data");
 		} finally {
@@ -50,6 +52,7 @@ const useProfileData = () => {
 		championMasteryData,
 		matchData,
 		matchDetails,
+		liveGameData,
 		isLoading,
 		error,
 	};
