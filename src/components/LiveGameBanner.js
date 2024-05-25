@@ -15,7 +15,7 @@ const LiveGameBanner = ({ liveGameData, gameName, tagLine }) => {
 
 	return (
 		<div
-			className="bg-gray-800 text-white p-4 rounded-md mb-4 cursor-pointer flex items-center space-x-4 w-full"
+			className="bg-[#13151b] text-white p-4 rounded-md mb-4 cursor-pointer flex items-center space-x-4 w-full"
 			onClick={handleLiveGameClick}
 		>
 			{participant && (

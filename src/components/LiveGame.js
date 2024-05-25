@@ -161,8 +161,8 @@ const LiveGame = ({ liveGameData }) => {
 	};
 
 	return (
-		<div className="min-h-screen flex items-center justify-center bg-gray-900">
-			<div className="bg-gray-800 text-white rounded-lg p-4 shadow-md max-w-7xl w-full">
+		<div className="min-h-screen flex items-center justify-center bg-[#0e1015]">
+			<div className="bg-[#13151b] text-white rounded-lg p-4 shadow-md max-w-7xl w-full">
 				<div className="py-2 px-4 text-lg font-bold bg-gray-900 rounded-t-lg flex justify-between items-center">
 					<div>
 						Ranked Solo <span className="text-gray-400">| Summoner's Rift</span>
