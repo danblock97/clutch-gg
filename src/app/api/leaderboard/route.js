@@ -1,67 +1,120 @@
-/*import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 
-export async function GET(req, res) {
-	const { region, tier = "CHALLENGER" } = req.params;
+const RIOT_API_KEY = process.env.RIOT_API_KEY;
 
-	// Check if the provided region is valid
-	if (!isValidRegion(region)) {
-		return NextResponse.error("Invalid region specified");
-	}
+async function fetchPUUID(summonerId, region) {
+	try {
+		const response = await fetch(
+			`https://${region}.api.riotgames.com/lol/summoner/v4/summoners/${summonerId}`,
+			{
+				headers: {
+					"X-Riot-Token": RIOT_API_KEY,
+				},
+			}
+		);
 
-	// Check if the provided tier is valid
-	if (!isValidTier(tier)) {
-		return NextResponse.error("Invalid tier specified");
-	}
-
-	const leaderboardResponse = await fetch(
-		`https://${region}.api.riotgames.com/lol/league-exp/v4/entries/RANKED_SOLO_5x5/${tier}/I?page=1`,
-		{
-			headers: {
-				"X-Riot-Token": process.env.RIOT_API_KEY,
-			},
-			revalidatePath: revalidatePath(req.nextUrl.pathname),
+		if (!response.ok) {
+			console.error(
+				`Failed to fetch PUUID for summonerId: ${summonerId}, status: ${response.status}`
+			);
+			throw new Error("Failed to fetch PUUID");
 		}
-	);
 
-	if (!leaderboardResponse.ok) {
-		return NextResponse.error("Failed to fetch leaderboard");
+		const data = await response.json();
+		return {
+			puuid: data.puuid,
+			profileIconId: data.profileIconId,
+		};
+	} catch (error) {
+		console.error(`Error fetching PUUID: ${error.message}`);
+		throw error;
 	}
-
-	const leaderboardData = await leaderboardResponse.json();
-	return NextResponse.json(leaderboardData);
 }
 
-// Function to check if the provided region is valid
-function isValidRegion(region) {
-	const validRegions = [
-		"BR1",
-		"EUN1",
-		"EUW1",
-		"JP1",
-		"KR",
-		"LA1",
-		"LA2",
-		"NA1",
-		"OC1",
-		"TR1",
-		"RU",
-	];
-	return validRegions.includes(region);
+async function fetchAccountData(puuid) {
+	try {
+		const response = await fetch(
+			`https://europe.api.riotgames.com/riot/account/v1/accounts/by-puuid/${puuid}`,
+			{
+				headers: {
+					"X-Riot-Token": RIOT_API_KEY,
+				},
+			}
+		);
+
+		if (!response.ok) {
+			console.error(
+				`Failed to fetch account data for PUUID: ${puuid}, status: ${response.status}`
+			);
+			throw new Error("Failed to fetch account data");
+		}
+
+		const data = await response.json();
+		return data;
+	} catch (error) {
+		console.error(`Error fetching account data: ${error.message}`);
+		throw error;
+	}
 }
 
-// Function to check if the provided tier is valid
-function isValidTier(tier) {
-	const validTiers = [
-		"CHALLENGER",
-		"GRANDMASTER",
-		"MASTER",
-		"DIAMOND",
-		"PLATINUM",
-		"GOLD",
-		"SILVER",
-		"BRONZE",
-		"IRON",
-	];
-	return validTiers.includes(tier);
-}*/
+export async function GET(req) {
+	const { searchParams } = new URL(req.url);
+	const queue = searchParams.get("queue") || "RANKED_SOLO_5x5";
+	const tier = searchParams.get("tier") || "CHALLENGER";
+	const division = searchParams.get("division") || "I";
+	const region = searchParams.get("region") || "euw1"; // Ensure the correct region
+
+	try {
+		const response = await fetch(
+			`https://${region}.api.riotgames.com/lol/league-exp/v4/entries/${queue}/${tier}/${division}?page=1`,
+			{
+				headers: {
+					"X-Riot-Token": RIOT_API_KEY,
+				},
+			}
+		);
+
+		if (!response.ok) {
+			throw new Error("Failed to fetch leaderboard data");
+		}
+
+		const leaderboardData = await response.json();
+
+		const detailedDataPromises = leaderboardData.map(async (entry) => {
+			try {
+				const { puuid, profileIconId } = await fetchPUUID(
+					entry.summonerId,
+					region
+				);
+				const accountData = await fetchAccountData(puuid);
+				return {
+					...entry,
+					profileData: {
+						gameName: accountData.gameName,
+						tagLine: accountData.tagLine,
+						profileIconId: profileIconId,
+					},
+				};
+			} catch (error) {
+				console.error(
+					`Error fetching profile data for summonerId: ${entry.summonerId}, error: ${error.message}`
+				);
+				return {
+					...entry,
+					profileData: {
+						gameName: "Unknown",
+						tagLine: "Unknown",
+						profileIconId: null,
+					},
+				};
+			}
+		});
+
+		const detailedData = await Promise.all(detailedDataPromises);
+
+		return NextResponse.json(detailedData);
+	} catch (error) {
+		console.error("Error in API route:", error);
+		return NextResponse.json({ error: error.message }, { status: 500 });
+	}
+}

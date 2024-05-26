@@ -49,7 +49,7 @@ const NavBar = () => {
 			</div>
 
 			<div className="hidden md:flex items-center space-x-4">
-				<Link href="/comingsoon" className="hover:text-gray-300">
+				<Link href="/leaderboard" className="hover:text-gray-300">
 					Leaderboards
 				</Link>
 			</div>
@@ -62,16 +62,10 @@ const NavBar = () => {
 			>
 				<div className="space-y-6">
 					<Link
-						href="/comingsoon"
+						href="/leaderboard"
 						className="text-xl hover:text-gray-300 block"
 					>
 						Leaderboards
-					</Link>
-					<Link
-						href="/comingsoon"
-						className="text-xl hover:text-gray-300 block"
-					>
-						Live Game
 					</Link>
 					<SearchBar />
 				</div>

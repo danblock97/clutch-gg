@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 
 const LiveGame = ({ liveGameData }) => {
 	const [isArena, setIsArena] = useState(false);
@@ -51,7 +52,11 @@ const LiveGame = ({ liveGameData }) => {
 					</div>
 					<div className="ml-2">
 						<div className="font-bold text-xs">
-							{participant.gameName}#{participant.tagLine}
+							<Link
+								href={`/profile?gameName=${participant.gameName}&tagLine=${participant.tagLine}`}
+							>
+								{participant.gameName}#{participant.tagLine}
+							</Link>
 						</div>
 						<div className="text-gray-400 text-xs">
 							Level {participant.summonerLevel}

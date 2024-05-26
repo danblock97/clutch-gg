@@ -45,6 +45,18 @@ const useProfileData = () => {
 		}
 	}, [fetchData, gameName, tagLine]);
 
+	const fetchProfileBySummonerId = useCallback(async (summonerId) => {
+		try {
+			const response = await fetch(`/api/profile?summonerId=${summonerId}`);
+			if (!response.ok) throw new Error("Failed to fetch");
+			const data = await response.json();
+			return data;
+		} catch (error) {
+			console.error("Error fetching profile by summonerId:", error);
+			return null;
+		}
+	}, []);
+
 	return {
 		profileData,
 		accountData,
@@ -55,6 +67,7 @@ const useProfileData = () => {
 		liveGameData,
 		isLoading,
 		error,
+		fetchProfileBySummonerId,
 	};
 };
 

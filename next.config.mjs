@@ -1,7 +1,16 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
 	images: {
-		domains: ["raw.communitydragon.org", "ddragon.leagueoflegends.com"],
+		remotePatterns: [
+			{
+				protocol: "https",
+				hostname: "raw.communitydragon.org",
+			},
+			{
+				protocol: "https",
+				hostname: "ddragon.leagueoflegends.com",
+			},
+		],
 	},
 	experimental: {
 		missingSuspenseWithCSRBailout: false,
