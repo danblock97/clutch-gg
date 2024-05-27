@@ -12,32 +12,47 @@ const Leaderboard = () => {
 	const [tier, setTier] = useState("CHALLENGER");
 	const [division, setDivision] = useState("I");
 	const [error, setError] = useState(null);
+	const [retryCountdown, setRetryCountdown] = useState(0);
+
+	const fetchLeaderboardData = async () => {
+		setLoading(true);
+		setError(null);
+		try {
+			const response = await fetch(
+				`/api/leaderboard?region=${region}&tier=${tier}&division=${division}`
+			);
+			const data = await response.json();
+
+			if (!Array.isArray(data)) {
+				throw new Error("Unexpected API response format");
+			}
+
+			setLeaderboardData(data);
+			setError(null);
+		} catch (error) {
+			console.error("Error fetching leaderboard data:", error);
+			setError(error.message);
+			setRetryCountdown(10); // Set countdown to 10 seconds
+		} finally {
+			setLoading(false);
+		}
+	};
 
 	useEffect(() => {
-		const fetchLeaderboardData = async () => {
-			setLoading(true);
-			setError(null);
-			try {
-				const response = await fetch(
-					`/api/leaderboard?region=${region}&tier=${tier}&division=${division}`
-				);
-				const data = await response.json();
-
-				if (!Array.isArray(data)) {
-					throw new Error("Unexpected API response format");
-				}
-
-				setLeaderboardData(data);
-			} catch (error) {
-				console.error("Error fetching leaderboard data:", error);
-				setError(error.message);
-			} finally {
-				setLoading(false);
-			}
-		};
-
 		fetchLeaderboardData();
 	}, [region, tier, division]);
+
+	useEffect(() => {
+		if (retryCountdown > 0) {
+			const timer = setTimeout(
+				() => setRetryCountdown(retryCountdown - 1),
+				1000
+			);
+			return () => clearTimeout(timer);
+		} else if (retryCountdown === 0 && error) {
+			fetchLeaderboardData(); // Retry fetching data
+		}
+	}, [retryCountdown, error]);
 
 	return (
 		<div className="min-h-screen flex flex-col items-center bg-[#0e1015] text-white">
@@ -55,7 +70,14 @@ const Leaderboard = () => {
 					<Loading />
 				</div>
 			) : error ? (
-				<div className="mt-8 text-red-500">{error}</div>
+				<div className="mt-8 text-red-500">
+					{error}
+					{retryCountdown > 0 && (
+						<p className="text-yellow-500">
+							Failed to fetch, automatic retry in {retryCountdown} seconds
+						</p>
+					)}
+				</div>
 			) : (
 				<LeaderboardTable leaderboardData={leaderboardData} />
 			)}

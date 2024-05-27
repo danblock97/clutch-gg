@@ -11,6 +11,7 @@ const useProfileData = () => {
 	const [liveGameData, setLiveGameData] = useState(null);
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState(null);
+	const [retryCountdown, setRetryCountdown] = useState(0);
 	const router = useRouter();
 	const gameName = useSearchParams().get("gameName");
 	const tagLine = useSearchParams().get("tagLine");
@@ -30,8 +31,10 @@ const useProfileData = () => {
 			setMatchesData(data.matchData);
 			setMatchDetails(data.matchDetails);
 			setLiveGameData(data.liveGameData);
+			setError(null);
 		} catch (error) {
 			setError(error.message || "Failed to fetch data");
+			setRetryCountdown(10); // Set countdown to 10 seconds
 		} finally {
 			setIsLoading(false);
 		}
@@ -44,6 +47,18 @@ const useProfileData = () => {
 			return () => clearInterval(interval);
 		}
 	}, [fetchData, gameName, tagLine]);
+
+	useEffect(() => {
+		if (retryCountdown > 0) {
+			const timer = setTimeout(
+				() => setRetryCountdown(retryCountdown - 1),
+				1000
+			);
+			return () => clearTimeout(timer);
+		} else if (retryCountdown === 0 && error) {
+			fetchData(); // Retry fetching data
+		}
+	}, [retryCountdown, error, fetchData]);
 
 	const fetchProfileBySummonerId = useCallback(async (summonerId) => {
 		try {
@@ -67,6 +82,7 @@ const useProfileData = () => {
 		liveGameData,
 		isLoading,
 		error,
+		retryCountdown,
 		fetchProfileBySummonerId,
 	};
 };

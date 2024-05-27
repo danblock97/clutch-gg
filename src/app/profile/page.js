@@ -20,6 +20,7 @@ const ProfilePage = () => {
 		liveGameData,
 		error,
 		isLoading,
+		retryCountdown,
 	} = useProfileData();
 
 	const router = useRouter();
@@ -29,12 +30,21 @@ const ProfilePage = () => {
 	const gameName = accountData ? accountData.gameName : null;
 	const tagLine = accountData ? accountData.tagLine : null;
 
-	if (error) {
-		return <p className="text-red-500">{error}</p>;
-	}
-
 	if (isLoading) {
 		return <Loading />;
+	}
+
+	if (error) {
+		return (
+			<div>
+				<p className="text-red-500">{error}</p>
+				{retryCountdown > 0 && (
+					<p className="text-yellow-500">
+						Failed to fetch, automatic retry in {retryCountdown} seconds
+					</p>
+				)}
+			</div>
+		);
 	}
 
 	return (
