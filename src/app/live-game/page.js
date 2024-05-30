@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import LiveGame from "@/components/LiveGame";
 import Loading from "@/components/Loading";
-import OutageBanner from "@/components/OutageBanner"; // Import the OutageBanner component
 
 const LiveGamePage = () => {
 	const [liveGameData, setLiveGameData] = useState(null);
@@ -14,8 +13,6 @@ const LiveGamePage = () => {
 	const searchParams = useSearchParams();
 	const gameName = searchParams.get("gameName");
 	const tagLine = searchParams.get("tagLine");
-
-	const outageMessage = process.env.NEXT_PUBLIC_OUTAGE_MESSAGE;
 
 	const fetchLiveGameData = async () => {
 		setIsLoading(true);
@@ -78,7 +75,6 @@ const LiveGamePage = () => {
 
 	return (
 		<div>
-			{outageMessage && <OutageBanner message={outageMessage} />}
 			<LiveGame liveGameData={liveGameData} />
 		</div>
 	);
