@@ -92,12 +92,12 @@ const MatchHistory = ({
 		}
 	};
 
-	const getLaneName = (individualPosition, queueId) => {
-		if (queueId === 450 || individualPosition === "Invalid") {
+	const getLaneName = (teamPosition, queueId) => {
+		if (queueId === 450 || teamPosition === "Invalid") {
 			return null;
 		}
 
-		switch (individualPosition) {
+		switch (teamPosition) {
 			case "TOP":
 				return "Top";
 			case "JUNGLE":
@@ -220,19 +220,19 @@ const MatchHistory = ({
 						</div>
 						<div className="flex flex-row items-end mb-4">
 							{getLaneName(
-								currentPlayerParticipant.individualPosition,
+								currentPlayerParticipant.teamPosition,
 								match.info.queueId
 							) && (
 								<div className="text-xs lg:text-md font-semibold mr-2 flex items-center">
 									<Image
-										src={`https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-champ-select/global/default/svg/position-${currentPlayerParticipant.individualPosition.toLowerCase()}.svg`}
+										src={`https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-champ-select/global/default/svg/position-${currentPlayerParticipant.teamPosition.toLowerCase()}.svg`}
 										alt="Lane Icon"
 										className="mr-2"
 										width={16}
 										height={16}
 									/>
 									{getLaneName(
-										currentPlayerParticipant.individualPosition,
+										currentPlayerParticipant.teamPosition,
 										match.info.queueId
 									)}
 								</div>

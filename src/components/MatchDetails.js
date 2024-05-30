@@ -238,8 +238,8 @@ const ParticipantDetails = ({ participant, isArena, getAugmentIcon }) => {
 					{!isArena && (
 						<div className="col-span-1 flex items-center">
 							<Image
-								src={`https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-champ-select/global/default/svg/position-${participant.individualPosition.toLowerCase()}.svg`}
-								alt={`${participant.individualPosition} Position Icon`}
+								src={`https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-champ-select/global/default/svg/position-${participant.teamPosition.toLowerCase()}.svg`}
+								alt={`${participant.teamPosition} Position Icon`}
 								width={28}
 								height={28}
 								className="w-8 h-8"
