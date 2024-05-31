@@ -93,7 +93,7 @@ const MatchHistory = ({
 	};
 
 	const getLaneName = (teamPosition, queueId) => {
-		if (queueId === 450 || teamPosition === "Invalid") {
+		if (queueId === 450 || teamPosition === "") {
 			return null;
 		}
 
