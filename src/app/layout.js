@@ -2,6 +2,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import NavBar from "@/components/NavBar";
 import OutageBanner from "@/components/OutageBanner"; // Import the OutageBanner component
+import Footer from "@/components/Footer";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,6 +24,7 @@ export default function RootLayout({ children }) {
 				<OutageBanner message={outageMessage} /> {/* Render the OutageBanner */}
 				<NavBar />
 				{children}
+				<Footer />
 			</body>
 		</html>
 	);
