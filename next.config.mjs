@@ -11,6 +11,7 @@ const nextConfig = {
 				hostname: "ddragon.leagueoflegends.com",
 			},
 		],
+		unoptimized: true,
 	},
 	experimental: {
 		missingSuspenseWithCSRBailout: false,
