@@ -8,6 +8,10 @@ import SearchBar from "./SearchBar";
 const NavBar = () => {
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+	const handleSearch = () => {
+		setIsMenuOpen(false);
+	};
+
 	return (
 		<nav className="bg-[#13151b] text-white py-4 px-6 flex items-center justify-between">
 			<div className="flex items-center space-x-4">
@@ -45,7 +49,7 @@ const NavBar = () => {
 			</div>
 
 			<div className="hidden md:flex flex-1 justify-center mx-4">
-				<SearchBar />
+				<SearchBar onSearch={handleSearch} />
 			</div>
 
 			<div className="hidden md:flex items-center space-x-4">
@@ -67,7 +71,7 @@ const NavBar = () => {
 					>
 						Leaderboards
 					</Link>
-					<SearchBar />
+					<SearchBar onSearch={handleSearch} />
 				</div>
 				<button
 					className="mt-8 text-white"
