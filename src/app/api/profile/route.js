@@ -74,6 +74,19 @@ const fetchAdditionalData = async (summonerId, puuid, region) => {
 
 		const accountData = await accountResponse.json();
 
+		const summonerResponse = await fetch(
+			`https://${region}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}`,
+			{
+				headers: { "X-Riot-Token": RIOT_API_KEY },
+			}
+		);
+
+		if (!summonerResponse.ok) {
+			throw new Error("Failed to fetch summoner data");
+		}
+
+		const summonerData = await summonerResponse.json();
+
 		return {
 			rank: soloQueueData
 				? soloQueueData.tier + " " + soloQueueData.rank
@@ -83,6 +96,7 @@ const fetchAdditionalData = async (summonerId, puuid, region) => {
 			losses: soloQueueData ? soloQueueData.losses : 0,
 			gameName: accountData.gameName,
 			tagLine: accountData.tagLine,
+			summonerLevel: summonerData.summonerLevel,
 		};
 	} catch (error) {
 		console.error("Error fetching additional data:", error);
@@ -93,6 +107,7 @@ const fetchAdditionalData = async (summonerId, puuid, region) => {
 			losses: 0,
 			gameName: "",
 			tagLine: "",
+			summonerLevel: 0,
 		};
 	}
 };
