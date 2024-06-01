@@ -3,13 +3,17 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 
-const SearchBar = () => {
+const SearchBar = ({ onSearch }) => {
 	const [combinedInput, setCombinedInput] = useState("");
 	const router = useRouter();
 
 	const handleSearch = () => {
 		const [gameName, tagLine] = combinedInput.split("#");
+		console.log("Search initiated"); // Add this line to verify the function call
 		router.push(`/profile?gameName=${gameName}&tagLine=${tagLine}`);
+		if (onSearch) {
+			onSearch();
+		}
 	};
 
 	const handleKeyDown = (event) => {
