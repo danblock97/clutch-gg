@@ -6,8 +6,7 @@ const LiveGame = ({ liveGameData }) => {
 	const [isArena, setIsArena] = useState(false);
 
 	useEffect(() => {
-		// Determine if the game is an arena match based on the queueId or any other property you have
-		setIsArena(liveGameData.queueId === 1700); // Assuming 1700 is the queueId for arena matches
+		setIsArena(liveGameData.queueId === 1700);
 	}, [liveGameData]);
 
 	const formatRankImageName = (rank) => {
@@ -24,9 +23,9 @@ const LiveGame = ({ liveGameData }) => {
 		return (
 			<div
 				key={participant.summonerId}
-				className="flex items-center py-1 border-b border-gray-700"
+				className="flex flex-col md:flex-row items-center py-1 border-b border-gray-700"
 			>
-				<div className="flex items-center w-2/12">
+				<div className="flex items-center w-full md:w-2/12 mb-2 md:mb-0">
 					<Image
 						src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${participant.championId}.png`}
 						alt="Champion Icon"
@@ -63,7 +62,7 @@ const LiveGame = ({ liveGameData }) => {
 						</div>
 					</div>
 				</div>
-				<div className="w-1/12 flex flex-col items-center">
+				<div className="w-full md:w-1/12 flex flex-col items-center mb-2 md:mb-0">
 					{participant.perks &&
 						participant.perks.styles &&
 						participant.perks.styles[0] &&
@@ -88,7 +87,7 @@ const LiveGame = ({ liveGameData }) => {
 							/>
 						)}
 				</div>
-				<div className="w-2/12 flex items-center justify-center text-center">
+				<div className="w-full md:w-2/12 flex items-center justify-start text-center mb-2 md:mb-0">
 					{rankImageName && (
 						<Image
 							src={`/images/rankedEmblems/${rankImageName}.webp`}
@@ -105,7 +104,7 @@ const LiveGame = ({ liveGameData }) => {
 						</div>
 					</div>
 				</div>
-				<div className="w-2/12 text-center">
+				<div className="w-full md:w-2/12 text-center">
 					<div className="font-bold text-xs">
 						{participant.wins}W / {participant.losses}L
 					</div>
@@ -148,9 +147,8 @@ const LiveGame = ({ liveGameData }) => {
 		let participants = liveGameData.participants;
 		let teams = {};
 
-		// Group participants into pairs
 		participants.forEach((participant, index) => {
-			const teamId = Math.floor(index / 2); // Creates 8 teams of 2 participants each
+			const teamId = Math.floor(index / 2);
 			if (!teams[teamId]) {
 				teams[teamId] = [];
 			}
