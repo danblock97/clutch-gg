@@ -11,11 +11,7 @@ const LeaderboardTable = ({ leaderboardData }) => {
 						<th className="p-2">Rank</th>
 						<th className="p-2 text-left">Summoner</th>
 						<th className="p-2">LP</th>
-						<th className="p-2">
-							Wins / Losses
-							<br />
-							Win Rate
-						</th>
+						<th className="p-2">Win Rate</th>
 					</tr>
 				</thead>
 				<tbody>
