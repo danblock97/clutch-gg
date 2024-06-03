@@ -9,9 +9,11 @@ const Footer = () => {
 					<div>
 						<h3 className="text-lg font-semibold mb-4">Compliance</h3>
 						<p className="text-sm">
-							© 2024 Riot Games, Inc. Riot Games, League of Legends and PvP.net
-							are trademarks, services marks, or registered trademarks of Riot
-							Games, Inc.
+							RiftSpy is not endorsed by Riot Games and does not reflect the
+							views or opinions of Riot Games or anyone officially involved in
+							producing or managing Riot Games properties. Riot Games and all
+							associated properties are trademarks or registered trademarks of
+							Riot Games. Inc.
 						</p>
 					</div>
 					<div>
