@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import OutageBanner from "@/components/OutageBanner";
 
 const LiveGame = ({ liveGameData }) => {
 	const [isArena, setIsArena] = useState(false);
@@ -163,8 +164,11 @@ const LiveGame = ({ liveGameData }) => {
 		));
 	};
 
+	const outageMessage = process.env.NEXT_PUBLIC_OUTAGE_MESSAGE; // Access the environment variable
+
 	return (
 		<div className="min-h-screen flex items-center justify-center bg-[#0e1015]">
+			<OutageBanner message={outageMessage} /> {/* Render the OutageBanner */}
 			<div className="bg-[#13151b] text-white rounded-lg p-4 shadow-md max-w-7xl w-full">
 				<div className="py-2 px-4 text-lg font-bold bg-gray-900 rounded-t-lg flex justify-between items-center">
 					<div>

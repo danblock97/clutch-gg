@@ -1,7 +1,6 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
 import NavBar from "@/components/NavBar";
-import OutageBanner from "@/components/OutageBanner"; // Import the OutageBanner component
 import Footer from "@/components/Footer";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -16,12 +15,10 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
-	const outageMessage = process.env.NEXT_PUBLIC_OUTAGE_MESSAGE; // Access the environment variable
 
 	return (
 		<html lang="en">
 			<body className={inter.className}>
-				<OutageBanner message={outageMessage} /> {/* Render the OutageBanner */}
 				<NavBar />
 				{children}
 				<Footer />

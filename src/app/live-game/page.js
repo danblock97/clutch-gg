@@ -73,6 +73,8 @@ const LiveGamePage = () => {
 		);
 	}
 
+
+
 	return (
 		<div>
 			<LiveGame liveGameData={liveGameData} />
