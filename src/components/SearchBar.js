@@ -23,21 +23,36 @@ const SearchBar = ({ onSearch }) => {
 	};
 
 	return (
-		<div className="flex flex-col sm:flex-row items-center justify-center p-4 rounded-lg">
-			<input
-				className="flex-1 p-2 mb-2 sm:mb-0 sm:mr-2 border border-gray-300 rounded bg-[#13151b] text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-				type="text"
-				placeholder="gameName#tagLine"
-				value={combinedInput}
-				onChange={(e) => setCombinedInput(e.target.value)}
-				onKeyDown={handleKeyDown}
-			/>
-			<button
-				className="p-2 bg-blue-500 text-white rounded w-full sm:w-auto"
-				onClick={handleSearch}
-			>
-				Search
-			</button>
+		<div className="flex items-center justify-center p-4">
+			<div className="relative w-full max-w-lg">
+				<input
+					className="w-full p-4 pl-8 text-white bg-[#13151b] rounded-full border-none shadow-lg placeholder-gray-400 focus:outline-none focus:ring-2"
+					type="text"
+					placeholder="GameName#tagLine"
+					value={combinedInput}
+					onChange={(e) => setCombinedInput(e.target.value)}
+					onKeyDown={handleKeyDown}
+				/>
+				<button
+					className="absolute top-1/2 right-4 transform -translate-y-1/2 bg-transparent border-none outline-none cursor-pointer"
+					onClick={handleSearch}
+				>
+					<svg
+						className="w-6 h-6 text-gray-400 hover:text-white"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+						xmlns="http://www.w3.org/2000/svg"
+					>
+						<path
+							strokeLinecap="round"
+							strokeLinejoin="round"
+							strokeWidth="2"
+							d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+						></path>
+					</svg>
+				</button>
+			</div>
 		</div>
 	);
 };
