@@ -6,8 +6,8 @@ const fetchArenaAugments = async () => {
 	const response = await fetch(
 		"https://raw.communitydragon.org/latest/cdragon/arena/en_us.json"
 	);
-	const data = await response.json();
-	return data.augments;
+	const {augments} = await response.json();
+	return augments;
 };
 
 const MatchHistory = ({
@@ -31,7 +31,7 @@ const MatchHistory = ({
 		const augment = augments.find((aug) => aug.id === id);
 		return augment && augment.iconSmall
 			? `https://raw.communitydragon.org/latest/game/${augment.iconSmall}`
-			: '/images/placeholder.png';  // Placeholder image URL
+			: '/images/placeholder.png';
 	};
 
 	if (!matchDetails || matchDetails.length === 0) {
@@ -81,13 +81,8 @@ const MatchHistory = ({
 		return name;
 	};
 
-	const isWard = (itemId) => {
-		const wardItems = [3340, 3363, 2055, 2049, 2301, 2302, 2303];
-		return wardItems.includes(itemId);
-	};
-
 	return (
-		<div className="text-[#979aa0] p-4 w-full">
+		<div className="text-[#979aa0] p-4 w-full overflow-x-auto">
 			{filteredMatches.map((match, index) => {
 				const currentPlayer = match.info.participants.find(
 					(participant) => participant.puuid === selectedSummonerPUUID
@@ -118,11 +113,15 @@ const MatchHistory = ({
 
 				const goldEarned = currentPlayer.goldEarned.toLocaleString();
 
+
+				const winningTeam = match.info.participants.filter(participant => participant.win);
+				const losingTeam = match.info.participants.filter(participant => !participant.win);
+
 				return (
 					<div
 						key={index}
 						onClick={() => handleClick(match.metadata.matchId)}
-						className={`rounded-md shadow-md p-4 cursor-pointer flex flex-col relative ${getGradientBackground(currentPlayer.win)}`}
+						className={`rounded-md shadow-md p-6 cursor-pointer flex flex-col relative ${getGradientBackground(currentPlayer.win)} min-w-[768px]`}
 					>
 						<div className="absolute top-4 left-4 flex items-start">
 							<div className="flex items-center mr-4">
@@ -162,11 +161,7 @@ const MatchHistory = ({
 								</div>
 							</div>
 						</div>
-						<div className="flex justify-between mb-2 mt-24">
-							<div className="flex items-start">
-								{/* If I remove this, the whole design breaks? */}
-							</div>
-						</div>
+						<div className="h-24"></div>
 						<div className="absolute top-16 right-64 flex items-center justify-center">
 							<div className="flex flex-col items-center mr-4">
 								{[currentPlayer.summoner1Id, currentPlayer.summoner2Id].map(
@@ -206,7 +201,7 @@ const MatchHistory = ({
 								))}
 								{ward && (
 									<div className="flex items-center">
-										<Image
+										 <Image
 											src={`https://ddragon.leagueoflegends.com/cdn/14.12.1/img/item/${ward}.png`}
 											alt="Ward"
 											width={20}
@@ -240,7 +235,7 @@ const MatchHistory = ({
 											<Image
 												src={getAugmentIcon(augmentId)}
 												alt={`Augment ${idx + 1}`}
-												className="w-10 h-10" // Increased size
+												className="w-10 h-10"
 												width={48}
 												height={48}
 											/>
@@ -249,8 +244,8 @@ const MatchHistory = ({
 								</div>
 							</div>
 						) : (
-							<div className="absolute top-4 right-1 flex">
-								<div className="flex flex-col items-start mr-4">
+							<div className="absolute top-4 right-0.5 flex">
+								<div className="flex flex-col items-start">
 									{winningTeam.map((participant, idx) => (
 										<div key={idx} className="flex items-center mb-1">
 											<Image
