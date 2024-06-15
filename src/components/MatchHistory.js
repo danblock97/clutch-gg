@@ -6,7 +6,7 @@ const fetchArenaAugments = async () => {
 	const response = await fetch(
 		"https://raw.communitydragon.org/latest/cdragon/arena/en_us.json"
 	);
-	const {augments} = await response.json();
+	const { augments } = await response.json();
 	return augments;
 };
 
@@ -36,7 +36,7 @@ const MatchHistory = ({
 
 	if (!matchDetails || matchDetails.length === 0) {
 		return (
-			<div className="bg-[#18141c] text-[#979aa0] p-4 rounded-md">
+			<div className="bg-gray-800 text-gray-400 p-4 rounded-lg shadow-lg">
 				No match history available
 			</div>
 		);
@@ -50,7 +50,7 @@ const MatchHistory = ({
 
 	if (filteredMatches.length === 0) {
 		return (
-			<div className="bg-[#18141c] text-[#979aa0] p-4 rounded-md">
+			<div className="bg-gray-800 text-gray-400 p-4 rounded-lg shadow-lg">
 				No match history available for this summoner
 			</div>
 		);
@@ -65,13 +65,13 @@ const MatchHistory = ({
 	};
 
 	const getOutcomeClass = (win) => {
-		return win ? "text-green-500" : "text-red-500";
+		return win ? "text-green-300" : "text-red-300";
 	};
 
 	const getGradientBackground = (win) => {
 		return win
-			? "bg-gradient-to-tl from-black via-green-900/20 to-transparent"
-			: "bg-gradient-to-tl from-black via-red-900/20 to-transparent";
+			? "bg-gradient-to-tl from-gray-800 via-green-900/20 to-transparent"
+			: "bg-gradient-to-tl from-gray-800 via-red-900/20 to-transparent";
 	};
 
 	const truncateName = (name, maxLength) => {
@@ -82,7 +82,7 @@ const MatchHistory = ({
 	};
 
 	return (
-		<div className="text-[#979aa0] p-4 w-full overflow-x-auto">
+		<div className="text-gray-400 p-6 w-full overflow-x-auto">
 			{filteredMatches.map((match, index) => {
 				const currentPlayer = match.info.participants.find(
 					(participant) => participant.puuid === selectedSummonerPUUID
@@ -113,7 +113,6 @@ const MatchHistory = ({
 
 				const goldEarned = currentPlayer.goldEarned.toLocaleString();
 
-
 				const winningTeam = match.info.participants.filter(participant => participant.win);
 				const losingTeam = match.info.participants.filter(participant => !participant.win);
 
@@ -121,16 +120,16 @@ const MatchHistory = ({
 					<div
 						key={index}
 						onClick={() => handleClick(match.metadata.matchId)}
-						className={`rounded-md shadow-md p-6 cursor-pointer flex flex-col relative ${getGradientBackground(currentPlayer.win)} min-w-[768px]`}
+						className={`rounded-lg shadow-lg p-8 cursor-pointer flex flex-col relative ${getGradientBackground(currentPlayer.win)} min-w-[768px]`}
 					>
 						<div className="absolute top-4 left-4 flex items-start">
 							<div className="flex items-center mr-4">
 								<Image
 									src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${currentPlayer.championId}.png`}
 									alt="Champion Icon"
-									className="w-12 h-12"
-									width={48}
-									height={48}
+									className="w-14 h-14 rounded-full border-2 border-gray-700"
+									width={56}
+									height={56}
 								/>
 							</div>
 							<div className="flex flex-col">
@@ -142,19 +141,19 @@ const MatchHistory = ({
 									<p className="text-sm mr-2">• {match.info.gameDuration >= 300 ? `${Math.floor(match.info.gameDuration / 60)}:${match.info.gameDuration % 60}` : "Remake"}</p>
 									<p className="text-sm">• {timeAgo}</p>
 								</div>
-								<div className="flex ">
+								<div className="flex">
 									<div className="flex flex-col mr-8">
-										<p className="text-md font-bold">{kda} KDA</p>
+										<p className="text-lg font-bold">{kda} KDA</p>
 										<p className="text-md">{currentPlayer.kills}/{currentPlayer.deaths}/{currentPlayer.assists}</p>
 									</div>
 									{match.info.queueId === 1700 ? (
 										<div className="flex flex-col">
-											<p className="text-md font-bold">{dpm} DPM</p>
+											<p className="text-lg font-bold">{dpm} DPM</p>
 											<p className="text-md">{goldEarned} Gold</p>
 										</div>
 									) : (
 										<div className="flex flex-col">
-											<p className="text-md font-bold">{csPerMin} CS/Min</p>
+											<p className="text-lg font-bold">{csPerMin} CS/Min</p>
 											<p className="text-md">{currentPlayer.totalMinionsKilled} CS</p>
 										</div>
 									)}
@@ -162,7 +161,7 @@ const MatchHistory = ({
 							</div>
 						</div>
 						<div className="h-24"></div>
-						<div className="absolute top-16 right-64 flex items-center justify-center">
+						<div className="absolute top-16 right-72 flex items-center justify-center">
 							<div className="flex flex-col items-center mr-4">
 								{[currentPlayer.summoner1Id, currentPlayer.summoner2Id].map(
 									(spellId, idx) => (
@@ -170,31 +169,31 @@ const MatchHistory = ({
 											key={idx}
 											src={`/images/summonerSpells/${spellId}.png`}
 											alt={`Summoner Spell ${idx + 1}`}
-											width={20}
-											height={20}
-											className="w-7 h-7"
+											width={28}
+											height={28}
+											className="w-8 h-8 rounded-full border border-gray-700"
 										/>
 									)
 								)}
 							</div>
-							<div className="grid grid-cols-4 gap-1">
+							<div className="grid grid-cols-4 gap-2">
 								{items.slice(0, 3).map((itemId, idx) => (
 									<div key={idx} className="flex items-center">
 										{itemId > 0 ? (
 											<Image
 												src={`https://ddragon.leagueoflegends.com/cdn/14.12.1/img/item/${itemId}.png`}
 												alt="Item"
-												width={20}
-												height={20}
-												className="w-7 h-7"
+												width={28}
+												height={28}
+												className="w-8 h-8 rounded-lg border border-gray-700"
 											/>
 										) : (
 											<Image
 												src="/images/placeholder.png"
 												alt="No item"
-												width={20}
-												height={20}
-												className="w-5 h-5"
+												width={28}
+												height={28}
+												className="w-8 h-8 rounded-lg border border-gray-700"
 											/>
 										)}
 									</div>
@@ -204,9 +203,9 @@ const MatchHistory = ({
 										 <Image
 											src={`https://ddragon.leagueoflegends.com/cdn/14.12.1/img/item/${ward}.png`}
 											alt="Ward"
-											width={20}
-											height={20}
-											className="w-7 h-7"
+											width={28}
+											height={28}
+											className="w-8 h-8 rounded-lg border border-gray-700"
 										/>
 									</div>
 								)}
@@ -216,9 +215,9 @@ const MatchHistory = ({
 											<Image
 												src={`https://ddragon.leagueoflegends.com/cdn/14.12.1/img/item/${itemId}.png`}
 												alt="Item"
-												width={20}
-												height={20}
-												className="w-7 h-7"
+												width={28}
+												height={28}
+												className="w-8 h-8 rounded-lg border border-gray-700"
 											/>
 										) : (
 											<></>
@@ -235,7 +234,7 @@ const MatchHistory = ({
 											<Image
 												src={getAugmentIcon(augmentId)}
 												alt={`Augment ${idx + 1}`}
-												className="w-10 h-10"
+												className="w-12 h-12 rounded-lg border border-gray-700"
 												width={48}
 												height={48}
 											/>
@@ -251,12 +250,12 @@ const MatchHistory = ({
 											<Image
 												src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${participant.championId}.png`}
 												alt="Participant Champion"
-												width={20}
-												height={20}
-												className="w-5 h-5 mr-1"
+												width={24}
+												height={24}
+												className="w-6 h-6 rounded-full border border-gray-700 ml-1"
 											/>
 											<p className="text-sm truncate" style={{ width: '100px' }}>
-												<span className={`${participant.puuid === selectedSummonerPUUID ? 'font-semibold text-white' : ''}`}>
+												<span className={`${participant.puuid === selectedSummonerPUUID ? 'font-semibold text-gray-100' : ''}`}>
 													{truncateName(participant.riotIdGameName, 7)}
 												</span>
 											</p>
@@ -269,12 +268,12 @@ const MatchHistory = ({
 											<Image
 												src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${participant.championId}.png`}
 												alt="Participant Champion"
-												width={20}
-												height={20}
-												className="w-5 h-5 mr-1"
+												width={24}
+												height={24}
+												className="w-6 h-6 rounded-full border border-gray-700 mr-1"
 											/>
 											<p className="text-sm truncate" style={{ width: '100px' }}>
-												<span className={`${participant.puuid === selectedSummonerPUUID ? 'font-semibold text-white' : ''}`}>
+												<span className={`${participant.puuid === selectedSummonerPUUID ? 'font-semibold text-gray-100' : ''}`}>
 													{truncateName(participant.riotIdGameName, 7)}
 												</span>
 											</p>
