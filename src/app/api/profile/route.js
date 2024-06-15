@@ -7,8 +7,8 @@ const RIOT_API_KEY = process.env.RIOT_API_KEY;
 
 const regions = [
 	"BR1",
-	"EUN1",
 	"EUW1",
+	"EUN1",
 	"JP1",
 	"KR",
 	"LA1",
