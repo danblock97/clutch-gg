@@ -10,6 +10,37 @@ const fetchArenaAugments = async () => {
 	return augments;
 };
 
+const getQueueName = (queueId) => {
+	switch (queueId) {
+		case 420:
+			return "Ranked Solo/Duo";
+		case 430:
+			return "Normal (Blind)";
+		case 400:
+			return "Normal (Draft)";
+		case 440:
+			return "Ranked Flex";
+		case 450:
+			return "ARAM";
+		case 490:
+			return "Normal (Quickplay)";
+		case 720:
+			return "ARAM (Clash)";
+		case 830:
+			return "Co-op vs. AI Intro";
+		case 840:
+			return "Co-op vs. AI Beginner";
+		case 850:
+			return "Co-op vs. AI Intermediate";
+		case 900:
+			return "ARURF";
+		case 1700:
+			return "Arena";
+		default:
+			return "Unknown Queue";
+	}
+};
+
 const MatchHistory = ({
 	matchDetails,
 	selectedSummonerPUUID,
@@ -137,7 +168,7 @@ const MatchHistory = ({
 									<p className={`font-semibold mr-2 ${getOutcomeClass(currentPlayer.win)}`}>
 										{currentPlayer.win ? "Victory" : "Defeat"}
 									</p>
-									<p className="text-sm mr-2">• {match.info.queueId === 420 ? "Ranked Solo" : "Ranked Flex"}</p>
+									<p className="text-sm mr-2">• {getQueueName(match.info.queueId)}</p>
 									<p className="text-sm mr-2">• {match.info.gameDuration >= 300 ? `${Math.floor(match.info.gameDuration / 60)}:${match.info.gameDuration % 60}` : "Remake"}</p>
 									<p className="text-sm">• {timeAgo}</p>
 								</div>
@@ -188,7 +219,7 @@ const MatchHistory = ({
 												className="w-8 h-8 rounded-lg border border-gray-700"
 											/>
 										) : (
-											<Image
+											 <Image
 												src="/images/placeholder.png"
 												alt="No item"
 												width={28}
