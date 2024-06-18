@@ -170,7 +170,18 @@ const MatchHistory = ({
 									</p>
 									<p className="text-sm mr-2">• {getQueueName(match.info.queueId)}</p>
 									<p className="text-sm mr-2">• {match.info.gameDuration >= 300 ? `${Math.floor(match.info.gameDuration / 60)}:${match.info.gameDuration % 60}` : "Remake"}</p>
-									<p className="text-sm">• {timeAgo}</p>
+									<p className="text-sm flex items-center">
+										• {timeAgo} •
+										{match.info.queueId !== 1700 && currentPlayer.teamPosition && (
+											<Image
+												src={`https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-champ-select/global/default/svg/position-${currentPlayer.teamPosition.toLowerCase()}.svg`}
+												alt={`${currentPlayer.teamPosition} Position Icon`}
+												width={16}
+												height={16}
+												className="ml-1"
+											/>
+										)}
+									</p>
 								</div>
 								<div className="flex">
 									<div className="flex flex-col mr-8">
@@ -193,7 +204,7 @@ const MatchHistory = ({
 						</div>
 						<div className="h-24"></div>
 						<div className="absolute top-16 right-72 flex items-center justify-center">
-							<div className="flex flex-col items-center mr-4">
+							<div className="flex flex-col items-center mr-2 gap-2">
 								{[currentPlayer.summoner1Id, currentPlayer.summoner2Id].map(
 									(spellId, idx) => (
 										<Image
