@@ -9,7 +9,6 @@ const SearchBar = ({ onSearch }) => {
 
 	const handleSearch = () => {
 		const [gameName, tagLine] = combinedInput.split("#");
-		console.log("Search initiated"); // Add this line to verify the function call
 		router.push(`/profile?gameName=${gameName}&tagLine=${tagLine}`);
 		if (onSearch) {
 			onSearch();
