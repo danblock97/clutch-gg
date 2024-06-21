@@ -96,7 +96,7 @@ const MatchHistory = ({
 	};
 
 	const getOutcomeClass = (win) => {
-		return win ? "text-green-300" : "text-red-300";
+		return win ? "text-green-600 border-green-600" : "text-red-600 border-red-600";
 	};
 
 	const getGradientBackground = (win) => {
@@ -158,7 +158,7 @@ const MatchHistory = ({
 								<Image
 									src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${currentPlayer.championId}.png`}
 									alt="Champion Icon"
-									className="w-14 h-14 rounded-full border-2 border-gray-700"
+									className={`w-14 h-14 rounded-full border-2 ${getOutcomeClass(currentPlayer.win)}`}
 									width={56}
 									height={56}
 								/>
@@ -190,7 +190,7 @@ const MatchHistory = ({
 									</div>
 									{match.info.queueId === 1700 ? (
 										<div className="flex flex-col">
-											<p className="text-lg font-bold">{dpm} DPM</p>
+										<p className="text-lg font-bold">{dpm} DPM</p>
 											<p className="text-md">{goldEarned} Gold</p>
 										</div>
 									) : (
