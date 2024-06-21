@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Loading from "./Loading";
 import Link from "next/link";
+import Tag from "@/components/Tag";
 
 const fetchArenaAugments = async () => {
     const response = await fetch(
@@ -17,7 +18,7 @@ const fetchLatestVersion = async () => {
     return versions[0]; // The latest version is the first one in the list
 };
 
-const MatchDetails = ({ matchDetails, matchId }) => {
+const MatchDetails = ({ matchDetails, matchId, selectedSummonerPUUID }) => {
     const [augments, setAugments] = useState([]);
     const [latestVersion, setLatestVersion] = useState("");
 
@@ -56,6 +57,24 @@ const MatchDetails = ({ matchDetails, matchId }) => {
         return (
             <div className="text-center text-white">Match details not found.</div>
         );
+    }
+
+    const participant = match.info.participants.find((p) => p.puuid === selectedSummonerPUUID);
+
+    console.log("Selected Participant:", participant); // Debugging line
+
+    const tags = [];
+
+    if (participant) {
+        if (participant.firstBloodKill) {
+                    tags.push(<Tag text="First Blood" hoverText="Congrats on First Blood!" color="bg-gray-400 text-white" />);
+                }
+
+                if (participant.tripleKills > 0) {
+                    tags.push(<Tag text="Triple Kill" hoverText={`Nice job getting ${participant.tripleKills} Triple Kills!`} color="bg-yellow-500 text-white" />);
+                }
+    } else {
+        console.log("Participant not found for PUUID:", selectedSummonerPUUID);
     }
 
     const isArena = match.info.queueId === 1700;
@@ -140,7 +159,10 @@ const MatchDetails = ({ matchDetails, matchId }) => {
 
         return (
             <div className="bg-[#13151b] min-h-screen flex flex-col items-center justify-center px-4 py-2">
-                <div className="max-w-6xl w-full">{teamComponents}</div>
+                <div className="max-w-6xl w-full">
+                    <div className="tags flex space-x-2 mb-4">{tags}</div>
+                    {teamComponents}
+                </div>
             </div>
         );
     }
@@ -169,9 +191,11 @@ const MatchDetails = ({ matchDetails, matchId }) => {
         team1: match.info.teams.find((t) => t.teamId === 100).bans,
         team2: match.info.teams.find((t) => t.teamId === 200).bans,
     };
+
     return (
         <div className="bg-[#13151b] min-h-screen flex items-center justify-center px-4 py-2">
             <div className="bg-[#13151b] text-white max-w-6xl w-full">
+                <div className="tags flex space-x-2 mb-4">{tags}</div>
                 <div className="flex justify-between items-center mb-4">
                     <div className="flex-1">
                         <span className="text-xs font-semibold text-[#3182CE]">Team 1</span>
