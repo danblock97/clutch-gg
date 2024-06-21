@@ -9,13 +9,18 @@ import Loading from "@/components/Loading";
 const MatchPage = () => {
 	const searchParams = useSearchParams();
 	const matchId = searchParams.get("matchId");
-	const { matchDetails, accountData, error, isLoading, retryCountdown } =
-		useProfileData();
+	const { matchDetails, accountData, error, isLoading, retryCountdown } = useProfileData();
+
+	const [selectedSummonerPUUID, setSelectedSummonerPUUID] = useState(null);
 
 	useEffect(() => {
 		const gameName = searchParams.get("gameName");
 		const tagLine = searchParams.get("tagLine");
-	}, [searchParams]);
+
+		if (accountData && accountData.puuid) {
+			setSelectedSummonerPUUID(accountData.puuid);
+		}
+	}, [searchParams, accountData]);
 
 	if (isLoading) {
 		return <Loading />;
@@ -36,11 +41,11 @@ const MatchPage = () => {
 
 	return (
 		<div>
-			{matchId && (
+			{matchId && selectedSummonerPUUID && (
 				<MatchDetails
 					matchId={matchId}
 					matchDetails={matchDetails}
-					accountData={accountData}
+					selectedSummonerPUUID={selectedSummonerPUUID}
 				/>
 			)}
 		</div>
