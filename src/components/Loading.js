@@ -1,21 +1,26 @@
-import React, { useRef } from "react";
+import React, { useRef, useEffect } from "react";
 import LoadingBar from "react-top-loading-bar";
 
 const Loading = () => {
-	const loadingBarRef = useRef(null);
+    const loadingBarRef = useRef(null);
 
-	React.useEffect(() => {
-		loadingBarRef.current.continuousStart();
-		return () => {
-			loadingBarRef.current.complete();
-		};
-	}, []);
+    useEffect(() => {
+        if (loadingBarRef.current) {
+            loadingBarRef.current.continuousStart();
+        }
 
-	return (
-		<div>
-			<LoadingBar color="#f11946" ref={loadingBarRef} />
-		</div>
-	);
+        return () => {
+            if (loadingBarRef.current) {
+                loadingBarRef.current.complete();
+            }
+        };
+    }, []);
+
+    return (
+        <div>
+            <LoadingBar color="#f11946" ref={loadingBarRef} />
+        </div>
+    );
 };
 
 export default Loading;
