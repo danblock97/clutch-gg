@@ -43,6 +43,8 @@ const useProfileData = () => {
 	useEffect(() => {
 		if (gameName && tagLine) {
 			fetchData();
+			const interval = setInterval(fetchData, 80000);
+			return () => clearInterval(interval);
 		}
 	}, [fetchData, gameName, tagLine]);
 

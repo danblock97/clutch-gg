@@ -1,11 +1,19 @@
-import React from "react";
+import React, { useRef } from "react";
+import LoadingBar from "react-top-loading-bar";
 
 const Loading = () => {
+	const loadingBarRef = useRef(null);
+
+	React.useEffect(() => {
+		loadingBarRef.current.continuousStart();
+		return () => {
+			loadingBarRef.current.complete();
+		};
+	}, []);
+
 	return (
-		<div className="">
-			<div className="bg-[#0e1015] flex items-center justify-center h-screen">
-				<div className="w-20 h-20 border-t-4 border-b-4 border-blue-500 rounded-full animate-spin"></div>
-			</div>
+		<div>
+			<LoadingBar color="#f11946" ref={loadingBarRef} />
 		</div>
 	);
 };
