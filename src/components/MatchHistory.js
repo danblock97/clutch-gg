@@ -130,6 +130,10 @@ const MatchHistory = ({
                     tags.push(<Tag key="triple-kill" text="Triple Kill" hoverText={`Nice job getting ${currentPlayer.tripleKills} Triple Kills!`} color="bg-yellow-500 text-white" />);
                 }
 
+                if (currentPlayer.deaths === 0) {
+                    tags.push(<Tag key="unkillable" text="Unkillable" hoverText={`A Whole 0 Deaths! Grats on not inting!`} color="bg-yellow-500 text-white" />);
+                }
+
                 const items = Array.from({ length: 7 }, (_, i) => currentPlayer[`item${i}`]);
                 const ward = items[6];
 

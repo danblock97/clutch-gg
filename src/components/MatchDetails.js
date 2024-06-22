@@ -73,6 +73,10 @@ const MatchDetails = ({ matchDetails, matchId, selectedSummonerPUUID }) => {
                 if (participant.tripleKills > 0) {
                     tags.push(<Tag text="Triple Kill" hoverText={`Nice job getting ${participant.tripleKills} Triple Kills!`} color="bg-yellow-500 text-white" />);
                 }
+
+                if (participant.deaths === 0) {
+                    tags.push(<Tag key="unkillable" text="Unkillable" hoverText={`A Whole 0 Deaths! Grats on not inting!`} color="bg-yellow-500 text-white" />);
+                }
     } else {
         console.log("Participant not found for PUUID:", selectedSummonerPUUID);
     }
