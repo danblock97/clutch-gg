@@ -36,10 +36,10 @@ const ProfilePage = () => {
 
 	if (error) {
 		return (
-			<div>
-				<p className="text-red-500">{error}</p>
+			<div className="h-screen min-h-screen bg-[#0e1015] items-center p-4">
+				<p className="text-red-500 text-center">{error}</p>
 				{retryCountdown > 0 && (
-					<p className="text-yellow-500">
+					<p className="text-red-500 text-center">
 						Failed to fetch, automatic retry in {retryCountdown} seconds
 					</p>
 				)}

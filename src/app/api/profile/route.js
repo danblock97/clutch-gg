@@ -285,8 +285,8 @@ cron.schedule("* * * * *", async () => {
 	for (const profile of profiles) {
 		const { gameName, tagLine, createdAt } = profile;
 
-		// Check if the document is older than 180 seconds
-		if (new Date() - new Date(createdAt) > 180 * 1000) {
+		// Check if the document is older than 60 seconds
+		if (new Date() - new Date(createdAt) > 60 * 1000) {
 			await fetchAndUpdateProfileData(gameName, tagLine);
 		}
 	}
@@ -307,7 +307,7 @@ export async function GET(req) {
 
     if (
         !cachedProfile ||
-        new Date() - new Date(cachedProfile.createdAt) > 180 * 1000
+        new Date() - new Date(cachedProfile.createdAt) > 60 * 1000
     ) {
         try {
             await fetchAndUpdateProfileData(gameName, tagLine);
