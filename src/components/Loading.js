@@ -17,7 +17,7 @@ const Loading = () => {
     }, []);
 
     return (
-        <div>
+        <div className="min-h-screen">
             <LoadingBar color="#f11946" ref={loadingBarRef} />
         </div>
     );

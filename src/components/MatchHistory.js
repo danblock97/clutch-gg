@@ -148,6 +148,7 @@ const MatchHistory = ({
 
                 const kda = ((currentPlayer.kills + currentPlayer.assists) / Math.max(1, currentPlayer.deaths)).toFixed(1);
                 const csPerMin = (currentPlayer.totalMinionsKilled / (match.info.gameDuration / 60)).toFixed(1);
+                const cs = currentPlayer.neutralMinionsKilled + currentPlayer.totalMinionsKilled;
                 const dpm = (currentPlayer.totalDamageDealtToChampions / (match.info.gameDuration / 60)).toFixed(1);
 
                 const augments = [
@@ -211,7 +212,7 @@ const MatchHistory = ({
                                     ) : (
                                         <div className="flex flex-col">
                                             <p className="text-lg font-bold">{csPerMin} CS/Min</p>
-                                            <p className="text-md">{currentPlayer.totalMinionsKilled} CS</p>
+                                            <p className="text-md">{cs} CS</p>
                                         </div>
                                     )}
                                 </div>
