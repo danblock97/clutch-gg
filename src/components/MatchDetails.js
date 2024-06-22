@@ -59,24 +59,46 @@ const MatchDetails = ({ matchDetails, matchId, selectedSummonerPUUID }) => {
         );
     }
 
-    const participant = match.info.participants.find((p) => p.puuid === selectedSummonerPUUID);
+    const participants = match.info.participants;
 
-    console.log("Selected Participant:", participant); // Debugging line
+    // Calculate CS/Min for each participant and find the one with the highest CS/Min
+    let maxCsPerMin = 0;
+    let maxCsPerMinParticipant = null;
+
+    participants.forEach((participant) => {
+        const csPerMin = (participant.totalMinionsKilled + participant.neutralMinionsKilled) / (match.info.gameDuration / 60);
+        participant.csPerMin = csPerMin;
+
+        if (csPerMin > maxCsPerMin) {
+            maxCsPerMin = csPerMin;
+            maxCsPerMinParticipant = participant.puuid;
+        }
+    });
+
+    const participant = participants.find((p) => p.puuid === selectedSummonerPUUID);
 
     const tags = [];
 
     if (participant) {
         if (participant.firstBloodKill) {
-                    tags.push(<Tag text="First Blood" hoverText="Congrats on First Blood!" color="bg-gray-400 text-white" />);
-                }
+            tags.push(<Tag key="first-blood" text="First Blood" hoverText="Congrats on First Blood!" color="bg-gray-400 text-white" />);
+        }
 
-                if (participant.tripleKills > 0) {
-                    tags.push(<Tag text="Triple Kill" hoverText={`Nice job getting ${participant.tripleKills} Triple Kills!`} color="bg-yellow-500 text-white" />);
-                }
+        if (participant.tripleKills > 0) {
+            tags.push(<Tag key="triple-kill" text="Triple Kill" hoverText={`Nice job getting ${participant.tripleKills} Triple Kills!`} color="bg-yellow-500 text-white" />);
+        }
 
-                if (participant.deaths === 0) {
-                    tags.push(<Tag key="unkillable" text="Unkillable" hoverText={`A Whole 0 Deaths! Grats on not inting!`} color="bg-yellow-500 text-white" />);
-                }
+        if (participant.deaths === 0) {
+            tags.push(<Tag key="unkillable" text="Unkillable" hoverText={`A Whole 0 Deaths! Grats on not inting!`} color="bg-yellow-500 text-white" />);
+        }
+
+        if (participant.challenges.damagePerMinute > 800) {
+            tags.push(<Tag key="good-damage" text="Good Damage" hoverText={`Nice Damage Dealt: ${participant.totalDamageDealtToChampions.toLocaleString()}`} color="bg-yellow-500 text-white" />);
+        }
+
+        if (participant.puuid === maxCsPerMinParticipant) {
+            tags.push(<Tag key="cs-star" text="CS Star" hoverText={`Most CS/min in the game: ${participant.csPerMin.toFixed(1)}`} color="bg-blue-500 text-white" />);
+        }
     } else {
         console.log("Participant not found for PUUID:", selectedSummonerPUUID);
     }
@@ -419,4 +441,5 @@ const ParticipantDetails = ({ participant, isArena, getAugmentIcon, latestVersio
         </Link>
     );
 };
+
 export default MatchDetails;

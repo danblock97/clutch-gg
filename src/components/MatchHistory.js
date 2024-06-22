@@ -116,7 +116,23 @@ const MatchHistory = ({
     return (
         <div className="text-gray-400 p-6 w-full overflow-x-auto">
             {filteredMatches.map((match, index) => {
-                const currentPlayer = match.info.participants.find(
+                const participants = match.info.participants;
+
+                // Calculate CS/Min for each participant and find the one with the highest CS/Min
+                let maxCsPerMin = 0;
+                let maxCsPerMinParticipant = null;
+
+                participants.forEach((participant) => {
+                    const csPerMin = (participant.totalMinionsKilled + participant.neutralMinionsKilled) / (match.info.gameDuration / 60);
+                    participant.csPerMin = csPerMin;
+
+                    if (csPerMin > maxCsPerMin) {
+                        maxCsPerMin = csPerMin;
+                        maxCsPerMinParticipant = participant.puuid;
+                    }
+                });
+
+                const currentPlayer = participants.find(
                     (participant) => participant.puuid === selectedSummonerPUUID
                 );
 
@@ -132,6 +148,14 @@ const MatchHistory = ({
 
                 if (currentPlayer.deaths === 0) {
                     tags.push(<Tag key="unkillable" text="Unkillable" hoverText={`A Whole 0 Deaths! Grats on not inting!`} color="bg-yellow-500 text-white" />);
+                }
+
+                if (currentPlayer.challenges.damagePerMinute > 800) {
+                    tags.push(<Tag key="good-damage" text="Good Damage" hoverText={`Nice Damage Dealt:${currentPlayer.totalDamageDealtToChampions.toLocaleString()}`} color="bg-yellow-500 text-white" />);
+                }
+
+                if (currentPlayer.puuid === maxCsPerMinParticipant) {
+                    tags.push(<Tag key="cs-star" text="CS Star" hoverText={`Most CS/min in the game: ${currentPlayer.csPerMin.toFixed(1)}`} color="bg-blue-500 text-white" />);
                 }
 
                 const items = Array.from({ length: 7 }, (_, i) => currentPlayer[`item${i}`]);
@@ -206,7 +230,7 @@ const MatchHistory = ({
                                     </div>
                                     {match.info.queueId === 1700 ? (
                                         <div className="flex flex-col">
-                                        <p className="text-lg font-bold">{dpm} DPM</p>
+                                            <p className="text-lg font-bold">{dpm} DPM</p>
                                             <p className="text-md">{goldEarned} Gold</p>
                                         </div>
                                     ) : (
@@ -249,7 +273,7 @@ const MatchHistory = ({
                                                 className="w-8 h-8 rounded-lg border border-gray-700"
                                             />
                                         ) : (
-                                             <Image
+                                            <Image
                                                 src="/images/placeholder.png"
                                                 alt="No item"
                                                 width={28}
@@ -261,7 +285,7 @@ const MatchHistory = ({
                                 ))}
                                 {ward && (
                                     <div className="flex items-center">
-                                         <Image
+                                        <Image
                                             src={`https://ddragon.leagueoflegends.com/cdn/14.12.1/img/item/${ward}.png`}
                                             alt="Ward"
                                             width={28}
@@ -283,7 +307,7 @@ const MatchHistory = ({
                                         ) : (
                                             <></>
                                         )}
-                                        </div>
+                                    </div>
                                 ))}
                             </div>
                         </div>
