@@ -12,29 +12,17 @@ const fetchArenaAugments = async () => {
     return data.augments;
 };
 
-const fetchLatestVersion = async () => {
-    const response = await fetch("https://ddragon.leagueoflegends.com/api/versions.json");
-    const versions = await response.json();
-    return versions[0]; // The latest version is the first one in the list
-};
+
 
 const MatchDetails = ({ matchDetails, matchId, selectedSummonerPUUID }) => {
     const [augments, setAugments] = useState([]);
-    const [latestVersion, setLatestVersion] = useState("");
 
     useEffect(() => {
         const getAugments = async () => {
             const data = await fetchArenaAugments();
             setAugments(data);
         };
-
-        const getVersion = async () => {
-            const version = await fetchLatestVersion();
-            setLatestVersion(version);
-        };
-
         getAugments();
-        getVersion();
     }, []);
 
     const getAugmentIcon = (id) => {
@@ -176,7 +164,6 @@ const MatchDetails = ({ matchDetails, matchId, selectedSummonerPUUID }) => {
                             participant={participant}
                             isArena={true}
                             getAugmentIcon={getAugmentIcon}
-                            latestVersion={latestVersion}
                         />
                     ))}
                 </div>
@@ -247,7 +234,7 @@ const MatchDetails = ({ matchDetails, matchId, selectedSummonerPUUID }) => {
                     </div>
                 </div>
                 {team1.map((participant, index) => (
-                    <ParticipantDetails key={index} participant={participant} latestVersion={latestVersion} />
+                    <ParticipantDetails key={index} participant={participant} />
                 ))}
                 <div className="flex justify-between items-center">
                     <div className="flex-1">
@@ -275,14 +262,14 @@ const MatchDetails = ({ matchDetails, matchId, selectedSummonerPUUID }) => {
                 </div>
 
                 {team2.map((participant, index) => (
-                    <ParticipantDetails key={index} participant={participant} latestVersion={latestVersion} />
+                    <ParticipantDetails key={index} participant={participant} />
                 ))}
             </div>
         </div>
     );
 };
 
-const ParticipantDetails = ({ participant, isArena, getAugmentIcon, latestVersion }) => {
+const ParticipantDetails = ({ participant, isArena, getAugmentIcon }) => {
     const kda =
         participant.deaths === 0
             ? (participant.kills + participant.assists).toFixed(1)
@@ -381,7 +368,7 @@ const ParticipantDetails = ({ participant, isArena, getAugmentIcon, latestVersio
                                 <div key={idx} className="flex items-center">
                                     {itemId > 0 ? (
                                         <Image
-                                            src={`https://ddragon.leagueoflegends.com/cdn/${latestVersion}/img/item/${itemId}.png`}
+                                            src={`https://ddragon.leagueoflegends.com/cdn/14.12.1/img/item/${itemId}.png`}
                                             alt="Item"
                                             width={28}
                                             height={28}
