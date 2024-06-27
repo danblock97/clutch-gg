@@ -20,7 +20,7 @@ const ProfilePage = () => {
         liveGameData,
         error,
         isLoading,
-        retryCountdown,
+        fetchLiveGameData,
     } = useProfileData();
 
     const loadingBarRef = useRef(null);
@@ -38,6 +38,16 @@ const ProfilePage = () => {
     const selectedSummonerPUUID = profileData ? profileData.puuid : null;
     const gameName = accountData ? accountData.gameName : null;
     const tagLine = accountData ? accountData.tagLine : null;
+
+    useEffect(() => {
+        if (gameName && tagLine) {
+            const interval = setInterval(() => {
+                fetchLiveGameData();
+            }, 10000); // Check for updates every 10 seconds
+
+            return () => clearInterval(interval);
+        }
+    }, [gameName, tagLine, fetchLiveGameData]);
 
     return (
         <>
@@ -81,11 +91,6 @@ const ProfilePage = () => {
                 {error && (
                     <div className="h-screen min-h-screen bg-[#0e1015] items-center p-4">
                         <p className="text-red-500 text-center">{error}</p>
-                        {retryCountdown > 0 && (
-                            <p className="text-red-500 text-center">
-                                Failed to fetch, automatic retry in {retryCountdown} seconds
-                            </p>
-                        )}
                     </div>
                 )}
             </div>
