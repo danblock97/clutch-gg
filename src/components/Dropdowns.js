@@ -9,6 +9,7 @@ const regionMappings = {
 	KR: "Korea",
 	LA1: "Latin America North",
 	LA2: "Latin America South",
+	ME1: "Middle East and North Africa",
 	NA1: "North America",
 	OC1: "Oceania",
 	PH2: "Philippines",
