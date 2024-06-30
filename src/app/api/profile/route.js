@@ -7,13 +7,13 @@ const RIOT_API_KEY = process.env.RIOT_API_KEY;
 
 const regions = [
     "BR1", "EUW1", "EUN1", "JP1", "KR",
-    "LA1", "LA2", "NA1", "OC1", "PH2",
+    "LA1", "LA2", "ME1", "NA1", "OC1", "PH2",
     "RU", "SG2", "TH2", "TR1", "TW2", "VN2",
 ];
 
 const regionToPlatform = {
     BR1: "americas", EUN1: "europe", EUW1: "europe", JP1: "asia",
-    KR: "asia", LA1: "americas", LA2: "americas", NA1: "americas",
+    KR: "asia", LA1: "americas", LA2: "americas", ME1: "europe", NA1: "americas",
     OC1: "sea", PH2: "sea", RU: "europe", SG2: "sea", TH2: "sea",
     TR1: "europe", TW2: "sea", VN2: "sea",
 };
