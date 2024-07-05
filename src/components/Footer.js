@@ -1,3 +1,5 @@
+// components/Footer.js
+
 import Link from "next/link";
 import React from "react";
 
@@ -62,6 +64,22 @@ const Footer = () => {
 									className="text-sm hover:underline"
 								>
 									Email
+								</Link>
+							</li>
+							<li>
+								<Link
+									href="/legal/privacy-policy"
+									className="text-sm hover:underline"
+								>
+									Privacy Policy
+								</Link>
+							</li>
+							<li>
+								<Link
+									href="/legal/terms-of-service"
+									className="text-sm hover:underline"
+								>
+									Terms of Service
 								</Link>
 							</li>
 						</ul>
