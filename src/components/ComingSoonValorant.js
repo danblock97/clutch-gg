@@ -20,7 +20,7 @@ const ComingSoonValorant = () => {
                     height={400}
                 />
                 <p className="text-md text-gray-500">
-                    Star & Watch The <a href="https://github.com/danblock97/lol-tracker"
+                    Star & Watch The <a href="https://github.com/danblock97/clutch-gg"
                                         className="text-blue-400 hover:underline">GitHub Repository</a> for updates!
                 </p>
             </div>

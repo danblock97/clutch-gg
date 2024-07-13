@@ -89,7 +89,7 @@ const fetchAdditionalData = async (summonerId, puuid, region) => {
 
 const fetchAndUpdateProfileData = async (gameName, tagLine) => {
     const client = await clientPromise;
-    const db = client.db("lol-tracker");
+    const db = client.db("clutch-gg");
     const profilesCollection = db.collection("profiles");
 
     if (!gameName || !tagLine) {
@@ -256,7 +256,7 @@ const fetchAndUpdateProfileData = async (gameName, tagLine) => {
 
 cron.schedule("* * * * *", async () => {
     const client = await clientPromise;
-    const db = client.db("lol-tracker");
+    const db = client.db("clutch-gg");
     const profilesCollection = db.collection("profiles");
 
     const profiles = await profilesCollection.find({}).toArray();
@@ -272,7 +272,7 @@ export async function GET(req) {
     const tagLine = req.nextUrl.searchParams.get("tagLine");
 
     const client = await clientPromise;
-    const db = client.db("lol-tracker");
+    const db = client.db("clutch-gg");
     const profilesCollection = db.collection("profiles");
 
     const cachedProfile = await profilesCollection.findOne({
