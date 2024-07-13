@@ -39,7 +39,7 @@ const LeagueHomePage = () => {
                     </Link>
                     <div className="mt-4">
                         <p className="text-sm text-gray-300">
-                            League of Legends Player Tracker
+                            League of Legends Player Stat Tracker
                         </p>
                     </div>
                 </div>
