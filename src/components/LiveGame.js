@@ -53,7 +53,7 @@ const LiveGame = ({ liveGameData }) => {
 					<div className="ml-2">
 						<div className="font-bold text-xs">
 							<Link
-								href={`/profile?gameName=${participant.gameName}&tagLine=${participant.tagLine}`}
+								href={`/league/profile?gameName=${participant.gameName}&tagLine=${participant.tagLine}`}
 							>
 								{participant.gameName}#{participant.tagLine}
 							</Link>

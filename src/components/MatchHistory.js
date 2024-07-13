@@ -43,11 +43,11 @@ const getQueueName = (queueId) => {
 };
 
 const MatchHistory = ({
-    matchDetails,
-    selectedSummonerPUUID,
-    gameName,
-    tagLine,
-}) => {
+                          matchDetails,
+                          selectedSummonerPUUID,
+                          gameName,
+                          tagLine,
+                      }) => {
     const [augments, setAugments] = useState([]);
     const router = useRouter();
 
@@ -91,19 +91,19 @@ const MatchHistory = ({
     const handleClick = (matchId) => {
         if (window.innerWidth > 768) {
             router.push(
-                `/match?gameName=${gameName}&tagLine=${tagLine}&matchId=${matchId}`
+                `/league/match?gameName=${gameName}&tagLine=${tagLine}&matchId=${matchId}`
             );
         }
     };
 
     const getOutcomeClass = (win) => {
-        return win ? "text-green-600 border-green-600" : "text-red-600 border-red-600";
+        return win ? "text-green-400 border-green-400" : "text-red-400 border-red-400";
     };
 
     const getGradientBackground = (win) => {
         return win
-            ? "bg-gradient-to-tl from-gray-800 via-green-900/20 to-transparent"
-            : "bg-gradient-to-tl from-gray-800 via-red-900/20 to-transparent";
+            ? "bg-gradient-to-r from-gray-800 via-green-900/20 to-gray-800"
+            : "bg-gradient-to-r from-gray-800 via-red-900/20 to-gray-800";
     };
 
     const truncateName = (name, maxLength) => {
@@ -139,7 +139,7 @@ const MatchHistory = ({
                 const tags = [];
 
                 if (currentPlayer.firstBloodKill) {
-                    tags.push(<Tag key="first-blood" text="First Blood" hoverText="Congrats on First Blood!" color="bg-gray-400 text-white" />);
+                    tags.push(<Tag key="first-blood" text="First Blood" hoverText="Congrats on First Blood!" color="bg-green-500 text-white" />);
                 }
 
                 if (currentPlayer.tripleKills > 0) {
@@ -191,16 +191,16 @@ const MatchHistory = ({
                     <div
                         key={index}
                         onClick={() => handleClick(match.metadata.matchId)}
-                        className={`rounded-lg shadow-lg p-8 cursor-pointer flex flex-col relative ${getGradientBackground(currentPlayer.win)} min-w-[768px]`}
+                        className={`rounded-lg shadow-lg p-8 cursor-pointer flex flex-col relative mb-6 ${getGradientBackground(currentPlayer.win)} min-w-[768px]`}
                     >
                         <div className="absolute top-4 left-4 flex items-start">
                             <div className="flex items-center mr-4">
                                 <Image
                                     src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${currentPlayer.championId}.png`}
                                     alt="Champion Icon"
-                                    className={`w-14 h-14 rounded-full border-2 ${getOutcomeClass(currentPlayer.win)}`}
-                                    width={56}
-                                    height={56}
+                                    className={`w-16 h-16 rounded-full border-2 ${getOutcomeClass(currentPlayer.win)}`}
+                                    width={64}
+                                    height={64}
                                 />
                             </div>
                             <div className="flex flex-col">

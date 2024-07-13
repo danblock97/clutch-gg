@@ -280,7 +280,7 @@ const ParticipantDetails = ({ participant, isArena, getAugmentIcon }) => {
 
     return (
         <Link
-            href={`/profile?gameName=${participant.riotIdGameName}&tagLine=${participant.riotIdTagline}`}
+            href={`/league/profile?gameName=${participant.riotIdGameName}&tagLine=${participant.riotIdTagline}`}
         >
             <div className="grid grid-cols-9 gap-x-2 p-2 my-2 rounded-lg bg-[#13151b]">
                 {/* Lane Icon */}

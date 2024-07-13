@@ -11,7 +11,7 @@ export default function PrivacyPolicy() {
 
                 <h2 className="text-2xl font-semibold mb-2">1. Introduction</h2>
                 <p className="mb-4">
-                    Welcome to RiftSpy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our application. By using our application, you agree to the collection and use of information in accordance with this policy.
+                    Welcome to Clutch. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our application. By using our application, you agree to the collection and use of information in accordance with this policy.
                 </p>
 
                 <h2 className="text-2xl font-semibold mb-2">2. Information We Collect</h2>

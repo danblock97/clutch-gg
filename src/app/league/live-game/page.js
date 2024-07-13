@@ -4,7 +4,7 @@ import React, { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import LiveGame from "@/components/LiveGame";
 import Loading from "@/components/Loading";
-import useProfileData from "../hooks/useProfileData";
+import useProfileData from "../../hooks/useProfileData";
 import NoActiveGameData from "@/components/NoActiveGameData"; // Import your new component
 
 const LiveGamePage = () => {

@@ -1,15 +1,37 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, useEffect } from "react";
+import { useRouter, usePathname } from "next/navigation";
 
 const SearchBar = ({ onSearch }) => {
 	const [combinedInput, setCombinedInput] = useState("");
 	const router = useRouter();
+	const pathname = usePathname();
+	const [gamePath, setGamePath] = useState("/league");
+
+	useEffect(() => {
+		if (pathname.startsWith("/tft")) {
+			setGamePath("/tft");
+		} else if (pathname.startsWith("/valorant")) {
+			setGamePath("/valorant");
+		} else {
+			setGamePath("/league");
+		}
+	}, [pathname]);
 
 	const handleSearch = () => {
-		const [gameName, tagLine] = combinedInput.split("#");
-		router.push(`/profile?gameName=${gameName}&tagLine=${tagLine}`);
+		if (gamePath === "/league") {
+			const [gameName, tagLine] = combinedInput.split("#");
+			if (gameName && tagLine) {
+				router.push(`${gamePath}/profile?gameName=${gameName}&tagLine=${tagLine}`);
+			} else {
+				alert("Please enter both game name and tagline.");
+				return;
+			}
+		} else {
+			router.push(`${gamePath}`);
+		}
+		setCombinedInput(""); // Clear the search bar after search
 		if (onSearch) {
 			onSearch();
 		}
@@ -22,12 +44,12 @@ const SearchBar = ({ onSearch }) => {
 	};
 
 	return (
-		<div className="flex items-center justify-center p-4">
-			<div className="relative w-full max-w-lg">
+		<div className="flex items-center justify-center p-4 w-full">
+			<div className="relative w-full max-w-3xl">
 				<input
 					className="w-full p-4 pl-8 text-white bg-[#13151b] rounded-full border-none shadow-lg placeholder-gray-400 focus:outline-none focus:ring-2"
 					type="text"
-					placeholder="GameName#tagLine"
+					placeholder="Enter Your RiotID..."
 					value={combinedInput}
 					onChange={(e) => setCombinedInput(e.target.value)}
 					onKeyDown={handleKeyDown}

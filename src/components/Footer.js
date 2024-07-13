@@ -11,7 +11,7 @@ const Footer = () => {
 					<div>
 						<h3 className="text-lg font-semibold mb-4">Compliance</h3>
 						<p className="text-sm">
-							RiftSpy is not endorsed by Riot Games and does not reflect the
+							Clutch is not endorsed by Riot Games and does not reflect the
 							views or opinions of Riot Games or anyone officially involved in
 							producing or managing Riot Games properties. Riot Games and all
 							associated properties are trademarks or registered trademarks of
@@ -86,7 +86,7 @@ const Footer = () => {
 					</div>
 				</div>
 				<div className="text-center text-sm mt-8">
-					<p>RiftSpy.GG © 2024. All rights reserved.</p>
+					<p>Clutch.GG © 2024. All rights reserved.</p>
 				</div>
 			</div>
 		</footer>

@@ -7,7 +7,7 @@ import ChampionMastery from "@/components/ChampionMastery";
 import MatchHistory from "@/components/MatchHistory";
 import LoadingBar from "react-top-loading-bar";
 import LiveGameBanner from "@/components/LiveGameBanner";
-import useProfileData from "../hooks/useProfileData";
+import useProfileData from "../../hooks/useProfileData";
 import { useRouter } from "next/navigation";
 
 const ProfilePage = () => {

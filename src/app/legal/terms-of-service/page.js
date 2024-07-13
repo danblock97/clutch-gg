@@ -11,7 +11,7 @@ export default function TermsOfService() {
 
                 <h2 className="text-2xl font-semibold mb-2">1. Acceptance of Terms</h2>
                 <p className="mb-4">
-                    By accessing and using RiftSpy ("the Application"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, do not use the Application.
+                    By accessing and using Clutch ("the Application"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, do not use the Application.
                 </p>
 
                 <h2 className="text-2xl font-semibold mb-2">2. Use of the Application</h2>

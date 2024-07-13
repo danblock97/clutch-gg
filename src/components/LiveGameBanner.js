@@ -6,7 +6,7 @@ const LiveGameBanner = ({ liveGameData, gameName, tagLine }) => {
 	const router = useRouter();
 
 	const handleLiveGameClick = () => {
-		router.push(`/live-game?gameName=${gameName}&tagLine=${tagLine}`);
+		router.push(`/league/live-game?gameName=${gameName}&tagLine=${tagLine}`);
 	};
 
 	const participant = liveGameData.participants.find(

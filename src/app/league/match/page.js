@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import MatchDetails from "@/components/MatchDetails";
-import useProfileData from "../hooks/useProfileData";
+import useProfileData from "../../hooks/useProfileData";
 import Loading from "@/components/Loading";
 
 const MatchPage = () => {
