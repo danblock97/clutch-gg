@@ -13,7 +13,7 @@ const ComingSoonValorant = () => {
                     for something awesome!
                 </p>
                 <Image
-                    src="/images/ComingsoonValorant.png"
+                    src="/images/ComingSoonValorant.png"
                     alt="Valorant Coming Soon"
                     className="mx-auto mb-8 rounded-lg shadow-lg"
                     width={400}

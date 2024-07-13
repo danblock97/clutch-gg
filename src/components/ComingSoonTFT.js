@@ -13,7 +13,7 @@ const ComingSoonTFT = () => {
                     something awesome!
                 </p>
                 <Image
-                    src="/images/ComingsoonTFT.webp"
+                    src="/images/ComingSoonTFT.webp"
                     alt="TFT Coming Soon"
                     className="mx-auto mb-8 rounded-lg shadow-lg"
                     width={400}

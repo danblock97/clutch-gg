@@ -21,7 +21,7 @@ const NoActiveGameData = ({ gameName, tagLine }) => {
         Screen or have started.
       </p>
       <Link
-        href={`/profile?gameName=${gameName}&tagLine=${tagLine}`}
+        href={`/league/profile?gameName=${gameName}&tagLine=${tagLine}`}
         className="bg-gray-900 text-white px-4 py-2 rounded-full hover:bg-blue-600 transition duration-200"
       >
           View Profile
