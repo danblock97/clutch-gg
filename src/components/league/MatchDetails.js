@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import Loading from "./Loading";
+import Loading from "../Loading";
 import Link from "next/link";
-import Tag from "@/components/Tag";
+import Tag from "@/components/league/Tag";
 
 const fetchArenaAugments = async () => {
     const response = await fetch(

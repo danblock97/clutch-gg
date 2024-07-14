@@ -2,8 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import MatchDetails from "@/components/MatchDetails";
-import useProfileData from "../../hooks/useProfileData";
+import MatchDetails from "@/components/league/MatchDetails";
+import useProfileData from "@/app/hooks/league/useProfileData";
 import Loading from "@/components/Loading";
 
 const MatchPage = () => {
@@ -23,7 +23,11 @@ const MatchPage = () => {
     }, [searchParams, accountData]);
 
     if (isLoading) {
-        return <Loading />;
+        return (
+            <div className="bg-[#0e1015]">
+                <Loading />
+            </div>
+        );
     }
 
     if (error) {

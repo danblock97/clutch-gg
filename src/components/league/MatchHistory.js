@@ -1,7 +1,7 @@
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Tag from "@/components/Tag";
+import Tag from "@/components/league/Tag";
 
 const fetchArenaAugments = async () => {
     const response = await fetch(

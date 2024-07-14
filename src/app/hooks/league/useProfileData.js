@@ -19,7 +19,7 @@ const useProfileData = () => {
         setIsLoading(true);
         try {
             const response = await fetch(
-                `/api/profile?gameName=${gameName}&tagLine=${tagLine}`
+                `/api/league/profile?gameName=${gameName}&tagLine=${tagLine}`
             );
             if (!response.ok) throw new Error("Failed to fetch");
             const data = await response.json();
@@ -41,7 +41,7 @@ const useProfileData = () => {
     const fetchLiveGameData = useCallback(async () => {
         try {
             const response = await fetch(
-                `/api/profile?gameName=${gameName}&tagLine=${tagLine}`
+                `/api/league/profile?gameName=${gameName}&tagLine=${tagLine}`
             );
             if (!response.ok) throw new Error("Failed to fetch");
             const data = await response.json();
