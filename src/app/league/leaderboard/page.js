@@ -2,8 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import Loading from "@/components/Loading";
-import Dropdowns from "@/components/Dropdowns";
-import LeaderboardTable from "@/components/LeaderboardTable";
+import Dropdowns from "@/components/league/Dropdowns";
+import LeaderboardTable from "@/components/league/LeaderboardTable";
 
 const Leaderboard = () => {
 	const [leaderboardData, setLeaderboardData] = useState([]);
@@ -19,7 +19,7 @@ const Leaderboard = () => {
 		setError(null);
 		try {
 			const response = await fetch(
-				`/api/leaderboard?region=${region}&tier=${tier}&division=${division}`
+				`/api/league/leaderboard?region=${region}&tier=${tier}&division=${division}`
 			);
 			const data = await response.json();
 

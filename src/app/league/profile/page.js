@@ -1,14 +1,15 @@
 "use client";
 
 import React, { useRef, useEffect } from "react";
-import Profile from "@/components/Profile";
-import RankedInfo from "@/components/RankedInfo";
-import ChampionMastery from "@/components/ChampionMastery";
-import MatchHistory from "@/components/MatchHistory";
+import Profile from "@/components/league/Profile";
+import RankedInfo from "@/components/league/RankedInfo";
+import ChampionMastery from "@/components/league/ChampionMastery";
+import MatchHistory from "@/components/league/MatchHistory";
 import LoadingBar from "react-top-loading-bar";
-import LiveGameBanner from "@/components/LiveGameBanner";
-import useProfileData from "../../hooks/useProfileData";
+import LiveGameBanner from "@/components/league/LiveGameBanner";
+import useProfileData from "@/app/hooks/league/useProfileData";
 import { useRouter } from "next/navigation";
+import Loading from "@/components/Loading";
 
 const ProfilePage = () => {
     const {
@@ -22,18 +23,6 @@ const ProfilePage = () => {
         isLoading,
         fetchLiveGameData,
     } = useProfileData();
-
-    const loadingBarRef = useRef(null);
-
-    useEffect(() => {
-        if (isLoading) {
-            loadingBarRef.current.continuousStart();
-        } else {
-            loadingBarRef.current.complete();
-        }
-    }, [isLoading]);
-
-    const router = useRouter();
 
     const selectedSummonerPUUID = profileData ? profileData.puuid : null;
     const gameName = accountData ? accountData.gameName : null;
@@ -49,9 +38,16 @@ const ProfilePage = () => {
         }
     }, [gameName, tagLine, fetchLiveGameData]);
 
+    if (isLoading) {
+        return (
+            <div className="bg-[#0e1015]">
+                <Loading />
+            </div>
+        );
+    }
+
     return (
         <>
-            <LoadingBar color="#f11946" ref={loadingBarRef} />
             <div className="min-h-screen bg-[#0e1015] flex flex-col items-center p-4">
                 <div className="max-w-screen-xl flex flex-col sm:flex-row w-full">
                     {/* Left Section - Profile, Ranked, Champion */}
