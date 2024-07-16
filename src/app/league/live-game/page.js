@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import React, { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
@@ -20,7 +20,11 @@ const LiveGamePage = () => {
 
   useEffect(() => {
     if (gameName && tagLine) {
-      fetchLiveGameData(gameName, tagLine);
+      const interval = setInterval(() => {
+        fetchLiveGameData();
+      }, 10000); // Check for updates every 10 seconds
+
+      return () => clearInterval(interval);
     }
   }, [gameName, tagLine, fetchLiveGameData]);
 
