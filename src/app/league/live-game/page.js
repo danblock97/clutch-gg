@@ -5,22 +5,22 @@ import { useSearchParams } from "next/navigation";
 import LiveGame from "@/components/league/LiveGame";
 import Loading from "@/components/Loading";
 import useProfileData from "@/app/hooks/league/useProfileData";
-import NoActiveGameData from "@/components/league/NoActiveGameData"; // Import your new component
+import NoActiveGameData from "@/components/league/NoActiveGameData";
 
 const LiveGamePage = () => {
-  const { liveGameData, isLoading, error, fetchLiveGameData } = useProfileData();
+  const {
+    liveGameData,
+    isLoading,
+    error,
+    fetchLiveGameData
+  } = useProfileData();
   const searchParams = useSearchParams();
   const gameName = searchParams.get("gameName");
   const tagLine = searchParams.get("tagLine");
 
   useEffect(() => {
     if (gameName && tagLine) {
-      fetchLiveGameData();
-      const interval = setInterval(() => {
-        fetchLiveGameData();
-      }, 10000); // Check for updates every 10 seconds
-
-      return () => clearInterval(interval);
+      fetchLiveGameData(gameName, tagLine);
     }
   }, [gameName, tagLine, fetchLiveGameData]);
 
@@ -37,9 +37,9 @@ const LiveGamePage = () => {
   }
 
   return (
-    <div>
-      <LiveGame liveGameData={liveGameData} />
-    </div>
+      <div>
+        <LiveGame liveGameData={liveGameData} />
+      </div>
   );
 };
 

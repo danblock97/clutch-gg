@@ -1,5 +1,4 @@
 import clientPromise from "@/lib/mongodb";
-import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import cron from "node-cron";
 
@@ -100,9 +99,6 @@ const fetchAndUpdateProfileData = async (gameName, tagLine) => {
         `https://europe.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${gameName}/${tagLine}`,
         {
             headers: { "X-Riot-Token": RIOT_API_KEY },
-            revalidatePath: revalidatePath(
-                `/api/profile?gameName=${gameName}&tagLine=${tagLine}`
-            ),
         }
     );
 
@@ -122,9 +118,6 @@ const fetchAndUpdateProfileData = async (gameName, tagLine) => {
             `https://${r}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${encryptedPUUID}`,
             {
                 headers: { "X-Riot-Token": RIOT_API_KEY },
-                revalidatePath: revalidatePath(
-                    `/api/profile?gameName=${gameName}&tagLine=${tagLine}`
-                ),
             }
         );
         if (profileResponse.ok) {
@@ -144,9 +137,6 @@ const fetchAndUpdateProfileData = async (gameName, tagLine) => {
         `https://${region}.api.riotgames.com/lol/league/v4/entries/by-summoner/${profileData.id}`,
         {
             headers: { "X-Riot-Token": RIOT_API_KEY },
-            revalidatePath: revalidatePath(
-                `/api/profile?gameName=${gameName}&tagLine=${tagLine}`
-            ),
         }
     );
 
@@ -160,9 +150,6 @@ const fetchAndUpdateProfileData = async (gameName, tagLine) => {
         `https://${region}.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-puuid/${encryptedPUUID}`,
         {
             headers: { "X-Riot-Token": RIOT_API_KEY },
-            revalidatePath: revalidatePath(
-                `/api/profile?gameName=${gameName}&tagLine=${tagLine}`
-            ),
         }
     );
 
@@ -177,9 +164,6 @@ const fetchAndUpdateProfileData = async (gameName, tagLine) => {
         `https://${platform}.api.riotgames.com/lol/match/v5/matches/by-puuid/${encryptedPUUID}/ids?start=0&count=10`,
         {
             headers: { "X-Riot-Token": RIOT_API_KEY },
-            revalidatePath: revalidatePath(
-                `/api/profile?gameName=${gameName}&tagLine=${tagLine}`
-            ),
         }
     );
 
@@ -195,9 +179,6 @@ const fetchAndUpdateProfileData = async (gameName, tagLine) => {
                 `https://${platform}.api.riotgames.com/lol/match/v5/matches/${matchId}`,
                 {
                     headers: { "X-Riot-Token": RIOT_API_KEY },
-                    revalidatePath: revalidatePath(
-                        `/api/profile?gameName=${gameName}&tagLine=${tagLine}`
-                    ),
                 }
             );
 
@@ -240,36 +221,100 @@ const fetchAndUpdateProfileData = async (gameName, tagLine) => {
         matchData,
         matchDetails,
         liveGameData,
-        createdAt: new Date(),
+        region,  // Store the region in the profile
+        updatedAt: new Date(),
     };
+
+    await profilesCollection.updateOne(
+        { gameName, tagLine },
+        { $set: data },
+        { upsert: true }
+    );
+};
+
+const fetchAndUpdateLiveGameData = async (profileData, region, gameName, tagLine) => {
+    const client = await clientPromise;
+    const db = client.db("clutch-gg");
+    const profilesCollection = db.collection("profiles");
+
+    const liveGameResponse = await fetch(
+        `https://${region}.api.riotgames.com/lol/spectator/v5/active-games/by-summoner/${profileData.puuid}`,
+        {
+            headers: { "X-Riot-Token": RIOT_API_KEY },
+        }
+    );
+
+    let liveGameData = null;
+    if (liveGameResponse.ok) {
+        liveGameData = await liveGameResponse.json();
+        liveGameData.participants = await Promise.all(
+            liveGameData.participants.map(async (participant) => {
+                const additionalData = await fetchAdditionalData(
+                    participant.summonerId,
+                    participant.puuid,
+                    region
+                );
+                return { ...participant, ...additionalData };
+            })
+        );
+    }
 
     const existingProfile = await profilesCollection.findOne({ gameName, tagLine });
 
-    if (!existingProfile || (!existingProfile.liveGameData && liveGameData) || (existingProfile.liveGameData && !liveGameData)) {
+    if (!existingProfile) {
+        console.error(`Profile not found for ${gameName}#${tagLine}`);
+        return;
+    }
+
+    if (
+        (existingProfile.liveGameData && !liveGameData) ||
+        (!existingProfile.liveGameData && liveGameData)
+    ) {
+        // Fetch and update the whole profile if live game status changes
+        await fetchAndUpdateProfileData(gameName, tagLine);
+    } else {
+        const updateData = {
+            liveGameData,
+            updatedAt: new Date(),
+        };
+
         await profilesCollection.updateOne(
             { gameName, tagLine },
-            { $set: data },
-            { upsert: true }
+            { $set: updateData }
         );
     }
 };
 
 cron.schedule("* * * * *", async () => {
-    const client = await clientPromise;
-    const db = client.db("clutch-gg");
-    const profilesCollection = db.collection("profiles");
+    try {
+        const client = await clientPromise;
+        const db = client.db("clutch-gg");
+        const profilesCollection = db.collection("profiles");
 
-    const profiles = await profilesCollection.find({}).toArray();
+        const profiles = await profilesCollection.find({}).toArray();
 
-    for (const profile of profiles) {
-        const { gameName, tagLine } = profile;
-        await fetchAndUpdateProfileData(gameName, tagLine);
+        for (const profile of profiles) {
+            const { gameName, tagLine, profileData, region } = profile;
+
+            if (!region) {
+                console.error(`Region is undefined for profile ${gameName}#${tagLine}`);
+                continue;
+            }
+
+            await fetchAndUpdateLiveGameData(profileData, region, gameName, tagLine);
+        }
+    } catch (error) {
+        console.error("Error during cron job execution:", error);
     }
 });
 
 export async function GET(req) {
     const gameName = req.nextUrl.searchParams.get("gameName");
     const tagLine = req.nextUrl.searchParams.get("tagLine");
+
+    if (!gameName || !tagLine) {
+        return NextResponse.json({ error: "Missing required query parameters" }, { status: 400 });
+    }
 
     const client = await clientPromise;
     const db = client.db("clutch-gg");
@@ -280,7 +325,9 @@ export async function GET(req) {
         tagLine,
     });
 
-    if (!cachedProfile || new Date() - new Date(cachedProfile.createdAt) > 10000) {
+    if (cachedProfile) {
+        return NextResponse.json(cachedProfile);
+    } else {
         try {
             await fetchAndUpdateProfileData(gameName, tagLine);
         } catch (error) {
