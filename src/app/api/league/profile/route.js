@@ -232,57 +232,6 @@ const fetchAndUpdateProfileData = async (gameName, tagLine) => {
     );
 };
 
-const fetchAndUpdateLiveGameData = async (profileData, region, gameName, tagLine) => {
-    const client = await clientPromise;
-    const db = client.db("clutch-gg");
-    const profilesCollection = db.collection("profiles");
-
-    const liveGameResponse = await fetch(
-        `https://${region}.api.riotgames.com/lol/spectator/v5/active-games/by-summoner/${profileData.puuid}`,
-        {
-            headers: { "X-Riot-Token": RIOT_API_KEY },
-        }
-    );
-
-    let liveGameData = null;
-    if (liveGameResponse.ok) {
-        liveGameData = await liveGameResponse.json();
-        liveGameData.participants = await Promise.all(
-            liveGameData.participants.map(async (participant) => {
-                const additionalData = await fetchAdditionalData(
-                    participant.summonerId,
-                    participant.puuid,
-                    region
-                );
-                return { ...participant, ...additionalData };
-            })
-        );
-    }
-
-    const existingProfile = await profilesCollection.findOne({ gameName, tagLine });
-
-    if (!existingProfile) {
-        console.error(`Profile not found for ${gameName}#${tagLine}`);
-        return;
-    }
-
-    let updateData = {
-        liveGameData,
-        updatedAt: new Date(),
-    };
-
-    if (
-        JSON.stringify(existingProfile.liveGameData) !== JSON.stringify(liveGameData)
-    ) {
-        updateData.liveGameStateChangedAt = new Date(); // Update the state change timestamp
-    }
-
-    await profilesCollection.updateOne(
-        { gameName, tagLine },
-        { $set: updateData }
-    );
-};
-
 export async function GET(req) {
     const gameName = req.nextUrl.searchParams.get("gameName");
     const tagLine = req.nextUrl.searchParams.get("tagLine");
