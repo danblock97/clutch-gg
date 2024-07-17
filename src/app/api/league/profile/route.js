@@ -2,6 +2,8 @@ import clientPromise from "@/lib/mongodb";
 import { NextResponse } from "next/server";
 import cron from "node-cron";
 
+export const fetchCache = 'force-no-store';
+
 const RIOT_API_KEY = process.env.RIOT_API_KEY;
 
 const regions = [
@@ -350,13 +352,7 @@ export async function GET(req) {
 
     if (cachedProfile) {
         console.log(`[${new Date().toISOString()}] Returning cached profile for ${gameName}#${tagLine}`);
-        return NextResponse.json(cachedProfile, {
-            headers: {
-                'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-                'Pragma': 'no-cache',
-                'Expires': '0',
-            },
-        });
+        return NextResponse.json(cachedProfile);
     } else {
         try {
             console.log(`[${new Date().toISOString()}] Fetching and updating profile data for ${gameName}#${tagLine}`);
@@ -374,13 +370,7 @@ export async function GET(req) {
 
     if (updatedProfile) {
         console.log(`[${new Date().toISOString()}] Returning updated profile for ${gameName}#${tagLine}`);
-        return NextResponse.json(updatedProfile, {
-            headers: {
-                'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-                'Pragma': 'no-cache',
-                'Expires': '0',
-            },
-        });
+        return NextResponse.json(updatedProfile);
     } else {
         console.log(`[${new Date().toISOString()}] Profile not found for ${gameName}#${tagLine}`);
         return NextResponse.json({ error: "Profile not found" }, { status: 404 });
