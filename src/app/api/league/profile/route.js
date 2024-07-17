@@ -277,10 +277,9 @@ const fetchAndUpdateLiveGameData = async (profileData, region, gameName, tagLine
         return;
     }
 
-    if (
-        (existingProfile.liveGameData && !liveGameData) ||
-        (!existingProfile.liveGameData && liveGameData)
-    ) {
+    const liveGameDataChanged = (existingProfile.liveGameData && !liveGameData) || (!existingProfile.liveGameData && liveGameData);
+
+    if (liveGameDataChanged) {
         // Fetch and update the whole profile if live game status changes
         await fetchAndUpdateProfileData(gameName, tagLine);
     } else {

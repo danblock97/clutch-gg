@@ -11,7 +11,6 @@ const useProfileData = () => {
     const [liveGameData, setLiveGameData] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
-    const router = useRouter();
     const gameName = useSearchParams().get("gameName");
     const tagLine = useSearchParams().get("tagLine");
 
