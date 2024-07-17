@@ -304,9 +304,9 @@ cron.schedule("* * * * *", async () => {
             // Check if the profile is stale (liveGameStateChangedAt older than 10 minutes)
             const now = new Date();
             const lastStateChangedDate = new Date(liveGameStateChangedAt);
-            const differenceInMinutes = (now - lastStateChangedDate) / (1000 * 60 * 60);
+            const differenceInMinutes = (now - lastStateChangedDate) / (1000 * 60);
 
-            if (differenceInMinutes > 2) {
+            if (differenceInMinutes > 10) {
                 await profilesCollection.deleteOne({ gameName, tagLine });
                 console.log(`Removed stale profile for ${gameName}#${tagLine}`);
                 continue;
