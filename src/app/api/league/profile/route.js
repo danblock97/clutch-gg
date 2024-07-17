@@ -223,6 +223,7 @@ const fetchAndUpdateProfileData = async (gameName, tagLine) => {
         liveGameData,
         region,  // Store the region in the profile
         updatedAt: new Date(),
+        liveGameStateChangedAt: new Date(), // Set the initial state change timestamp
     };
 
     await profilesCollection.updateOne(
@@ -266,25 +267,24 @@ const fetchAndUpdateLiveGameData = async (profileData, region, gameName, tagLine
         return;
     }
 
-    if (
-        (existingProfile.liveGameData && !liveGameData) ||
-        (!existingProfile.liveGameData && liveGameData)
-    ) {
-        // Fetch and update the whole profile if live game status changes
-        await fetchAndUpdateProfileData(gameName, tagLine);
-    } else {
-        const updateData = {
-            liveGameData,
-            updatedAt: new Date(),
-        };
+    let updateData = {
+        liveGameData,
+        updatedAt: new Date(),
+    };
 
-        await profilesCollection.updateOne(
-            { gameName, tagLine },
-            { $set: updateData }
-        );
+    if (
+        JSON.stringify(existingProfile.liveGameData) !== JSON.stringify(liveGameData)
+    ) {
+        updateData.liveGameStateChangedAt = new Date(); // Update the state change timestamp
     }
+
+    await profilesCollection.updateOne(
+        { gameName, tagLine },
+        { $set: updateData }
+    );
 };
 
+// Cron job to update profiles and remove stale documents
 cron.schedule("* * * * *", async () => {
     try {
         const client = await clientPromise;
@@ -294,10 +294,21 @@ cron.schedule("* * * * *", async () => {
         const profiles = await profilesCollection.find({}).toArray();
 
         for (const profile of profiles) {
-            const { gameName, tagLine, profileData, region } = profile;
+            const { gameName, tagLine, profileData, region, updatedAt, liveGameStateChangedAt } = profile;
 
             if (!region) {
                 console.error(`Region is undefined for profile ${gameName}#${tagLine}`);
+                continue;
+            }
+
+            // Check if the profile is stale (liveGameStateChangedAt older than 10 minutes)
+            const now = new Date();
+            const lastStateChangedDate = new Date(liveGameStateChangedAt);
+            const differenceInMinutes = (now - lastStateChangedDate) / (1000 * 60 * 60);
+
+            if (differenceInMinutes > 2) {
+                await profilesCollection.deleteOne({ gameName, tagLine });
+                console.log(`Removed stale profile for ${gameName}#${tagLine}`);
                 continue;
             }
 
