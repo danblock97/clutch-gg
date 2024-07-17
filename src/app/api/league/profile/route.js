@@ -243,7 +243,7 @@ const fetchAndUpdateProfileData = async (gameName, tagLine) => {
         updatedAt: new Date(),
     };
 
-    console.log(`[${new Date().toISOString()}] Updating profile data in MongoDB`);
+    console.log(`[${new Date().toISOString()}] Updating profile data in MongoDB with data:`, JSON.stringify(data, null, 2));
     await profilesCollection.updateOne(
         { gameName, tagLine },
         { $set: data },
@@ -300,6 +300,7 @@ const fetchAndUpdateLiveGameData = async (profileData, region, gameName, tagLine
             updatedAt: new Date(),
         };
 
+        console.log(`[${new Date().toISOString()}] Updating live game data in MongoDB for ${gameName}#${tagLine} with data:`, JSON.stringify(updateData, null, 2));
         await profilesCollection.updateOne(
             { gameName, tagLine },
             { $set: updateData }
