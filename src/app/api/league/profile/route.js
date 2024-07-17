@@ -95,6 +95,7 @@ const fetchAndUpdateProfileData = async (gameName, tagLine) => {
         throw new Error("Missing required query parameters");
     }
 
+    console.log(`Fetching account data for ${gameName}#${tagLine}`);
     const accountResponse = await fetch(
         `https://europe.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${gameName}/${tagLine}`,
         {
@@ -103,6 +104,7 @@ const fetchAndUpdateProfileData = async (gameName, tagLine) => {
     );
 
     if (!accountResponse.ok) {
+        console.error("Failed to fetch profile", await accountResponse.text());
         throw new Error("Failed to fetch profile");
     }
 
@@ -114,6 +116,7 @@ const fetchAndUpdateProfileData = async (gameName, tagLine) => {
     let region;
 
     for (const r of regions) {
+        console.log(`Fetching summoner data from region ${r}`);
         profileResponse = await fetch(
             `https://${r}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${encryptedPUUID}`,
             {
@@ -124,6 +127,8 @@ const fetchAndUpdateProfileData = async (gameName, tagLine) => {
             profileData = await profileResponse.json();
             region = r;
             break;
+        } else {
+            console.error(`Failed to fetch summoner data from region ${r}`, await profileResponse.text());
         }
     }
 
@@ -133,6 +138,7 @@ const fetchAndUpdateProfileData = async (gameName, tagLine) => {
 
     const platform = regionToPlatform[region];
 
+    console.log(`Fetching ranked data from region ${region}`);
     const rankedResponse = await fetch(
         `https://${region}.api.riotgames.com/lol/league/v4/entries/by-summoner/${profileData.id}`,
         {
@@ -141,11 +147,13 @@ const fetchAndUpdateProfileData = async (gameName, tagLine) => {
     );
 
     if (!rankedResponse.ok) {
+        console.error("Failed to fetch ranked data", await rankedResponse.text());
         throw new Error("Failed to fetch ranked data");
     }
 
     const rankedData = await rankedResponse.json();
 
+    console.log(`Fetching champion mastery data from region ${region}`);
     const championMasteryResponse = await fetch(
         `https://${region}.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-puuid/${encryptedPUUID}`,
         {
@@ -154,12 +162,14 @@ const fetchAndUpdateProfileData = async (gameName, tagLine) => {
     );
 
     if (!championMasteryResponse.ok) {
+        console.error("Failed to fetch champion mastery data", await championMasteryResponse.text());
         throw new Error("Failed to fetch champion mastery data");
     }
 
     let championMasteryData = await championMasteryResponse.json();
     championMasteryData = championMasteryData.slice(0, 5);
 
+    console.log(`Fetching match data from platform ${platform}`);
     const matchResponse = await fetch(
         `https://${platform}.api.riotgames.com/lol/match/v5/matches/by-puuid/${encryptedPUUID}/ids?start=0&count=10`,
         {
@@ -168,11 +178,13 @@ const fetchAndUpdateProfileData = async (gameName, tagLine) => {
     );
 
     if (!matchResponse.ok) {
+        console.error("Failed to fetch match data", await matchResponse.text());
         throw new Error("Failed to fetch match data");
     }
 
     const matchData = await matchResponse.json();
 
+    console.log(`Fetching match details`);
     const matchDetails = await Promise.all(
         matchData.map(async (matchId) => {
             const matchDetailResponse = await fetch(
@@ -183,6 +195,7 @@ const fetchAndUpdateProfileData = async (gameName, tagLine) => {
             );
 
             if (!matchDetailResponse.ok) {
+                console.error(`Failed to fetch match detail for ${matchId}`, await matchDetailResponse.text());
                 return null;
             }
 
@@ -190,7 +203,7 @@ const fetchAndUpdateProfileData = async (gameName, tagLine) => {
         })
     );
 
-    // Fetch live game data
+    console.log(`Fetching live game data from region ${region}`);
     const liveGameResponse = await fetch(
         `https://${region}.api.riotgames.com/lol/spectator/v5/active-games/by-summoner/${profileData.puuid}`,
         {
@@ -211,6 +224,8 @@ const fetchAndUpdateProfileData = async (gameName, tagLine) => {
                 return { ...participant, ...additionalData };
             })
         );
+    } else {
+        console.error("Failed to fetch live game data", await liveGameResponse.text());
     }
 
     const data = {
@@ -225,6 +240,7 @@ const fetchAndUpdateProfileData = async (gameName, tagLine) => {
         updatedAt: new Date(),
     };
 
+    console.log(`Updating profile data in MongoDB`);
     await profilesCollection.updateOne(
         { gameName, tagLine },
         { $set: data },
@@ -326,7 +342,13 @@ export async function GET(req) {
     });
 
     if (cachedProfile) {
-        return NextResponse.json(cachedProfile);
+        return NextResponse.json(cachedProfile, {
+            headers: {
+                'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0',
+            },
+        });
     } else {
         try {
             await fetchAndUpdateProfileData(gameName, tagLine);
@@ -342,7 +364,13 @@ export async function GET(req) {
     });
 
     if (updatedProfile) {
-        return NextResponse.json(updatedProfile);
+        return NextResponse.json(updatedProfile, {
+            headers: {
+                'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0',
+            },
+        });
     } else {
         return NextResponse.json({ error: "Profile not found" }, { status: 404 });
     }
