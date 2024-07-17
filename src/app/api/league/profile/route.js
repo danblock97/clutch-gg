@@ -19,6 +19,7 @@ const regionToPlatform = {
 
 const fetchAdditionalData = async (summonerId, puuid, region) => {
     try {
+        console.log(`Fetching ranked data for summonerId: ${summonerId} in region: ${region}`);
         const rankedResponse = await fetch(
             `https://${region}.api.riotgames.com/lol/league/v4/entries/by-summoner/${summonerId}`,
             {
@@ -27,7 +28,7 @@ const fetchAdditionalData = async (summonerId, puuid, region) => {
         );
 
         if (!rankedResponse.ok) {
-            throw new Error("Failed to fetch ranked data");
+            throw new Error(`Failed to fetch ranked data: ${rankedResponse.statusText}`);
         }
 
         const rankedData = await rankedResponse.json();
@@ -35,6 +36,7 @@ const fetchAdditionalData = async (summonerId, puuid, region) => {
             (queue) => queue.queueType === "RANKED_SOLO_5x5"
         );
 
+        console.log(`Fetching account data for puuid: ${puuid}`);
         const accountResponse = await fetch(
             `https://europe.api.riotgames.com/riot/account/v1/accounts/by-puuid/${puuid}`,
             {
@@ -43,11 +45,12 @@ const fetchAdditionalData = async (summonerId, puuid, region) => {
         );
 
         if (!accountResponse.ok) {
-            throw new Error("Failed to fetch account data");
+            throw new Error(`Failed to fetch account data: ${accountResponse.statusText}`);
         }
 
         const accountData = await accountResponse.json();
 
+        console.log(`Fetching summoner data for puuid: ${puuid} in region: ${region}`);
         const summonerResponse = await fetch(
             `https://${region}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}`,
             {
@@ -56,7 +59,7 @@ const fetchAdditionalData = async (summonerId, puuid, region) => {
         );
 
         if (!summonerResponse.ok) {
-            throw new Error("Failed to fetch summoner data");
+            throw new Error(`Failed to fetch summoner data: ${summonerResponse.statusText}`);
         }
 
         const summonerData = await summonerResponse.json();
@@ -342,6 +345,7 @@ export async function GET(req) {
     });
 
     if (cachedProfile) {
+        console.log(`Returning cached profile for ${gameName}#${tagLine}`);
         return NextResponse.json(cachedProfile, {
             headers: {
                 'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
@@ -351,6 +355,7 @@ export async function GET(req) {
         });
     } else {
         try {
+            console.log(`Fetching and updating profile data for ${gameName}#${tagLine}`);
             await fetchAndUpdateProfileData(gameName, tagLine);
         } catch (error) {
             console.error("Error fetching and updating profile data:", error);
@@ -364,6 +369,7 @@ export async function GET(req) {
     });
 
     if (updatedProfile) {
+        console.log(`Returning updated profile for ${gameName}#${tagLine}`);
         return NextResponse.json(updatedProfile, {
             headers: {
                 'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
@@ -372,6 +378,7 @@ export async function GET(req) {
             },
         });
     } else {
+        console.log(`Profile not found for ${gameName}#${tagLine}`);
         return NextResponse.json({ error: "Profile not found" }, { status: 404 });
     }
 }
