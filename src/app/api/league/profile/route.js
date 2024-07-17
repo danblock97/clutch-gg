@@ -21,7 +21,6 @@ const regionToPlatform = {
 
 const fetchAdditionalData = async (summonerId, puuid, region) => {
     try {
-        console.log(`[${new Date().toISOString()}] Fetching ranked data for summonerId: ${summonerId} in region: ${region}`);
         const rankedResponse = await fetch(
             `https://${region}.api.riotgames.com/lol/league/v4/entries/by-summoner/${summonerId}`,
             {
@@ -37,8 +36,6 @@ const fetchAdditionalData = async (summonerId, puuid, region) => {
         const soloQueueData = rankedData.find(
             (queue) => queue.queueType === "RANKED_SOLO_5x5"
         );
-
-        console.log(`[${new Date().toISOString()}] Fetching account data for puuid: ${puuid}`);
         const accountResponse = await fetch(
             `https://europe.api.riotgames.com/riot/account/v1/accounts/by-puuid/${puuid}`,
             {
@@ -52,7 +49,6 @@ const fetchAdditionalData = async (summonerId, puuid, region) => {
 
         const accountData = await accountResponse.json();
 
-        console.log(`[${new Date().toISOString()}] Fetching summoner data for puuid: ${puuid} in region: ${region}`);
         const summonerResponse = await fetch(
             `https://${region}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}`,
             {
@@ -100,7 +96,6 @@ const fetchAndUpdateProfileData = async (gameName, tagLine) => {
         throw new Error("Missing required query parameters");
     }
 
-    console.log(`[${new Date().toISOString()}] Fetching account data for ${gameName}#${tagLine}`);
     const accountResponse = await fetch(
         `https://europe.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${gameName}/${tagLine}`,
         {
@@ -121,7 +116,6 @@ const fetchAndUpdateProfileData = async (gameName, tagLine) => {
     let region;
 
     for (const r of regions) {
-        console.log(`[${new Date().toISOString()}] Fetching summoner data from region ${r}`);
         profileResponse = await fetch(
             `https://${r}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${encryptedPUUID}`,
             {
@@ -143,7 +137,6 @@ const fetchAndUpdateProfileData = async (gameName, tagLine) => {
 
     const platform = regionToPlatform[region];
 
-    console.log(`[${new Date().toISOString()}] Fetching ranked data from region ${region}`);
     const rankedResponse = await fetch(
         `https://${region}.api.riotgames.com/lol/league/v4/entries/by-summoner/${profileData.id}`,
         {
@@ -158,7 +151,6 @@ const fetchAndUpdateProfileData = async (gameName, tagLine) => {
 
     const rankedData = await rankedResponse.json();
 
-    console.log(`[${new Date().toISOString()}] Fetching champion mastery data from region ${region}`);
     const championMasteryResponse = await fetch(
         `https://${region}.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-puuid/${encryptedPUUID}`,
         {
@@ -174,7 +166,6 @@ const fetchAndUpdateProfileData = async (gameName, tagLine) => {
     let championMasteryData = await championMasteryResponse.json();
     championMasteryData = championMasteryData.slice(0, 5);
 
-    console.log(`[${new Date().toISOString()}] Fetching match data from platform ${platform}`);
     const matchResponse = await fetch(
         `https://${platform}.api.riotgames.com/lol/match/v5/matches/by-puuid/${encryptedPUUID}/ids?start=0&count=10`,
         {
@@ -189,7 +180,6 @@ const fetchAndUpdateProfileData = async (gameName, tagLine) => {
 
     const matchData = await matchResponse.json();
 
-    console.log(`[${new Date().toISOString()}] Fetching match details`);
     const matchDetails = await Promise.all(
         matchData.map(async (matchId) => {
             const matchDetailResponse = await fetch(
@@ -208,7 +198,6 @@ const fetchAndUpdateProfileData = async (gameName, tagLine) => {
         })
     );
 
-    console.log(`[${new Date().toISOString()}] Fetching live game data from region ${region}`);
     const liveGameResponse = await fetch(
         `https://${region}.api.riotgames.com/lol/spectator/v5/active-games/by-summoner/${profileData.puuid}`,
         {
@@ -245,7 +234,6 @@ const fetchAndUpdateProfileData = async (gameName, tagLine) => {
         updatedAt: new Date(),
     };
 
-    console.log(`[${new Date().toISOString()}] Updating profile data in MongoDB with data:`, JSON.stringify(data, null, 2));
     await profilesCollection.updateOne(
         { gameName, tagLine },
         { $set: data },
@@ -258,7 +246,6 @@ const fetchAndUpdateLiveGameData = async (profileData, region, gameName, tagLine
     const db = client.db("clutch-gg");
     const profilesCollection = db.collection("profiles");
 
-    console.log(`[${new Date().toISOString()}] Fetching live game data for ${gameName}#${tagLine} from region ${region}`);
     const liveGameResponse = await fetch(
         `https://${region}.api.riotgames.com/lol/spectator/v5/active-games/by-summoner/${profileData.puuid}`,
         {
@@ -301,8 +288,6 @@ const fetchAndUpdateLiveGameData = async (profileData, region, gameName, tagLine
             liveGameData,
             updatedAt: new Date(),
         };
-
-        console.log(`[${new Date().toISOString()}] Updating live game data in MongoDB for ${gameName}#${tagLine} with data:`, JSON.stringify(updateData, null, 2));
         await profilesCollection.updateOne(
             { gameName, tagLine },
             { $set: updateData }
@@ -351,11 +336,9 @@ export async function GET(req) {
     });
 
     if (cachedProfile) {
-        console.log(`[${new Date().toISOString()}] Returning cached profile for ${gameName}#${tagLine}`);
         return NextResponse.json(cachedProfile);
     } else {
         try {
-            console.log(`[${new Date().toISOString()}] Fetching and updating profile data for ${gameName}#${tagLine}`);
             await fetchAndUpdateProfileData(gameName, tagLine);
         } catch (error) {
             console.error(`[${new Date().toISOString()}] Error fetching and updating profile data:`, error);
@@ -369,10 +352,8 @@ export async function GET(req) {
     });
 
     if (updatedProfile) {
-        console.log(`[${new Date().toISOString()}] Returning updated profile for ${gameName}#${tagLine}`);
         return NextResponse.json(updatedProfile);
     } else {
-        console.log(`[${new Date().toISOString()}] Profile not found for ${gameName}#${tagLine}`);
         return NextResponse.json({ error: "Profile not found" }, { status: 404 });
     }
 }
