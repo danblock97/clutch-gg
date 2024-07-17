@@ -1,6 +1,5 @@
 import clientPromise from "@/lib/mongodb";
 import { NextResponse } from "next/server";
-import cron from "node-cron";
 
 const RIOT_API_KEY = process.env.RIOT_API_KEY;
 
@@ -19,7 +18,6 @@ const regionToPlatform = {
 
 const fetchAdditionalData = async (summonerId, puuid, region) => {
     try {
-        console.log(`Fetching ranked data for summonerId: ${summonerId}`);
         const rankedResponse = await fetch(
             `https://${region}.api.riotgames.com/lol/league/v4/entries/by-summoner/${summonerId}`,
             {
@@ -36,7 +34,6 @@ const fetchAdditionalData = async (summonerId, puuid, region) => {
             (queue) => queue.queueType === "RANKED_SOLO_5x5"
         );
 
-        console.log(`Fetching account data for puuid: ${puuid}`);
         const accountResponse = await fetch(
             `https://europe.api.riotgames.com/riot/account/v1/accounts/by-puuid/${puuid}`,
             {
@@ -50,7 +47,6 @@ const fetchAdditionalData = async (summonerId, puuid, region) => {
 
         const accountData = await accountResponse.json();
 
-        console.log(`Fetching summoner data for puuid: ${puuid}`);
         const summonerResponse = await fetch(
             `https://${region}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}`,
             {
@@ -98,7 +94,6 @@ const fetchAndUpdateProfileData = async (gameName, tagLine) => {
         throw new Error("Missing required query parameters");
     }
 
-    console.log(`Fetching profile data for ${gameName}#${tagLine}`);
     const accountResponse = await fetch(
         `https://europe.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${gameName}/${tagLine}`,
         {
@@ -137,7 +132,6 @@ const fetchAndUpdateProfileData = async (gameName, tagLine) => {
 
     const platform = regionToPlatform[region];
 
-    console.log(`Fetching ranked data for ${profileData.id}`);
     const rankedResponse = await fetch(
         `https://${region}.api.riotgames.com/lol/league/v4/entries/by-summoner/${profileData.id}`,
         {
@@ -151,7 +145,6 @@ const fetchAndUpdateProfileData = async (gameName, tagLine) => {
 
     const rankedData = await rankedResponse.json();
 
-    console.log(`Fetching champion mastery data for puuid: ${encryptedPUUID}`);
     const championMasteryResponse = await fetch(
         `https://${region}.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-puuid/${encryptedPUUID}`,
         {
@@ -166,7 +159,6 @@ const fetchAndUpdateProfileData = async (gameName, tagLine) => {
     let championMasteryData = await championMasteryResponse.json();
     championMasteryData = championMasteryData.slice(0, 5);
 
-    console.log(`Fetching match data for puuid: ${encryptedPUUID}`);
     const matchResponse = await fetch(
         `https://${platform}.api.riotgames.com/lol/match/v5/matches/by-puuid/${encryptedPUUID}/ids?start=0&count=10`,
         {
@@ -198,9 +190,8 @@ const fetchAndUpdateProfileData = async (gameName, tagLine) => {
     );
 
     // Fetch live game data
-    console.log(`Fetching live game data for summonerId: ${profileData.id}`);
     const liveGameResponse = await fetch(
-        `https://${region}.api.riotgames.com/lol/spectator/v4/active-games/by-summoner/${profileData.id}`,
+        `https://${region}.api.riotgames.com/lol/spectator/v5/active-games/by-summoner/${profileData.puuid}`,
         {
             headers: { "X-Riot-Token": RIOT_API_KEY },
         }
@@ -231,6 +222,7 @@ const fetchAndUpdateProfileData = async (gameName, tagLine) => {
         liveGameData,
         region,  // Store the region in the profile
         updatedAt: new Date(),
+        liveGameStateChangedAt: new Date(), // Set the initial state change timestamp
     };
 
     await profilesCollection.updateOne(
@@ -238,8 +230,6 @@ const fetchAndUpdateProfileData = async (gameName, tagLine) => {
         { $set: data },
         { upsert: true }
     );
-
-    console.log(`Profile data for ${gameName}#${tagLine} updated successfully`);
 };
 
 const fetchAndUpdateLiveGameData = async (profileData, region, gameName, tagLine) => {
@@ -247,9 +237,8 @@ const fetchAndUpdateLiveGameData = async (profileData, region, gameName, tagLine
     const db = client.db("clutch-gg");
     const profilesCollection = db.collection("profiles");
 
-    console.log(`Fetching live game data for ${gameName}#${tagLine}`);
     const liveGameResponse = await fetch(
-        `https://${region}.api.riotgames.com/lol/spectator/v5/active-games/by-summoner/${profileData.id}`,
+        `https://${region}.api.riotgames.com/lol/spectator/v5/active-games/by-summoner/${profileData.puuid}`,
         {
             headers: { "X-Riot-Token": RIOT_API_KEY },
         }
@@ -277,48 +266,22 @@ const fetchAndUpdateLiveGameData = async (profileData, region, gameName, tagLine
         return;
     }
 
+    let updateData = {
+        liveGameData,
+        updatedAt: new Date(),
+    };
+
     if (
-        (existingProfile.liveGameData && !liveGameData) ||
-        (!existingProfile.liveGameData && liveGameData)
+        JSON.stringify(existingProfile.liveGameData) !== JSON.stringify(liveGameData)
     ) {
-        // Fetch and update the whole profile if live game status changes
-        await fetchAndUpdateProfileData(gameName, tagLine);
-    } else {
-        const updateData = {
-            liveGameData,
-            updatedAt: new Date(),
-        };
-
-        await profilesCollection.updateOne(
-            { gameName, tagLine },
-            { $set: updateData }
-        );
+        updateData.liveGameStateChangedAt = new Date(); // Update the state change timestamp
     }
+
+    await profilesCollection.updateOne(
+        { gameName, tagLine },
+        { $set: updateData }
+    );
 };
-
-cron.schedule("* * * * *", async () => {
-    try {
-        console.log("Running scheduled task");
-        const client = await clientPromise;
-        const db = client.db("clutch-gg");
-        const profilesCollection = db.collection("profiles");
-
-        const profiles = await profilesCollection.find({}).toArray();
-
-        for (const profile of profiles) {
-            const { gameName, tagLine, profileData, region } = profile;
-
-            if (!region) {
-                console.error(`Region is undefined for profile ${gameName}#${tagLine}`);
-                continue;
-            }
-
-            await fetchAndUpdateLiveGameData(profileData, region, gameName, tagLine);
-        }
-    } catch (error) {
-        console.error("Error during cron job execution:", error);
-    }
-});
 
 export async function GET(req) {
     const gameName = req.nextUrl.searchParams.get("gameName");
