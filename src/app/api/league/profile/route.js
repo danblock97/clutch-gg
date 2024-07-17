@@ -1,5 +1,6 @@
 import clientPromise from "@/lib/mongodb";
 import { NextResponse } from "next/server";
+import cron from "node-cron";
 
 const RIOT_API_KEY = process.env.RIOT_API_KEY;
 
@@ -222,7 +223,6 @@ const fetchAndUpdateProfileData = async (gameName, tagLine) => {
         liveGameData,
         region,  // Store the region in the profile
         updatedAt: new Date(),
-        liveGameStateChangedAt: new Date(), // Set the initial state change timestamp
     };
 
     await profilesCollection.updateOne(
@@ -231,6 +231,82 @@ const fetchAndUpdateProfileData = async (gameName, tagLine) => {
         { upsert: true }
     );
 };
+
+const fetchAndUpdateLiveGameData = async (profileData, region, gameName, tagLine) => {
+    const client = await clientPromise;
+    const db = client.db("clutch-gg");
+    const profilesCollection = db.collection("profiles");
+
+    const liveGameResponse = await fetch(
+        `https://${region}.api.riotgames.com/lol/spectator/v5/active-games/by-summoner/${profileData.puuid}`,
+        {
+            headers: { "X-Riot-Token": RIOT_API_KEY },
+        }
+    );
+
+    let liveGameData = null;
+    if (liveGameResponse.ok) {
+        liveGameData = await liveGameResponse.json();
+        liveGameData.participants = await Promise.all(
+            liveGameData.participants.map(async (participant) => {
+                const additionalData = await fetchAdditionalData(
+                    participant.summonerId,
+                    participant.puuid,
+                    region
+                );
+                return { ...participant, ...additionalData };
+            })
+        );
+    }
+
+    const existingProfile = await profilesCollection.findOne({ gameName, tagLine });
+
+    if (!existingProfile) {
+        console.error(`Profile not found for ${gameName}#${tagLine}`);
+        return;
+    }
+
+    if (
+        (existingProfile.liveGameData && !liveGameData) ||
+        (!existingProfile.liveGameData && liveGameData)
+    ) {
+        // Fetch and update the whole profile if live game status changes
+        await fetchAndUpdateProfileData(gameName, tagLine);
+    } else {
+        const updateData = {
+            liveGameData,
+            updatedAt: new Date(),
+        };
+
+        await profilesCollection.updateOne(
+            { gameName, tagLine },
+            { $set: updateData }
+        );
+    }
+};
+
+cron.schedule("* * * * *", async () => {
+    try {
+        const client = await clientPromise;
+        const db = client.db("clutch-gg");
+        const profilesCollection = db.collection("profiles");
+
+        const profiles = await profilesCollection.find({}).toArray();
+
+        for (const profile of profiles) {
+            const { gameName, tagLine, profileData, region } = profile;
+
+            if (!region) {
+                console.error(`Region is undefined for profile ${gameName}#${tagLine}`);
+                continue;
+            }
+
+            await fetchAndUpdateLiveGameData(profileData, region, gameName, tagLine);
+        }
+    } catch (error) {
+        console.error("Error during cron job execution:", error);
+    }
+});
 
 export async function GET(req) {
     const gameName = req.nextUrl.searchParams.get("gameName");
