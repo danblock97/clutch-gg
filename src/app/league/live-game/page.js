@@ -24,7 +24,14 @@ const LiveGamePage = () => {
         fetchLiveGameData();
       }, 10000); // Check for updates every 10 seconds
 
+      // Clean up interval on component unmount
       return () => clearInterval(interval);
+    }
+  }, [gameName, tagLine, fetchLiveGameData]);
+
+  useEffect(() => {
+    if (gameName && tagLine) {
+      fetchLiveGameData();
     }
   }, [gameName, tagLine, fetchLiveGameData]);
 
