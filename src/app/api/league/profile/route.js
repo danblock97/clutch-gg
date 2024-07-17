@@ -280,9 +280,11 @@ const fetchAndUpdateLiveGameData = async (profileData, region, gameName, tagLine
     const liveGameDataChanged = (existingProfile.liveGameData && !liveGameData) || (!existingProfile.liveGameData && liveGameData);
 
     if (liveGameDataChanged) {
+        console.log(`[${new Date().toISOString()}] Live game data changed for ${gameName}#${tagLine}. Updating profile data.`);
         // Fetch and update the whole profile if live game status changes
         await fetchAndUpdateProfileData(gameName, tagLine);
     } else {
+        console.log(`[${new Date().toISOString()}] Live game data did not change for ${gameName}#${tagLine}.`);
         const updateData = {
             liveGameData,
             updatedAt: new Date(),
