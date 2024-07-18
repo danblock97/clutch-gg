@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 const useProfileData = () => {
     const [profileData, setProfileData] = useState(null);
@@ -11,8 +11,9 @@ const useProfileData = () => {
     const [liveGameData, setLiveGameData] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
-    const gameName = useSearchParams().get("gameName");
-    const tagLine = useSearchParams().get("tagLine");
+    const searchParams = useSearchParams();
+    const gameName = searchParams.get("gameName");
+    const tagLine = searchParams.get("tagLine");
 
     const fetchData = useCallback(async () => {
         setIsLoading(true);
@@ -55,6 +56,16 @@ const useProfileData = () => {
             fetchData();
         }
     }, [fetchData, gameName, tagLine]);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            if (gameName && tagLine) {
+                fetchLiveGameData();
+            }
+        }, 20000); // Check every 20 seconds
+
+        return () => clearInterval(interval);
+    }, [fetchLiveGameData, gameName, tagLine]);
 
     return {
         profileData,

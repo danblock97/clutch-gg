@@ -20,11 +20,7 @@ const LiveGamePage = () => {
 
   useEffect(() => {
     if (gameName && tagLine) {
-      const interval = setInterval(() => {
-        fetchLiveGameData();
-      }, 10000); // Check for updates every 10 seconds
-
-      return () => clearInterval(interval);
+      fetchLiveGameData();
     }
   }, [gameName, tagLine, fetchLiveGameData]);
 
