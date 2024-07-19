@@ -283,7 +283,7 @@ const MatchHistory = ({
                                         )}
                                     </div>
                                 ))}
-                                {ward && (
+                                {ward ? (
                                     <div className="flex items-center">
                                         <Image
                                             src={`https://ddragon.leagueoflegends.com/cdn/14.14.1/img/item/${ward}.png`}
@@ -293,6 +293,14 @@ const MatchHistory = ({
                                             className="w-8 h-8 rounded-lg border border-gray-700"
                                         />
                                     </div>
+                                ) : (
+                                    <Image
+                                        src="/images/placeholder.png"
+                                        alt="No ward"
+                                        width={28}
+                                        height={28}
+                                        className="w-8 h-8 rounded-lg border border-gray-700"
+                                    />
                                 )}
                                 {items.slice(3, 6).map((itemId, idx) => (
                                     <div key={idx} className="flex items-center">
@@ -305,7 +313,13 @@ const MatchHistory = ({
                                                 className="w-8 h-8 rounded-lg border border-gray-700"
                                             />
                                         ) : (
-                                            <></>
+                                            <Image
+                                                src="/images/placeholder.png"
+                                                alt="No item"
+                                                width={28}
+                                                height={28}
+                                                className="w-8 h-8 rounded-lg border border-gray-700"
+                                            />
                                         )}
                                     </div>
                                 ))}
