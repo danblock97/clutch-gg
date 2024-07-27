@@ -11,6 +11,9 @@ const LiveGame = ({ liveGameData }) => {
 	}, [liveGameData]);
 
 	const formatRankImageName = (rank) => {
+		if (!rank || typeof rank !== "string") {
+			return "unranked";
+		}
 		const [tier] = rank.split(" ");
 		return tier.toLowerCase();
 	};
