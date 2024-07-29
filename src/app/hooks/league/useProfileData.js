@@ -1,84 +1,48 @@
-// src/app/hooks/league/useProfileData.js
-import { useState, useEffect, useCallback } from "react";
-import { useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 
 const useProfileData = () => {
 	const [profileData, setProfileData] = useState(null);
 	const [accountData, setAccountData] = useState(null);
 	const [rankedData, setRankedData] = useState(null);
 	const [championMasteryData, setChampionMasteryData] = useState(null);
-	const [matchData, setMatchesData] = useState(null);
 	const [matchDetails, setMatchDetails] = useState(null);
 	const [liveGameData, setLiveGameData] = useState(null);
-	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState(null);
-	const searchParams = useSearchParams();
-	const gameName = searchParams.get("gameName");
-	const tagLine = searchParams.get("tagLine");
+	const [isLoading, setIsLoading] = useState(true);
 
-	const fetchData = useCallback(async () => {
-		setIsLoading(true);
+	const fetchProfileData = async (gameName, tagLine) => {
 		try {
 			const response = await fetch(
 				`/api/league/profile?gameName=${gameName}&tagLine=${tagLine}`
 			);
-			if (!response.ok) throw new Error("Failed to fetch");
+			if (!response.ok) {
+				throw new Error("Failed to fetch profile");
+			}
 			const data = await response.json();
-			setProfileData(data.profileData);
-			setAccountData(data.accountData);
-			setRankedData(data.rankedData);
-			setChampionMasteryData(data.championMasteryData);
-			setMatchesData(data.matchData);
-			setMatchDetails(data.matchDetails);
-			setLiveGameData(data.liveGameData);
-			setError(null);
+			setProfileData(data.profiledata);
+			setAccountData(data.accountdata);
+			setRankedData(data.rankeddata);
+			setChampionMasteryData(data.championmasterydata);
+			setMatchDetails(data.matchdetails);
+			setLiveGameData(data.livegamedata);
 		} catch (error) {
-			setError(error.message || "Failed to fetch data");
+			setError(error.message);
 		} finally {
 			setIsLoading(false);
 		}
-	}, [gameName, tagLine]);
-
-	const fetchLiveGameData = useCallback(async () => {
-		try {
-			const response = await fetch(
-				`/api/league/profile?gameName=${gameName}&tagLine=${tagLine}`
-			);
-			if (!response.ok) throw new Error("Failed to fetch");
-			const data = await response.json();
-			setLiveGameData(data.liveGameData);
-		} catch (error) {
-			console.error("Failed to fetch live game data", error);
-		}
-	}, [gameName, tagLine]);
-
-	useEffect(() => {
-		if (gameName && tagLine) {
-			fetchData();
-		}
-	}, [fetchData, gameName, tagLine]);
-
-	useEffect(() => {
-		const interval = setInterval(() => {
-			if (gameName && tagLine) {
-				fetchLiveGameData();
-			}
-		}, 20000); // Check every 20 seconds
-
-		return () => clearInterval(interval);
-	}, [fetchLiveGameData, gameName, tagLine]);
+	};
 
 	return {
 		profileData,
 		accountData,
 		rankedData,
 		championMasteryData,
-		matchData,
 		matchDetails,
 		liveGameData,
-		isLoading,
 		error,
-		fetchLiveGameData,
+		isLoading,
+		fetchProfileData,
 	};
 };
 
