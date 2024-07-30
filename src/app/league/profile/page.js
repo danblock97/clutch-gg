@@ -58,7 +58,6 @@ const ProfilePage = ({ searchParams }) => {
 				body: JSON.stringify({ gameName, tagLine }),
 			});
 			const result = await response.json();
-			console.log(result);
 			await fetchProfileData(); // Fetch new data after update
 		} catch (error) {
 			console.error("Error triggering update:", error);

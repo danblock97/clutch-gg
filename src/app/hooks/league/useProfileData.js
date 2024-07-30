@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 
-const useProfileData = () => {
+const useProfileData = (gameName, tagLine) => {
 	const [profileData, setProfileData] = useState(null);
 	const [accountData, setAccountData] = useState(null);
 	const [rankedData, setRankedData] = useState(null);
@@ -11,27 +11,38 @@ const useProfileData = () => {
 	const [error, setError] = useState(null);
 	const [isLoading, setIsLoading] = useState(true);
 
-	const fetchProfileData = async (gameName, tagLine) => {
-		try {
-			const response = await fetch(
-				`/api/league/profile?gameName=${gameName}&tagLine=${tagLine}`
-			);
-			if (!response.ok) {
-				throw new Error("Failed to fetch profile");
+	useEffect(() => {
+		const fetchProfileData = async () => {
+			if (!gameName || !tagLine) {
+				setError("Missing gameName or tagLine");
+				setIsLoading(false);
+				return;
 			}
-			const data = await response.json();
-			setProfileData(data.profiledata);
-			setAccountData(data.accountdata);
-			setRankedData(data.rankeddata);
-			setChampionMasteryData(data.championmasterydata);
-			setMatchDetails(data.matchdetails);
-			setLiveGameData(data.livegamedata);
-		} catch (error) {
-			setError(error.message);
-		} finally {
-			setIsLoading(false);
-		}
-	};
+
+			try {
+				const response = await fetch(
+					`/api/league/profile?gameName=${gameName}&tagLine=${tagLine}`
+				);
+				if (!response.ok) {
+					throw new Error("Failed to fetch profile");
+				}
+				const data = await response.json();
+				setProfileData(data.profiledata);
+				setAccountData(data.accountdata);
+				setRankedData(data.rankeddata);
+				setChampionMasteryData(data.championmasterydata);
+				setMatchDetails(data.matchdetails);
+				setLiveGameData(data.livegamedata);
+			} catch (error) {
+				console.error("Error fetching profile data:", error);
+				setError(error.message);
+			} finally {
+				setIsLoading(false);
+			}
+		};
+
+		fetchProfileData();
+	}, [gameName, tagLine]);
 
 	return {
 		profileData,
@@ -42,7 +53,6 @@ const useProfileData = () => {
 		liveGameData,
 		error,
 		isLoading,
-		fetchProfileData,
 	};
 };
 

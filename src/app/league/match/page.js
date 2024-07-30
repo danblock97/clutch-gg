@@ -7,44 +7,49 @@ import useProfileData from "@/app/hooks/league/useProfileData";
 import Loading from "@/components/Loading";
 
 const MatchPage = () => {
-    const searchParams = useSearchParams();
-    const matchId = searchParams.get("matchId");
-    const { matchDetails, accountData, error, isLoading } = useProfileData();
+	const searchParams = useSearchParams();
+	const gameName = searchParams.get("gameName");
+	const tagLine = searchParams.get("tagLine");
+	const matchId = searchParams.get("matchId");
 
-    const [selectedSummonerPUUID, setSelectedSummonerPUUID] = useState(null);
+	const { matchDetails, accountData, error, isLoading } = useProfileData(
+		gameName,
+		tagLine
+	);
 
-    useEffect(() => {
-        const gameName = searchParams.get("gameName");
-        const tagLine = searchParams.get("tagLine");
+	const [selectedSummonerPUUID, setSelectedSummonerPUUID] = useState(null);
 
-        if (accountData && accountData.puuid) {
-            setSelectedSummonerPUUID(accountData.puuid);
-        }
-    }, [searchParams, accountData]);
+	useEffect(() => {
+		if (accountData && accountData.puuid) {
+			setSelectedSummonerPUUID(accountData.puuid);
+		}
+	}, [accountData]);
 
-    if (isLoading) {
-        return (
-            <div className="bg-[#0e1015]">
-                <Loading />
-            </div>
-        );
-    }
+	if (isLoading) {
+		return (
+			<div className="bg-[#0e1015]">
+				<Loading />
+			</div>
+		);
+	}
 
-    if (error) {
-        return <p className="text-red-500">{error}</p>;
-    }
+	if (error) {
+		return <p className="text-red-500">{error}</p>;
+	}
 
-    return (
-        <div>
-            {matchId && selectedSummonerPUUID && (
-                <MatchDetails
-                    matchId={matchId}
-                    matchDetails={matchDetails}
-                    selectedSummonerPUUID={selectedSummonerPUUID}
-                />
-            )}
-        </div>
-    );
+	return (
+		<div>
+			{matchId && selectedSummonerPUUID ? (
+				<MatchDetails
+					matchId={matchId}
+					matchDetails={matchDetails}
+					selectedSummonerPUUID={selectedSummonerPUUID}
+				/>
+			) : (
+				<p>Loading match details...</p>
+			)}
+		</div>
+	);
 };
 
 export default MatchPage;
