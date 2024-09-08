@@ -407,7 +407,7 @@ const ParticipantDetails = ({ participant, isArena, getAugmentIcon }) => {
 								<div key={idx} className="flex items-center">
 									{itemId > 0 ? (
 										<Image
-											src={`https://ddragon.leagueoflegends.com/cdn/14.14.1/img/item/${itemId}.png`}
+											src={`https://ddragon.leagueoflegends.com/cdn/14.17.1/img/item/${itemId}.png`}
 											alt="Item"
 											width={28}
 											height={28}
