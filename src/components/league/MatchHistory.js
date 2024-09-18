@@ -126,7 +126,6 @@ const MatchHistory = ({
 			{filteredMatches.map((match, index) => {
 				const participants = match.info.participants;
 
-				// Calculate CS/Min for each participant and find the one with the highest CS/Min
 				let maxCsPerMin = 0;
 				let maxCsPerMinParticipant = null;
 
@@ -272,10 +271,11 @@ const MatchHistory = ({
 					>
 						<div className="absolute top-4 left-4 flex items-start">
 							<div className="flex items-center mr-4">
+								{/* Champion Icon with responsive sizing */}
 								<Image
 									src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${currentPlayer.championId}.png`}
 									alt="Champion Icon"
-									className={`w-16 h-16 rounded-full border-2 ${getOutcomeClass(
+									className={`sm:w-12 sm:h-12 w-16 h-16 rounded-full border-2 ${getOutcomeClass(
 										currentPlayer.win,
 										isRemake
 									)}`}
@@ -289,7 +289,7 @@ const MatchHistory = ({
 										className={`font-semibold mr-2 ${getOutcomeClass(
 											currentPlayer.win,
 											isRemake
-										)}`}
+										)} sm:text-sm md:text-base lg:text-lg`}
 									>
 										{isRemake
 											? "Remake"
@@ -322,7 +322,9 @@ const MatchHistory = ({
 								</div>
 								<div className="flex">
 									<div className="flex flex-col mr-8">
-										<p className="text-lg font-bold">{kda} KDA</p>
+										<p className="sm:text-sm md:text-base lg:text-lg font-bold">
+											{kda} KDA
+										</p>
 										<p className="text-md">
 											{currentPlayer.kills}/{currentPlayer.deaths}/
 											{currentPlayer.assists}
@@ -330,12 +332,16 @@ const MatchHistory = ({
 									</div>
 									{match.info.queueId === 1700 ? (
 										<div className="flex flex-col">
-											<p className="text-lg font-bold">{dpm} DPM</p>
+											<p className="sm:text-sm md:text-base lg:text-lg font-bold">
+												{dpm} DPM
+											</p>
 											<p className="text-md">{goldEarned} Gold</p>
 										</div>
 									) : (
 										<div className="flex flex-col">
-											<p className="text-lg font-bold">{csPerMin} CS/Min</p>
+											<p className="sm:text-sm md:text-base lg:text-lg font-bold">
+												{csPerMin} CS/Min
+											</p>
 											<p className="text-md">{cs} CS</p>
 										</div>
 									)}
@@ -346,6 +352,7 @@ const MatchHistory = ({
 						<div className="h-24"></div>
 						<div className="absolute top-16 right-72 flex items-center justify-center">
 							<div className="flex flex-col items-center mr-2 gap-2">
+								{/* Responsive summoner spell icons */}
 								{[currentPlayer.summoner1Id, currentPlayer.summoner2Id].map(
 									(spellId, idx) => (
 										<Image
@@ -354,12 +361,13 @@ const MatchHistory = ({
 											alt={`Summoner Spell ${idx + 1}`}
 											width={28}
 											height={28}
-											className="w-8 h-8 rounded-full border border-gray-700"
+											className="sm:w-6 sm:h-6 w-8 h-8 rounded-full border border-gray-700"
 										/>
 									)
 								)}
 							</div>
 							<div className="grid grid-cols-4 gap-2">
+								{/* Responsive item icons */}
 								{items.slice(0, 3).map((itemId, idx) => (
 									<div key={idx} className="flex items-center">
 										{itemId > 0 ? (
@@ -368,7 +376,7 @@ const MatchHistory = ({
 												alt="Item"
 												width={28}
 												height={28}
-												className="w-8 h-8 rounded-lg border border-gray-700"
+												className="sm:w-6 sm:h-6 w-8 h-8 rounded-lg border border-gray-700"
 											/>
 										) : (
 											<Image
@@ -376,7 +384,7 @@ const MatchHistory = ({
 												alt="No item"
 												width={28}
 												height={28}
-												className="w-8 h-8 rounded-lg border border-gray-700"
+												className="sm:w-6 sm:h-6 w-8 h-8 rounded-lg border border-gray-700"
 											/>
 										)}
 									</div>
@@ -388,7 +396,7 @@ const MatchHistory = ({
 											alt="Ward"
 											width={28}
 											height={28}
-											className="w-8 h-8 rounded-lg border border-gray-700"
+											className="sm:w-6 sm:h-6 w-8 h-8 rounded-lg border border-gray-700"
 										/>
 									</div>
 								) : (
@@ -397,7 +405,7 @@ const MatchHistory = ({
 										alt="No ward"
 										width={28}
 										height={28}
-										className="w-8 h-8 rounded-lg border border-gray-700"
+										className="sm:w-6 sm:h-6 w-8 h-8 rounded-lg border border-gray-700"
 									/>
 								)}
 								{items.slice(3, 6).map((itemId, idx) => (
@@ -408,7 +416,7 @@ const MatchHistory = ({
 												alt="Item"
 												width={28}
 												height={28}
-												className="w-8 h-8 rounded-lg border border-gray-700"
+												className="sm:w-6 sm:h-6 w-8 h-8 rounded-lg border border-gray-700"
 											/>
 										) : (
 											<Image
@@ -416,14 +424,15 @@ const MatchHistory = ({
 												alt="No item"
 												width={28}
 												height={28}
-												className="w-8 h-8 rounded-lg border border-gray-700"
+												className="sm:w-6 sm:h-6 w-8 h-8 rounded-lg border border-gray-700"
 											/>
 										)}
 									</div>
 								))}
 							</div>
 						</div>
-						{match.info.queueId === 1700 ? ( // Check if it's arena mode
+
+						{match.info.queueId === 1700 ? (
 							<div className="absolute top-6 right-16 flex">
 								<div className="grid grid-cols-2 gap-2">
 									{augments.map((augmentId, idx) => (
@@ -449,7 +458,7 @@ const MatchHistory = ({
 												alt="Participant Champion"
 												width={24}
 												height={24}
-												className="w-6 h-6 rounded-full border border-gray-700 ml-1"
+												className="sm:w-6 sm:h-6 w-6 h-6 rounded-full border border-gray-700 ml-1"
 											/>
 											<p
 												className="text-sm truncate"
@@ -476,7 +485,7 @@ const MatchHistory = ({
 												alt="Participant Champion"
 												width={24}
 												height={24}
-												className="w-6 h-6 rounded-full border border-gray-700 mr-1"
+												className="sm:w-6 sm:h-6 w-6 h-6 rounded-full border border-gray-700 mr-1"
 											/>
 											<p
 												className="text-sm truncate"
