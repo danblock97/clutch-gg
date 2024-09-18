@@ -23,8 +23,8 @@ const Profile = ({ accountData, profileData }) => {
 				) : (
 					<div className="bg-gray-600 rounded-full w-20 h-20"></div>
 				)}
-				<div className="ml-6">
-					<h1 className="text-[#979aa0] text-xl sm:text-3xl font-semibold">
+				<div className="ml-6 w-full">
+					<h1 className="text-[#979aa0] text-lg sm:text-2xl font-semibold break-words sm:break-all w-full">
 						{`${accountData.gameName}#${accountData.tagLine}`}
 					</h1>
 				</div>
