@@ -17,14 +17,7 @@ const HomePage = () => {
 							</span>
 							<br />
 							<TypeAnimation
-								sequence={[
-									"League of Legends",
-									1000,
-									"Valorant",
-									1000,
-									"Teamfight Tactics",
-									1000,
-								]}
+								sequence={["League of Legends", 1000]}
 								wrapper="span"
 								speed={50}
 								repeat={Infinity}
@@ -32,7 +25,7 @@ const HomePage = () => {
 						</h1>
 						<p className="text-[#adb7be] text-base sm:text-lg mb-6 lg:text-xl">
 							Clutch.GG is your ultimate destination for in-depth analytics and
-							real-time insights into players performance.
+							real-time insights into players' performance.
 						</p>
 					</div>
 					<div className="col-span-4 place-self-center mt-4 lg:mt-0">

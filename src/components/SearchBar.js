@@ -1,37 +1,24 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 
 const SearchBar = ({ onSearch }) => {
 	const [combinedInput, setCombinedInput] = useState("");
 	const router = useRouter();
-	const pathname = usePathname();
-	const [gamePath, setGamePath] = useState("/league");
-
-	useEffect(() => {
-		if (pathname.startsWith("/tft")) {
-			setGamePath("/tft");
-		} else if (pathname.startsWith("/valorant")) {
-			setGamePath("/valorant");
-		} else {
-			setGamePath("/league");
-		}
-	}, [pathname]);
+	const gamePath = "/league";
 
 	const handleSearch = () => {
-		if (gamePath === "/league") {
-			const [gameName, tagLine] = combinedInput.split("#");
-			if (gameName && tagLine) {
-				router.push(`${gamePath}/profile?gameName=${gameName}&tagLine=${tagLine}`);
-			} else {
-				alert("Please enter both game name and tagline.");
-				return;
-			}
+		const [gameName, tagLine] = combinedInput.split("#");
+		if (gameName && tagLine) {
+			router.push(
+				`${gamePath}/profile?gameName=${gameName}&tagLine=${tagLine}`
+			);
 		} else {
-			router.push(`${gamePath}`);
+			alert("Please enter both game name and tagline.");
+			return;
 		}
-		setCombinedInput(""); // Clear the search bar after search
+		setCombinedInput("");
 		if (onSearch) {
 			onSearch();
 		}
