@@ -25,7 +25,10 @@ const NavBar = () => {
 			</div>
 
 			<div className="hidden md:flex items-center space-x-6 ml-6">
-				<Link href="/league" className="flex items-center px-3 py-2 hover:text-gray-300 border-b-2 border-transparent hover:border-gray-300">
+				<Link
+					href="/league"
+					className="flex items-center px-3 py-2 hover:text-gray-300 border-b-2 border-transparent hover:border-gray-300"
+				>
 					<Image
 						src="/images/league.png" // Update with correct path
 						alt="League of Legends"
@@ -33,24 +36,6 @@ const NavBar = () => {
 						height={24}
 					/>
 					<span className="ml-2">League of Legends</span>
-				</Link>
-				<Link href="/tft" className="flex items-center px-3 py-2 hover:text-gray-300 border-b-2 border-transparent hover:border-gray-300">
-					<Image
-						src="/images/tft.png" // Update with correct path
-						alt="Teamfight Tactics"
-						width={24}
-						height={24}
-					/>
-					<span className="ml-2">Teamfight Tactics</span>
-				</Link>
-				<Link href="/valorant" className="flex items-center px-3 py-2 hover:text-gray-300 border-b-2 border-transparent hover:border-gray-300">
-					<Image
-						src="/images/valorant.png" // Update with correct path
-						alt="Valorant"
-						width={24}
-						height={24}
-					/>
-					<span className="ml-2">Valorant</span>
 				</Link>
 			</div>
 
@@ -85,20 +70,6 @@ const NavBar = () => {
 						onClick={() => setIsMenuOpen(false)}
 					>
 						League of Legends
-					</Link>
-					<Link
-						href="/tft"
-						className="text-xl hover:text-gray-300 mb-6"
-						onClick={() => setIsMenuOpen(false)}
-					>
-						Teamfight Tactics
-					</Link>
-					<Link
-						href="/valorant"
-						className="text-xl hover:text-gray-300 mb-6"
-						onClick={() => setIsMenuOpen(false)}
-					>
-						Valorant
 					</Link>
 					<button
 						className="mt-8 text-white"
