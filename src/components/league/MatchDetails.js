@@ -131,6 +131,7 @@ const MatchDetails = ({ matchDetails, matchId, selectedSummonerPUUID }) => {
 	}
 
 	const isArena = match.info.queueId === 1700;
+	const isARAM = match.info.queueId === 450;
 
 	if (isArena) {
 		let participants = match.info.participants;
@@ -273,7 +274,11 @@ const MatchDetails = ({ matchDetails, matchId, selectedSummonerPUUID }) => {
 					</div>
 				</div>
 				{team1.map((participant, index) => (
-					<ParticipantDetails key={index} participant={participant} />
+					<ParticipantDetails
+						key={index}
+						participant={participant}
+						isARAM={isARAM}
+					/>
 				))}
 				<div className="flex justify-between items-center">
 					<div className="flex-1">
@@ -301,14 +306,23 @@ const MatchDetails = ({ matchDetails, matchId, selectedSummonerPUUID }) => {
 				</div>
 
 				{team2.map((participant, index) => (
-					<ParticipantDetails key={index} participant={participant} />
+					<ParticipantDetails
+						key={index}
+						participant={participant}
+						isARAM={isARAM}
+					/>
 				))}
 			</div>
 		</div>
 	);
 };
 
-const ParticipantDetails = ({ participant, isArena, getAugmentIcon }) => {
+const ParticipantDetails = ({
+	participant,
+	isArena,
+	getAugmentIcon,
+	isARAM,
+}) => {
 	const kda =
 		participant.deaths === 0
 			? (participant.kills + participant.assists).toFixed(1)
@@ -326,7 +340,7 @@ const ParticipantDetails = ({ participant, isArena, getAugmentIcon }) => {
 
 				{/* Champion Icon & Player Name */}
 				<div className="col-span-2 flex items-center space-x-1">
-					{!isArena && (
+					{!isArena && !isARAM && (
 						<div className="col-span-1 flex items-center">
 							<Image
 								src={`https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-champ-select/global/default/svg/position-${participant.teamPosition.toLowerCase()}.svg`}
@@ -337,6 +351,7 @@ const ParticipantDetails = ({ participant, isArena, getAugmentIcon }) => {
 							/>
 						</div>
 					)}
+
 					<Image
 						src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${participant.championId}.png`}
 						alt="Champion"

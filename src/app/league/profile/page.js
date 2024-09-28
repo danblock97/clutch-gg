@@ -9,7 +9,7 @@ import LiveGameBanner from "@/components/league/LiveGameBanner";
 import Loading from "@/components/Loading";
 
 const ProfilePage = ({ searchParams }) => {
-	const { gameName, tagLine } = searchParams;
+	const { gameName, tagLine, region } = searchParams;
 	const [profileData, setProfileData] = useState(null);
 	const [accountData, setAccountData] = useState(null);
 	const [rankedData, setRankedData] = useState(null);
@@ -23,7 +23,9 @@ const ProfilePage = ({ searchParams }) => {
 	const fetchProfileData = useCallback(async () => {
 		try {
 			const response = await fetch(
-				`/api/league/profile?gameName=${gameName}&tagLine=${tagLine}`
+				`/api/league/profile?gameName=${encodeURIComponent(
+					gameName
+				)}&tagLine=${encodeURIComponent(tagLine)}&region=${region}`
 			);
 			if (!response.ok) {
 				throw new Error("Failed to fetch profile");
@@ -40,7 +42,7 @@ const ProfilePage = ({ searchParams }) => {
 		} finally {
 			setIsLoading(false);
 		}
-	}, [gameName, tagLine]);
+	}, [gameName, tagLine, region]);
 
 	useEffect(() => {
 		fetchProfileData();
@@ -55,10 +57,9 @@ const ProfilePage = ({ searchParams }) => {
 					"Content-Type": "application/json",
 					"x-api-key": process.env.NEXT_PUBLIC_UPDATE_API_KEY,
 				},
-				body: JSON.stringify({ gameName, tagLine }),
+				body: JSON.stringify({ gameName, tagLine, region }),
 			});
-			const result = await response.json();
-			await fetchProfileData(); // Fetch new data after update
+			await fetchProfileData();
 		} catch (error) {
 			console.error("Error triggering update:", error);
 		} finally {
@@ -114,6 +115,7 @@ const ProfilePage = ({ searchParams }) => {
 							selectedSummonerPUUID={profileData ? profileData.puuid : null}
 							gameName={accountData?.gameName}
 							tagLine={accountData?.tagLine}
+							region={region}
 						/>
 					)}
 				</div>
@@ -129,16 +131,6 @@ const ProfilePage = ({ searchParams }) => {
 					{isUpdating ? "Updating..." : "Update Profile"}
 				</button>
 			</div>
-			{isLoading && (
-				<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-					<p className="text-white">Loading...</p>
-				</div>
-			)}
-			{error && (
-				<div className="h-screen min-h-screen bg-[#0e1015] items-center p-4">
-					<p className="text-red-500 text-center">{error}</p>
-				</div>
-			)}
 		</div>
 	);
 };

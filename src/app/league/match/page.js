@@ -11,11 +11,13 @@ const MatchPage = () => {
 	const gameName = searchParams.get("gameName");
 	const tagLine = searchParams.get("tagLine");
 	const matchId = searchParams.get("matchId");
+	const region = searchParams.get("region"); // Capture region from the query string
 
 	const { matchDetails, accountData, error, isLoading } = useProfileData(
 		gameName,
-		tagLine
-	);
+		tagLine,
+		region
+	); // Pass region to the hook
 
 	const [selectedSummonerPUUID, setSelectedSummonerPUUID] = useState(null);
 
