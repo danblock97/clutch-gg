@@ -127,7 +127,7 @@ const MatchHistory = ({
 	};
 
 	return (
-		<div className="text-gray-400 p-6 w-full overflow-x-auto">
+		<div className="text-gray-400 pl-6 w-full overflow-x-auto">
 			{filteredMatches.map((match, index) => {
 				const participants = match.info.participants;
 

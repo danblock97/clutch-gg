@@ -23,7 +23,6 @@ export default async function handler(req, res) {
 		try {
 			const { gameName, tagLine } = profile;
 			await fetchAndUpdateProfileData(gameName, tagLine);
-			console.log(`Successfully updated profile for ${gameName}#${tagLine}`);
 		} catch (error) {
 			console.error(
 				`Error updating profile for ${profile.gameName}#${profile.tagLine}:`,

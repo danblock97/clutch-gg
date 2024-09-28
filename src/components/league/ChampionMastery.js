@@ -3,7 +3,7 @@ import Image from "next/image";
 const ChampionMastery = ({ championMasteryData }) => {
 	if (!championMasteryData || championMasteryData.length === 0) {
 		return (
-			<div className="bg-gray-800 rounded-lg overflow-hidden shadow-lg p-6">
+			<div className="bg-[#1e1e2f] rounded-lg overflow-hidden shadow-lg p-6">
 				<h2 className="text-white text-lg font-semibold">Champion Mastery</h2>
 				<p className="text-gray-400 mt-4">
 					No champion mastery data available.
@@ -13,7 +13,7 @@ const ChampionMastery = ({ championMasteryData }) => {
 	}
 
 	return (
-		<div className="bg-[#13151b] rounded-lg overflow-hidden shadow-lg p-6">
+		<div className="bg-[#1e1e2f] rounded-lg overflow-hidden shadow-lg p-6">
 			<h2 className="text-white text-lg font-semibold">Champion Mastery</h2>
 			<div className="flex flex-col justify-start mt-4">
 				{championMasteryData.map((mastery) => {

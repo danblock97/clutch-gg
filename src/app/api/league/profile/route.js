@@ -7,9 +7,6 @@ export async function GET(req) {
 	const tagLine = url.searchParams.get("tagLine");
 	const region = url.searchParams.get("region");
 
-	console.log(`Request URL: ${req.url}`);
-	console.log(`gameName: ${gameName}, tagLine: ${tagLine}, region: ${region}`);
-
 	if (!gameName || !tagLine || !region) {
 		return new Response(
 			JSON.stringify({ error: "Missing required query parameters" }),
