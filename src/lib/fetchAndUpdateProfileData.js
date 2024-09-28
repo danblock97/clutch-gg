@@ -46,7 +46,6 @@ export const fetchAndUpdateProfileData = async (
 
 		if (!accountResponse.ok) {
 			const errorDetails = await accountResponse.json();
-			console.log("Account API Error:", errorDetails);
 			throw new Error("Failed to fetch account data");
 		}
 
@@ -61,7 +60,6 @@ export const fetchAndUpdateProfileData = async (
 
 		if (!profileResponse.ok) {
 			const errorDetails = await profileResponse.json();
-			console.log("Summoner API Error:", errorDetails);
 			throw new Error("Failed to fetch summoner profile");
 		}
 
@@ -75,14 +73,12 @@ export const fetchAndUpdateProfileData = async (
 
 		if (!matchResponse.ok) {
 			const errorDetails = await matchResponse.json();
-			console.log("Match API Error:", errorDetails);
 			throw new Error("Failed to fetch match data");
 		}
 
 		const matchData = await matchResponse.json();
 
 		if (matchData.length === 0) {
-			console.log("No matches found for this summoner.");
 			throw new Error("No match data available");
 		}
 
@@ -96,7 +92,7 @@ export const fetchAndUpdateProfileData = async (
 					);
 
 					if (!matchDetailResponse.ok) {
-						console.log(
+						console.error(
 							`Failed to fetch match details for match ID ${matchId}`
 						);
 						return null;
@@ -105,16 +101,14 @@ export const fetchAndUpdateProfileData = async (
 					const matchDetail = await matchDetailResponse.json();
 
 					// Upsert match details into Supabase
-					const { error } = await supabase
-						.from("matches")
-						.upsert(
-							{
-								matchid: matchId,
-								playerid: profileDataFetched.puuid,
-								matchdetails: matchDetail,
-							},
-							{ onConflict: ["matchid"] }
-						);
+					const { error } = await supabase.from("matches").upsert(
+						{
+							matchid: matchId,
+							playerid: profileDataFetched.puuid,
+							matchdetails: matchDetail,
+						},
+						{ onConflict: ["matchid"] }
+					);
 
 					if (error) {
 						console.error(
