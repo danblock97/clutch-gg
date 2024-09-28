@@ -115,6 +115,7 @@ const ProfilePage = ({ searchParams }) => {
 							selectedSummonerPUUID={profileData ? profileData.puuid : null}
 							gameName={accountData?.gameName}
 							tagLine={accountData?.tagLine}
+							region={region}
 						/>
 					)}
 				</div>

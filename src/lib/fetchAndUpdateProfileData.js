@@ -41,9 +41,7 @@ export const fetchAndUpdateProfileData = async (
 			`https://${platform}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(
 				gameName
 			)}/${encodeURIComponent(tagLine)}`,
-			{
-				headers: { "X-Riot-Token": RIOT_API_KEY },
-			}
+			{ headers: { "X-Riot-Token": RIOT_API_KEY } }
 		);
 
 		if (!accountResponse.ok) {
@@ -58,9 +56,7 @@ export const fetchAndUpdateProfileData = async (
 		// Fetch summoner data using Summoner-V4 API
 		const profileResponse = await fetch(
 			`https://${selectedRegion}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${encryptedPUUID}`,
-			{
-				headers: { "X-Riot-Token": RIOT_API_KEY },
-			}
+			{ headers: { "X-Riot-Token": RIOT_API_KEY } }
 		);
 
 		if (!profileResponse.ok) {
@@ -74,11 +70,8 @@ export const fetchAndUpdateProfileData = async (
 		// Fetch match IDs using Match-V5 API
 		const matchResponse = await fetch(
 			`https://${platform}.api.riotgames.com/lol/match/v5/matches/by-puuid/${encryptedPUUID}/ids?start=0&count=10`,
-			{
-				headers: { "X-Riot-Token": RIOT_API_KEY },
-			}
+			{ headers: { "X-Riot-Token": RIOT_API_KEY } }
 		);
-		console.log(`Match API response status: ${matchResponse.status}`);
 
 		if (!matchResponse.ok) {
 			const errorDetails = await matchResponse.json();
@@ -96,74 +89,78 @@ export const fetchAndUpdateProfileData = async (
 		// Fetch match details for each match ID
 		const matchDetails = await Promise.all(
 			matchData.map(async (matchId) => {
-				const matchDetailResponse = await fetch(
-					`https://${platform}.api.riotgames.com/lol/match/v5/matches/${matchId}`,
-					{
-						headers: { "X-Riot-Token": RIOT_API_KEY },
+				try {
+					const matchDetailResponse = await fetch(
+						`https://${platform}.api.riotgames.com/lol/match/v5/matches/${matchId}`,
+						{ headers: { "X-Riot-Token": RIOT_API_KEY } }
+					);
+
+					if (!matchDetailResponse.ok) {
+						console.log(
+							`Failed to fetch match details for match ID ${matchId}`
+						);
+						return null;
 					}
-				);
 
-				if (!matchDetailResponse.ok) {
-					console.log(`Failed to fetch match details for match ID ${matchId}`);
-					return null;
+					const matchDetail = await matchDetailResponse.json();
+
+					// Upsert match details into Supabase
+					const { error } = await supabase
+						.from("matches")
+						.upsert(
+							{
+								matchid: matchId,
+								playerid: profileDataFetched.puuid,
+								matchdetails: matchDetail,
+							},
+							{ onConflict: ["matchid"] }
+						);
+
+					if (error) {
+						console.error(
+							`Supabase Upsert Error for match ID ${matchId}:`,
+							error
+						);
+					}
+
+					return matchDetail;
+				} catch (fetchError) {
+					console.error(
+						`Error fetching match details for match ID ${matchId}:`,
+						fetchError
+					);
+					return null; // Continue processing even if one match fails
 				}
-
-				const matchDetail = await matchDetailResponse.json();
-
-				// Upsert match details into Supabase
-				await supabase.from("matches").upsert(
-					{
-						matchid: matchId,
-						playerid: profileDataFetched.puuid,
-						matchdetails: matchDetail,
-					},
-					{ onConflict: ["matchid"] }
-				);
-
-				return matchDetail;
 			})
 		);
 
-		// Fetch ranked data (optional, may be empty or null)
+		// Filter out null match details
+		const validMatchDetails = matchDetails.filter((detail) => detail !== null);
+
+		// Fetch ranked data (optional)
 		const rankedResponse = await fetch(
 			`https://${selectedRegion}.api.riotgames.com/lol/league/v4/entries/by-summoner/${profileDataFetched.id}`,
-			{
-				headers: { "X-Riot-Token": RIOT_API_KEY },
-			}
+			{ headers: { "X-Riot-Token": RIOT_API_KEY } }
 		);
 		const rankedData = rankedResponse.ok ? await rankedResponse.json() : null;
-		console.log(`Ranked data: ${rankedData ? "Found" : "Not available"}`);
 
-		// Fetch champion mastery data (optional, may be empty or null)
+		// Fetch champion mastery data (optional)
 		const championMasteryResponse = await fetch(
 			`https://${selectedRegion}.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-puuid/${profileDataFetched.puuid}`,
-			{
-				headers: { "X-Riot-Token": RIOT_API_KEY },
-			}
+			{ headers: { "X-Riot-Token": RIOT_API_KEY } }
 		);
-		const championMasteryDataRaw = championMasteryResponse.ok
+		const championMasteryData = championMasteryResponse.ok
 			? await championMasteryResponse.json()
 			: null;
-		const championMasteryData = championMasteryDataRaw
-			? championMasteryDataRaw.slice(0, 5)
-			: null;
-		console.log(
-			`Champion mastery data: ${
-				championMasteryData ? "Found" : "Not available"
-			}`
-		);
 
 		// Fetch live game data (optional)
 		const liveGameResponse = await fetch(
 			`https://${selectedRegion}.api.riotgames.com/lol/spectator/v4/active-games/by-summoner/${profileDataFetched.id}`,
-			{
-				headers: { "X-Riot-Token": RIOT_API_KEY },
-			}
+			{ headers: { "X-Riot-Token": RIOT_API_KEY } }
 		);
-		let liveGameData = null;
-		if (liveGameResponse.ok) {
-			liveGameData = await liveGameResponse.json();
-		}
+		const liveGameData = liveGameResponse.ok
+			? await liveGameResponse.json()
+			: null;
 
 		// Upsert data into Supabase
 		const data = {
@@ -172,15 +169,16 @@ export const fetchAndUpdateProfileData = async (
 			profiledata: profileDataFetched,
 			accountdata: accountData,
 			rankeddata: rankedData,
-			championmasterydata: championMasteryData || [], // Ensure empty array instead of null
+			championmasterydata: championMasteryData
+				? championMasteryData.slice(0, 5)
+				: [],
 			matchdata: matchData,
-			matchdetails: matchDetails.filter((detail) => detail !== null),
+			matchdetails: validMatchDetails,
 			livegamedata: liveGameData,
 			region: selectedRegion,
 			updatedat: new Date(),
 		};
 
-		// Ensure there's a unique constraint on gamename, tagline, and region
 		const { error } = await supabase
 			.from("profiles")
 			.upsert(data, { onConflict: ["gamename", "tagline", "region"] });
