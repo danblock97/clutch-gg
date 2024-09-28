@@ -4,7 +4,7 @@ const Profile = ({ accountData, profileData }) => {
 	const profileIcon = `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/${profileData.profileIconId}.jpg`;
 
 	return (
-		<div className="bg-[#1e1e2f] rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 border border-transparent hover:border-[#ffd700]">
+		<div className="bg-[#1e1e2f] rounded-lg overflow-hidden shadow-[0_0_20px_rgba(255,215,0,0.8)] border-4 border-[#13151b]">
 			<div className="flex items-center p-6">
 				{profileData?.profileIconId ? (
 					<div className="relative">

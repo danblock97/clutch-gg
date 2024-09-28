@@ -127,7 +127,7 @@ const MatchDetails = ({ matchDetails, matchId, selectedSummonerPUUID }) => {
 			);
 		}
 	} else {
-		console.log("Participant not found for PUUID:", selectedSummonerPUUID);
+		console.error("Participant not found for PUUID:", selectedSummonerPUUID);
 	}
 
 	const isArena = match.info.queueId === 1700;
