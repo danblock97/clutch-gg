@@ -5,13 +5,22 @@ import { useRouter } from "next/navigation";
 const LiveGameBanner = ({ liveGameData, gameName, tagLine }) => {
 	const router = useRouter();
 
-	const handleLiveGameClick = () => {
-		router.push(`/league/live-game?gameName=${gameName}&tagLine=${tagLine}`);
-	};
-
-	const participant = liveGameData?.participants?.find(
-		(p) => p.gameName === gameName && p.tagLine === tagLine
+	console.log("Live game data received:", liveGameData);
+	console.log(
+		"Searching for participant with gameName and tagLine:",
+		gameName,
+		tagLine
 	);
+
+	// Combine gameName and tagLine to match riotid
+	const riotId = `${gameName}#${tagLine}`.toLowerCase(); // Normalize to lowercase
+
+	// Find the participant using riotid property
+	const participant = liveGameData?.participants?.find(
+		(p) => p.riotId?.toLowerCase() === riotId // Compare in lowercase for case insensitivity
+	);
+
+	console.log("Found participant:", participant);
 
 	if (!participant) {
 		return null;
@@ -23,9 +32,11 @@ const LiveGameBanner = ({ liveGameData, gameName, tagLine }) => {
 	return (
 		<div
 			className="bg-[#13151b] text-white p-4 rounded-md mb-4 cursor-pointer flex flex-col w-full hover:bg-[#1c1e24] transition-all duration-200"
-			onClick={handleLiveGameClick}
+			onClick={() =>
+				router.push(`/league/live-game?gameName=${gameName}&tagLine=${tagLine}`)
+			}
 			role="button"
-			aria-label={`Live game in progress: ${gameName}#${tagLine}`}
+			aria-label={`Live game in progress`}
 		>
 			<div className="flex items-center justify-between">
 				<div className="flex items-center space-x-4">
@@ -38,9 +49,7 @@ const LiveGameBanner = ({ liveGameData, gameName, tagLine }) => {
 					/>
 					<div>
 						<p className="font-bold">Live Game In Progress!</p>
-						<p className="text-sm text-gray-300">
-							{gameName}#{tagLine} is playing now! Click here for details!
-						</p>
+						<p className="text-sm text-gray-300">Click here for details!</p>
 					</div>
 				</div>
 				<div className="flex flex-col space-y-1">

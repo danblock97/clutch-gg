@@ -2,12 +2,11 @@ import { fetchAndUpdateProfileData } from "@/lib/fetchAndUpdateProfileData";
 import { supabase } from "@/lib/supabase";
 
 export async function GET(req) {
-	const url = new URL(req.url);
-	const gameName = url.searchParams.get("gameName");
-	const tagLine = url.searchParams.get("tagLine");
-	const region = url.searchParams.get("region");
+	const { searchParams } = new URL(req.url);
+	const gameName = searchParams.get("gameName");
+	const tagLine = searchParams.get("tagLine");
 
-	if (!gameName || !tagLine || !region) {
+	if (!gameName || !tagLine) {
 		return new Response(
 			JSON.stringify({ error: "Missing required query parameters" }),
 			{
@@ -18,20 +17,19 @@ export async function GET(req) {
 	}
 
 	try {
-		// Check if profile exists in Supabase with the same region
+		// Check if profile exists in Supabase
 		let { data, error } = await supabase
 			.from("profiles")
 			.select("*")
 			.eq("gamename", gameName)
 			.eq("tagline", tagLine)
-			.eq("region", region)
 			.maybeSingle();
 
 		if (error) throw error;
 
 		if (!data) {
-			// Profile doesn't exist in that region, fetch from Riot API and update Supabase
-			data = await fetchAndUpdateProfileData(gameName, tagLine, region);
+			// Profile doesn't exist, fetch from Riot API and update Supabase
+			data = await fetchAndUpdateProfileData(gameName, tagLine);
 		}
 
 		return new Response(JSON.stringify(data), {
@@ -49,8 +47,8 @@ export async function GET(req) {
 
 export async function POST(req) {
 	try {
-		const { gameName, tagLine, region } = await req.json();
-		if (!gameName || !tagLine || !region) {
+		const { gameName, tagLine } = await req.json();
+		if (!gameName || !tagLine) {
 			return new Response(
 				JSON.stringify({ error: "Missing required parameters" }),
 				{
@@ -60,7 +58,7 @@ export async function POST(req) {
 			);
 		}
 
-		const data = await fetchAndUpdateProfileData(gameName, tagLine, region);
+		const data = await fetchAndUpdateProfileData(gameName, tagLine);
 		return new Response(JSON.stringify(data), {
 			status: 200,
 			headers: { "Content-Type": "application/json" },

@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 
 const SearchBar = ({ onSearch }) => {
 	const [combinedInput, setCombinedInput] = useState("");
-	const [selectedRegion, setSelectedRegion] = useState("NA1"); // Default region
 	const router = useRouter();
 	const gamePath = "/league";
 
@@ -13,9 +12,7 @@ const SearchBar = ({ onSearch }) => {
 		const [gameName, tagLine] = combinedInput.split("#");
 		if (gameName && tagLine) {
 			router.push(
-				`${gamePath}/profile?gameName=${encodeURIComponent(
-					gameName
-				)}&tagLine=${encodeURIComponent(tagLine)}&region=${selectedRegion}`
+				`${gamePath}/profile?gameName=${gameName}&tagLine=${tagLine}`
 			);
 		} else {
 			alert("Please enter both game name and tagline.");
@@ -44,29 +41,6 @@ const SearchBar = ({ onSearch }) => {
 					onChange={(e) => setCombinedInput(e.target.value)}
 					onKeyDown={handleKeyDown}
 				/>
-				<select
-					value={selectedRegion}
-					onChange={(e) => setSelectedRegion(e.target.value)}
-					className="absolute right-20 top-1/2 transform -translate-y-1/2 bg-[#13151b] text-white p-2 rounded"
-				>
-					<option value="NA1">North America</option>
-					<option value="ME1">Middle East</option>
-					<option value="EUW1">Europe West</option>
-					<option value="EUN1">Europe Nordic & East</option>
-					<option value="OC1">Oceania</option>
-					<option value="KR">Korea</option>
-					<option value="JP1">Japan</option>
-					<option value="BR1">Brazil</option>
-					<option value="LA1">LAS</option>
-					<option value="LA2">LAN</option>
-					<option value="RU">Russia</option>
-					<option value="TR1">Türkiye</option>
-					<option value="SG2">Singapore</option>
-					<option value="PH2">Phillippines</option>
-					<option value="TW2">Taiwan</option>
-					<option value="VN2">Vietnam</option>
-					<option value="TH2">Thailand</option>
-				</select>
 				<button
 					className="absolute top-1/2 right-4 transform -translate-y-1/2 bg-transparent border-none outline-none cursor-pointer"
 					onClick={handleSearch}
