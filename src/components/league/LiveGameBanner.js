@@ -2,15 +2,22 @@ import React from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
-const LiveGameBanner = ({ liveGameData, puuid }) => {
+const LiveGameBanner = ({ liveGameData, gameName, tagLine }) => {
 	const router = useRouter();
 
 	console.log("Live game data received:", liveGameData);
-	console.log("Searching for participant with puuid:", puuid);
+	console.log(
+		"Searching for participant with gameName and tagLine:",
+		gameName,
+		tagLine
+	);
 
-	// Use puuid for participant matching
+	// Combine gameName and tagLine to match riotid
+	const riotId = `${gameName}#${tagLine}`.toLowerCase(); // Normalize to lowercase
+
+	// Find the participant using riotid property
 	const participant = liveGameData?.participants?.find(
-		(p) => p.puuid === puuid
+		(p) => p.riotId?.toLowerCase() === riotId // Compare in lowercase for case insensitivity
 	);
 
 	console.log("Found participant:", participant);
@@ -25,7 +32,9 @@ const LiveGameBanner = ({ liveGameData, puuid }) => {
 	return (
 		<div
 			className="bg-[#13151b] text-white p-4 rounded-md mb-4 cursor-pointer flex flex-col w-full hover:bg-[#1c1e24] transition-all duration-200"
-			onClick={() => router.push(`/league/live-game?puuid=${puuid}`)}
+			onClick={() =>
+				router.push(`/league/live-game?gameName=${gameName}&tagLine=${tagLine}`)
+			}
 			role="button"
 			aria-label={`Live game in progress`}
 		>

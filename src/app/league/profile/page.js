@@ -107,7 +107,8 @@ const ProfilePage = ({ searchParams }) => {
 					{liveGameData && profileData && (
 						<LiveGameBanner
 							liveGameData={liveGameData}
-							puuid={profileData.puuid} // Pass the puuid here
+							gameName={accountData?.gameName} // Pass the gameName
+							tagLine={accountData?.tagLine} // Pass the tagLine
 						/>
 					)}
 					{matchDetails && (
