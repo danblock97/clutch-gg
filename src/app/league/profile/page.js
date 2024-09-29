@@ -104,11 +104,10 @@ const ProfilePage = ({ searchParams }) => {
 				<div className="w-full md:w-2/3 flex flex-col gap-4 justify-start">
 					{" "}
 					{/* Added justify-start to align */}
-					{liveGameData && (
+					{liveGameData && profileData && (
 						<LiveGameBanner
 							liveGameData={liveGameData}
-							gameName={accountData?.gameName}
-							tagLine={accountData?.tagLine}
+							puuid={profileData.puuid} // Pass the puuid here
 						/>
 					)}
 					{matchDetails && (
