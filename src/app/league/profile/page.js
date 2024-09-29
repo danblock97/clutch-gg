@@ -9,7 +9,7 @@ import LiveGameBanner from "@/components/league/LiveGameBanner";
 import Loading from "@/components/Loading";
 
 const ProfilePage = ({ searchParams }) => {
-	const { gameName, tagLine, region } = searchParams;
+	const { gameName, tagLine } = searchParams;
 	const [profileData, setProfileData] = useState(null);
 	const [accountData, setAccountData] = useState(null);
 	const [rankedData, setRankedData] = useState(null);
@@ -23,9 +23,7 @@ const ProfilePage = ({ searchParams }) => {
 	const fetchProfileData = useCallback(async () => {
 		try {
 			const response = await fetch(
-				`/api/league/profile?gameName=${encodeURIComponent(
-					gameName
-				)}&tagLine=${encodeURIComponent(tagLine)}&region=${region}`
+				`/api/league/profile?gameName=${gameName}&tagLine=${tagLine}`
 			);
 			if (!response.ok) {
 				throw new Error("Failed to fetch profile");
@@ -42,7 +40,7 @@ const ProfilePage = ({ searchParams }) => {
 		} finally {
 			setIsLoading(false);
 		}
-	}, [gameName, tagLine, region]);
+	}, [gameName, tagLine]);
 
 	useEffect(() => {
 		fetchProfileData();
@@ -57,9 +55,10 @@ const ProfilePage = ({ searchParams }) => {
 					"Content-Type": "application/json",
 					"x-api-key": process.env.NEXT_PUBLIC_UPDATE_API_KEY,
 				},
-				body: JSON.stringify({ gameName, tagLine, region }),
+				body: JSON.stringify({ gameName, tagLine }),
 			});
-			await fetchProfileData();
+			const result = await response.json();
+			await fetchProfileData(); // Fetch new data after update
 		} catch (error) {
 			console.error("Error triggering update:", error);
 		} finally {
@@ -85,13 +84,13 @@ const ProfilePage = ({ searchParams }) => {
 
 	return (
 		<div className="min-h-screen bg-[#0e1015] flex flex-col items-center p-4">
-			<div className="max-w-screen-xl flex w-full gap-4">
-				{" "}
-				{/* Removed flex-direction from sm */}
+			<div className="max-w-screen-xl flex flex-col sm:flex-row w-full">
 				{/* Left Section - Profile, Ranked, Champion */}
-				<div className="w-full md:w-1/3 flex flex-col gap-4">
+				<div className="w-full md:w-1/3 sm:pr-4 flex flex-col gap-4">
 					{profileData && accountData ? (
-						<Profile accountData={accountData} profileData={profileData} />
+						<>
+							<Profile accountData={accountData} profileData={profileData} />
+						</>
 					) : (
 						<p className="text-white">No profile data found.</p>
 					)}
@@ -100,15 +99,13 @@ const ProfilePage = ({ searchParams }) => {
 						<ChampionMastery championMasteryData={championMasteryData} />
 					)}
 				</div>
-				{/* Right Section - Match History */}
-				<div className="w-full md:w-2/3 flex flex-col gap-4 justify-start">
-					{" "}
-					{/* Added justify-start to align */}
-					{liveGameData && profileData && (
+				{/* Right Section - Match History and Live Game Banner */}
+				<div className="w-full md:w-2/3 sm:pl-4 flex flex-col gap-4">
+					{liveGameData && (
 						<LiveGameBanner
 							liveGameData={liveGameData}
-							gameName={accountData?.gameName} // Pass the gameName
-							tagLine={accountData?.tagLine} // Pass the tagLine
+							gameName={accountData?.gameName}
+							tagLine={accountData?.tagLine}
 						/>
 					)}
 					{matchDetails && (
@@ -117,7 +114,6 @@ const ProfilePage = ({ searchParams }) => {
 							selectedSummonerPUUID={profileData ? profileData.puuid : null}
 							gameName={accountData?.gameName}
 							tagLine={accountData?.tagLine}
-							region={region}
 						/>
 					)}
 				</div>
@@ -133,6 +129,16 @@ const ProfilePage = ({ searchParams }) => {
 					{isUpdating ? "Updating..." : "Update Profile"}
 				</button>
 			</div>
+			{isLoading && (
+				<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+					<p className="text-white">Loading...</p>
+				</div>
+			)}
+			{error && (
+				<div className="h-screen min-h-screen bg-[#0e1015] items-center p-4">
+					<p className="text-red-500 text-center">{error}</p>
+				</div>
+			)}
 		</div>
 	);
 };
