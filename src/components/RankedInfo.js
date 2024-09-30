@@ -25,9 +25,6 @@ const RankedInfo = ({ rankedData }) => {
 
 			return (
 				<div className="relative p-6 bg-[#1e1e2f] rounded-lg shadow-md border border-transparent hover:border-[#ffd700] overflow-hidden w-full">
-					{/* Gold Glow */}
-					<div className="absolute inset-0 rounded-lg border border-transparent shadow-lg pointer-events-none"></div>
-
 					<h2 className="text-white text-lg font-semibold mb-3">{queueName}</h2>
 
 					<div className="flex items-center">
@@ -46,7 +43,6 @@ const RankedInfo = ({ rankedData }) => {
 							<p className="text-gray-300 text-sm">
 								{data.wins}W {data.losses}L | {winrate}% WR
 							</p>
-							{/* Progress Bar */}
 							<div className="mt-2 w-full bg-gray-700 rounded-full h-2">
 								<div
 									className="h-2 rounded-full bg-[#ffd700]"
@@ -60,11 +56,7 @@ const RankedInfo = ({ rankedData }) => {
 		} else {
 			return (
 				<div className="relative p-6 bg-[#1e1e2f] rounded-lg shadow-md border border-transparent hover:border-[#ffd700] overflow-hidden w-full">
-					{/* Gold Glow */}
-					<div className="absolute inset-0 rounded-lg border border-transparent shadow-lg pointer-events-none"></div>
-
 					<h2 className="text-white text-lg font-semibold mb-3">{queueName}</h2>
-
 					<p className="text-gray-300 text-center">Unranked</p>
 				</div>
 			);

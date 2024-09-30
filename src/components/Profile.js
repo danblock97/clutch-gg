@@ -1,40 +1,72 @@
 import Image from "next/image";
 
-const Profile = ({ accountData, profileData }) => {
-	const profileIcon = `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/${profileData.profileIconId}.jpg`;
+const Profile = ({ accountData, profileData, rankedData }) => {
+	const soloRankedData = rankedData.find(
+		(item) => item.queueType === "RANKED_SOLO_5x5"
+	);
+
+	// Get the ranked icon based on the summoner's tier
+	const rankedIcon = soloRankedData
+		? `/images/rankedEmblems/${soloRankedData.tier.toLowerCase()}.webp`
+		: null;
 
 	return (
-		<div className="bg-[#1e1e2f] rounded-lg overflow-hidden shadow-[0_0_20px_rgba(255,215,0,0.8)] border-4 border-[#13151b]">
-			<div className="flex items-center p-6">
-				{profileData?.profileIconId ? (
-					<div className="relative">
-						<div className="rounded-full overflow-hidden w-24 h-24 border-4 border-transparent bg-gradient-to-r from-yellow-400 to-yellow-600 p-1 animate-pulse">
-							<div className="rounded-full overflow-hidden w-full h-full">
-								<Image
-									src={profileIcon}
-									alt="Player Icon"
-									layout="responsive"
-									width={96}
-									height={96}
-									className="rounded-full object-cover"
-								/>
-							</div>
-						</div>
+		<div className="relative w-full py-10 shadow-md overflow-hidden">
+			{/* Full-width container with glow and rounded bottom corners */}
+			<div className="relative w-full max-w-screen-xl mx-auto p-6 flex items-center justify-between">
+				{/* Profile Icon */}
+				<div className="relative">
+					<div className="rounded-full overflow-hidden w-24 h-24 border-4 border-transparent bg-gradient-to-r from-blue-500 to-indigo-500">
+						<Image
+							src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/${profileData.profileIconId}.jpg`}
+							alt="Player Icon"
+							layout="responsive"
+							width={96}
+							height={96}
+							className="rounded-full object-cover"
+						/>
+					</div>
 
-						{/* Level Badge */}
-						<div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-yellow-400 to-yellow-600 text-white text-sm font-bold py-1 px-3 rounded-full shadow-lg">
-							{profileData?.summonerLevel}
-						</div>
+					{/* Region Badge */}
+					<div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white text-xs font-bold py-1 px-2 rounded-full shadow-lg">
+						{profileData.summonerLevel}
 					</div>
-				) : (
-					<div className="bg-gray-700 rounded-full w-24 h-24 flex items-center justify-center">
-						<span className="text-white text-xl">N/A</span>
-					</div>
-				)}
+				</div>
+
+				{/* Name, Tag, Rank */}
 				<div className="ml-6 flex-1">
-					<h1 className="text-[#ffffff] text-2xl font-bold truncate">
+					<h1 className="text-3xl font-bold text-white">
 						{`${accountData.gameName}#${accountData.tagLine}`}
 					</h1>
+					{soloRankedData && (
+						<div className="mt-2 flex items-center">
+							{/* Ranked Icon */}
+							{rankedIcon && (
+								<Image
+									src={rankedIcon}
+									alt={`${soloRankedData.tier} Emblem`}
+									width={40}
+									height={40}
+									className="rounded-full mr-4"
+								/>
+							)}
+							<div>
+								<p className="text-blue-400 font-semibold">
+									{soloRankedData.tier} {soloRankedData.rank}{" "}
+									{soloRankedData.leaguePoints} LP
+								</p>
+								<p className="text-gray-400 text-sm">
+									{soloRankedData.wins}W - {soloRankedData.losses}L (
+									{(
+										(soloRankedData.wins /
+											(soloRankedData.wins + soloRankedData.losses)) *
+										100
+									).toFixed(1)}
+									% WR)
+								</p>
+							</div>
+						</div>
+					)}
 				</div>
 			</div>
 		</div>

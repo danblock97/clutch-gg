@@ -68,7 +68,7 @@ const ProfilePage = ({ searchParams }) => {
 
 	if (isLoading) {
 		return (
-			<div className="bg-[#0e1015]">
+			<div className="bg-[#0e1015] min-h-screen flex items-center justify-center">
 				<Loading />
 			</div>
 		);
@@ -76,48 +76,57 @@ const ProfilePage = ({ searchParams }) => {
 
 	if (error) {
 		return (
-			<div className="h-screen min-h-screen bg-[#0e1015] items-center p-4">
-				<p className="text-red-500 text-center">{error}</p>
+			<div className="min-h-screen bg-[#0e1015] flex items-center justify-center">
+				<p className="text-red-500">{error}</p>
 			</div>
 		);
 	}
 
 	return (
-		<div className="min-h-screen bg-[#0e1015] flex flex-col items-center p-4">
-			<div className="max-w-screen-xl flex flex-col sm:flex-row w-full">
-				{/* Left Section - Profile, Ranked, Champion */}
-				<div className="w-full md:w-1/3 sm:pr-4 flex flex-col gap-4">
-					{profileData && accountData ? (
-						<>
-							<Profile accountData={accountData} profileData={profileData} />
-						</>
-					) : (
-						<p className="text-white">No profile data found.</p>
-					)}
-					{rankedData && <RankedInfo rankedData={rankedData} />}
-					{championMasteryData && (
-						<ChampionMastery championMasteryData={championMasteryData} />
-					)}
-				</div>
-				{/* Right Section - Match History and Live Game Banner */}
-				<div className="w-full md:w-2/3 sm:pl-4 flex flex-col gap-4">
-					{liveGameData && (
-						<LiveGameBanner
-							liveGameData={liveGameData}
-							gameName={accountData?.gameName}
-							tagLine={accountData?.tagLine}
-						/>
-					)}
-					{matchDetails && (
-						<MatchHistory
-							matchDetails={matchDetails}
-							selectedSummonerPUUID={profileData ? profileData.puuid : null}
-							gameName={accountData?.gameName}
-							tagLine={accountData?.tagLine}
-						/>
-					)}
+		<div className="min-h-screen bg-[#0e1015] relative">
+			{/* Profile Section taking full width */}
+			<div className="w-full bg-black rounded-b-3xl shadow-[0px_10px_20px_rgba(255,255,255,0.1)]">
+				{profileData && accountData ? (
+					<Profile
+						accountData={accountData}
+						profileData={profileData}
+						rankedData={rankedData}
+					/>
+				) : (
+					<p className="text-white">No profile data found.</p>
+				)}
+			</div>
+
+			{/* Other Components - Centered */}
+			<div className="max-w-screen-xl mx-auto flex flex-col items-center gap-8 mt-8">
+				<div className="w-full flex flex-col md:flex-row gap-4">
+					<div className="md:w-1/3 flex flex-col gap-4">
+						{rankedData && <RankedInfo rankedData={rankedData} />}
+						{championMasteryData && (
+							<ChampionMastery championMasteryData={championMasteryData} />
+						)}
+					</div>
+					<div className="md:w-2/3 flex flex-col gap-4">
+						{liveGameData && (
+							<LiveGameBanner
+								liveGameData={liveGameData}
+								gameName={accountData?.gameName}
+								tagLine={accountData?.tagLine}
+							/>
+						)}
+						{matchDetails && (
+							<MatchHistory
+								matchDetails={matchDetails}
+								selectedSummonerPUUID={profileData?.puuid || null}
+								gameName={accountData?.gameName}
+								tagLine={accountData?.tagLine}
+							/>
+						)}
+					</div>
 				</div>
 			</div>
+
+			{/* Update Button */}
 			<div className="fixed top-28 right-4">
 				<button
 					onClick={triggerUpdate}
@@ -129,16 +138,6 @@ const ProfilePage = ({ searchParams }) => {
 					{isUpdating ? "Updating..." : "Update Profile"}
 				</button>
 			</div>
-			{isLoading && (
-				<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-					<p className="text-white">Loading...</p>
-				</div>
-			)}
-			{error && (
-				<div className="h-screen min-h-screen bg-[#0e1015] items-center p-4">
-					<p className="text-red-500 text-center">{error}</p>
-				</div>
-			)}
 		</div>
 	);
 };
