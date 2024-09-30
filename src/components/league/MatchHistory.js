@@ -47,7 +47,6 @@ const MatchHistory = ({
 	selectedSummonerPUUID,
 	gameName,
 	tagLine,
-	region,
 }) => {
 	const [augments, setAugments] = useState([]);
 	const router = useRouter();
@@ -91,13 +90,8 @@ const MatchHistory = ({
 
 	// Function to handle clicking a match to navigate to details
 	const handleClick = (matchId) => {
-		if (!region) {
-			console.error("Region is undefined. Cannot proceed.");
-			return;
-		}
-		// Dynamically include region when navigating to match details
 		router.push(
-			`/league/match?gameName=${gameName}&tagLine=${tagLine}&matchId=${matchId}&region=${region}`
+			`/league/match?gameName=${gameName}&tagLine=${tagLine}&matchId=${matchId}`
 		);
 	};
 
