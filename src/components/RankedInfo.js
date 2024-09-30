@@ -1,90 +1,88 @@
+import React, { useState } from "react";
 import Image from "next/image";
+import { FaChevronDown, FaChevronUp } from "react-icons/fa"; // Import chevron icons
 
 const RankedInfo = ({ rankedData }) => {
-	const soloRankedData = rankedData.find(
-		(item) => item.queueType === "RANKED_SOLO_5x5"
-	);
+	// Fetch the Ranked Flex data only
 	const flexRankedData = rankedData.find(
 		(item) => item.queueType === "RANKED_FLEX_SR"
 	);
 
-	const renderRankedItem = (data, queueType) => {
-		const queueName = getQueueName(queueType);
+	// State to handle expand/collapse
+	const [isExpanded, setIsExpanded] = useState(false);
 
-		if (data) {
-			const rankedIcon = `/images/rankedEmblems/${data.tier.toLowerCase()}.webp`;
-			const maxLeaguePoints = 100;
-			const progressBarWidth = Math.min(
-				(data.leaguePoints / maxLeaguePoints) * 100,
-				100
-			);
-			const winrate =
-				data.wins + data.losses > 0
-					? ((data.wins / (data.wins + data.losses)) * 100).toFixed(0)
-					: "0";
-
-			return (
-				<div className="relative p-6 bg-[#1e1e2f] rounded-lg shadow-md border border-transparent hover:border-[#ffd700] overflow-hidden w-full">
-					<h2 className="text-white text-lg font-semibold mb-3">{queueName}</h2>
-
-					<div className="flex items-center">
-						<Image
-							src={rankedIcon}
-							alt={`${data.tier} Emblem`}
-							width={60}
-							height={60}
-							className="rounded-full"
-						/>
-						<div className="ml-4 flex-1">
-							<h3 className="text-white text-md font-bold">
-								{data.tier} {data.rank}
-							</h3>
-							<p className="text-gray-300 text-sm">{data.leaguePoints} LP</p>
-							<p className="text-gray-300 text-sm">
-								{data.wins}W {data.losses}L | {winrate}% WR
-							</p>
-							<div className="mt-2 w-full bg-gray-700 rounded-full h-2">
-								<div
-									className="h-2 rounded-full bg-[#ffd700]"
-									style={{ width: `${progressBarWidth}%` }}
-								></div>
-							</div>
-						</div>
-					</div>
-				</div>
-			);
-		} else {
-			return (
-				<div className="relative p-6 bg-[#1e1e2f] rounded-lg shadow-md border border-transparent hover:border-[#ffd700] overflow-hidden w-full">
-					<h2 className="text-white text-lg font-semibold mb-3">{queueName}</h2>
-					<p className="text-gray-300 text-center">Unranked</p>
-				</div>
-			);
-		}
+	// Function to handle toggle for expand/collapse
+	const handleToggleExpand = () => {
+		setIsExpanded((prev) => !prev);
 	};
 
-	const getQueueName = (queueType) => {
-		switch (queueType) {
-			case "RANKED_SOLO_5x5":
-				return "Ranked Solo/Duo";
-			case "RANKED_FLEX_SR":
-				return "Ranked Flex";
-			default:
-				return "Unknown Queue";
-		}
+	// Render Ranked Flex with Expandable/Collapsible Logic
+	const renderRankedFlex = (data) => {
+		const rankedIcon = data
+			? `/images/rankedEmblems/${data.tier.toLowerCase()}.webp`
+			: null;
+
+		return (
+			<div className="w-full bg-[#1e1e2f] p-4 rounded-md shadow-lg relative border border-gray-800 before:absolute before:top-0 before:left-0 before:w-full before:h-full before:rounded-md before:border before:border-gray-600 before:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.6),inset_-2px_-2px_5px_rgba(255,255,255,0.1)]">
+				{/* Top row with Flex Rank and Chevron Button */}
+				<div className="flex justify-between items-center">
+					{/* Ranked Flex Title */}
+					<h2 className="text-white text-sm font-bold">Ranked Flex</h2>
+
+					{/* Rank and Tier Information */}
+					<div className="flex items-center space-x-2">
+						{rankedIcon && (
+							<Image
+								src={rankedIcon}
+								alt={`${data.tier} Emblem`}
+								width={20}
+								height={20}
+								className="rounded-full"
+							/>
+						)}
+						<p className="text-gray-400 text-sm">
+							{data ? `${data.tier} ${data.rank}` : "Unranked"}
+						</p>
+
+						{/* Expand/Collapse Chevron Button */}
+						<button
+							onClick={handleToggleExpand}
+							className="ml-2"
+							aria-label={isExpanded ? "Collapse" : "Expand"}
+						>
+							{isExpanded ? (
+								<FaChevronUp className="text-gray-500" />
+							) : (
+								<FaChevronDown className="text-gray-500" />
+							)}
+						</button>
+					</div>
+				</div>
+
+				{/* Expanded Info (Win/Loss, LP, Winrate) */}
+				{isExpanded && data && (
+					<div className="mt-2 text-sm text-gray-400">
+						<p>
+							<strong>Wins:</strong> {data.wins} | <strong>Losses:</strong>{" "}
+							{data.losses}
+						</p>
+						<p>
+							<strong>Winrate:</strong>{" "}
+							{((data.wins / (data.wins + data.losses)) * 100).toFixed(1)}%
+						</p>
+						<p>
+							<strong>LP:</strong> {data.leaguePoints} LP
+						</p>
+					</div>
+				)}
+			</div>
+		);
 	};
 
 	return (
 		<div className="flex flex-col space-y-4">
-			{/* Ranked Solo/Duo */}
-			<div className="w-full">
-				{renderRankedItem(soloRankedData, "RANKED_SOLO_5x5")}
-			</div>
-
-			{/* Ranked Flex */}
-			<div className="w-full">
-				{renderRankedItem(flexRankedData, "RANKED_FLEX_SR")}
-			</div>
+			{/* Only Render Ranked Flex */}
+			{renderRankedFlex(flexRankedData)}
 		</div>
 	);
 };
