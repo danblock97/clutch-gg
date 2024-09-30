@@ -6,14 +6,11 @@ import { useRouter } from "next/navigation";
 const SearchBar = ({ onSearch }) => {
 	const [combinedInput, setCombinedInput] = useState("");
 	const router = useRouter();
-	const gamePath = "/league";
 
 	const handleSearch = () => {
 		const [gameName, tagLine] = combinedInput.split("#");
 		if (gameName && tagLine) {
-			router.push(
-				`${gamePath}/profile?gameName=${gameName}&tagLine=${tagLine}`
-			);
+			router.push(`/profile?gameName=${gameName}&tagLine=${tagLine}`);
 		} else {
 			alert("Please enter both game name and tagline.");
 			return;

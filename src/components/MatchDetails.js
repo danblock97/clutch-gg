@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import Loading from "../Loading";
+import Loading from "./Loading";
 import Link from "next/link";
-import Tag from "@/components/league/Tag";
+import Tag from "@/components/Tag";
 
 const fetchArenaAugments = async () => {
 	const response = await fetch(
@@ -333,7 +333,7 @@ const ParticipantDetails = ({
 
 	return (
 		<Link
-			href={`/league/profile?gameName=${participant.riotIdGameName}&tagLine=${participant.riotIdTagline}`}
+			href={`/profile?gameName=${participant.riotIdGameName}&tagLine=${participant.riotIdTagline}`}
 		>
 			<div className="grid grid-cols-9 gap-x-2 p-2 my-2 rounded-lg bg-[#13151b]">
 				{/* Lane Icon */}

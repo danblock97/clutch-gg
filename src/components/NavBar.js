@@ -26,16 +26,10 @@ const NavBar = () => {
 
 			<div className="hidden md:flex items-center space-x-6 ml-6">
 				<Link
-					href="/league"
-					className="flex items-center px-3 py-2 hover:text-gray-300 border-b-2 border-transparent hover:border-gray-300"
+					href="/leaderboard"
+					className="flex items-center px-3 py-2 text-gray-500"
 				>
-					<Image
-						src="/images/league.png" // Update with correct path
-						alt="League of Legends"
-						width={24}
-						height={24}
-					/>
-					<span className="ml-2">League of Legends</span>
+					<span className="ml-2">Leaderboards</span>
 				</Link>
 			</div>
 
@@ -65,11 +59,11 @@ const NavBar = () => {
 			{isMenuOpen && (
 				<div className="fixed inset-0 bg-[#13151b] flex flex-col items-center justify-center p-4 z-50">
 					<Link
-						href="/league"
-						className="text-xl hover:text-gray-300 mb-6"
+						href="/leaderboard"
+						className="text-xl text-gray-500 mb-6"
 						onClick={() => setIsMenuOpen(false)}
 					>
-						League of Legends
+						Leaderboards
 					</Link>
 					<button
 						className="mt-8 text-white"

@@ -33,7 +33,7 @@ const LiveGameBanner = ({ liveGameData, gameName, tagLine }) => {
 		<div
 			className="bg-[#13151b] text-white p-4 rounded-md mb-4 cursor-pointer flex flex-col w-full hover:bg-[#1c1e24] transition-all duration-200"
 			onClick={() =>
-				router.push(`/league/live-game?gameName=${gameName}&tagLine=${tagLine}`)
+				router.push(`/live-game?gameName=${gameName}&tagLine=${tagLine}`)
 			}
 			role="button"
 			aria-label={`Live game in progress`}

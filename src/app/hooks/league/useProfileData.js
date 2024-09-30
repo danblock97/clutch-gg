@@ -1,4 +1,3 @@
-// useProfileData.js
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 
@@ -48,7 +47,7 @@ const useProfileData = (gameName, tagLine, region) => {
 
 	useEffect(() => {
 		fetchProfileData();
-	}, [gameName, tagLine]);
+	}, [gameName, tagLine, region]);
 
 	return {
 		profileData,

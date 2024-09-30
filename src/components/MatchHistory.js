@@ -1,7 +1,7 @@
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Tag from "@/components/league/Tag";
+import Tag from "@/components/Tag";
 
 const fetchArenaAugments = async () => {
 	const response = await fetch(
@@ -91,7 +91,7 @@ const MatchHistory = ({
 	// Function to handle clicking a match to navigate to details
 	const handleClick = (matchId) => {
 		router.push(
-			`/league/match?gameName=${gameName}&tagLine=${tagLine}&matchId=${matchId}`
+			`/match?gameName=${gameName}&tagLine=${tagLine}&matchId=${matchId}`
 		);
 	};
 

@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import Profile from "@/components/league/Profile";
-import RankedInfo from "@/components/league/RankedInfo";
-import ChampionMastery from "@/components/league/ChampionMastery";
-import MatchHistory from "@/components/league/MatchHistory";
-import LiveGameBanner from "@/components/league/LiveGameBanner";
+import Profile from "@/components/Profile";
+import RankedInfo from "@/components/RankedInfo";
+import ChampionMastery from "@/components/ChampionMastery";
+import MatchHistory from "@/components/MatchHistory";
+import LiveGameBanner from "@/components/LiveGameBanner";
 import Loading from "@/components/Loading";
 
 const ProfilePage = ({ searchParams }) => {

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import OutageBanner from "@/components/league/OutageBanner";
+import OutageBanner from "@/components/OutageBanner";
 
 const LiveGame = ({ liveGameData }) => {
 	const [isArena, setIsArena] = useState(false);
@@ -56,7 +56,7 @@ const LiveGame = ({ liveGameData }) => {
 					<div className="ml-2">
 						<div className="font-bold text-xs">
 							<Link
-								href={`/league/profile?gameName=${participant.gameName}&tagLine=${participant.tagLine}`}
+								href={`/profile?gameName=${participant.gameName}&tagLine=${participant.tagLine}`}
 							>
 								{participant.gameName}#{participant.tagLine}
 							</Link>
