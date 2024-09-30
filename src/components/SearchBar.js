@@ -10,6 +10,7 @@ const SearchBar = ({ onSearch }) => {
 	const handleSearch = () => {
 		const [gameName, tagLine] = combinedInput.split("#");
 		if (gameName && tagLine) {
+			// Push the new profile URL even if already on /profile
 			router.push(`/profile?gameName=${gameName}&tagLine=${tagLine}`);
 		} else {
 			alert("Please enter both game name and tagline.");
@@ -23,6 +24,7 @@ const SearchBar = ({ onSearch }) => {
 
 	const handleKeyDown = (event) => {
 		if (event.key === "Enter") {
+			event.preventDefault(); // Prevent form submission
 			handleSearch();
 		}
 	};
