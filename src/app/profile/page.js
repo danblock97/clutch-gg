@@ -6,6 +6,7 @@ import RankedInfo from "@/components/RankedInfo";
 import ChampionMastery from "@/components/ChampionMastery";
 import MatchHistory from "@/components/MatchHistory";
 import LiveGameBanner from "@/components/LiveGameBanner";
+import Last10GamesPerformance from "@/components/Last10GamesPerformance"; // Import the new component
 import Loading from "@/components/Loading";
 
 const ProfilePage = ({ searchParams }) => {
@@ -114,6 +115,16 @@ const ProfilePage = ({ searchParams }) => {
 								tagLine={accountData?.tagLine}
 							/>
 						)}
+
+						{/* Insert Last 10 Games Performance */}
+						{matchDetails && profileData && (
+							<Last10GamesPerformance
+								matchDetails={matchDetails}
+								selectedSummonerPUUID={profileData.puuid}
+							/>
+						)}
+
+						{/* Match History */}
 						{matchDetails && (
 							<MatchHistory
 								matchDetails={matchDetails}
