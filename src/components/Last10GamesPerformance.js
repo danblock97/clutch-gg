@@ -101,7 +101,7 @@ const Last10GamesPerformance = ({ matchDetails, selectedSummonerPUUID }) => {
 		.slice(0, 3);
 
 	return (
-		<div className="bg-[#1e1e2f] p-6 rounded-lg shadow-md text-center w-full max-w-screen-xl mx-auto flex justify-between items-center">
+		<div className="relative w-full max-w-screen-xl mx-auto p-6 bg-[#1e1e2f] rounded-lg shadow-lg border border-gray-800 before:absolute before:top-0 before:left-0 before:w-full before:h-full before:rounded-lg before:border before:border-gray-600 before:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.6),inset_-2px_-2px_5px_rgba(255,255,255,0.1)] flex justify-between items-center">
 			{/* Winrate Section */}
 			<div className="flex items-center justify-center">
 				<div className="w-24 h-24 relative">
