@@ -8,7 +8,7 @@ const NavBar = () => {
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 
 	return (
-		<nav className="bg-[#13151b] text-white py-4 px-6 flex items-center justify-between">
+		<nav className="bg-[#0e1015] text-white py-4 px-6 flex items-center justify-between">
 			<div className="flex items-center space-x-4">
 				<Link href="/">
 					<Image
