@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import OutageBanner from "@/components/league/OutageBanner";
 
 const LiveGame = ({ liveGameData }) => {
 	const [isArena, setIsArena] = useState(false);
@@ -56,7 +55,7 @@ const LiveGame = ({ liveGameData }) => {
 					<div className="ml-2">
 						<div className="font-bold text-xs">
 							<Link
-								href={`/league/profile?gameName=${participant.gameName}&tagLine=${participant.tagLine}`}
+								href={`/profile?gameName=${participant.gameName}&tagLine=${participant.tagLine}`}
 							>
 								{participant.gameName}#{participant.tagLine}
 							</Link>
@@ -147,56 +146,25 @@ const LiveGame = ({ liveGameData }) => {
 		</div>
 	);
 
-	const renderArena = () => {
-		let participants = liveGameData.participants;
-		let teams = {};
-
-		participants.forEach((participant, index) => {
-			const teamId = Math.floor(index / 2);
-			if (!teams[teamId]) {
-				teams[teamId] = [];
-			}
-			teams[teamId].push(participant);
-		});
-
-		return Object.values(teams).map((team, index) => (
-			<div key={index} className="bg-[#13151b] text-white p-4 mb-4 rounded-lg">
-				<h3 className="text-lg font-bold text-center">Team {index + 1}</h3>
-				{team.map((participant) => renderParticipant(participant))}
-			</div>
-		));
-	};
-
-	const outageMessage = process.env.NEXT_PUBLIC_OUTAGE_MESSAGE; // Access the environment variable
-
 	return (
-		<div className="min-h-screen flex items-center justify-center bg-[#0e1015]">
-			<OutageBanner message={outageMessage} /> {/* Render the OutageBanner */}
-			<div className="bg-[#13151b] text-white rounded-lg p-4 shadow-md max-w-7xl w-full">
-				<div className="py-2 px-4 text-lg font-bold bg-gray-900 rounded-t-lg flex justify-between items-center">
-					<div>
-						Ranked Solo <span className="text-gray-400">| Summoner's Rift</span>
-					</div>
+		<div className="bg-[#13151b] text-white rounded-lg p-4 shadow-md max-w-7xl w-full">
+			<div className="py-2 px-4 text-lg font-bold bg-gray-900 rounded-t-lg flex justify-between items-center">
+				<div>
+					Ranked Solo <span className="text-gray-400">| Summoner's Rift</span>
 				</div>
-				{isArena ? (
-					<div className="flex flex-wrap justify-center">{renderArena()}</div>
-				) : (
-					<>
-						{renderTeam(
-							liveGameData.participants.filter((p) => p.teamId === 100),
-							"Blue Team",
-							"text-blue-500",
-							100
-						)}
-						{renderTeam(
-							liveGameData.participants.filter((p) => p.teamId === 200),
-							"Red Team",
-							"text-red-500",
-							200
-						)}
-					</>
-				)}
 			</div>
+			{renderTeam(
+				liveGameData.participants.filter((p) => p.teamId === 100),
+				"Blue Team",
+				"text-blue-500",
+				100
+			)}
+			{renderTeam(
+				liveGameData.participants.filter((p) => p.teamId === 200),
+				"Red Team",
+				"text-red-500",
+				200
+			)}
 		</div>
 	);
 };

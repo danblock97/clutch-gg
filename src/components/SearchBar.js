@@ -6,14 +6,12 @@ import { useRouter } from "next/navigation";
 const SearchBar = ({ onSearch }) => {
 	const [combinedInput, setCombinedInput] = useState("");
 	const router = useRouter();
-	const gamePath = "/league";
 
 	const handleSearch = () => {
 		const [gameName, tagLine] = combinedInput.split("#");
 		if (gameName && tagLine) {
-			router.push(
-				`${gamePath}/profile?gameName=${gameName}&tagLine=${tagLine}`
-			);
+			// Push the new profile URL even if already on /profile
+			router.push(`/profile?gameName=${gameName}&tagLine=${tagLine}`);
 		} else {
 			alert("Please enter both game name and tagline.");
 			return;
@@ -26,27 +24,30 @@ const SearchBar = ({ onSearch }) => {
 
 	const handleKeyDown = (event) => {
 		if (event.key === "Enter") {
+			event.preventDefault(); // Prevent form submission
 			handleSearch();
 		}
 	};
 
 	return (
-		<div className="flex items-center justify-center p-4 w-full">
+		<div className="flex items-center justify-center w-full">
 			<div className="relative w-full max-w-3xl">
+				{/* Input Field */}
 				<input
-					className="w-full p-4 pl-8 text-white bg-[#13151b] rounded-full border-none shadow-lg placeholder-gray-400 focus:outline-none focus:ring-2"
+					className="w-full p-4 pl-6 pr-12 text-white bg-[#13151b] rounded-xl border border-[#33374a] shadow-md placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#3b3e51]"
 					type="text"
-					placeholder="Enter Your RiotID..."
+					placeholder="Riot ID.. (e.g: Faker#SKT)"
 					value={combinedInput}
 					onChange={(e) => setCombinedInput(e.target.value)}
 					onKeyDown={handleKeyDown}
 				/>
+				{/* Search Button Icon */}
 				<button
 					className="absolute top-1/2 right-4 transform -translate-y-1/2 bg-transparent border-none outline-none cursor-pointer"
 					onClick={handleSearch}
 				>
 					<svg
-						className="w-6 h-6 text-gray-400 hover:text-white"
+						className="w-6 h-6 text-gray-500 hover:text-white"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"

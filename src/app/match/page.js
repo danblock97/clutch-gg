@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import MatchDetails from "@/components/league/MatchDetails";
+import MatchDetails from "@/components/MatchDetails";
 import useProfileData from "@/app/hooks/league/useProfileData";
 import Loading from "@/components/Loading";
 
@@ -11,13 +11,14 @@ const MatchPage = () => {
 	const gameName = searchParams.get("gameName");
 	const tagLine = searchParams.get("tagLine");
 	const matchId = searchParams.get("matchId");
-	const region = searchParams.get("region"); // Capture region from the query string
+	const region = searchParams.get("region");
 
+	// Use the restored hook, passing gameName, tagLine, and region
 	const { matchDetails, accountData, error, isLoading } = useProfileData(
 		gameName,
 		tagLine,
 		region
-	); // Pass region to the hook
+	);
 
 	const [selectedSummonerPUUID, setSelectedSummonerPUUID] = useState(null);
 
