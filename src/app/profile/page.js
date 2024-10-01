@@ -36,7 +36,7 @@ const ProfilePage = ({ searchParams }) => {
 			setRankedData(data.rankeddata);
 			setChampionMasteryData(data.championmasterydata);
 			setMatchDetails(data.matchdetails);
-			setLiveGameData(data.livegamedata); // Set live game data
+			setLiveGameData(data.livegamedata); // Ensure liveGameData is set correctly
 		} catch (error) {
 			setError(error.message);
 		} finally {
@@ -66,7 +66,7 @@ const ProfilePage = ({ searchParams }) => {
 				body: JSON.stringify({ gameName, tagLine }),
 			});
 			const result = await response.json();
-			await fetchProfileData(); // Fetch new data after update
+			await fetchProfileData(); // Fetch new data after update, including liveGameData
 		} catch (error) {
 			console.error("Error triggering update:", error);
 		} finally {
