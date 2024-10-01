@@ -33,7 +33,7 @@ const LeaderboardTable = ({ leaderboardData }) => {
 								<span>
 									{entry.profileData ? (
 										<Link
-											href={`/league/profile?gameName=${entry.profileData.gameName}&tagLine=${entry.profileData.tagLine}`}
+											href={`/profile?gameName=${entry.profileData.gameName}&tagLine=${entry.profileData.tagLine}`}
 										>
 											{`${entry.profileData.gameName}#${entry.profileData.tagLine}`}
 										</Link>

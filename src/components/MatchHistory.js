@@ -1,7 +1,7 @@
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Tag from "@/components/league/Tag";
+import Tag from "@/components/Tag";
 
 const fetchArenaAugments = async () => {
 	const response = await fetch(
@@ -47,7 +47,6 @@ const MatchHistory = ({
 	selectedSummonerPUUID,
 	gameName,
 	tagLine,
-	region,
 }) => {
 	const [augments, setAugments] = useState([]);
 	const router = useRouter();
@@ -91,13 +90,8 @@ const MatchHistory = ({
 
 	// Function to handle clicking a match to navigate to details
 	const handleClick = (matchId) => {
-		if (!region) {
-			console.error("Region is undefined. Cannot proceed.");
-			return;
-		}
-		// Dynamically include region when navigating to match details
 		router.push(
-			`/league/match?gameName=${gameName}&tagLine=${tagLine}&matchId=${matchId}&region=${region}`
+			`/match?gameName=${gameName}&tagLine=${tagLine}&matchId=${matchId}`
 		);
 	};
 
@@ -127,7 +121,7 @@ const MatchHistory = ({
 	};
 
 	return (
-		<div className="text-gray-400 pl-6 w-full overflow-x-auto">
+		<div className="text-gray-400 w-full max-w-screen-xl mx-auto">
 			{filteredMatches.map((match, index) => {
 				const participants = match.info.participants;
 

@@ -3,33 +3,48 @@
 import React from "react";
 import Image from "next/image";
 import { TypeAnimation } from "react-type-animation";
-import Link from "next/link";
+import SearchBar from "./SearchBar";
 
 const HomePage = () => {
 	return (
 		<div className="flex items-center justify-center min-h-screen">
 			<section>
 				<div className="grid grid-cols-1 sm:grid-cols-12">
-					<div className="col-span-8 place-self-center text-center sm:text-left justify-self-start">
-						<h1 className="text-white mb-4 text-4xl sm:text-5xl lg:text-8xl lg:leading-normal font-extrabold">
+					<div className="col-span-8 place-self-center text-center justify-self-center">
+						<h1 className="text-white mb-4 text-4xl sm:text-3xl lg:text-5xl lg:leading-normal font-extrabold">
 							<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-pink-500">
-								Welcome to Clutch.GG{" "}
+								ClutchGG.LOL{" "}
 							</span>
-							<br />
+						</h1>
+						<div className="w-full max-w-2xl mx-auto mb-4">
+							<SearchBar />
+						</div>
+						<div className="text-white text-4xl sm:text-3xl lg:text-5xl lg:leading-normal font-extrabold mb-4">
 							<TypeAnimation
-								sequence={["League of Legends", 1000]}
+								sequence={[
+									"Match History",
+									1000,
+									"Match Details",
+									1000,
+									"Live Games",
+									1000,
+									"Ranked Stats",
+									1000,
+									"Leaderboards",
+									1000,
+								]}
 								wrapper="span"
 								speed={50}
 								repeat={Infinity}
 							/>
-						</h1>
-						<p className="text-[#adb7be] text-base sm:text-lg mb-6 lg:text-xl">
+						</div>
+						<p className="text-[#adb7be] text-base sm:text-md mb-6 lg:text-lg">
 							Clutch.GG is your ultimate destination for in-depth analytics and
 							real-time insights into players' performance.
 						</p>
 					</div>
 					<div className="col-span-4 place-self-center mt-4 lg:mt-0">
-						<div className="rounded-full bg-[#181818] w-[250px] h-[250px] lg:w-[300px] lg:h-[300px] relative">
+						<div className="rounded-full w-[250px] h-[250px] lg:w-[300px] lg:h-[300px] relative">
 							<Image
 								src="/images/logo.png"
 								alt="hero image"
