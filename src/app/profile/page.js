@@ -5,9 +5,9 @@ import Profile from "@/components/Profile";
 import RankedInfo from "@/components/RankedInfo";
 import ChampionMastery from "@/components/ChampionMastery";
 import MatchHistory from "@/components/MatchHistory";
-import LiveGameBanner from "@/components/LiveGameBanner";
-import Last10GamesPerformance from "@/components/Last10GamesPerformance"; // Import the new component
+import Last10GamesPerformance from "@/components/Last10GamesPerformance";
 import Loading from "@/components/Loading";
+import LiveGame from "@/components/LiveGame"; // Import LiveGame component
 
 const ProfilePage = ({ searchParams }) => {
 	const { gameName, tagLine } = searchParams;
@@ -19,7 +19,8 @@ const ProfilePage = ({ searchParams }) => {
 	const [liveGameData, setLiveGameData] = useState(null);
 	const [error, setError] = useState(null);
 	const [isLoading, setIsLoading] = useState(true);
-	const [isUpdating, setIsUpdating] = useState(false);
+	const [isLiveGameOpen, setIsLiveGameOpen] = useState(false); // For expandable live game
+	const [isUpdating, setIsUpdating] = useState(false); // For update button state
 
 	const fetchProfileData = useCallback(async () => {
 		try {
@@ -35,7 +36,7 @@ const ProfilePage = ({ searchParams }) => {
 			setRankedData(data.rankeddata);
 			setChampionMasteryData(data.championmasterydata);
 			setMatchDetails(data.matchdetails);
-			setLiveGameData(data.livegamedata);
+			setLiveGameData(data.livegamedata); // Set live game data
 		} catch (error) {
 			setError(error.message);
 		} finally {
@@ -47,6 +48,12 @@ const ProfilePage = ({ searchParams }) => {
 		fetchProfileData();
 	}, [fetchProfileData]);
 
+	// Toggle Live Game Expansion
+	const toggleLiveGame = () => {
+		setIsLiveGameOpen((prev) => !prev);
+	};
+
+	// Function to trigger profile update
 	const triggerUpdate = async () => {
 		setIsUpdating(true);
 		try {
@@ -85,18 +92,36 @@ const ProfilePage = ({ searchParams }) => {
 
 	return (
 		<div className="min-h-screen bg-[#0e1015] relative">
-			{/* Profile Section taking full width */}
-			<div className="w-full bg-black rounded-b-3xl shadow-[0px_10px_20px_rgba(255,255,255,0.1)]">
+			{/* Profile Section */}
+			<div
+				className={`w-full bg-black rounded-b-3xl ${
+					liveGameData
+						? "shadow-[0px_15px_10px_-5px_rgba(0,153,255,0.8)] animate-pulse"
+						: "shadow-[0px_15px_10px_-5px_rgba(255,255,255,0.5)]"
+				}`}
+			>
 				{profileData && accountData ? (
 					<Profile
 						accountData={accountData}
 						profileData={profileData}
 						rankedData={rankedData}
+						liveGameData={liveGameData}
+						toggleLiveGame={toggleLiveGame}
+						isLiveGameOpen={isLiveGameOpen}
+						triggerUpdate={triggerUpdate} // Pass the triggerUpdate function to Profile
+						isUpdating={isUpdating} // Pass the updating state
 					/>
 				) : (
 					<p className="text-white">No profile data found.</p>
 				)}
 			</div>
+
+			{/* Live Game Details (Expandable) */}
+			{liveGameData && isLiveGameOpen && (
+				<div className="max-w-screen-xl mx-auto mt-4">
+					<LiveGame liveGameData={liveGameData} />
+				</div>
+			)}
 
 			{/* Other Components - Centered */}
 			<div className="max-w-screen-xl mx-auto flex flex-col items-center gap-8 mt-8">
@@ -108,15 +133,7 @@ const ProfilePage = ({ searchParams }) => {
 						)}
 					</div>
 					<div className="md:w-2/3 flex flex-col gap-4">
-						{liveGameData && (
-							<LiveGameBanner
-								liveGameData={liveGameData}
-								gameName={accountData?.gameName}
-								tagLine={accountData?.tagLine}
-							/>
-						)}
-
-						{/* Insert Last 10 Games Performance */}
+						{/* Last 10 Games Performance */}
 						{matchDetails && profileData && (
 							<Last10GamesPerformance
 								matchDetails={matchDetails}
@@ -135,19 +152,6 @@ const ProfilePage = ({ searchParams }) => {
 						)}
 					</div>
 				</div>
-			</div>
-
-			{/* Update Button */}
-			<div className="fixed top-28 right-4">
-				<button
-					onClick={triggerUpdate}
-					className={`px-4 py-2 bg-[#13151b] text-white rounded ${
-						isUpdating ? "opacity-50 cursor-not-allowed" : ""
-					}`}
-					disabled={isUpdating}
-				>
-					{isUpdating ? "Updating..." : "Update Profile"}
-				</button>
 			</div>
 		</div>
 	);

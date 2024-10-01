@@ -27,7 +27,7 @@ const NavBar = () => {
 						/>
 					</Link>
 					<Link href="/" className="text-lg font-bold hidden md:block">
-						Clutch.GG
+						ClutchGG.LOL
 					</Link>
 				</div>
 
