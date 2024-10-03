@@ -170,7 +170,7 @@ export const fetchAndUpdateProfileData = async (gameName, tagLine) => {
 				}
 			),
 			fetch(
-				`https://${platform}.api.riotgames.com/lol/match/v5/matches/by-puuid/${encryptedPUUID}/ids?start=0&count=10`,
+				`https://${platform}.api.riotgames.com/lol/match/v5/matches/by-puuid/${encryptedPUUID}/ids?start=0&count=20`,
 				{
 					headers: { "X-Riot-Token": RIOT_API_KEY },
 				}
