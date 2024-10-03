@@ -7,13 +7,16 @@ const RecentlyPlayedWith = ({ matchDetails, selectedSummonerPUUID }) => {
 		const teammateStats = {};
 
 		matchDetails.forEach((match) => {
+			const currentPlayer = match.info.participants.find(
+				(participant) => participant.puuid === selectedSummonerPUUID
+			);
+
+			if (!currentPlayer) return; // Skip if currentPlayer not found
+
 			const teammates = match.info.participants.filter(
 				(participant) =>
 					participant.puuid !== selectedSummonerPUUID &&
-					participant.teamId ===
-						match.info.participants.find(
-							(p) => p.puuid === selectedSummonerPUUID
-						).teamId
+					participant.teamId === currentPlayer.teamId
 			);
 
 			teammates.forEach((teammate) => {
@@ -45,12 +48,9 @@ const RecentlyPlayedWith = ({ matchDetails, selectedSummonerPUUID }) => {
 		);
 	}, [matchDetails, selectedSummonerPUUID]);
 
+	// **Key Change:** Return null if there's no data
 	if (teammatesData.length === 0) {
-		return (
-			<div className="bg-gray-800 text-gray-400 p-3 rounded-lg shadow-lg">
-				No teammates with multiple games played.
-			</div>
-		);
+		return null; // Component renders nothing
 	}
 
 	return (
@@ -94,7 +94,7 @@ const RecentlyPlayedWith = ({ matchDetails, selectedSummonerPUUID }) => {
 						{/* Middle section with Wins/Losses and Games Played */}
 						<div className="flex flex-col items-center w-2/5">
 							<p className="text-white text-xs leading-tight">
-								{teammate.wins}Win / {teammate.losses}Lose
+								{teammate.wins}W / {teammate.losses}L
 							</p>
 							<p className="text-gray-400 text-xs">
 								{teammate.gamesPlayed} Played
