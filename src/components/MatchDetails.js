@@ -74,9 +74,9 @@ const MatchDetails = ({ matchDetails, matchId, selectedSummonerPUUID }) => {
 			tags.push(
 				<Tag
 					key="first-blood"
-					text="First Blood"
-					hoverText="Congrats on First Blood!"
-					color="bg-gray-400 text-white"
+					text="FB"
+					hoverText="First Blood"
+					color="bg-green-500 text-white text-sm px-2 py-1"
 				/>
 			);
 		}
@@ -85,9 +85,9 @@ const MatchDetails = ({ matchDetails, matchId, selectedSummonerPUUID }) => {
 			tags.push(
 				<Tag
 					key="triple-kill"
-					text="Triple Kill"
-					hoverText={`Nice job getting ${participant.tripleKills} Triple Kills!`}
-					color="bg-yellow-500 text-white"
+					text="Triple"
+					hoverText={`Triple Kill x${participant.tripleKills}`}
+					color="bg-yellow-500 text-white text-sm px-2 py-1"
 				/>
 			);
 		}
@@ -97,8 +97,8 @@ const MatchDetails = ({ matchDetails, matchId, selectedSummonerPUUID }) => {
 				<Tag
 					key="unkillable"
 					text="Unkillable"
-					hoverText={`A Whole 0 Deaths! Grats on not inting!`}
-					color="bg-yellow-500 text-white"
+					hoverText="0 Deaths"
+					color="bg-yellow-500 text-white text-sm px-2 py-1"
 				/>
 			);
 		}
@@ -107,9 +107,9 @@ const MatchDetails = ({ matchDetails, matchId, selectedSummonerPUUID }) => {
 			tags.push(
 				<Tag
 					key="good-damage"
-					text="Good Damage"
-					hoverText={`Nice Damage Dealt: ${participant.totalDamageDealtToChampions.toLocaleString()}`}
-					color="bg-yellow-500 text-white"
+					text="Good DMG"
+					hoverText={`Damage Dealt: ${participant.totalDamageDealtToChampions.toLocaleString()}`}
+					color="bg-yellow-500 text-white text-sm px-2 py-1"
 				/>
 			);
 		}
@@ -119,10 +119,8 @@ const MatchDetails = ({ matchDetails, matchId, selectedSummonerPUUID }) => {
 				<Tag
 					key="cs-star"
 					text="CS Star"
-					hoverText={`Most CS/min in the game: ${participant.csPerMin.toFixed(
-						1
-					)}`}
-					color="bg-blue-500 text-white"
+					hoverText={`Highest CS/Min: ${participant.csPerMin.toFixed(1)}`}
+					color="bg-blue-500 text-white text-sm px-2 py-1"
 				/>
 			);
 		}
@@ -134,20 +132,20 @@ const MatchDetails = ({ matchDetails, matchId, selectedSummonerPUUID }) => {
 	const isARAM = match.info.queueId === 450;
 
 	if (isArena) {
-		let participants = match.info.participants;
+		let arenaParticipants = match.info.participants;
 		let teams = {};
 
 		// Extract playerScore0 and sort
-		participants = participants.map((participant) => ({
+		arenaParticipants = arenaParticipants.map((participant) => ({
 			...participant,
 			playerScore0: participant.missions.playerScore0,
 		}));
 
 		// Sort participants by playerScore0
-		participants.sort((a, b) => a.playerScore0 - b.playerScore0);
+		arenaParticipants.sort((a, b) => a.playerScore0 - b.playerScore0);
 
 		// Group participants into pairs
-		participants.forEach((participant, index) => {
+		arenaParticipants.forEach((participant, index) => {
 			const teamId = Math.floor(index / 2); // Creates 8 teams of 2 participants each
 			if (!teams[teamId]) {
 				teams[teamId] = [];
@@ -193,9 +191,9 @@ const MatchDetails = ({ matchDetails, matchId, selectedSummonerPUUID }) => {
 			return (
 				<div
 					key={index}
-					className="bg-[#13151b] text-white p-4 mb-4 rounded-lg"
+					className="bg-[#13151b] text-white p-2 mb-2 rounded-lg"
 				>
-					<h3 className={`text-lg font-bold ${colorClass}`}>
+					<h3 className={`text-sm font-bold ${colorClass}`}>
 						{getOrdinal(team[0].playerScore0)} Place
 					</h3>
 					{team.map((participant) => (
@@ -211,9 +209,9 @@ const MatchDetails = ({ matchDetails, matchId, selectedSummonerPUUID }) => {
 		});
 
 		return (
-			<div className="bg-[#13151b] min-h-screen flex flex-col items-center justify-center px-4 py-2">
+			<div className="bg-[#13151b] min-h-screen flex flex-col items-center justify-center px-2 py-1">
 				<div className="max-w-6xl w-full">
-					<div className="tags flex space-x-2 mb-4">{tags}</div>
+					<div className="tags flex space-x-1 mb-2">{tags}</div>
 					{teamComponents}
 				</div>
 			</div>
@@ -246,20 +244,18 @@ const MatchDetails = ({ matchDetails, matchId, selectedSummonerPUUID }) => {
 	};
 
 	return (
-		<div className="bg-[#13151b] min-h-screen flex items-center justify-center px-2 py-2">
-			<div className="bg-[#13151b] text-white max-w-6xl w-full">
-				<div className="tags flex space-x-2 mb-4">{tags}</div>
-				<div className="flex justify-between items-center mb-4">
-					<div className="flex-1">
-						<span className="text-xs font-semibold text-[#3182CE]">Team 1</span>
-					</div>
-					<div className="flex-1 flex justify-center">
-						<span className="text-xs font-semibold text-[#3182CE]">
-							{`${team1Stats.kills} / ${team1Stats.deaths} / ${team1Stats.assists}`}
-						</span>
-					</div>
-					<div className="flex-1 flex justify-end">
-						<span className="text-xs font-semibold text-[#3182CE] mr-2">
+		<div className="bg-[#13151b] min-h-auto flex items-center justify-center px-2 py-1">
+			<div className="bg-[#13151b] text-white max-w-6xl w-full p-2">
+				<div className="tags flex space-x-1 mb-1 overflow-x-auto">
+					{/* Render tags here */}
+				</div>
+
+				{/* Team 1 */}
+				<div className="flex justify-between items-center mb-1">
+					<span className="text-sm font-semibold text-[#3182CE]">Team 1</span>
+					<div className="text-sm font-semibold text-[#3182CE]">{`${team1Stats.kills} / ${team1Stats.deaths} / ${team1Stats.assists}`}</div>
+					<div className="flex justify-end items-center">
+						<span className="text-sm font-semibold text-[#3182CE] mr-1">
 							Bans:
 						</span>
 						{bans.team1.map((ban, idx) => (
@@ -267,30 +263,32 @@ const MatchDetails = ({ matchDetails, matchId, selectedSummonerPUUID }) => {
 								key={idx}
 								src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${ban.championId}.png`}
 								alt="Champion Ban"
-								width={20}
-								height={20}
+								width={16}
+								height={16}
+								className="w-4 h-4"
 							/>
 						))}
 					</div>
 				</div>
-				{team1.map((participant, index) => (
-					<ParticipantDetails
-						key={index}
-						participant={participant}
-						isARAM={isARAM}
-					/>
-				))}
-				<div className="flex justify-between items-center">
-					<div className="flex-1">
-						<span className="text-xs font-semibold text-[#C53030]">Team 2</span>
-					</div>
-					<div className="flex-1 flex justify-center">
-						<span className="text-xs font-semibold text-[#C53030]">
-							{`${team2Stats.kills} / ${team2Stats.deaths} / ${team2Stats.assists}`}
-						</span>
-					</div>
-					<div className="flex-1 flex justify-end">
-						<span className="text-xs font-semibold text-[#C53030] mr-2">
+
+				{/* Team 1 Participants */}
+				<div className="flex flex-col space-y-1">
+					{team1.map((participant, index) => (
+						<ParticipantDetails
+							key={index}
+							participant={participant}
+							selectedSummonerPUUID={selectedSummonerPUUID}
+							getAugmentIcon={getAugmentIcon}
+						/>
+					))}
+				</div>
+
+				{/* Team 2 */}
+				<div className="flex justify-between items-center mt-1 mb-1">
+					<span className="text-sm font-semibold text-[#C53030]">Team 2</span>
+					<div className="text-sm font-semibold text-[#C53030]">{`${team2Stats.kills} / ${team2Stats.deaths} / ${team2Stats.assists}`}</div>
+					<div className="flex justify-end items-center">
+						<span className="text-sm font-semibold text-[#C53030] mr-1">
 							Bans:
 						</span>
 						{bans.team2.map((ban, idx) => (
@@ -298,20 +296,25 @@ const MatchDetails = ({ matchDetails, matchId, selectedSummonerPUUID }) => {
 								key={idx}
 								src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${ban.championId}.png`}
 								alt="Champion Ban"
-								width={20}
-								height={20}
+								width={16}
+								height={16}
+								className="w-4 h-4"
 							/>
 						))}
 					</div>
 				</div>
 
-				{team2.map((participant, index) => (
-					<ParticipantDetails
-						key={index}
-						participant={participant}
-						isARAM={isARAM}
-					/>
-				))}
+				{/* Team 2 Participants */}
+				<div className="flex flex-col space-y-1">
+					{team2.map((participant, index) => (
+						<ParticipantDetails
+							key={index}
+							participant={participant}
+							selectedSummonerPUUID={selectedSummonerPUUID}
+							getAugmentIcon={getAugmentIcon}
+						/>
+					))}
+				</div>
 			</div>
 		</div>
 	);
@@ -319,9 +322,8 @@ const MatchDetails = ({ matchDetails, matchId, selectedSummonerPUUID }) => {
 
 const ParticipantDetails = ({
 	participant,
-	isArena,
+	selectedSummonerPUUID,
 	getAugmentIcon,
-	isARAM,
 }) => {
 	const kda =
 		participant.deaths === 0
@@ -335,148 +337,79 @@ const ParticipantDetails = ({
 		<Link
 			href={`/profile?gameName=${participant.riotIdGameName}&tagLine=${participant.riotIdTagline}`}
 		>
-			<div className="grid grid-cols-9 gap-x-2 p-2 my-2 rounded-lg bg-[#13151b]">
-				{/* Lane Icon */}
-
+			<div className="flex items-center justify-between p-2 bg-[#1e1e1e] rounded-lg hover:bg-[#2e2e2e] transition duration-150">
 				{/* Champion Icon & Player Name */}
-				<div className="col-span-2 flex items-center space-x-1">
-					{!isArena && !isARAM && (
-						<div className="col-span-1 flex items-center">
-							<Image
-								src={`https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-champ-select/global/default/svg/position-${participant.teamPosition.toLowerCase()}.svg`}
-								alt={`${participant.teamPosition} Position Icon`}
-								width={28}
-								height={28}
-								className="w-8 h-8"
-							/>
-						</div>
-					)}
-
+				<div className="flex items-center space-x-2 flex-shrink-0 w-1/4">
 					<Image
 						src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${participant.championId}.png`}
 						alt="Champion"
-						width={28}
-						height={28}
+						width={32}
+						height={32}
 						className="w-8 h-8"
 					/>
-					<span className="text-sm font-semibold">
+					<span
+						className="text-sm font-semibold truncate"
+						title={`${participant.riotIdGameName}#${participant.riotIdTagline}`}
+					>
 						{participant.riotIdGameName}#{participant.riotIdTagline}
 					</span>
 				</div>
 
-				{/* Rune Icon */}
-				{!isArena && (
-					<div className="col-span-1 flex items-center">
-						<Image
-							src={`/images/runeIcons/${participant.perks.styles[0].selections[0].perk}.png`}
-							alt="Rune Icon"
-							width={28}
-							height={28}
-							className="w-8 h-8"
-						/>
-					</div>
-				)}
-
-				{/* Summoner Icons */}
-				<div className="col-span-1 flex items-center space-x-1">
+				{/* Summoner Spells */}
+				<div className="flex items-center space-x-1 flex-shrink-0 w-1/6 justify-center">
 					{[participant.summoner1Id, participant.summoner2Id].map(
 						(spellId, idx) => (
-							<div key={idx} className="flex items-center">
-								<Image
-									src={`/images/summonerSpells/${spellId}.png`}
-									alt={`Summoner Spell ${idx + 1}`}
-									width={28}
-									height={28}
-								/>
-							</div>
+							<Image
+								key={idx}
+								src={`/images/summonerSpells/${spellId}.png`}
+								alt={`Summoner Spell ${idx + 1}`}
+								width={24}
+								height={24}
+								className="w-6 h-6"
+							/>
 						)
 					)}
 				</div>
 
 				{/* Items */}
-				<div className="col-span-2 flex items-center space-x-1">
-					{isArena ? (
-						<div className="flex items-center">
-							{[
-								participant.playerAugment1,
-								participant.playerAugment2,
-								participant.playerAugment3,
-								participant.playerAugment4,
-							].map((augmentId, index) => {
-								const augmentIcon = getAugmentIcon(augmentId);
-								return augmentIcon ? (
+				<div className="flex items-center space-x-1 flex-shrink-0 w-1/4 justify-center">
+					{Array.from({ length: 6 }, (_, i) => participant[`item${i}`]).map(
+						(itemId, idx) => (
+							<div key={idx} className="flex items-center">
+								{itemId > 0 ? (
 									<Image
-										key={index}
-										src={augmentIcon}
-										alt={`Augment ${index + 1}`}
-										className="w-8 h-8 mr-1"
-										width={28}
-										height={28}
+										src={`https://ddragon.leagueoflegends.com/cdn/14.17.1/img/item/${itemId}.png`}
+										alt="Item"
+										width={24}
+										height={24}
+										className="w-6 h-6"
 									/>
-								) : null;
-							})}
-						</div>
-					) : (
-						Array.from({ length: 7 }, (_, i) => participant[`item${i}`]).map(
-							(itemId, idx) => (
-								<div key={idx} className="flex items-center">
-									{itemId > 0 ? (
-										<Image
-											src={`https://ddragon.leagueoflegends.com/cdn/14.17.1/img/item/${itemId}.png`}
-											alt="Item"
-											width={28}
-											height={28}
-											className="w-8 h-8"
-										/>
-									) : (
-										<Image
-											src="/images/placeholder.png"
-											alt="No item"
-											width={32}
-											height={32}
-											className="w-8 h-8"
-										/>
-									)}
-								</div>
-							)
+								) : (
+									<Image
+										src="/images/placeholder.png"
+										alt="No item"
+										width={24}
+										height={24}
+										className="w-6 h-6"
+									/>
+								)}
+							</div>
 						)
 					)}
 				</div>
 
-				{/* KDA & K/D/A */}
-				<div className="col-span-1 flex items-center space-x-4">
-					<div>
-						<span className="text-sm font-semibold">{`${participant.kills} / ${participant.deaths} / ${participant.assists}`}</span>
-						<br />
-						<span className="text-xs text-gray-400">{`${kda} KDA`}</span>
-					</div>
+				{/* KDA */}
+				<div className="flex flex-col items-center flex-shrink-0 w-1/6">
+					<span className="text-sm font-semibold">{`${participant.kills} / ${participant.deaths} / ${participant.assists}`}</span>
+					<span className="text-xs text-gray-400">{`${kda} KDA`}</span>
 				</div>
 
-				{/* CS & KP */}
-				{!isArena && (
-					<div className="col-span-1 flex items-center space-x-4">
-						<div>
-							<span className="text-sm font-semibold">{`${
-								participant.totalMinionsKilled +
-								participant.totalAllyJungleMinionsKilled +
-								participant.totalEnemyJungleMinionsKilled
-							} CS`}</span>
-							<br />
-							<span className="text-xs text-gray-400">
-								{(participant.challenges.killParticipation * 100).toFixed(0)}%
-								KP
-							</span>
-						</div>
-					</div>
-				)}
-
-				{/* Damage & Gold */}
-				<div className="col-span-1 flex items-center space-x-4">
-					<div>
-						<span className="text-sm font-semibold">{`${participant.totalDamageDealtToChampions.toLocaleString()} DMG`}</span>
-						<br />
-						<span className="text-xs text-gray-400">{`${participant.goldEarned.toLocaleString()} Gold`}</span>
-					</div>
+				{/* CS & DMG */}
+				<div className="flex flex-col items-center flex-shrink-0 w-1/6">
+					<span className="text-sm font-semibold">{`${
+						participant.totalMinionsKilled + participant.neutralMinionsKilled
+					} CS`}</span>
+					<span className="text-xs text-gray-400">{`${participant.totalDamageDealtToChampions.toLocaleString()} DMG`}</span>
 				</div>
 			</div>
 		</Link>
