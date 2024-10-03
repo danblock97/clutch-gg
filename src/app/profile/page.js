@@ -96,7 +96,7 @@ const ProfilePage = ({ searchParams }) => {
 			<div
 				className={`w-full bg-black rounded-b-3xl ${
 					liveGameData
-						? "shadow-[0px_15px_10px_-5px_rgba(0,153,255,0.8)] animate-pulse"
+						? "shadow-[0px_15px_10px_-5px_rgba(0,153,255,0.8)]"
 						: "shadow-[0px_15px_10px_-5px_rgba(255,255,255,0.5)]"
 				}`}
 			>
