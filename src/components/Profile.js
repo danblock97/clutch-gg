@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
+import NoActiveGameData from "./NoActiveGameData"; // Ensure this path is correct
 
 const Profile = ({
 	accountData,
@@ -8,6 +9,8 @@ const Profile = ({
 	toggleLiveGame,
 	triggerUpdate,
 	isUpdating,
+	liveGameData, // Boolean or object indicating live game status
+	region, // New prop indicating the region/server
 }) => {
 	const soloRankedData = rankedData.find(
 		(item) => item.queueType === "RANKED_SOLO_5x5"
@@ -21,6 +24,7 @@ const Profile = ({
 	const [lastUpdated, setLastUpdated] = useState(null);
 	const [countdown, setCountdown] = useState(0);
 	const [updateTriggered, setUpdateTriggered] = useState(false);
+	const [showNoActiveGameData, setShowNoActiveGameData] = useState(false); // New state
 	const intervalRef = useRef(null);
 
 	useEffect(() => {
@@ -81,11 +85,22 @@ const Profile = ({
 		return "Just now";
 	};
 
+	// Handler for Live Game button click
+	const handleLiveGameClick = () => {
+		if (liveGameData) {
+			toggleLiveGame();
+		} else {
+			setShowNoActiveGameData(true);
+		}
+	};
+
+	// Handler to close NoActiveGameData component
+	const handleCloseNoActiveGameData = () => {
+		setShowNoActiveGameData(false);
+	};
+
 	return (
-		<div
-			className="relative w-full py-10 shadow-md overflow-hidden"
-			onClick={toggleLiveGame}
-		>
+		<div className="relative w-full py-10 shadow-md overflow-hidden">
 			<div className="relative w-full max-w-screen-xl mx-auto p-6 flex items-center justify-between">
 				{/* Profile Icon */}
 				<div className="relative">
@@ -112,7 +127,7 @@ const Profile = ({
 						{`${accountData.gameName}#${accountData.tagLine}`}
 					</h1>
 
-					{/* Ranked Data and Update Button Container */}
+					{/* Ranked Data and Buttons Container */}
 					<div className="flex flex-col">
 						{soloRankedData ? (
 							<div className="flex items-center">
@@ -146,45 +161,76 @@ const Profile = ({
 						)}
 
 						<div className="flex flex-col items-start mt-4 space-y-2">
-							<button
-								onClick={(e) => {
-									e.stopPropagation();
-									triggerUpdate();
-									setUpdateTriggered(true);
-								}}
-								className={`px-4 py-2 rounded-md text-sm inline-flex items-center justify-center transition-colors duration-300 ${
-									isUpdating
-										? "bg-blue-600 opacity-50 cursor-not-allowed"
+							{/* Buttons Container */}
+							<div className="flex space-x-2">
+								{/* Update Button */}
+								<button
+									onClick={(e) => {
+										e.stopPropagation();
+										triggerUpdate();
+										setUpdateTriggered(true);
+									}}
+									className={`px-4 py-2 rounded-md text-sm inline-flex items-center justify-center transition-colors duration-300 ${
+										isUpdating
+											? "bg-blue-600 opacity-50 cursor-not-allowed"
+											: isUpdated
+											? "bg-green-500 hover:bg-green-600"
+											: "bg-blue-600 hover:bg-blue-700"
+									} `}
+									disabled={isUpdating || countdown > 0}
+								>
+									{isUpdating ? (
+										<svg
+											className="animate-spin h-5 w-5 mr-2 text-white"
+											xmlns="http://www.w3.org/2000/svg"
+											fill="none"
+											viewBox="0 0 24 24"
+										>
+											<circle
+												className="opacity-25"
+												cx="12"
+												cy="12"
+												r="10"
+												stroke="currentColor"
+												strokeWidth="4"
+											></circle>
+											<path
+												className="opacity-75"
+												fill="currentColor"
+												d="M4 12a8 8 0 018-8v8H4z"
+											></path>
+										</svg>
+									) : null}
+									{isUpdating
+										? "Updating..."
 										: isUpdated
-										? "bg-green-500 hover:bg-green-600"
-										: "bg-blue-600 hover:bg-blue-700"
-								} w-auto`} // Added w-auto
-								disabled={isUpdating || countdown > 0}
-							>
-								{isUpdating ? (
-									<svg
-										className="animate-spin h-5 w-5 mr-2 text-white"
-										xmlns="http://www.w3.org/2000/svg"
-										fill="none"
-										viewBox="0 0 24 24"
+										? "Updated"
+										: "Update"}
+								</button>
+
+								{/* Live Game Button with Tooltip */}
+								<div className="relative group">
+									<button
+										onClick={(e) => {
+											e.stopPropagation();
+											handleLiveGameClick();
+										}}
+										className="px-4 py-2 rounded-md text-sm bg-green-600 hover:bg-green-700 text-white inline-flex items-center justify-center transition-colors duration-300"
 									>
-										<circle
-											className="opacity-25"
-											cx="12"
-											cy="12"
-											r="10"
-											stroke="currentColor"
-											strokeWidth="4"
-										></circle>
-										<path
-											className="opacity-75"
-											fill="currentColor"
-											d="M4 12a8 8 0 018-8v8H4z"
-										></path>
-									</svg>
-								) : null}
-								{isUpdating ? "Updating..." : isUpdated ? "Updated" : "Update"}
-							</button>
+										{/* Optional: Add an icon here */}
+										Live Game
+									</button>
+
+									{/* Tooltip */}
+									{liveGameData && (
+										<div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+											Currently in Game
+										</div>
+									)}
+								</div>
+							</div>
+
+							{/* Update Status */}
 							{isUpdated && countdown > 0 ? (
 								<p className="text-xs text-gray-300">
 									Available in {countdown} second
@@ -199,6 +245,15 @@ const Profile = ({
 					</div>
 				</div>
 			</div>
+
+			{/* Render NoActiveGameData Component */}
+			{showNoActiveGameData && (
+				<NoActiveGameData
+					summonerName={`${accountData.gameName}#${accountData.tagLine}`}
+					region={region}
+					onClose={handleCloseNoActiveGameData}
+				/>
+			)}
 		</div>
 	);
 };
