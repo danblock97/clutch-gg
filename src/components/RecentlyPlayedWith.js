@@ -56,7 +56,7 @@ const RecentlyPlayedWith = ({ matchDetails, selectedSummonerPUUID }) => {
 	return (
 		<div className="bg-[#1e1e2f] p-4 rounded-md shadow-lg relative border border-gray-800 before:absolute before:top-0 before:left-0 before:w-full before:h-full before:rounded-md before:border before:border-gray-600 before:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.6),inset_-2px_-2px_5px_rgba(255,255,255,0.1)]">
 			<h3 className="text-white text-sm mb-4">
-				Recently Played With (Recent 10 Games)
+				Recently Played With (Recent 20 Games)
 			</h3>
 			{teammatesData.map((teammate, index) => {
 				const winRate = ((teammate.wins / teammate.gamesPlayed) * 100).toFixed(
