@@ -1,36 +1,24 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# ClutchGG.LOL v1.8.0
 
-## Getting Started
+## What's New
 
-First, run the development server:
+### Features
+- **Autocomplete on Existing Profiles**: Quickly search and find previously visited profiles with the new autocomplete feature.
+- **Live Game Button**: Access live game information directly from the profile with a new convenient button.
+- **'Played With' Component**: See players you've recently played with, offering new insights into your gaming experience.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+### Improvements
+- **Live Game Component**: Enhanced the Live Game component for better usability and more detailed information.
+- **Profile Component UI**: Polished and updated the profile page for a sleeker and more intuitive experience.
+- **Game Tags UI**: Improved the display and organization of game tags.
+- **Match History**: Increased the displayed match history from 10 to 20 for a more comprehensive overview.
+  
+### Bug Fixes
+- **Ranked Flex Expansion**: Fixed an issue where Ranked Flex was not expanding to show additional details.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Changes
+- **Match Details**: Removed the `/match` page and integrated match details into an expanded view within the match history.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+Enjoy the new features and improvements!
