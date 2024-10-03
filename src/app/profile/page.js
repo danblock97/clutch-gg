@@ -8,6 +8,7 @@ import MatchHistory from "@/components/MatchHistory";
 import Last10GamesPerformance from "@/components/Last10GamesPerformance";
 import Loading from "@/components/Loading";
 import LiveGame from "@/components/LiveGame"; // Import LiveGame component
+import RecentlyPlayedWith from "@/components/RecentlyPlayedWith";
 
 const ProfilePage = ({ searchParams }) => {
 	const { gameName, tagLine } = searchParams;
@@ -128,10 +129,18 @@ const ProfilePage = ({ searchParams }) => {
 				<div className="w-full flex flex-col md:flex-row gap-4">
 					<div className="md:w-1/3 flex flex-col gap-4">
 						{rankedData && <RankedInfo rankedData={rankedData} />}
+						{/* Recently Played With Component */}
+						{matchDetails && profileData && (
+							<RecentlyPlayedWith
+								matchDetails={matchDetails}
+								selectedSummonerPUUID={profileData.puuid}
+							/>
+						)}
 						{championMasteryData && (
 							<ChampionMastery championMasteryData={championMasteryData} />
 						)}
 					</div>
+
 					<div className="md:w-2/3 flex flex-col gap-4">
 						{/* Last 10 Games Performance */}
 						{matchDetails && profileData && (
