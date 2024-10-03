@@ -100,17 +100,17 @@ const Profile = ({
 	};
 
 	return (
-		<div className="relative w-full py-10 shadow-md overflow-hidden">
-			<div className="relative w-full max-w-screen-xl mx-auto p-6 flex items-center justify-between">
+		<div className="relative w-full py-6 shadow-md overflow-hidden">
+			<div className="relative w-full max-w-screen-xl mx-auto p-4 flex items-center justify-between">
 				{/* Profile Icon */}
 				<div className="relative">
-					<div className="rounded-full overflow-hidden w-24 h-24 border-4 border-transparent bg-gradient-to-r from-blue-500 to-indigo-500">
+					<div className="rounded-full overflow-hidden w-20 h-20 border-4 border-transparent bg-gradient-to-r from-blue-500 to-indigo-500">
 						<Image
 							src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/${profileData.profileIconId}.jpg`}
 							alt="Player Icon"
 							layout="responsive"
-							width={96}
-							height={96}
+							width={80}
+							height={80}
 							className="rounded-full object-cover"
 						/>
 					</div>
@@ -122,7 +122,7 @@ const Profile = ({
 				</div>
 
 				{/* Name, Tag, Rank */}
-				<div className="ml-6 flex-1">
+				<div className="ml-4 flex-1">
 					<h1 className="text-3xl font-bold text-white">
 						{`${accountData.gameName}#${accountData.tagLine}`}
 					</h1>
@@ -135,8 +135,8 @@ const Profile = ({
 									<Image
 										src={rankedIcon}
 										alt={`${soloRankedData.tier} Emblem`}
-										width={40}
-										height={40}
+										width={32}
+										height={32}
 										className="rounded-full mr-4"
 									/>
 								)}
@@ -160,7 +160,7 @@ const Profile = ({
 							<p className="text-gray-400 font-semibold">Unranked</p>
 						)}
 
-						<div className="flex flex-col items-start mt-4 space-y-2">
+						<div className="flex flex-col items-start mt-3 space-y-2">
 							{/* Buttons Container */}
 							<div className="flex space-x-2">
 								{/* Update Button */}
@@ -217,7 +217,6 @@ const Profile = ({
 										}}
 										className="px-4 py-2 rounded-md text-sm bg-green-600 hover:bg-green-700 text-white inline-flex items-center justify-center transition-colors duration-300"
 									>
-										{/* Optional: Add an icon here */}
 										Live Game
 									</button>
 
