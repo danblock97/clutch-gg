@@ -32,8 +32,9 @@ const NavBar = () => {
 				</div>
 
 				{/* Centered SearchBar for /profile or /match */}
+				{/* Centered SearchBar for /profile or /match */}
 				{isProfileOrMatch && (
-					<div className="flex justify-center w-1/2">
+					<div className="flex justify-center w-1/2 mx-auto">
 						<SearchBar />
 					</div>
 				)}
