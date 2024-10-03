@@ -1,31 +1,78 @@
-import React from "react";
-import Image from "next/image";
-import Link from "next/link";
+// NoActiveGameData.jsx
+import React, { useEffect, useRef } from "react";
 
-const NoActiveGameData = ({ gameName, tagLine }) => {
+const NoActiveGameData = ({ summonerName, region, onClose }) => {
+	const modalRef = useRef(null);
+
+	// Close the modal when pressing the Escape key
+	useEffect(() => {
+		const handleEsc = (event) => {
+			if (event.key === "Escape") {
+				onClose();
+			}
+		};
+		window.addEventListener("keydown", handleEsc);
+
+		return () => {
+			window.removeEventListener("keydown", handleEsc);
+		};
+	}, [onClose]);
+
+	// Close the modal when clicking outside of the modal content
+	const handleClickOutside = (event) => {
+		if (modalRef.current && !modalRef.current.contains(event.target)) {
+			onClose();
+		}
+	};
+
+	useEffect(() => {
+		window.addEventListener("mousedown", handleClickOutside);
+
+		return () => {
+			window.removeEventListener("mousedown", handleClickOutside);
+		};
+	}, []);
+
 	return (
-		<div className="flex flex-col items-center justify-center min-h-screen px-6 lg:px-8 bg-[#0e1015]">
-			<div className="mb-4">
-				<Image
-					src="/images/bee-sad.png"
-					alt="Sad Bee Image"
-					width={200}
-					height={200}
-				/>
-			</div>
-			<p className="text-gray-500 text-center font-bold mb-2">
-				This player is not currently in a game.
-			</p>
-			<p className="text-gray-500 text-center mb-4">
-				For the app to recognize a game, the game needs to be in the Loading
-				Screen or have started.
-			</p>
-			<Link
-				href={`/profile?gameName=${gameName}&tagLine=${tagLine}`}
-				className="bg-gray-900 text-white px-4 py-2 rounded-full hover:bg-blue-600 transition duration-200"
+		<div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50">
+			<div
+				ref={modalRef}
+				className="bg-gray-900 text-white p-8 rounded-lg shadow-lg max-w-md w-full relative"
 			>
-				View Profile
-			</Link>
+				{/* Close Button */}
+				<button
+					onClick={onClose}
+					className="absolute top-4 right-4 text-gray-400 hover:text-white focus:outline-none"
+					aria-label="Close Modal"
+				>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						className="h-6 w-6"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke="currentColor"
+					>
+						<path
+							strokeLinecap="round"
+							strokeLinejoin="round"
+							strokeWidth={2}
+							d="M6 18L18 6M6 6l12 12"
+						/>
+					</svg>
+				</button>
+
+				{/* Modal Content */}
+				<p className="text-lg mb-4">
+					<strong>'{summonerName}'</strong> is not in an active game.
+				</p>
+				<p className="mb-4">
+					Please try again later if the summoner is currently in game.
+				</p>
+				<p className="italic text-sm">
+					(Live Game data for '{region}' cannot be retrieved from Riot’s
+					official API.)
+				</p>
+			</div>
 		</div>
 	);
 };

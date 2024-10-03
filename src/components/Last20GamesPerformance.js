@@ -1,19 +1,19 @@
 import React, { useMemo } from "react";
 import Image from "next/image";
 
-const Last10GamesPerformance = ({ matchDetails, selectedSummonerPUUID }) => {
-	// Filter to get the last 10 matches of the selected player
-	const last10Matches = useMemo(() => {
+const Last20GamesPerformance = ({ matchDetails, selectedSummonerPUUID }) => {
+	// Filter to get the last 20 matches of the selected player
+	const last20Matches = useMemo(() => {
 		return matchDetails
 			.filter((match) =>
 				match.info.participants.some(
 					(participant) => participant.puuid === selectedSummonerPUUID
 				)
 			)
-			.slice(0, 10);
+			.slice(0, 20);
 	}, [matchDetails, selectedSummonerPUUID]);
 
-	// Calculate performance stats for the last 10 games
+	// Calculate performance stats for the last 20 games
 	const performanceStats = useMemo(() => {
 		let totalWins = 0;
 		let totalKills = 0;
@@ -22,7 +22,7 @@ const Last10GamesPerformance = ({ matchDetails, selectedSummonerPUUID }) => {
 
 		const championPerformance = {};
 
-		last10Matches.forEach((match) => {
+		last20Matches.forEach((match) => {
 			const currentPlayer = match.info.participants.find(
 				(participant) => participant.puuid === selectedSummonerPUUID
 			);
@@ -65,10 +65,10 @@ const Last10GamesPerformance = ({ matchDetails, selectedSummonerPUUID }) => {
 			}
 		});
 
-		const winRate = ((totalWins / last10Matches.length) * 100).toFixed(1);
-		const avgKills = (totalKills / last10Matches.length).toFixed(1);
-		const avgDeaths = (totalDeaths / last10Matches.length).toFixed(1);
-		const avgAssists = (totalAssists / last10Matches.length).toFixed(1);
+		const winRate = ((totalWins / last20Matches.length) * 100).toFixed(1);
+		const avgKills = (totalKills / last20Matches.length).toFixed(1);
+		const avgDeaths = (totalDeaths / last20Matches.length).toFixed(1);
+		const avgAssists = (totalAssists / last20Matches.length).toFixed(1);
 		const avgKDA = (
 			(totalKills + totalAssists) /
 			Math.max(1, totalDeaths)
@@ -81,10 +81,10 @@ const Last10GamesPerformance = ({ matchDetails, selectedSummonerPUUID }) => {
 			avgAssists,
 			avgKDA,
 			totalWins, // Save the total wins
-			totalLosses: last10Matches.length - totalWins, // Calculate losses
+			totalLosses: last20Matches.length - totalWins, // Calculate losses
 			championPerformance,
 		};
-	}, [last10Matches, selectedSummonerPUUID]);
+	}, [last20Matches, selectedSummonerPUUID]);
 
 	const topChampions = Object.keys(performanceStats.championPerformance)
 		.sort((a, b) => {
@@ -185,4 +185,4 @@ const Last10GamesPerformance = ({ matchDetails, selectedSummonerPUUID }) => {
 	);
 };
 
-export default Last10GamesPerformance;
+export default Last20GamesPerformance;
