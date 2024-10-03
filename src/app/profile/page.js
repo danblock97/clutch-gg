@@ -5,7 +5,7 @@ import Profile from "@/components/Profile";
 import RankedInfo from "@/components/RankedInfo";
 import ChampionMastery from "@/components/ChampionMastery";
 import MatchHistory from "@/components/MatchHistory";
-import Last10GamesPerformance from "@/components/Last10GamesPerformance";
+import Last20GamesPerformance from "@/components/Last20GamesPerformance";
 import Loading from "@/components/Loading";
 import LiveGame from "@/components/LiveGame"; // Import LiveGame component
 import RecentlyPlayedWith from "@/components/RecentlyPlayedWith";
@@ -144,7 +144,7 @@ const ProfilePage = ({ searchParams }) => {
 					<div className="md:w-2/3 flex flex-col gap-4">
 						{/* Last 10 Games Performance */}
 						{matchDetails && profileData && (
-							<Last10GamesPerformance
+							<Last20GamesPerformance
 								matchDetails={matchDetails}
 								selectedSummonerPUUID={profileData.puuid}
 							/>
