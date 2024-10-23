@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
-import NoActiveGameData from "./NoActiveGameData"; // Ensure this path is correct
+import NoActiveGameData from "./NoActiveGameData";
 
 const Profile = ({
 	accountData,
