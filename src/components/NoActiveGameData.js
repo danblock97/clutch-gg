@@ -69,7 +69,7 @@ const NoActiveGameData = ({ summonerName, region, onClose }) => {
 					Please try again later if the summoner is currently in game.
 				</p>
 				<p className="italic text-sm">
-					(Live Game data for '{region}' cannot be retrieved from Riot’s
+					(Live Game data for '{summonerName}' cannot be retrieved from Riot’s
 					official API.)
 				</p>
 			</div>
