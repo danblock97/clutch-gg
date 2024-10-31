@@ -1,7 +1,12 @@
 "use client";
 
+<<<<<<< Updated upstream
 import React, { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
+=======
+import React, { useState, useEffect, useCallback, Suspense } from "react";
+import { useSearchParams } from "next/navigation"; // Import useSearchParams
+>>>>>>> Stashed changes
 import Profile from "@/components/Profile";
 import RankedInfo from "@/components/RankedInfo";
 import ChampionMastery from "@/components/ChampionMastery";
@@ -11,8 +16,13 @@ import Loading from "@/components/Loading";
 import LiveGame from "@/components/LiveGame";
 import RecentlyPlayedWith from "@/components/RecentlyPlayedWith";
 
+<<<<<<< Updated upstream
 const ProfilePage = () => {
 	const searchParams = useSearchParams();
+=======
+const ProfilePageContent = () => {
+	const searchParams = useSearchParams(); // Use useSearchParams to get searchParams
+>>>>>>> Stashed changes
 	const gameName = searchParams.get("gameName");
 	const tagLine = searchParams.get("tagLine");
 
@@ -53,9 +63,13 @@ const ProfilePage = () => {
 		fetchProfileData();
 	}, [fetchProfileData]);
 
+<<<<<<< Updated upstream
 	const toggleLiveGame = () => {
 		setIsLiveGameOpen((prev) => !prev);
 	};
+=======
+	const toggleLiveGame = () => setIsLiveGameOpen((prev) => !prev);
+>>>>>>> Stashed changes
 
 	const triggerUpdate = async () => {
 		setIsUpdating(true);
@@ -68,7 +82,11 @@ const ProfilePage = () => {
 				},
 				body: JSON.stringify({ gameName, tagLine }),
 			});
+<<<<<<< Updated upstream
 			const result = await response.json();
+=======
+			await response.json();
+>>>>>>> Stashed changes
 			await fetchProfileData();
 		} catch (error) {
 			console.error("Error triggering update:", error);
@@ -95,7 +113,6 @@ const ProfilePage = () => {
 
 	return (
 		<div className="min-h-screen bg-[#0e1015] relative">
-			{/* Profile Section */}
 			<div
 				className={`w-full bg-black rounded-b-3xl ${
 					liveGameData
@@ -118,15 +135,11 @@ const ProfilePage = () => {
 					<p className="text-white">No profile data found.</p>
 				)}
 			</div>
-
-			{/* Live Game Details (Expandable) */}
 			{liveGameData && isLiveGameOpen && (
 				<div className="max-w-screen-xl mx-auto mt-4">
 					<LiveGame liveGameData={liveGameData} />
 				</div>
 			)}
-
-			{/* Other Components - Centered */}
 			<div className="max-w-screen-xl mx-auto flex flex-col items-center gap-8 mt-8">
 				<div className="w-full flex flex-col md:flex-row gap-4">
 					<div className="md:w-1/3 flex flex-col gap-4">
@@ -141,7 +154,6 @@ const ProfilePage = () => {
 							<ChampionMastery championMasteryData={championMasteryData} />
 						)}
 					</div>
-
 					<div className="md:w-2/3 flex flex-col gap-4">
 						{matchDetails && profileData && (
 							<Last20GamesPerformance
@@ -149,7 +161,10 @@ const ProfilePage = () => {
 								selectedSummonerPUUID={profileData.puuid}
 							/>
 						)}
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 						{matchDetails && (
 							<MatchHistory
 								matchDetails={matchDetails}
@@ -164,5 +179,11 @@ const ProfilePage = () => {
 		</div>
 	);
 };
+
+const ProfilePage = () => (
+	<Suspense fallback={<Loading />}>
+		<ProfilePageContent />
+	</Suspense>
+);
 
 export default ProfilePage;
