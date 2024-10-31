@@ -1,17 +1,21 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import Profile from "@/components/Profile";
 import RankedInfo from "@/components/RankedInfo";
 import ChampionMastery from "@/components/ChampionMastery";
 import MatchHistory from "@/components/MatchHistory";
 import Last20GamesPerformance from "@/components/Last20GamesPerformance";
 import Loading from "@/components/Loading";
-import LiveGame from "@/components/LiveGame"; // Import LiveGame component
+import LiveGame from "@/components/LiveGame";
 import RecentlyPlayedWith from "@/components/RecentlyPlayedWith";
 
-const ProfilePage = ({ searchParams }) => {
-	const { gameName, tagLine } = searchParams;
+const ProfilePage = () => {
+	const searchParams = useSearchParams();
+	const gameName = searchParams.get("gameName");
+	const tagLine = searchParams.get("tagLine");
+
 	const [profileData, setProfileData] = useState(null);
 	const [accountData, setAccountData] = useState(null);
 	const [rankedData, setRankedData] = useState(null);
@@ -20,8 +24,8 @@ const ProfilePage = ({ searchParams }) => {
 	const [liveGameData, setLiveGameData] = useState(null);
 	const [error, setError] = useState(null);
 	const [isLoading, setIsLoading] = useState(true);
-	const [isLiveGameOpen, setIsLiveGameOpen] = useState(false); // For expandable live game
-	const [isUpdating, setIsUpdating] = useState(false); // For update button state
+	const [isLiveGameOpen, setIsLiveGameOpen] = useState(false);
+	const [isUpdating, setIsUpdating] = useState(false);
 
 	const fetchProfileData = useCallback(async () => {
 		try {
@@ -37,7 +41,7 @@ const ProfilePage = ({ searchParams }) => {
 			setRankedData(data.rankeddata);
 			setChampionMasteryData(data.championmasterydata);
 			setMatchDetails(data.matchdetails);
-			setLiveGameData(data.livegamedata); // Ensure liveGameData is set correctly
+			setLiveGameData(data.livegamedata);
 		} catch (error) {
 			setError(error.message);
 		} finally {
@@ -49,12 +53,10 @@ const ProfilePage = ({ searchParams }) => {
 		fetchProfileData();
 	}, [fetchProfileData]);
 
-	// Toggle Live Game Expansion
 	const toggleLiveGame = () => {
 		setIsLiveGameOpen((prev) => !prev);
 	};
 
-	// Function to trigger profile update
 	const triggerUpdate = async () => {
 		setIsUpdating(true);
 		try {
@@ -67,7 +69,7 @@ const ProfilePage = ({ searchParams }) => {
 				body: JSON.stringify({ gameName, tagLine }),
 			});
 			const result = await response.json();
-			await fetchProfileData(); // Fetch new data after update, including liveGameData
+			await fetchProfileData();
 		} catch (error) {
 			console.error("Error triggering update:", error);
 		} finally {
@@ -109,8 +111,8 @@ const ProfilePage = ({ searchParams }) => {
 						liveGameData={liveGameData}
 						toggleLiveGame={toggleLiveGame}
 						isLiveGameOpen={isLiveGameOpen}
-						triggerUpdate={triggerUpdate} // Pass the triggerUpdate function to Profile
-						isUpdating={isUpdating} // Pass the updating state
+						triggerUpdate={triggerUpdate}
+						isUpdating={isUpdating}
 					/>
 				) : (
 					<p className="text-white">No profile data found.</p>
@@ -129,7 +131,6 @@ const ProfilePage = ({ searchParams }) => {
 				<div className="w-full flex flex-col md:flex-row gap-4">
 					<div className="md:w-1/3 flex flex-col gap-4">
 						{rankedData && <RankedInfo rankedData={rankedData} />}
-						{/* Recently Played With Component */}
 						{matchDetails && profileData && (
 							<RecentlyPlayedWith
 								matchDetails={matchDetails}
@@ -142,7 +143,6 @@ const ProfilePage = ({ searchParams }) => {
 					</div>
 
 					<div className="md:w-2/3 flex flex-col gap-4">
-						{/* Last 10 Games Performance */}
 						{matchDetails && profileData && (
 							<Last20GamesPerformance
 								matchDetails={matchDetails}
@@ -150,7 +150,6 @@ const ProfilePage = ({ searchParams }) => {
 							/>
 						)}
 
-						{/* Match History */}
 						{matchDetails && (
 							<MatchHistory
 								matchDetails={matchDetails}
