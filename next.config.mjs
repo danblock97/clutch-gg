@@ -13,9 +13,6 @@ const nextConfig = {
 		],
 		unoptimized: true,
 	},
-	experimental: {
-		missingSuspenseWithCSRBailout: false,
-	},
 	webpack: (config, { isServer }) => {
 		if (!isServer) {
 			config.resolve.fallback = {
