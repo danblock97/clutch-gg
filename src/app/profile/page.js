@@ -1,12 +1,7 @@
 "use client";
 
-<<<<<<< Updated upstream
-import React, { useState, useEffect, useCallback } from "react";
-import { useSearchParams } from "next/navigation";
-=======
 import React, { useState, useEffect, useCallback, Suspense } from "react";
-import { useSearchParams } from "next/navigation"; // Import useSearchParams
->>>>>>> Stashed changes
+import { useSearchParams } from "next/navigation";
 import Profile from "@/components/Profile";
 import RankedInfo from "@/components/RankedInfo";
 import ChampionMastery from "@/components/ChampionMastery";
@@ -16,13 +11,8 @@ import Loading from "@/components/Loading";
 import LiveGame from "@/components/LiveGame";
 import RecentlyPlayedWith from "@/components/RecentlyPlayedWith";
 
-<<<<<<< Updated upstream
-const ProfilePage = () => {
-	const searchParams = useSearchParams();
-=======
 const ProfilePageContent = () => {
-	const searchParams = useSearchParams(); // Use useSearchParams to get searchParams
->>>>>>> Stashed changes
+	const searchParams = useSearchParams();
 	const gameName = searchParams.get("gameName");
 	const tagLine = searchParams.get("tagLine");
 
@@ -63,13 +53,7 @@ const ProfilePageContent = () => {
 		fetchProfileData();
 	}, [fetchProfileData]);
 
-<<<<<<< Updated upstream
-	const toggleLiveGame = () => {
-		setIsLiveGameOpen((prev) => !prev);
-	};
-=======
 	const toggleLiveGame = () => setIsLiveGameOpen((prev) => !prev);
->>>>>>> Stashed changes
 
 	const triggerUpdate = async () => {
 		setIsUpdating(true);
@@ -82,11 +66,7 @@ const ProfilePageContent = () => {
 				},
 				body: JSON.stringify({ gameName, tagLine }),
 			});
-<<<<<<< Updated upstream
-			const result = await response.json();
-=======
 			await response.json();
->>>>>>> Stashed changes
 			await fetchProfileData();
 		} catch (error) {
 			console.error("Error triggering update:", error);
@@ -161,10 +141,6 @@ const ProfilePageContent = () => {
 								selectedSummonerPUUID={profileData.puuid}
 							/>
 						)}
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
 						{matchDetails && (
 							<MatchHistory
 								matchDetails={matchDetails}
