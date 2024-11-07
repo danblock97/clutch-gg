@@ -14,6 +14,7 @@ const regions = [
 	{ code: "LA1", name: "LAN" },
 	{ code: "LA2", name: "LAS" },
 	{ code: "NA1", name: "NA" },
+	{code: "ME1", name: "ME"},
 	{ code: "OC1", name: "OCE" },
 	{ code: "TR1", name: "TR" },
 	{ code: "RU", name: "RU" },
