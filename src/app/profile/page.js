@@ -15,6 +15,7 @@ const ProfilePageContent = () => {
 	const searchParams = useSearchParams();
 	const gameName = searchParams.get("gameName");
 	const tagLine = searchParams.get("tagLine");
+	const region = searchParams.get("region"); // Retrieve the region from URL
 
 	const [profileData, setProfileData] = useState(null);
 	const [accountData, setAccountData] = useState(null);
@@ -30,7 +31,7 @@ const ProfilePageContent = () => {
 	const fetchProfileData = useCallback(async () => {
 		try {
 			const response = await fetch(
-				`/api/league/profile?gameName=${gameName}&tagLine=${tagLine}`
+				`/api/league/profile?gameName=${gameName}&tagLine=${tagLine}&region=${region}`
 			);
 			if (!response.ok) {
 				throw new Error("Failed to fetch profile");
@@ -47,7 +48,7 @@ const ProfilePageContent = () => {
 		} finally {
 			setIsLoading(false);
 		}
-	}, [gameName, tagLine]);
+	}, [gameName, tagLine, region]);
 
 	useEffect(() => {
 		fetchProfileData();
@@ -64,7 +65,7 @@ const ProfilePageContent = () => {
 					"Content-Type": "application/json",
 					"x-api-key": process.env.NEXT_PUBLIC_UPDATE_API_KEY,
 				},
-				body: JSON.stringify({ gameName, tagLine }),
+				body: JSON.stringify({ gameName, tagLine, region }), // Include region in the request body
 			});
 			await response.json();
 			await fetchProfileData();
@@ -117,7 +118,7 @@ const ProfilePageContent = () => {
 			</div>
 			{liveGameData && isLiveGameOpen && (
 				<div className="max-w-screen-xl mx-auto mt-4">
-					<LiveGame liveGameData={liveGameData} />
+					<LiveGame liveGameData={liveGameData} region={region} />
 				</div>
 			)}
 			<div className="max-w-screen-xl mx-auto flex flex-col items-center gap-8 mt-8">
@@ -147,6 +148,7 @@ const ProfilePageContent = () => {
 								selectedSummonerPUUID={profileData?.puuid || null}
 								gameName={accountData?.gameName}
 								tagLine={accountData?.tagLine}
+								region={region}
 							/>
 						)}
 					</div>

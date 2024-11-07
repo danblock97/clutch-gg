@@ -79,6 +79,7 @@ const MatchHistory = ({
 	selectedSummonerPUUID,
 	gameName,
 	tagLine,
+	region,
 }) => {
 	const [augments, setAugments] = useState([]);
 	const [expandedMatchId, setExpandedMatchId] = useState(null); // State for expanded match
@@ -666,6 +667,7 @@ const MatchHistory = ({
 												matchDetails={matchDetails}
 												matchId={match.metadata.matchId}
 												selectedSummonerPUUID={selectedSummonerPUUID}
+												region={region}
 											/>
 										</div>
 									)}

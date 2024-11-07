@@ -2,26 +2,6 @@ import { supabase } from "@/lib/supabase";
 
 const RIOT_API_KEY = process.env.RIOT_API_KEY;
 
-const regions = [
-	"BR1",
-	"EUW1",
-	"EUN1",
-	"JP1",
-	"KR",
-	"LA1",
-	"LA2",
-	"ME1",
-	"NA1",
-	"OC1",
-	"PH2",
-	"RU",
-	"SG2",
-	"TH2",
-	"TR1",
-	"TW2",
-	"VN2",
-];
-
 const regionToPlatform = {
 	BR1: "americas",
 	EUN1: "europe",
@@ -44,27 +24,17 @@ const regionToPlatform = {
 
 const fetchAdditionalData = async (summonerId, puuid, region) => {
 	try {
-		const [rankedResponse, accountResponse, summonerResponse] =
-			await Promise.all([
-				fetch(
-					`https://${region}.api.riotgames.com/lol/league/v4/entries/by-summoner/${summonerId}`,
-					{
-						headers: { "X-Riot-Token": RIOT_API_KEY },
-					}
-				),
-				fetch(
-					`https://europe.api.riotgames.com/riot/account/v1/accounts/by-puuid/${puuid}`,
-					{
-						headers: { "X-Riot-Token": RIOT_API_KEY },
-					}
-				),
-				fetch(
-					`https://${region}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}`,
-					{
-						headers: { "X-Riot-Token": RIOT_API_KEY },
-					}
-				),
-			]);
+		const [rankedResponse, accountResponse, summonerResponse] = await Promise.all([
+			fetch(`https://${region}.api.riotgames.com/lol/league/v4/entries/by-summoner/${summonerId}`, {
+				headers: { "X-Riot-Token": RIOT_API_KEY },
+			}),
+			fetch(`https://europe.api.riotgames.com/riot/account/v1/accounts/by-puuid/${puuid}`, {
+				headers: { "X-Riot-Token": RIOT_API_KEY },
+			}),
+			fetch(`https://${region}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}`, {
+				headers: { "X-Riot-Token": RIOT_API_KEY },
+			}),
+		]);
 
 		if (!rankedResponse.ok || !accountResponse.ok || !summonerResponse.ok) {
 			throw new Error("Failed to fetch additional data");
@@ -76,14 +46,10 @@ const fetchAdditionalData = async (summonerId, puuid, region) => {
 			summonerResponse.json(),
 		]);
 
-		const soloQueueData = rankedData.find(
-			(queue) => queue.queueType === "RANKED_SOLO_5x5"
-		);
+		const soloQueueData = rankedData.find((queue) => queue.queueType === "RANKED_SOLO_5x5");
 
 		return {
-			rank: soloQueueData
-				? `${soloQueueData.tier} ${soloQueueData.rank}`
-				: "Unranked",
+			rank: soloQueueData ? `${soloQueueData.tier} ${soloQueueData.rank}` : "Unranked",
 			lp: soloQueueData ? soloQueueData.leaguePoints : 0,
 			wins: soloQueueData ? soloQueueData.wins : 0,
 			losses: soloQueueData ? soloQueueData.losses : 0,
@@ -104,16 +70,16 @@ const fetchAdditionalData = async (summonerId, puuid, region) => {
 	}
 };
 
-export const fetchAndUpdateProfileData = async (gameName, tagLine) => {
-	if (!gameName || !tagLine) {
+export const fetchAndUpdateProfileData = async (gameName, tagLine, region) => {
+	if (!gameName || !tagLine || !region) {
 		throw new Error("Missing required query parameters");
 	}
 
+	const platform = regionToPlatform[region];
+
 	const accountResponse = await fetch(
-		`https://europe.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${gameName}/${tagLine}`,
-		{
-			headers: { "X-Riot-Token": RIOT_API_KEY },
-		}
+		`https://${platform}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${gameName}/${tagLine}`,
+		{ headers: { "X-Riot-Token": RIOT_API_KEY } }
 	);
 
 	if (!accountResponse.ok) {
@@ -123,73 +89,51 @@ export const fetchAndUpdateProfileData = async (gameName, tagLine) => {
 	const accountData = await accountResponse.json();
 	const encryptedPUUID = accountData.puuid;
 
-	let profileResponse;
-	let profileDataFetched;
-	let region;
-
-	const regionFetchPromises = regions.map((r) =>
-		fetch(
-			`https://${r}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${encryptedPUUID}`,
-			{
-				headers: { "X-Riot-Token": RIOT_API_KEY },
-			}
-		).then((res) => ({
-			res,
-			region: r,
-		}))
+	const summonerResponse = await fetch(
+		`https://${region}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${encryptedPUUID}`,
+		{ headers: { "X-Riot-Token": RIOT_API_KEY } }
 	);
 
-	const regionFetchResults = await Promise.all(regionFetchPromises);
-	for (const result of regionFetchResults) {
-		if (result.res.ok) {
-			profileResponse = result.res;
-			profileDataFetched = await profileResponse.json();
-			region = result.region;
-			break;
-		}
+	if (!summonerResponse.ok) {
+		throw new Error("Failed to fetch summoner data");
 	}
 
-	if (!profileResponse || !profileResponse.ok) {
-		throw new Error("Failed to fetch profile from any region");
+	const profileDataFetched = await summonerResponse.json();
+
+	const rankedResponse = await fetch(
+		`https://${region}.api.riotgames.com/lol/league/v4/entries/by-summoner/${profileDataFetched.id}`,
+		{ headers: { "X-Riot-Token": RIOT_API_KEY } }
+	);
+
+	if (!rankedResponse.ok) {
+		throw new Error("Failed to fetch ranked data");
 	}
 
-	const platform = regionToPlatform[region];
+	const rankedData = await rankedResponse.json();
 
-	const [rankedResponse, championMasteryResponse, matchResponse] =
-		await Promise.all([
-			fetch(
-				`https://${region}.api.riotgames.com/lol/league/v4/entries/by-summoner/${profileDataFetched.id}`,
-				{
-					headers: { "X-Riot-Token": RIOT_API_KEY },
-				}
-			),
-			fetch(
-				`https://${region}.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-puuid/${encryptedPUUID}`,
-				{
-					headers: { "X-Riot-Token": RIOT_API_KEY },
-				}
-			),
-			fetch(
-				`https://${platform}.api.riotgames.com/lol/match/v5/matches/by-puuid/${encryptedPUUID}/ids?start=0&count=20`,
-				{
-					headers: { "X-Riot-Token": RIOT_API_KEY },
-				}
-			),
-		]);
+	const matchResponse = await fetch(
+		`https://${platform}.api.riotgames.com/lol/match/v5/matches/by-puuid/${encryptedPUUID}/ids?start=0&count=20`,
+		{ headers: { "X-Riot-Token": RIOT_API_KEY } }
+	);
 
-	if (!rankedResponse.ok || !championMasteryResponse.ok || !matchResponse.ok) {
-		throw new Error("Failed to fetch profile details");
+	if (!matchResponse.ok) {
+		throw new Error("Failed to fetch match data");
 	}
 
-	const [rankedData, championMasteryDataRaw, matchData] = await Promise.all([
-		rankedResponse.json(),
-		championMasteryResponse.json(),
-		matchResponse.json(),
-	]);
+	const matchData = await matchResponse.json();
 
+	const championMasteryResponse = await fetch(
+		`https://${region}.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-puuid/${encryptedPUUID}`,
+		{ headers: { "X-Riot-Token": RIOT_API_KEY } }
+	);
+
+	if (!championMasteryResponse.ok) {
+		throw new Error("Failed to fetch champion mastery data");
+	}
+
+	const championMasteryDataRaw = await championMasteryResponse.json();
 	const championMasteryData = championMasteryDataRaw.slice(0, 5);
 
-	// Fetch existing matches from Supabase
 	const { data: existingMatches, error: existingMatchesError } = await supabase
 		.from("matches")
 		.select("*")
@@ -200,7 +144,6 @@ export const fetchAndUpdateProfileData = async (gameName, tagLine) => {
 		console.error("Error fetching existing matches:", existingMatchesError);
 	}
 
-	// Delete the oldest match if there are already 10 matches
 	if (existingMatches && existingMatches.length >= 10) {
 		const oldestMatchId = existingMatches[0].matchid;
 		const { error: deleteMatchError } = await supabase
@@ -217,9 +160,7 @@ export const fetchAndUpdateProfileData = async (gameName, tagLine) => {
 		matchData.map(async (matchId) => {
 			const matchDetailResponse = await fetch(
 				`https://${platform}.api.riotgames.com/lol/match/v5/matches/${matchId}`,
-				{
-					headers: { "X-Riot-Token": RIOT_API_KEY },
-				}
+				{ headers: { "X-Riot-Token": RIOT_API_KEY } }
 			);
 
 			if (!matchDetailResponse.ok) {
@@ -228,7 +169,6 @@ export const fetchAndUpdateProfileData = async (gameName, tagLine) => {
 
 			const matchDetail = await matchDetailResponse.json();
 
-			// Insert match detail into matches table
 			const { error: insertMatchError } = await supabase.from("matches").upsert(
 				{
 					matchid: matchId,
@@ -248,9 +188,7 @@ export const fetchAndUpdateProfileData = async (gameName, tagLine) => {
 
 	const liveGameResponse = await fetch(
 		`https://${region}.api.riotgames.com/lol/spectator/v5/active-games/by-summoner/${profileDataFetched.puuid}`,
-		{
-			headers: { "X-Riot-Token": RIOT_API_KEY },
-		}
+		{ headers: { "X-Riot-Token": RIOT_API_KEY } }
 	);
 
 	let liveGameData = null;
@@ -278,7 +216,7 @@ export const fetchAndUpdateProfileData = async (gameName, tagLine) => {
 		matchdata: matchData,
 		matchdetails: matchDetails,
 		livegamedata: liveGameData,
-		region: region,
+		region,
 		updatedat: new Date(),
 	};
 
