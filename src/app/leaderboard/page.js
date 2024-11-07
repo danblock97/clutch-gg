@@ -79,7 +79,7 @@ const Leaderboard = () => {
 					)}
 				</div>
 			) : (
-				<LeaderboardTable leaderboardData={leaderboardData} />
+				<LeaderboardTable leaderboardData={leaderboardData} region={region} />
 			)}
 		</div>
 	);

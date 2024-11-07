@@ -5,31 +5,28 @@ export async function GET(req) {
 	const { searchParams } = new URL(req.url);
 	const gameName = searchParams.get("gameName");
 	const tagLine = searchParams.get("tagLine");
+	const region = searchParams.get("region");
 
-	if (!gameName || !tagLine) {
+	if (!gameName || !tagLine || !region) {
 		return new Response(
 			JSON.stringify({ error: "Missing required query parameters" }),
-			{
-				status: 400,
-				headers: { "Content-Type": "application/json" },
-			}
+			{ status: 400, headers: { "Content-Type": "application/json" } }
 		);
 	}
 
 	try {
-		// Check if profile exists in Supabase
 		let { data, error } = await supabase
 			.from("profiles")
 			.select("*")
 			.eq("gamename", gameName)
 			.eq("tagline", tagLine)
+			.eq("region", region)
 			.maybeSingle();
 
 		if (error) throw error;
 
 		if (!data) {
-			// Profile doesn't exist, fetch from Riot API and update Supabase
-			data = await fetchAndUpdateProfileData(gameName, tagLine);
+			data = await fetchAndUpdateProfileData(gameName, tagLine, region);
 		}
 
 		return new Response(JSON.stringify(data), {
@@ -47,18 +44,15 @@ export async function GET(req) {
 
 export async function POST(req) {
 	try {
-		const { gameName, tagLine } = await req.json();
-		if (!gameName || !tagLine) {
+		const { gameName, tagLine, region } = await req.json();
+		if (!gameName || !tagLine || !region) {
 			return new Response(
 				JSON.stringify({ error: "Missing required parameters" }),
-				{
-					status: 400,
-					headers: { "Content-Type": "application/json" },
-				}
+				{ status: 400, headers: { "Content-Type": "application/json" } }
 			);
 		}
 
-		const data = await fetchAndUpdateProfileData(gameName, tagLine);
+		const data = await fetchAndUpdateProfileData(gameName, tagLine, region);
 		return new Response(JSON.stringify(data), {
 			status: 200,
 			headers: { "Content-Type": "application/json" },

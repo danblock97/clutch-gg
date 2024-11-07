@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-const LiveGame = ({ liveGameData }) => {
+const LiveGame = ({ liveGameData, region }) => {
 	const [isArena, setIsArena] = useState(false);
 
 	useEffect(() => {
@@ -57,7 +57,7 @@ const LiveGame = ({ liveGameData }) => {
 					</div>
 					<div className="flex flex-col">
 						<Link
-							href={`/profile?gameName=${participant.gameName}&tagLine=${participant.tagLine}`}
+							href={`/profile?gameName=${participant.gameName}&tagLine=${participant.tagLine}&region=${region}`}
 							className="font-bold hover:underline"
 						>
 							{participant.gameName}#{participant.tagLine}

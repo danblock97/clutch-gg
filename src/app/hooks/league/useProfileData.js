@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
 
 const useProfileData = (gameName, tagLine, region) => {
 	const [profileData, setProfileData] = useState(null);
@@ -12,8 +11,8 @@ const useProfileData = (gameName, tagLine, region) => {
 	const [isLoading, setIsLoading] = useState(true);
 
 	const fetchProfileData = async () => {
-		if (!gameName || !tagLine) {
-			setError("Missing gameName or tagLine");
+		if (!gameName || !tagLine || !region) {
+			setError("Missing gameName, tagLine, or region");
 			setIsLoading(false);
 			return;
 		}
@@ -27,9 +26,6 @@ const useProfileData = (gameName, tagLine, region) => {
 			}
 
 			const data = await response.json();
-			if (!data.matchdetails || data.matchdetails.length === 0) {
-				throw new Error("No match details found.");
-			}
 
 			setProfileData(data.profiledata);
 			setAccountData(data.accountdata);
