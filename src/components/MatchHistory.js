@@ -316,7 +316,9 @@ const MatchHistory = ({
 								);
 							}
 
-							if (currentPlayer.challenges.damagePerMinute > 800) {
+							const damageThreshold = match.info.queueId === 450 ? 1700 : 900;
+
+							if (currentPlayer.challenges.damagePerMinute > damageThreshold) {
 								tags.push(
 									<Tag
 										key="good-damage"
