@@ -141,26 +141,28 @@ const MatchHistory = ({
 	}
 
 	const filteredMatches = matchDetails.filter((match) => {
-		const currentPlayer = match.info.participants.find(
+		const participants = match.info && match.info.participants;
+		if (!participants) return false;
+
+		const currentPlayer = participants.find(
 			(participant) => participant.puuid === selectedSummonerPUUID
 		);
 
-		if (!currentPlayer) return false; // Ensure currentPlayer exists
+		if (!currentPlayer) return false;
 
 		const playerLane = normalizeTeamPosition(currentPlayer.teamPosition);
 
-		// Filter by lane if selected
 		if (selectedLane && playerLane !== selectedLane) {
 			return false;
 		}
 
-		// Filter by queue if selected
 		if (selectedQueue && match.info.queueId !== selectedQueue) {
 			return false;
 		}
 
 		return true;
 	});
+
 
 	// Calculate pagination details
 	const totalMatches = filteredMatches.length;
