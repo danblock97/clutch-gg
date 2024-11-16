@@ -2,6 +2,7 @@ import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import Tag from "@/components/Tag";
 import MatchDetails from "@/components/MatchDetails"; // Import MatchDetails
+import { FaSkullCrossbones, FaBolt, FaShieldAlt, FaFire, FaStar, FaClock, FaTrophy, FaMedal } from "react-icons/fa";
 
 const fetchArenaAugments = async () => {
 	const response = await fetch(
@@ -74,13 +75,103 @@ const queues = [
 	{ id: 1700, name: "Arena" },
 ];
 
+const getAdditionalTags = (match, currentPlayer) => {
+	const tags = [];
+
+	// Tag for Fast Win
+	if (match.info.gameDuration < 1200 && currentPlayer.win) {
+		tags.push(
+			<Tag
+				key="fast-win"
+				text="Fast Win"
+				hoverText="You won in less than 20 minutes!"
+				color="bg-green-500 text-white"
+				icon={<FaClock />}
+			/>
+		);
+	}
+
+	// Tag for MVP (Highest KDA)
+	const highestKDA = match.info.participants.reduce((max, participant) => {
+		const kda =
+			(participant.kills + participant.assists) / Math.max(1, participant.deaths);
+		return kda > max ? kda : max;
+	}, 0);
+	const playerKDA =
+		(currentPlayer.kills + currentPlayer.assists) / Math.max(1, currentPlayer.deaths);
+
+	if (playerKDA === highestKDA) {
+		tags.push(
+			<Tag
+				key="mvp"
+				text="MVP"
+				hoverText="You had the highest KDA in the game!"
+				color="bg-yellow-500 text-white"
+				icon={<FaTrophy />}
+			/>
+		);
+	}
+
+	// Tag for Killing Spree (e.g., more than 10 kills)
+	if (currentPlayer.kills >= 10) {
+		tags.push(
+			<Tag
+				key="killing-spree"
+				text="Killing Spree"
+				hoverText={`You got ${currentPlayer.kills} kills!`}
+				color="bg-red-500 text-white"
+				icon={<FaSkullCrossbones />}
+			/>
+		);
+	}
+
+	// Tag for Objective Player (e.g., highest damage to objectives)
+	const highestObjectiveDamage = match.info.participants.reduce(
+		(max, participant) =>
+			participant.damageDealtToObjectives > max
+				? participant.damageDealtToObjectives
+				: max,
+		0
+	);
+	if (currentPlayer.damageDealtToObjectives === highestObjectiveDamage) {
+		tags.push(
+			<Tag
+				key="objective-master"
+				text="Objective Master"
+				hoverText="You dealt the most damage to objectives!"
+				color="bg-blue-500 text-white"
+				icon={<FaMedal />}
+			/>
+		);
+	}
+
+	// Tag for Gold Leader (e.g., highest gold earned)
+	const highestGold = match.info.participants.reduce(
+		(max, participant) => (participant.goldEarned > max ? participant.goldEarned : max),
+		0
+	);
+	if (currentPlayer.goldEarned === highestGold) {
+		tags.push(
+			<Tag
+				key="gold-leader"
+				text="Gold Leader"
+				hoverText="You earned the most gold in the game!"
+				color="bg-yellow-400 text-black"
+				icon={<FaStar />}
+			/>
+		);
+	}
+
+	return tags;
+};
+
 const MatchHistory = ({
-	matchDetails,
-	selectedSummonerPUUID,
-	gameName,
-	tagLine,
-	region,
-}) => {
+						  matchDetails,
+						  selectedSummonerPUUID,
+						  gameName,
+						  tagLine,
+						  region,
+					  }) => {
 	const [augments, setAugments] = useState([]);
 	const [expandedMatchId, setExpandedMatchId] = useState(null); // State for expanded match
 	const [selectedLane, setSelectedLane] = useState(null); // Lane filter state
@@ -162,7 +253,6 @@ const MatchHistory = ({
 
 		return true;
 	});
-
 
 	// Calculate pagination details
 	const totalMatches = filteredMatches.length;
@@ -281,7 +371,9 @@ const MatchHistory = ({
 								(participant) => participant.puuid === selectedSummonerPUUID
 							);
 
-							const tags = [];
+							const tags = [
+								...getAdditionalTags(match, currentPlayer),
+							];
 
 							if (currentPlayer.firstBloodKill) {
 								tags.push(
@@ -290,6 +382,7 @@ const MatchHistory = ({
 										text="First Blood"
 										hoverText="Congrats on First Blood!"
 										color="bg-green-500 text-white"
+										icon={<FaSkullCrossbones />}
 									/>
 								);
 							}
@@ -301,6 +394,7 @@ const MatchHistory = ({
 										text="Triple Kill"
 										hoverText={`Nice job getting ${currentPlayer.tripleKills} Triple Kills!`}
 										color="bg-yellow-500 text-white"
+										icon={<FaBolt />}
 									/>
 								);
 							}
@@ -312,6 +406,7 @@ const MatchHistory = ({
 										text="Unkillable"
 										hoverText={`A Whole 0 Deaths! Grats on not inting!`}
 										color="bg-yellow-500 text-white"
+										icon={<FaShieldAlt />}
 									/>
 								);
 							}
@@ -325,6 +420,7 @@ const MatchHistory = ({
 										text="Good Damage"
 										hoverText={`Nice Damage Dealt: ${currentPlayer.totalDamageDealtToChampions.toLocaleString()}`}
 										color="bg-yellow-500 text-white"
+										icon={<FaFire />}
 									/>
 								);
 							}
@@ -338,6 +434,7 @@ const MatchHistory = ({
 											1
 										)}`}
 										color="bg-blue-500 text-white"
+										icon={<FaStar />}
 									/>
 								);
 							}
@@ -365,8 +462,8 @@ const MatchHistory = ({
 								daysDifference > 0
 									? `${daysDifference} days ago`
 									: hoursDifference > 0
-									? `${hoursDifference} hours ago`
-									: `${minutesDifference} minutes ago`;
+										? `${hoursDifference} hours ago`
+										: `${minutesDifference} minutes ago`;
 
 							const kda = (
 								(currentPlayer.kills + currentPlayer.assists) /
@@ -418,7 +515,7 @@ const MatchHistory = ({
 										)} min-w-[768px]`}
 									>
 										{/* Match Card */}
-										<div className="absolute top-4 left-4 flex items-start">
+										<div className="absolute top-4 left-2 flex items-start">
 											<div className="flex items-center mr-4">
 												<Image
 													src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${currentPlayer.championId}.png`}
@@ -442,8 +539,8 @@ const MatchHistory = ({
 														{isRemake
 															? "Remake"
 															: currentPlayer.win
-															? "Victory"
-															: "Defeat"}
+																? "Victory"
+																: "Defeat"}
 													</p>
 													<p className="text-sm mr-2">
 														• {getQueueName(match.info.queueId)}
@@ -497,8 +594,8 @@ const MatchHistory = ({
 														</div>
 													)}
 												</div>
-												<div className="flex mt-2 flex-wrap">
-													{tags.slice(0, 2)}
+												<div className="flex mt-4 flex-wrap justify-start space-x-2">
+													{tags.slice(0, 3)}
 												</div>
 											</div>
 										</div>
@@ -618,15 +715,15 @@ const MatchHistory = ({
 																	width: "100px",
 																}}
 															>
-																<span
-																	className={`${
-																		participant.puuid === selectedSummonerPUUID
-																			? "font-semibold text-gray-100"
-																			: ""
-																	}`}
-																>
-																	{truncateName(participant.riotIdGameName, 7)}
-																</span>
+                                <span
+									className={`${
+										participant.puuid === selectedSummonerPUUID
+											? "font-semibold text-gray-100"
+											: ""
+									}`}
+								>
+                                  {truncateName(participant.riotIdGameName, 7)}
+                                </span>
 															</p>
 														</div>
 													))}
@@ -647,15 +744,15 @@ const MatchHistory = ({
 																	width: "100px",
 																}}
 															>
-																<span
-																	className={`${
-																		participant.puuid === selectedSummonerPUUID
-																			? "font-semibold text-gray-100"
-																			: ""
-																	}`}
-																>
-																	{truncateName(participant.riotIdGameName, 7)}
-																</span>
+                                <span
+									className={`${
+										participant.puuid === selectedSummonerPUUID
+											? "font-semibold text-gray-100"
+											: ""
+									}`}
+								>
+                                  {truncateName(participant.riotIdGameName, 7)}
+                                </span>
 															</p>
 														</div>
 													))}
