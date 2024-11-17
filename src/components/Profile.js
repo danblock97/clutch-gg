@@ -3,15 +3,15 @@ import { useState, useEffect, useRef } from "react";
 import NoActiveGameData from "./NoActiveGameData";
 
 const Profile = ({
-	accountData,
-	profileData,
-	rankedData,
-	toggleLiveGame,
-	triggerUpdate,
-	isUpdating,
-	liveGameData, // Boolean or object indicating live game status
-	region, // New prop indicating the region/server
-}) => {
+					 accountData,
+					 profileData,
+					 rankedData,
+					 toggleLiveGame,
+					 triggerUpdate,
+					 isUpdating,
+					 liveGameData, // Boolean or object indicating live game status
+					 region, // New prop indicating the region/server
+				 }) => {
 	const soloRankedData = rankedData.find(
 		(item) => item.queueType === "RANKED_SOLO_5x5"
 	);
@@ -27,13 +27,35 @@ const Profile = ({
 	const [showNoActiveGameData, setShowNoActiveGameData] = useState(false); // New state
 	const intervalRef = useRef(null);
 
+	// Initialize state from localStorage on mount
+	useEffect(() => {
+		const storedLastUpdated = localStorage.getItem("lastUpdated");
+		if (storedLastUpdated) {
+			const lastUpdatedTime = new Date(storedLastUpdated);
+			const now = new Date();
+			const elapsedSeconds = Math.floor((now - lastUpdatedTime) / 1000);
+			const remainingSeconds = 120 - elapsedSeconds;
+
+			if (remainingSeconds > 0) {
+				setIsUpdated(true);
+				setLastUpdated(lastUpdatedTime);
+				setCountdown(remainingSeconds);
+			} else {
+				// Cleanup if the countdown has already expired
+				localStorage.removeItem("lastUpdated");
+			}
+		}
+	}, []);
+
 	useEffect(() => {
 		if (!isUpdating && updateTriggered) {
-			setIsUpdated(true);
 			const now = new Date();
+			setIsUpdated(true);
 			setLastUpdated(now);
 			setCountdown(120);
 			setUpdateTriggered(false);
+			// Persist the last updated time in localStorage
+			localStorage.setItem("lastUpdated", now.toISOString());
 		}
 	}, [isUpdating, updateTriggered]);
 
@@ -44,6 +66,9 @@ const Profile = ({
 					if (prev <= 1) {
 						clearInterval(intervalRef.current);
 						setIsUpdated(false);
+						setLastUpdated(null);
+						// Remove the lastUpdated entry from localStorage
+						localStorage.removeItem("lastUpdated");
 						return 0;
 					}
 					return prev - 1;
@@ -174,8 +199,8 @@ const Profile = ({
 										isUpdating
 											? "bg-blue-600 opacity-50 cursor-not-allowed"
 											: isUpdated
-											? "bg-green-500 hover:bg-green-600"
-											: "bg-blue-600 hover:bg-blue-700"
+												? "bg-green-500 hover:bg-green-600"
+												: "bg-blue-600 hover:bg-blue-700"
 									} `}
 									disabled={isUpdating || countdown > 0}
 								>
@@ -204,8 +229,8 @@ const Profile = ({
 									{isUpdating
 										? "Updating..."
 										: isUpdated
-										? "Updated"
-										: "Update"}
+											? "Updated"
+											: "Update"}
 								</button>
 
 								{/* Live Game Button with Tooltip */}
