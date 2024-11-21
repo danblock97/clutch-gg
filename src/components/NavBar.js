@@ -1,9 +1,8 @@
-"use client";
-
 import React, { useState } from "react";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import { FaCoffee } from "react-icons/fa"; // Import coffee icon
 import SearchBar from "@/components/SearchBar";
 
 const NavBar = ({ isBannerVisible }) => {
@@ -41,6 +40,15 @@ const NavBar = ({ isBannerVisible }) => {
 					className="flex items-center px-3 py-2 text-gray-500"
 				>
 					<span className="ml-2">Leaderboards</span>
+				</Link>
+				<Link
+					href="https://buymeacoffee.com/danblock97"
+					target="_blank"
+					rel="noopener noreferrer"
+					className="flex items-center px-3 py-2 text-gray-500 hover:text-yellow-400"
+				>
+					<FaCoffee className="text-lg mr-1" />
+					<span>Buy Me a Coffee</span>
 				</Link>
 			</div>
 
