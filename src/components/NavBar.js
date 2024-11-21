@@ -42,13 +42,12 @@ const NavBar = ({ isBannerVisible }) => {
 					<span className="ml-2">Leaderboards</span>
 				</Link>
 				<Link
-					href="https://buymeacoffee.com/danblock97"
+					href="https://www.buymeacoffee.com/danblock97"
 					target="_blank"
 					rel="noopener noreferrer"
 					className="flex items-center px-3 py-2 text-gray-500 hover:text-yellow-400"
 				>
-					<FaCoffee className="text-lg mr-1" />
-					<span>Buy Me a Coffee</span>
+					<Image src="https://img.buymeacoffee.com/button-api/?text=Buy me a pizza&emoji=🍕&slug=danblock97&button_colour=FFDD00&font_colour=000000&font_family=Comic&outline_colour=000000&coffee_colour=ffffff" alt="Buy me a pizza" width={120} height={40} />
 				</Link>
 			</div>
 
