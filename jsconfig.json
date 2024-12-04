@@ -1,7 +1,9 @@
 {
-  "compilerOptions": {
-    "paths": {
-      "@/*": ["./src/*"]
-    }
-  }
+	"compilerOptions": {
+		"paths": {
+			"@/*": ["./src/*"]
+		},
+		"types": [] // Only include the types you need
+	},
+	"exclude": ["node_modules", "**/node_modules/*"]
 }
