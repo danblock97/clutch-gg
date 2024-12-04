@@ -3,15 +3,15 @@ import { useState, useEffect, useRef } from "react";
 import NoActiveGameData from "./NoActiveGameData";
 
 const Profile = ({
-					 accountData,
-					 profileData,
-					 rankedData,
-					 toggleLiveGame,
-					 triggerUpdate,
-					 isUpdating,
-					 liveGameData, // Boolean or object indicating live game status
-					 region, // New prop indicating the region/server
-				 }) => {
+	accountData,
+	profileData,
+	rankedData,
+	toggleLiveGame,
+	triggerUpdate,
+	isUpdating,
+	liveGameData, // Boolean or object indicating live game status
+	region, // New prop indicating the region/server
+}) => {
 	const soloRankedData = rankedData.find(
 		(item) => item.queueType === "RANKED_SOLO_5x5"
 	);
@@ -199,8 +199,8 @@ const Profile = ({
 										isUpdating
 											? "bg-blue-600 opacity-50 cursor-not-allowed"
 											: isUpdated
-												? "bg-green-500 hover:bg-green-600"
-												: "bg-blue-600 hover:bg-blue-700"
+											? "bg-green-500 hover:bg-green-600"
+											: "bg-blue-600 hover:bg-blue-700"
 									} `}
 									disabled={isUpdating || countdown > 0}
 								>
@@ -229,8 +229,8 @@ const Profile = ({
 									{isUpdating
 										? "Updating..."
 										: isUpdated
-											? "Updated"
-											: "Update"}
+										? "Updated"
+										: "Update"}
 								</button>
 
 								{/* Live Game Button with Tooltip */}
@@ -240,7 +240,12 @@ const Profile = ({
 											e.stopPropagation();
 											handleLiveGameClick();
 										}}
-										className="px-4 py-2 rounded-md text-sm bg-green-600 hover:bg-green-700 text-white inline-flex items-center justify-center transition-colors duration-300"
+										disabled={!liveGameData} // Disable button if not in a live game
+										className={`px-4 py-2 rounded-md text-sm inline-flex items-center justify-center transition-colors duration-300 ${
+											liveGameData
+												? "bg-green-600 hover:bg-green-700 text-white"
+												: "bg-gray-600 text-gray-300 cursor-not-allowed"
+										}`}
 									>
 										Live Game
 									</button>
