@@ -129,6 +129,7 @@ const ProfilePageContent = () => {
 							<RecentlyPlayedWith
 								matchDetails={matchDetails}
 								selectedSummonerPUUID={profileData.puuid}
+								region={region}
 							/>
 						)}
 						{championMasteryData && (

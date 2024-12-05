@@ -1,8 +1,12 @@
 import React, { useMemo } from "react";
 import Image from "next/image";
+import Link from "next/link";
 
-const RecentlyPlayedWith = ({ matchDetails, selectedSummonerPUUID }) => {
-	// Memoize teammates calculations for better performance
+const RecentlyPlayedWith = ({
+	matchDetails,
+	selectedSummonerPUUID,
+	region,
+}) => {
 	const teammatesData = useMemo(() => {
 		const teammateStats = {};
 
@@ -20,7 +24,7 @@ const RecentlyPlayedWith = ({ matchDetails, selectedSummonerPUUID }) => {
 			);
 
 			teammates.forEach((teammate) => {
-				const key = `${teammate.riotIdGameName}#${teammate.riotIdTagline}`; // Using riotIdGameName#riotIdTagline
+				const key = `${teammate.riotIdGameName}#${teammate.riotIdTagline}`;
 				if (!teammateStats[key]) {
 					teammateStats[key] = {
 						riotIdGameName: teammate.riotIdGameName,
@@ -30,6 +34,7 @@ const RecentlyPlayedWith = ({ matchDetails, selectedSummonerPUUID }) => {
 						losses: 0,
 						summonerLevel: teammate.summonerLevel,
 						championId: teammate.championId,
+						// Removed platformId
 					};
 				}
 
@@ -48,13 +53,13 @@ const RecentlyPlayedWith = ({ matchDetails, selectedSummonerPUUID }) => {
 		);
 	}, [matchDetails, selectedSummonerPUUID]);
 
-	// **Key Change:** Return null if there's no data
+	// Return null if there's no data
 	if (teammatesData.length === 0) {
 		return null; // Component renders nothing
 	}
 
 	return (
-		<div className="bg-[#1e1e2f] p-4 rounded-md shadow-lg relative border border-gray-800 before:absolute before:top-0 before:left-0 before:w-full before:h-full before:rounded-md before:border before:border-gray-600 before:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.6),inset_-2px_-2px_5px_rgba(255,255,255,0.1)]">
+		<div className="bg-[#1e1e2f] p-4 rounded-md shadow-lg relative border border-gray-800">
 			<h3 className="text-white text-sm mb-4">
 				Recently Played With (Recent 20 Games)
 			</h3>
@@ -62,50 +67,56 @@ const RecentlyPlayedWith = ({ matchDetails, selectedSummonerPUUID }) => {
 				const winRate = ((teammate.wins / teammate.gamesPlayed) * 100).toFixed(
 					0
 				);
-				const { riotIdGameName, riotIdTagline } = teammate; // Separate riotIdGameName and riotIdTagline
+				const { riotIdGameName, riotIdTagline } = teammate;
 
 				return (
-					<div
+					<Link
 						key={index}
-						className="flex items-center justify-between mb-2 p-1 bg-[#2c2c3d] rounded-md border border-gray-600 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.6),inset_-1px_-1px_3px_rgba(255,255,255,0.1)]"
+						href={`/profile?gameName=${encodeURIComponent(
+							riotIdGameName
+						)}&tagLine=${encodeURIComponent(
+							riotIdTagline
+						)}&region=${encodeURIComponent(region)}`}
 					>
-						{/* Left section with Champion Icon and Player Info */}
-						<div className="flex items-center w-2/5">
-							<Image
-								src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${teammate.championId}.png`}
-								alt="Champion Icon"
-								width={28}
-								height={28}
-								className="rounded-full border-2 border-gray-500"
-							/>
-							<div className="ml-2">
-								<p className="text-white text-xs font-semibold leading-tight">
-									{riotIdGameName}
-									<span className="text-gray-400 text-xs">
-										#{riotIdTagline}
-									</span>
+						<div className="flex items-center justify-between mb-2 p-1 bg-[#2c2c3d] rounded-md border border-gray-600 cursor-pointer">
+							{/* Left section with Champion Icon and Player Info */}
+							<div className="flex items-center w-2/5">
+								<Image
+									src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${teammate.championId}.png`}
+									alt="Champion Icon"
+									width={28}
+									height={28}
+									className="rounded-full border-2 border-gray-500"
+								/>
+								<div className="ml-2">
+									<p className="text-white text-xs font-semibold leading-tight">
+										{riotIdGameName}
+										<span className="text-gray-400 text-xs">
+											#{riotIdTagline}
+										</span>
+									</p>
+									<p className="text-gray-400 text-xs">
+										Level {teammate.summonerLevel}
+									</p>
+								</div>
+							</div>
+
+							{/* Middle section with Wins/Losses and Games Played */}
+							<div className="flex flex-col items-center w-2/5">
+								<p className="text-white text-xs leading-tight">
+									{teammate.wins}W / {teammate.losses}L
 								</p>
 								<p className="text-gray-400 text-xs">
-									Level {teammate.summonerLevel}
+									{teammate.gamesPlayed} Played
 								</p>
 							</div>
-						</div>
 
-						{/* Middle section with Wins/Losses and Games Played */}
-						<div className="flex flex-col items-center w-2/5">
-							<p className="text-white text-xs leading-tight">
-								{teammate.wins}W / {teammate.losses}L
-							</p>
-							<p className="text-gray-400 text-xs">
-								{teammate.gamesPlayed} Played
-							</p>
+							{/* Right section with Win Rate */}
+							<div className="flex flex-col items-end w-1/5">
+								<p className="text-white text-xs">{winRate}%</p>
+							</div>
 						</div>
-
-						{/* Right section with Win Rate */}
-						<div className="flex flex-col items-end w-1/5">
-							<p className="text-white text-xs">{winRate}%</p>
-						</div>
-					</div>
+					</Link>
 				);
 			})}
 		</div>

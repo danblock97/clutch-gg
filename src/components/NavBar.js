@@ -1,18 +1,26 @@
+"use client";
+
 import React, { useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { FaCoffee } from "react-icons/fa"; // Import coffee icon
 import SearchBar from "@/components/SearchBar";
 
 const NavBar = ({ isBannerVisible }) => {
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 	const pathname = usePathname();
+	const searchParams = useSearchParams();
 
 	const isProfileOrMatch = pathname === "/profile" || pathname === "/match";
 
+	const region = isProfileOrMatch ? searchParams.get("region") : null;
+
 	return (
-		<nav className={`bg-black text-white py-4 px-6 flex items-center justify-between ${isBannerVisible ? 'pt-16' : 'pt-4'}`}>
+		<nav
+			className={`bg-black text-white py-4 px-6 flex items-center justify-between ${
+				isBannerVisible ? "pt-16" : "pt-4"
+			}`}
+		>
 			<div className="flex items-center space-x-4">
 				<Link href="/">
 					<Image
@@ -30,7 +38,7 @@ const NavBar = ({ isBannerVisible }) => {
 
 			{isProfileOrMatch && (
 				<div className="flex justify-center w-1/2 mx-auto">
-					<SearchBar />
+					<SearchBar initialRegion={region} />
 				</div>
 			)}
 
@@ -47,7 +55,12 @@ const NavBar = ({ isBannerVisible }) => {
 					rel="noopener noreferrer"
 					className="flex items-center px-3 py-2 text-gray-500 hover:text-yellow-400"
 				>
-					<Image src="https://img.buymeacoffee.com/button-api/?text=Buy me a pizza&emoji=🍕&slug=danblock97&button_colour=FFDD00&font_colour=000000&font_family=Comic&outline_colour=000000&coffee_colour=ffffff" alt="Buy me a pizza" width={120} height={40} />
+					<Image
+						src="https://img.buymeacoffee.com/button-api/?text=Buy me a pizza&emoji=🍕&slug=danblock97&button_colour=FFDD00&font_colour=000000&font_family=Comic&outline_colour=000000&coffee_colour=ffffff"
+						alt="Buy me a pizza"
+						width={120}
+						height={40}
+					/>
 				</Link>
 			</div>
 

@@ -14,19 +14,25 @@ const regions = [
 	{ code: "LA1", name: "LAN" },
 	{ code: "LA2", name: "LAS" },
 	{ code: "NA1", name: "NA" },
-	{code: "ME1", name: "ME"},
+	{ code: "ME1", name: "ME" },
 	{ code: "OC1", name: "OCE" },
 	{ code: "TR1", name: "TR" },
 	{ code: "RU", name: "RU" },
 ];
 
-const SearchBar = ({ onSearch }) => {
+const SearchBar = ({ onSearch, initialRegion }) => {
 	const [combinedInput, setCombinedInput] = useState("");
-	const [selectedRegion, setSelectedRegion] = useState("NA1");
+	const [selectedRegion, setSelectedRegion] = useState(initialRegion || "NA1");
 	const [suggestions, setSuggestions] = useState([]);
 	const [isDropdownVisible, setIsDropdownVisible] = useState(false);
 	const router = useRouter();
 	const dropdownRef = useRef(null);
+
+	useEffect(() => {
+		if (initialRegion) {
+			setSelectedRegion(initialRegion);
+		}
+	}, [initialRegion]);
 
 	const fetchSuggestions = async (input) => {
 		if (!input) {
@@ -67,7 +73,11 @@ const SearchBar = ({ onSearch }) => {
 		setSelectedRegion(e.target.value);
 	};
 
-	const handleSearch = (gameNameFromClick, tagLineFromClick, regionFromClick) => {
+	const handleSearch = (
+		gameNameFromClick,
+		tagLineFromClick,
+		regionFromClick
+	) => {
 		const [gameName, tagLine] =
 			gameNameFromClick && tagLineFromClick
 				? [gameNameFromClick, tagLineFromClick]
@@ -77,7 +87,9 @@ const SearchBar = ({ onSearch }) => {
 
 		if (gameName && tagLine && region) {
 			router.push(
-				`/profile?gameName=${encodeURIComponent(gameName)}&tagLine=${encodeURIComponent(tagLine)}&region=${region}`
+				`/profile?gameName=${encodeURIComponent(
+					gameName
+				)}&tagLine=${encodeURIComponent(tagLine)}&region=${region}`
 			);
 		} else {
 			alert("Please enter both game name, tagline, and select a region.");
@@ -185,8 +197,8 @@ const SearchBar = ({ onSearch }) => {
 									suggestion.region
 								)}`}
 							>
-                                {suggestion.region.toUpperCase()}
-                            </span>
+								{suggestion.region.toUpperCase()}
+							</span>
 						</li>
 					))}
 				</ul>
