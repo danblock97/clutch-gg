@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import Image from "next/image";
