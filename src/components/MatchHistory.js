@@ -321,7 +321,7 @@ const MatchHistory = ({
 	return (
 		<div className="text-gray-400 w-full max-w-screen-xl mx-auto px-4">
 			{/* Filters Container */}
-			<div className="flex flex-col md:flex-row justify-between items-center mt-4 space-y-4 md:space-y-0">
+			<div className="flex flex-col md:flex-row justify-between items-center mt-2 space-y-4 md:space-y-0">
 				{/* Lane Filter */}
 				<div className="flex items-center space-x-2">
 					{lanes.map((lane) => (
@@ -357,9 +357,9 @@ const MatchHistory = ({
 			</div>
 
 			{/* Render grouped match history */}
-			<div className="mt-6">
+			<div className="mt-2">
 				{Object.entries(matchesByDay).map(([day, matches]) => (
-					<div key={day} className="mb-6">
+					<div key={day} className="mb-2">
 						<h2 className="text-xl font-semibold text-gray-200 my-4">{day}</h2>
 						{matches.map((match, index) => {
 							const participants = match.info.participants;
@@ -522,7 +522,7 @@ const MatchHistory = ({
 													: match.metadata.matchId
 											)
 										}
-										className={`rounded-lg shadow-lg p-8 cursor-pointer flex flex-col relative mb-6 ${getGradientBackground(
+										className={`rounded-lg shadow-lg p-6 cursor-pointer flex flex-col relative mb-2 ${getGradientBackground(
 											currentPlayer.win,
 											isRemake
 										)} min-w-[768px]`}
@@ -542,7 +542,7 @@ const MatchHistory = ({
 												/>
 											</div>
 											<div className="flex flex-col">
-												<div className="flex items-center mb-4">
+												<div className="flex items-center mb-2">
 													<p
 														className={`font-semibold mr-2 ${getOutcomeClass(
 															currentPlayer.win,
@@ -607,13 +607,13 @@ const MatchHistory = ({
 														</div>
 													)}
 												</div>
-												<div className="flex mt-4 flex-wrap justify-start space-x-2">
+												<div className="flex mt-2 flex-wrap justify-start space-x-2">
 													{tags.slice(0, 3)}
 												</div>
 											</div>
 										</div>
 										<div className="h-24"></div>
-										<div className="absolute top-16 right-72 flex items-center justify-center">
+										<div className="absolute top-16 right-[270px] flex items-center justify-center">
 											<div className="flex flex-col items-center mr-2 gap-2">
 												{[
 													currentPlayer.summoner1Id,
@@ -714,7 +714,7 @@ const MatchHistory = ({
 											<div className="absolute top-4 right-0.5 flex">
 												<div className="flex flex-col items-start">
 													{winningTeam.map((participant, idx) => (
-														<div key={idx} className="flex items-center mb-1">
+														<div key={idx} className="flex items-center">
 															<Image
 																src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${participant.championId}.png`}
 																alt="Participant Champion"
@@ -743,7 +743,7 @@ const MatchHistory = ({
 												</div>
 												<div className="flex flex-col items-start">
 													{losingTeam.map((participant, idx) => (
-														<div key={idx} className="flex items-center mb-1">
+														<div key={idx} className="flex items-center">
 															<Image
 																src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${participant.championId}.png`}
 																alt="Participant Champion"
@@ -776,7 +776,7 @@ const MatchHistory = ({
 
 									{/* Conditionally render MatchDetails */}
 									{expandedMatchId === match.metadata.matchId && (
-										<div className="p-4 bg-gray-900 rounded-lg shadow-lg mb-6">
+										<div className="p-4 bg-gray-900 rounded-lg shadow-lg mb-2">
 											<MatchDetails
 												matchDetails={matchDetails}
 												matchId={match.metadata.matchId}
