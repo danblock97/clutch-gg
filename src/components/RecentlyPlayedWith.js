@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -7,6 +7,7 @@ const RecentlyPlayedWith = ({
 	selectedSummonerPUUID,
 	region,
 }) => {
+	const [isLoading, setIsLoading] = useState(false);
 	const teammatesData = useMemo(() => {
 		const teammateStats = {};
 
@@ -58,6 +59,12 @@ const RecentlyPlayedWith = ({
 		return null; // Component renders nothing
 	}
 
+	const handleProfileClick = (e, link) => {
+        e.preventDefault();
+        setIsLoading(true);
+        window.location.href = link; // Navigate after setting loading state
+    };
+
 	return (
 		<div className="bg-[#1e1e2f] p-4 rounded-md shadow-lg relative border border-gray-800">
 			<h3 className="text-white text-sm mb-4">
@@ -69,6 +76,10 @@ const RecentlyPlayedWith = ({
 				);
 				const { riotIdGameName, riotIdTagline } = teammate;
 
+				const profileLink = `/profile?gameName=${encodeURIComponent(
+                        riotIdGameName
+                    )}&tagLine=${encodeURIComponent(riotIdTagline)}&region=${encodeURIComponent(region)}`;
+
 				return (
 					<Link
 						key={index}
@@ -78,7 +89,7 @@ const RecentlyPlayedWith = ({
 							riotIdTagline
 						)}&region=${encodeURIComponent(region)}`}
 					>
-						<div className="flex items-center justify-between mb-2 p-1 bg-[#2c2c3d] rounded-md border border-gray-600 cursor-pointer">
+						<div onClick={(e) => handleProfileClick(e, profileLink)} className="flex items-center justify-between mb-2 p-1 bg-[#2c2c3d] rounded-md border border-gray-600 cursor-pointer">
 							{/* Left section with Champion Icon and Player Info */}
 							<div className="flex items-center w-2/5">
 								<Image

@@ -166,12 +166,12 @@ const getAdditionalTags = (match, currentPlayer) => {
 };
 
 const MatchHistory = ({
-						  matchDetails,
-						  selectedSummonerPUUID,
-						  gameName,
-						  tagLine,
-						  region,
-					  }) => {
+	matchDetails,
+	selectedSummonerPUUID,
+	gameName,
+	tagLine,
+	region,
+}) => {
 	const [augments, setAugments] = useState([]);
 	const [expandedMatchId, setExpandedMatchId] = useState(null); // State for expanded match
 	const [selectedLane, setSelectedLane] = useState(null); // Lane filter state
@@ -264,6 +264,22 @@ const MatchHistory = ({
 		indexOfLastMatch
 	);
 
+	// Group current matches by day
+	const matchesByDay = currentMatches.reduce((acc, match) => {
+		const matchDate = new Date(match.info.gameCreation);
+		const formattedDate = matchDate.toLocaleDateString("en-GB", {
+			day: "2-digit",
+			month: "short",
+		});
+
+		if (!acc[formattedDate]) {
+			acc[formattedDate] = [];
+		}
+		acc[formattedDate].push(match);
+
+		return acc;
+	}, {});
+
 	const handleLaneSelect = (lane) => {
 		setSelectedLane(lane === selectedLane ? null : lane);
 	};
@@ -305,7 +321,7 @@ const MatchHistory = ({
 	return (
 		<div className="text-gray-400 w-full max-w-screen-xl mx-auto px-4">
 			{/* Filters Container */}
-			<div className="flex flex-col md:flex-row justify-between items-center mt-4 space-y-4 md:space-y-0">
+			<div className="flex flex-col md:flex-row justify-between items-center mt-2 space-y-4 md:space-y-0">
 				{/* Lane Filter */}
 				<div className="flex items-center space-x-2">
 					{lanes.map((lane) => (
@@ -340,15 +356,12 @@ const MatchHistory = ({
 				</div>
 			</div>
 
-			{/* Render match history */}
-			<div className="mt-6">
-				{filteredMatches.length === 0 ? (
-					<div className="bg-gray-800 text-gray-400 p-4 rounded-lg shadow-lg">
-						No match history available with selected filters.
-					</div>
-				) : (
-					<>
-						{currentMatches.map((match, index) => {
+			{/* Render grouped match history */}
+			<div className="mt-2">
+				{Object.entries(matchesByDay).map(([day, matches]) => (
+					<div key={day} className="mb-2">
+						<h2 className="text-xl font-semibold text-gray-200 my-4">{day}</h2>
+						{matches.map((match, index) => {
 							const participants = match.info.participants;
 
 							let maxCsPerMin = 0;
@@ -509,7 +522,7 @@ const MatchHistory = ({
 													: match.metadata.matchId
 											)
 										}
-										className={`rounded-lg shadow-lg p-8 cursor-pointer flex flex-col relative mb-6 ${getGradientBackground(
+										className={`rounded-lg shadow-lg p-6 cursor-pointer flex flex-col relative mb-2 ${getGradientBackground(
 											currentPlayer.win,
 											isRemake
 										)} min-w-[768px]`}
@@ -529,7 +542,7 @@ const MatchHistory = ({
 												/>
 											</div>
 											<div className="flex flex-col">
-												<div className="flex items-center mb-4">
+												<div className="flex items-center mb-2">
 													<p
 														className={`font-semibold mr-2 ${getOutcomeClass(
 															currentPlayer.win,
@@ -594,13 +607,13 @@ const MatchHistory = ({
 														</div>
 													)}
 												</div>
-												<div className="flex mt-4 flex-wrap justify-start space-x-2">
+												<div className="flex mt-2 flex-wrap justify-start space-x-2">
 													{tags.slice(0, 3)}
 												</div>
 											</div>
 										</div>
 										<div className="h-24"></div>
-										<div className="absolute top-16 right-72 flex items-center justify-center">
+										<div className="absolute top-16 right-[270px] flex items-center justify-center">
 											<div className="flex flex-col items-center mr-2 gap-2">
 												{[
 													currentPlayer.summoner1Id,
@@ -701,7 +714,7 @@ const MatchHistory = ({
 											<div className="absolute top-4 right-0.5 flex">
 												<div className="flex flex-col items-start">
 													{winningTeam.map((participant, idx) => (
-														<div key={idx} className="flex items-center mb-1">
+														<div key={idx} className="flex items-center">
 															<Image
 																src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${participant.championId}.png`}
 																alt="Participant Champion"
@@ -715,22 +728,22 @@ const MatchHistory = ({
 																	width: "100px",
 																}}
 															>
-                                <span
-									className={`${
-										participant.puuid === selectedSummonerPUUID
-											? "font-semibold text-gray-100"
-											: ""
-									}`}
-								>
-                                  {truncateName(participant.riotIdGameName, 7)}
-                                </span>
+																<span
+																	className={`${
+																		participant.puuid === selectedSummonerPUUID
+																			? "font-semibold text-gray-100"
+																			: ""
+																	}`}
+																>
+																	{truncateName(participant.riotIdGameName, 7)}
+																</span>
 															</p>
 														</div>
 													))}
 												</div>
 												<div className="flex flex-col items-start">
 													{losingTeam.map((participant, idx) => (
-														<div key={idx} className="flex items-center mb-1">
+														<div key={idx} className="flex items-center">
 															<Image
 																src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${participant.championId}.png`}
 																alt="Participant Champion"
@@ -744,15 +757,15 @@ const MatchHistory = ({
 																	width: "100px",
 																}}
 															>
-                                <span
-									className={`${
-										participant.puuid === selectedSummonerPUUID
-											? "font-semibold text-gray-100"
-											: ""
-									}`}
-								>
-                                  {truncateName(participant.riotIdGameName, 7)}
-                                </span>
+																<span
+																	className={`${
+																		participant.puuid === selectedSummonerPUUID
+																			? "font-semibold text-gray-100"
+																			: ""
+																	}`}
+																>
+																	{truncateName(participant.riotIdGameName, 7)}
+																</span>
 															</p>
 														</div>
 													))}
@@ -763,7 +776,7 @@ const MatchHistory = ({
 
 									{/* Conditionally render MatchDetails */}
 									{expandedMatchId === match.metadata.matchId && (
-										<div className="p-4 bg-gray-900 rounded-lg shadow-lg mb-6">
+										<div className="p-4 bg-gray-900 rounded-lg shadow-lg mb-2">
 											<MatchDetails
 												matchDetails={matchDetails}
 												matchId={match.metadata.matchId}
@@ -775,53 +788,53 @@ const MatchHistory = ({
 								</div>
 							);
 						})}
+					</div>
+				))}
 
-						{/* Pagination Controls */}
-						{totalPages > 1 && (
-							<div className="flex justify-center items-center mt-6 space-x-2">
+				{/* Pagination Controls */}
+				{totalPages > 1 && (
+					<div className="flex justify-center items-center mt-6 space-x-1 text-sm">
+						<button
+							onClick={() => handlePageChange(currentPage - 1)}
+							disabled={currentPage === 1}
+							className={`px-3 py-1 rounded ${
+								currentPage === 1
+									? "bg-gray-700 cursor-not-allowed text-gray-500"
+									: "bg-gray-800 hover:bg-gray-700 text-gray-200"
+							}`}
+						>
+							Previous
+						</button>
+
+						{/* Page Numbers */}
+						{Array.from({ length: totalPages }, (_, i) => i + 1).map(
+							(page) => (
 								<button
-									onClick={() => handlePageChange(currentPage - 1)}
-									disabled={currentPage === 1}
-									className={`px-4 py-2 rounded ${
-										currentPage === 1
-											? "bg-gray-700 cursor-not-allowed"
-											: "bg-blue-500 hover:bg-blue-600"
+									key={page}
+									onClick={() => handlePageChange(page)}
+									className={`px-3 py-1 rounded ${
+										currentPage === page
+											? "bg-gray-700 text-white"
+											: "bg-gray-800 hover:bg-gray-700 text-gray-200"
 									}`}
 								>
-									Previous
+									{page}
 								</button>
-
-								{/* Page Numbers */}
-								{Array.from({ length: totalPages }, (_, i) => i + 1).map(
-									(page) => (
-										<button
-											key={page}
-											onClick={() => handlePageChange(page)}
-											className={`px-4 py-2 rounded ${
-												currentPage === page
-													? "bg-blue-700 text-white"
-													: "bg-blue-500 hover:bg-blue-600"
-											}`}
-										>
-											{page}
-										</button>
-									)
-								)}
-
-								<button
-									onClick={() => handlePageChange(currentPage + 1)}
-									disabled={currentPage === totalPages}
-									className={`px-4 py-2 rounded ${
-										currentPage === totalPages
-											? "bg-gray-700 cursor-not-allowed"
-											: "bg-blue-500 hover:bg-blue-600"
-									}`}
-								>
-									Next
-								</button>
-							</div>
+							)
 						)}
-					</>
+
+						<button
+							onClick={() => handlePageChange(currentPage + 1)}
+							disabled={currentPage === totalPages}
+							className={`px-3 py-1 rounded ${
+								currentPage === totalPages
+									? "bg-gray-700 cursor-not-allowed text-gray-500"
+									: "bg-gray-800 hover:bg-gray-700 text-gray-200"
+							}`}
+						>
+							Next
+						</button>
+					</div>
 				)}
 			</div>
 		</div>
