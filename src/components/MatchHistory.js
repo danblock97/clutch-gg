@@ -166,12 +166,12 @@ const getAdditionalTags = (match, currentPlayer) => {
 };
 
 const MatchHistory = ({
-						  matchDetails,
-						  selectedSummonerPUUID,
-						  gameName,
-						  tagLine,
-						  region,
-					  }) => {
+	matchDetails,
+	selectedSummonerPUUID,
+	gameName,
+	tagLine,
+	region,
+}) => {
 	const [augments, setAugments] = useState([]);
 	const [expandedMatchId, setExpandedMatchId] = useState(null); // State for expanded match
 	const [selectedLane, setSelectedLane] = useState(null); // Lane filter state
@@ -264,6 +264,22 @@ const MatchHistory = ({
 		indexOfLastMatch
 	);
 
+	// Group current matches by day
+	const matchesByDay = currentMatches.reduce((acc, match) => {
+		const matchDate = new Date(match.info.gameCreation);
+		const formattedDate = matchDate.toLocaleDateString("en-GB", {
+			day: "2-digit",
+			month: "short",
+		});
+
+		if (!acc[formattedDate]) {
+			acc[formattedDate] = [];
+		}
+		acc[formattedDate].push(match);
+
+		return acc;
+	}, {});
+
 	const handleLaneSelect = (lane) => {
 		setSelectedLane(lane === selectedLane ? null : lane);
 	};
@@ -340,15 +356,12 @@ const MatchHistory = ({
 				</div>
 			</div>
 
-			{/* Render match history */}
+			{/* Render grouped match history */}
 			<div className="mt-6">
-				{filteredMatches.length === 0 ? (
-					<div className="bg-gray-800 text-gray-400 p-4 rounded-lg shadow-lg">
-						No match history available with selected filters.
-					</div>
-				) : (
-					<>
-						{currentMatches.map((match, index) => {
+				{Object.entries(matchesByDay).map(([day, matches]) => (
+					<div key={day} className="mb-6">
+						<h2 className="text-xl font-semibold text-gray-200 my-4">{day}</h2>
+						{matches.map((match, index) => {
 							const participants = match.info.participants;
 
 							let maxCsPerMin = 0;
@@ -715,15 +728,15 @@ const MatchHistory = ({
 																	width: "100px",
 																}}
 															>
-                                <span
-									className={`${
-										participant.puuid === selectedSummonerPUUID
-											? "font-semibold text-gray-100"
-											: ""
-									}`}
-								>
-                                  {truncateName(participant.riotIdGameName, 7)}
-                                </span>
+																<span
+																	className={`${
+																		participant.puuid === selectedSummonerPUUID
+																			? "font-semibold text-gray-100"
+																			: ""
+																	}`}
+																>
+																	{truncateName(participant.riotIdGameName, 7)}
+																</span>
 															</p>
 														</div>
 													))}
@@ -744,15 +757,15 @@ const MatchHistory = ({
 																	width: "100px",
 																}}
 															>
-                                <span
-									className={`${
-										participant.puuid === selectedSummonerPUUID
-											? "font-semibold text-gray-100"
-											: ""
-									}`}
-								>
-                                  {truncateName(participant.riotIdGameName, 7)}
-                                </span>
+																<span
+																	className={`${
+																		participant.puuid === selectedSummonerPUUID
+																			? "font-semibold text-gray-100"
+																			: ""
+																	}`}
+																>
+																	{truncateName(participant.riotIdGameName, 7)}
+																</span>
 															</p>
 														</div>
 													))}
@@ -775,53 +788,53 @@ const MatchHistory = ({
 								</div>
 							);
 						})}
+					</div>
+				))}
 
-						{/* Pagination Controls */}
-						{totalPages > 1 && (
-							<div className="flex justify-center items-center mt-6 space-x-2">
+				{/* Pagination Controls */}
+				{totalPages > 1 && (
+					<div className="flex justify-center items-center mt-6 space-x-1 text-sm">
+						<button
+							onClick={() => handlePageChange(currentPage - 1)}
+							disabled={currentPage === 1}
+							className={`px-3 py-1 rounded ${
+								currentPage === 1
+									? "bg-gray-700 cursor-not-allowed text-gray-500"
+									: "bg-gray-800 hover:bg-gray-700 text-gray-200"
+							}`}
+						>
+							Previous
+						</button>
+
+						{/* Page Numbers */}
+						{Array.from({ length: totalPages }, (_, i) => i + 1).map(
+							(page) => (
 								<button
-									onClick={() => handlePageChange(currentPage - 1)}
-									disabled={currentPage === 1}
-									className={`px-4 py-2 rounded ${
-										currentPage === 1
-											? "bg-gray-700 cursor-not-allowed"
-											: "bg-blue-500 hover:bg-blue-600"
+									key={page}
+									onClick={() => handlePageChange(page)}
+									className={`px-3 py-1 rounded ${
+										currentPage === page
+											? "bg-gray-700 text-white"
+											: "bg-gray-800 hover:bg-gray-700 text-gray-200"
 									}`}
 								>
-									Previous
+									{page}
 								</button>
-
-								{/* Page Numbers */}
-								{Array.from({ length: totalPages }, (_, i) => i + 1).map(
-									(page) => (
-										<button
-											key={page}
-											onClick={() => handlePageChange(page)}
-											className={`px-4 py-2 rounded ${
-												currentPage === page
-													? "bg-blue-700 text-white"
-													: "bg-blue-500 hover:bg-blue-600"
-											}`}
-										>
-											{page}
-										</button>
-									)
-								)}
-
-								<button
-									onClick={() => handlePageChange(currentPage + 1)}
-									disabled={currentPage === totalPages}
-									className={`px-4 py-2 rounded ${
-										currentPage === totalPages
-											? "bg-gray-700 cursor-not-allowed"
-											: "bg-blue-500 hover:bg-blue-600"
-									}`}
-								>
-									Next
-								</button>
-							</div>
+							)
 						)}
-					</>
+
+						<button
+							onClick={() => handlePageChange(currentPage + 1)}
+							disabled={currentPage === totalPages}
+							className={`px-3 py-1 rounded ${
+								currentPage === totalPages
+									? "bg-gray-700 cursor-not-allowed text-gray-500"
+									: "bg-gray-800 hover:bg-gray-700 text-gray-200"
+							}`}
+						>
+							Next
+						</button>
+					</div>
 				)}
 			</div>
 		</div>
