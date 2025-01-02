@@ -8,16 +8,13 @@ const RankedInfo = ({ rankedData }) => {
 		(item) => item.queueType === "RANKED_FLEX_SR"
 	);
 
-	// State to handle expand/collapse
 	const [isExpanded, setIsExpanded] = useState(false);
 
-	// Function to handle toggle for expand/collapse
 	const handleToggleExpand = () => {
 		setIsExpanded((prev) => !prev);
 	};
 
 	const renderRankedFlex = (data) => {
-		// Check if data exists, else provide default unranked values
 		const rankedIcon = data
 			? `/images/rankedEmblems/${data.tier.toLowerCase()}.webp`
 			: null;
@@ -30,13 +27,23 @@ const RankedInfo = ({ rankedData }) => {
 
 		return (
 			<div
-				className="w-full bg-[#1e1e2f] p-4 rounded-md shadow-lg relative border border-gray-800 before:absolute before:top-0 before:left-0 before:w-full before:h-full before:rounded-md before:border before:border-gray-600 before:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.6),inset_-2px_-2px_5px_rgba(255,255,255,0.1)] cursor-pointer"
-				onClick={handleToggleExpand} // Apply the onClick handler to the entire div
+				className="
+          w-full
+          p-4
+          rounded-xl
+          text-white
+          border border-[#2f2f46]
+          bg-gradient-to-br from-[#232337] to-[#1b1b2d]
+          shadow-[0_4px_15px_rgba(0,0,0,0.6)]
+          transition-shadow
+          duration-200
+          cursor-pointer
+          hover:shadow-[0_8px_30px_rgba(0,0,0,0.8)]
+        "
+				onClick={handleToggleExpand}
 			>
 				<div className="flex justify-between items-center">
-					<h2 className="text-white text-sm font-bold">Ranked Flex</h2>
-
-					{/* Rank and Tier Information */}
+					<h2 className="text-sm font-bold">Ranked Flex</h2>
 					<div className="flex items-center space-x-2">
 						{rankedIcon && (
 							<Image
@@ -47,23 +54,21 @@ const RankedInfo = ({ rankedData }) => {
 								className="rounded-full"
 							/>
 						)}
-						<p className="text-gray-400 text-sm">
+						<p className="text-gray-300 text-sm">
 							{data ? `${tier} ${rank}` : "Unranked"}
 						</p>
-
 						<div aria-label={isExpanded ? "Collapse" : "Expand"}>
 							{isExpanded ? (
-								<FaChevronUp className="text-gray-500" />
+								<FaChevronUp className="text-gray-400" />
 							) : (
-								<FaChevronDown className="text-gray-500" />
+								<FaChevronDown className="text-gray-400" />
 							)}
 						</div>
 					</div>
 				</div>
 
-				{/* Expanded Info (Win/Loss, LP, Winrate) */}
 				{isExpanded && (
-					<div className="mt-2 text-sm text-gray-400">
+					<div className="mt-2 text-sm text-gray-300">
 						<p>
 							<strong>Wins:</strong> {wins} | <strong>Losses:</strong> {losses}
 						</p>
@@ -81,7 +86,6 @@ const RankedInfo = ({ rankedData }) => {
 
 	return (
 		<div className="flex flex-col space-y-4">
-			{/* Only Render Ranked Flex */}
 			{renderRankedFlex(flexRankedData)}
 		</div>
 	);
