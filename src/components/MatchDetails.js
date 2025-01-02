@@ -12,7 +12,12 @@ const fetchArenaAugments = async () => {
 	return data.augments;
 };
 
-const MatchDetails = ({ matchDetails, matchId, selectedSummonerPUUID, region  }) => {
+const MatchDetails = ({
+	matchDetails,
+	matchId,
+	selectedSummonerPUUID,
+	region,
+}) => {
 	const [augments, setAugments] = useState([]);
 
 	useEffect(() => {
@@ -22,6 +27,56 @@ const MatchDetails = ({ matchDetails, matchId, selectedSummonerPUUID, region  })
 		};
 		getAugments();
 	}, []);
+
+	useEffect(() => {
+		if (!matchDetails || !augments) return;
+		const imagesToPrefetch = [];
+		matchDetails.forEach((match) => {
+			match.info.participants.forEach((participant) => {
+				imagesToPrefetch.push(
+					`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${participant.championId}.png`
+				);
+				[participant.summoner1Id, participant.summoner2Id].forEach(
+					(spellId) => {
+						imagesToPrefetch.push(`/images/summonerSpells/${spellId}.png`);
+					}
+				);
+				for (let i = 0; i < 7; i++) {
+					const itemId = participant[`item${i}`];
+					if (itemId && itemId > 0) {
+						imagesToPrefetch.push(
+							`https://ddragon.leagueoflegends.com/cdn/14.19.1/img/item/${itemId}.png`
+						);
+					}
+				}
+			});
+			if (match.info.queueId === 1700 && augments.length > 0) {
+				match.info.participants.forEach((participant) => {
+					if (participant.missions?.playerAugments) {
+						participant.missions.playerAugments.forEach((augmentId) => {
+							const augmentData = augments.find((a) => a.id === augmentId);
+							if (augmentData) {
+								imagesToPrefetch.push(
+									`https://raw.communitydragon.org/latest/game/${augmentData.iconSmall}`
+								);
+							}
+						});
+					}
+				});
+			}
+			match.info.teams.forEach((team) => {
+				team.bans.forEach((ban) => {
+					imagesToPrefetch.push(
+						`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${ban.championId}.png`
+					);
+				});
+			});
+		});
+		imagesToPrefetch.forEach((src) => {
+			const img = new window.Image();
+			img.src = src;
+		});
+	}, [matchDetails, augments]);
 
 	const getAugmentIcon = (id) => {
 		const augment = augments.find((aug) => aug.id === id);
@@ -46,17 +101,13 @@ const MatchDetails = ({ matchDetails, matchId, selectedSummonerPUUID, region  })
 	}
 
 	const participants = match.info.participants;
-
-	// Calculate CS/Min for each participant and find the one with the highest CS/Min
 	let maxCsPerMin = 0;
 	let maxCsPerMinParticipant = null;
-
 	participants.forEach((participant) => {
 		const csPerMin =
 			(participant.totalMinionsKilled + participant.neutralMinionsKilled) /
 			(match.info.gameDuration / 60);
 		participant.csPerMin = csPerMin;
-
 		if (csPerMin > maxCsPerMin) {
 			maxCsPerMin = csPerMin;
 			maxCsPerMinParticipant = participant.puuid;
@@ -66,9 +117,7 @@ const MatchDetails = ({ matchDetails, matchId, selectedSummonerPUUID, region  })
 	const participant = participants.find(
 		(p) => p.puuid === selectedSummonerPUUID
 	);
-
 	const tags = [];
-
 	if (participant) {
 		if (participant.firstBloodKill) {
 			tags.push(
@@ -80,7 +129,6 @@ const MatchDetails = ({ matchDetails, matchId, selectedSummonerPUUID, region  })
 				/>
 			);
 		}
-
 		if (participant.tripleKills > 0) {
 			tags.push(
 				<Tag
@@ -91,7 +139,6 @@ const MatchDetails = ({ matchDetails, matchId, selectedSummonerPUUID, region  })
 				/>
 			);
 		}
-
 		if (participant.deaths === 0) {
 			tags.push(
 				<Tag
@@ -102,7 +149,6 @@ const MatchDetails = ({ matchDetails, matchId, selectedSummonerPUUID, region  })
 				/>
 			);
 		}
-
 		if (participant.challenges.damagePerMinute > 800) {
 			tags.push(
 				<Tag
@@ -113,7 +159,6 @@ const MatchDetails = ({ matchDetails, matchId, selectedSummonerPUUID, region  })
 				/>
 			);
 		}
-
 		if (participant.puuid === maxCsPerMinParticipant) {
 			tags.push(
 				<Tag
@@ -124,43 +169,30 @@ const MatchDetails = ({ matchDetails, matchId, selectedSummonerPUUID, region  })
 				/>
 			);
 		}
-	} else {
-		console.error("Participant not found for PUUID:", selectedSummonerPUUID);
 	}
 
 	const isArena = match.info.queueId === 1700;
-	const isARAM = match.info.queueId === 450;
-
 	if (isArena) {
 		let arenaParticipants = match.info.participants;
 		let teams = {};
-
-		// Extract playerScore0 and sort
-		arenaParticipants = arenaParticipants.map((participant) => ({
-			...participant,
-			playerScore0: participant.missions.playerScore0,
+		arenaParticipants = arenaParticipants.map((p) => ({
+			...p,
+			playerScore0: p.missions.playerScore0,
 		}));
-
-		// Sort participants by playerScore0
 		arenaParticipants.sort((a, b) => a.playerScore0 - b.playerScore0);
-
-		// Group participants into pairs
-		arenaParticipants.forEach((participant, index) => {
-			const teamId = Math.floor(index / 2); // Creates 8 teams of 2 participants each
+		arenaParticipants.forEach((p, i) => {
+			const teamId = Math.floor(i / 2);
 			if (!teams[teamId]) {
 				teams[teamId] = [];
 			}
-			teams[teamId].push(participant);
+			teams[teamId].push(p);
 		});
-
-		// Function to convert number to ordinal
 		function getOrdinal(n) {
 			const s = ["th", "st", "nd", "rd"];
 			const v = n % 100;
 			return n + (s[(v - 20) % 10] || s[v] || s[0]);
 		}
-
-		const getPlacementColor = (placement) => {
+		function getPlacementColor(placement) {
 			switch (placement) {
 				case 1:
 					return "text-yellow-500";
@@ -181,13 +213,10 @@ const MatchDetails = ({ matchDetails, matchId, selectedSummonerPUUID, region  })
 				default:
 					return "text-white";
 			}
-		};
-
-		// Render sorted teams
+		}
 		const teamComponents = Object.values(teams).map((team, index) => {
-			const placement = team[0].playerScore0; // Assuming playerScore0 starts from 0
+			const placement = team[0].playerScore0;
 			const colorClass = getPlacementColor(placement);
-
 			return (
 				<div
 					key={index}
@@ -196,10 +225,10 @@ const MatchDetails = ({ matchDetails, matchId, selectedSummonerPUUID, region  })
 					<h3 className={`text-sm font-bold ${colorClass}`}>
 						{getOrdinal(team[0].playerScore0)} Place
 					</h3>
-					{team.map((participant) => (
+					{team.map((p) => (
 						<ParticipantDetails
-							key={participant.participantId}
-							participant={participant}
+							key={p.participantId}
+							participant={p}
 							isArena={true}
 							getAugmentIcon={getAugmentIcon}
 						/>
@@ -207,7 +236,6 @@ const MatchDetails = ({ matchDetails, matchId, selectedSummonerPUUID, region  })
 				</div>
 			);
 		});
-
 		return (
 			<div className="bg-[#13151b] min-h-screen flex flex-col items-center justify-center px-2 py-1">
 				<div className="max-w-6xl w-full">
@@ -218,13 +246,12 @@ const MatchDetails = ({ matchDetails, matchId, selectedSummonerPUUID, region  })
 		);
 	}
 
-	// Regular match logic
-	const calculateTeamStats = (participants) => {
-		return participants.reduce(
-			(acc, participant) => {
-				acc.kills += participant.kills;
-				acc.deaths += participant.deaths;
-				acc.assists += participant.assists;
+	function calculateTeamStats(ps) {
+		return ps.reduce(
+			(acc, p) => {
+				acc.kills += p.kills;
+				acc.deaths += p.deaths;
+				acc.assists += p.assists;
 				return acc;
 			},
 			{
@@ -233,7 +260,8 @@ const MatchDetails = ({ matchDetails, matchId, selectedSummonerPUUID, region  })
 				assists: 0,
 			}
 		);
-	};
+	}
+
 	const team1 = match.info.participants.filter((p) => p.teamId === 100);
 	const team2 = match.info.participants.filter((p) => p.teamId === 200);
 	const team1Stats = calculateTeamStats(team1);
@@ -246,11 +274,7 @@ const MatchDetails = ({ matchDetails, matchId, selectedSummonerPUUID, region  })
 	return (
 		<div className="bg-[#13151b] min-h-auto flex items-center justify-center px-2 py-1">
 			<div className="bg-[#13151b] text-white max-w-6xl w-full p-2">
-				<div className="tags flex space-x-1 mb-1 overflow-x-auto">
-					{/* Render tags here */}
-				</div>
-
-				{/* Team 1 */}
+				<div className="tags flex space-x-1 mb-1 overflow-x-auto">{tags}</div>
 				<div className="flex justify-between items-center mb-1">
 					<span className="text-sm font-semibold text-[#3182CE]">Team 1</span>
 					<div className="text-sm font-semibold text-[#3182CE]">{`${team1Stats.kills} / ${team1Stats.deaths} / ${team1Stats.assists}`}</div>
@@ -270,21 +294,17 @@ const MatchDetails = ({ matchDetails, matchId, selectedSummonerPUUID, region  })
 						))}
 					</div>
 				</div>
-
-				{/* Team 1 Participants */}
 				<div className="flex flex-col space-y-1">
-					{team1.map((participant, index) => (
+					{team1.map((p, i) => (
 						<ParticipantDetails
-							key={index}
-							participant={participant}
+							key={i}
+							participant={p}
 							selectedSummonerPUUID={selectedSummonerPUUID}
 							getAugmentIcon={getAugmentIcon}
 							region={region}
 						/>
 					))}
 				</div>
-
-				{/* Team 2 */}
 				<div className="flex justify-between items-center mt-1 mb-1">
 					<span className="text-sm font-semibold text-[#C53030]">Team 2</span>
 					<div className="text-sm font-semibold text-[#C53030]">{`${team2Stats.kills} / ${team2Stats.deaths} / ${team2Stats.assists}`}</div>
@@ -304,13 +324,11 @@ const MatchDetails = ({ matchDetails, matchId, selectedSummonerPUUID, region  })
 						))}
 					</div>
 				</div>
-
-				{/* Team 2 Participants */}
 				<div className="flex flex-col space-y-1">
-					{team2.map((participant, index) => (
+					{team2.map((p, i) => (
 						<ParticipantDetails
-							key={index}
-							participant={participant}
+							key={i}
+							participant={p}
 							selectedSummonerPUUID={selectedSummonerPUUID}
 							getAugmentIcon={getAugmentIcon}
 							region={region}
@@ -323,25 +341,24 @@ const MatchDetails = ({ matchDetails, matchId, selectedSummonerPUUID, region  })
 };
 
 const ParticipantDetails = ({
-								participant,
-								selectedSummonerPUUID,
-								getAugmentIcon,
-								region,
-							}) => {
+	participant,
+	selectedSummonerPUUID,
+	getAugmentIcon,
+	region,
+}) => {
 	const kda =
 		participant.deaths === 0
 			? (participant.kills + participant.assists).toFixed(1)
 			: (
-				(participant.kills + participant.assists) /
-				participant.deaths
-			).toFixed(1);
+					(participant.kills + participant.assists) /
+					participant.deaths
+			  ).toFixed(1);
 
 	return (
 		<Link
 			href={`/profile?gameName=${participant.riotIdGameName}&tagLine=${participant.riotIdTagline}&region=${region}`}
 		>
 			<div className="flex items-center justify-between p-2 bg-[#1e1e1e] rounded-lg hover:bg-[#2e2e2e] transition duration-150">
-				{/* Champion Icon & Player Name */}
 				<div className="flex items-center space-x-2 flex-shrink-0 w-1/4">
 					<Image
 						src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${participant.championId}.png`}
@@ -350,15 +367,10 @@ const ParticipantDetails = ({
 						height={32}
 						className="w-8 h-8"
 					/>
-					<span
-						className="text-sm font-semibold truncate"
-						title={`${participant.riotIdGameName}#${participant.riotIdTagline}`}
-					>
+					<span className="text-sm font-semibold truncate">
 						{participant.riotIdGameName}#{participant.riotIdTagline}
 					</span>
 				</div>
-
-				{/* Summoner Spells */}
 				<div className="flex items-center space-x-1 flex-shrink-0 w-1/6 justify-center">
 					{[participant.summoner1Id, participant.summoner2Id].map(
 						(spellId, idx) => (
@@ -373,12 +385,10 @@ const ParticipantDetails = ({
 						)
 					)}
 				</div>
-
-				{/* Items */}
 				<div className="flex items-center space-x-1 flex-shrink-0 w-1/4 justify-center">
 					{Array.from({ length: 6 }, (_, i) => participant[`item${i}`]).map(
 						(itemId, idx) => (
-							<div key={idx} className="flex items-center">
+							<div key={idx}>
 								{itemId > 0 ? (
 									<Image
 										src={`https://ddragon.leagueoflegends.com/cdn/14.19.1/img/item/${itemId}.png`}
@@ -400,19 +410,20 @@ const ParticipantDetails = ({
 						)
 					)}
 				</div>
-
-				{/* KDA */}
 				<div className="flex flex-col items-center flex-shrink-0 w-1/6">
-					<span className="text-sm font-semibold">{`${participant.kills} / ${participant.deaths} / ${participant.assists}`}</span>
-					<span className="text-xs text-gray-400">{`${kda} KDA`}</span>
+					<span className="text-sm font-semibold">
+						{participant.kills} / {participant.deaths} / {participant.assists}
+					</span>
+					<span className="text-xs text-gray-400">{kda} KDA</span>
 				</div>
-
-				{/* CS & DMG */}
 				<div className="flex flex-col items-center flex-shrink-0 w-1/6">
-					<span className="text-sm font-semibold">{`${
-						participant.totalMinionsKilled + participant.neutralMinionsKilled
-					} CS`}</span>
-					<span className="text-xs text-gray-400">{`${participant.totalDamageDealtToChampions.toLocaleString()} DMG`}</span>
+					<span className="text-sm font-semibold">
+						{participant.totalMinionsKilled + participant.neutralMinionsKilled}{" "}
+						CS
+					</span>
+					<span className="text-xs text-gray-400">
+						{participant.totalDamageDealtToChampions.toLocaleString()} DMG
+					</span>
 				</div>
 			</div>
 		</Link>
