@@ -26,12 +26,10 @@ const Last20GamesPerformance = ({ matchDetails, selectedSummonerPUUID }) => {
 			const currentPlayer = match.info.participants.find(
 				(participant) => participant.puuid === selectedSummonerPUUID
 			);
-
 			// Win/Loss
 			if (currentPlayer.win) {
 				totalWins++;
 			}
-
 			// Kills, Deaths, Assists
 			totalKills += currentPlayer.kills;
 			totalDeaths += currentPlayer.deaths;
@@ -58,6 +56,7 @@ const Last20GamesPerformance = ({ matchDetails, selectedSummonerPUUID }) => {
 				(championPerformance[championId].kills +
 					championPerformance[championId].assists) /
 				Math.max(1, championPerformance[championId].deaths);
+
 			if (currentPlayer.win) {
 				championPerformance[championId].wins++;
 			} else {
@@ -80,8 +79,8 @@ const Last20GamesPerformance = ({ matchDetails, selectedSummonerPUUID }) => {
 			avgDeaths,
 			avgAssists,
 			avgKDA,
-			totalWins, // Save the total wins
-			totalLosses: last20Matches.length - totalWins, // Calculate losses
+			totalWins,
+			totalLosses: last20Matches.length - totalWins,
 			championPerformance,
 		};
 	}, [last20Matches, selectedSummonerPUUID]);
@@ -101,7 +100,22 @@ const Last20GamesPerformance = ({ matchDetails, selectedSummonerPUUID }) => {
 		.slice(0, 3);
 
 	return (
-		<div className="relative w-full max-w-screen-xl mx-auto p-6 bg-[#1e1e2f] rounded-lg shadow-lg border border-gray-800 before:absolute before:top-0 before:left-0 before:w-full before:h-full before:rounded-lg before:border before:border-gray-600 before:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.6),inset_-2px_-2px_5px_rgba(255,255,255,0.1)] flex justify-between items-center">
+		<div
+			className="
+        relative
+        w-full
+        max-w-screen-xl
+        mx-auto
+        p-6
+        rounded-lg
+        border border-[#2f2f46]
+        bg-gradient-to-br from-[#232337] to-[#1b1b2d]
+        shadow-[0_4px_15px_rgba(0,0,0,0.6)]
+        flex
+        justify-between
+        items-center
+      "
+		>
 			{/* Winrate Section */}
 			<div className="flex items-center justify-center">
 				<div className="w-24 h-24 relative">
