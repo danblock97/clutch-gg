@@ -8,7 +8,7 @@ const Tag = ({ text, hoverText, color, icon }) => {
                 shadow-md 
                 relative z-10 
                 transition-transform transform 
-                group-hover:scale-105 flex items-center space-x-2`}
+                group-hover:scale-105 flex items-center space-x-1`}
 			>
 				{icon && <span className="relative z-20 text-xs">{icon}</span>}
 				<span className="relative z-20">{text}</span>
