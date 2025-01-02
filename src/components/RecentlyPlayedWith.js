@@ -8,6 +8,7 @@ const RecentlyPlayedWith = ({
 	region,
 }) => {
 	const [isLoading, setIsLoading] = useState(false);
+
 	const teammatesData = useMemo(() => {
 		const teammateStats = {};
 
@@ -35,7 +36,6 @@ const RecentlyPlayedWith = ({
 						losses: 0,
 						summonerLevel: teammate.summonerLevel,
 						championId: teammate.championId,
-						// Removed platformId
 					};
 				}
 
@@ -60,37 +60,60 @@ const RecentlyPlayedWith = ({
 	}
 
 	const handleProfileClick = (e, link) => {
-        e.preventDefault();
-        setIsLoading(true);
-        window.location.href = link; // Navigate after setting loading state
-    };
+		e.preventDefault();
+		setIsLoading(true);
+		window.location.href = link; // Navigate after setting loading state
+	};
 
 	return (
-		<div className="bg-[#1e1e2f] p-4 rounded-md shadow-lg relative border border-gray-800">
-			<h3 className="text-white text-sm mb-4">
+		<div
+			className="
+        p-4
+        rounded-xl
+        text-white
+        border border-[#2f2f46]
+        bg-gradient-to-br from-[#232337] to-[#1b1b2d]
+        shadow-[0_4px_15px_rgba(0,0,0,0.6)]
+        relative
+      "
+		>
+			<h3 className="text-sm mb-4 font-semibold tracking-wide">
 				Recently Played With (Recent 20 Games)
 			</h3>
+
 			{teammatesData.map((teammate, index) => {
 				const winRate = ((teammate.wins / teammate.gamesPlayed) * 100).toFixed(
 					0
 				);
-				const { riotIdGameName, riotIdTagline } = teammate;
 
+				const { riotIdGameName, riotIdTagline } = teammate;
 				const profileLink = `/profile?gameName=${encodeURIComponent(
-                        riotIdGameName
-                    )}&tagLine=${encodeURIComponent(riotIdTagline)}&region=${encodeURIComponent(region)}`;
+					riotIdGameName
+				)}&tagLine=${encodeURIComponent(
+					riotIdTagline
+				)}&region=${encodeURIComponent(region)}`;
 
 				return (
-					<Link
-						key={index}
-						href={`/profile?gameName=${encodeURIComponent(
-							riotIdGameName
-						)}&tagLine=${encodeURIComponent(
-							riotIdTagline
-						)}&region=${encodeURIComponent(region)}`}
-					>
-						<div onClick={(e) => handleProfileClick(e, profileLink)} className="flex items-center justify-between mb-2 p-1 bg-[#2c2c3d] rounded-md border border-gray-600 cursor-pointer">
-							{/* Left section with Champion Icon and Player Info */}
+					<Link key={index} href={profileLink}>
+						<div
+							onClick={(e) => handleProfileClick(e, profileLink)}
+							className="
+                flex
+                items-center
+                justify-between
+                mb-2
+                p-2
+                bg-[#2c2c3d]
+                rounded-md
+                border
+                border-[#3d3d57]
+                cursor-pointer
+                transition-shadow
+                duration-200
+                hover:shadow-[0_4px_14px_rgba(0,0,0,0.6)]
+              "
+						>
+							{/* Left: Champion Icon & Player Info */}
 							<div className="flex items-center w-2/5">
 								<Image
 									src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${teammate.championId}.png`}
@@ -100,31 +123,29 @@ const RecentlyPlayedWith = ({
 									className="rounded-full border-2 border-gray-500"
 								/>
 								<div className="ml-2">
-									<p className="text-white text-xs font-semibold leading-tight">
+									<p className="text-xs font-semibold leading-tight text-white">
 										{riotIdGameName}
-										<span className="text-gray-400 text-xs">
-											#{riotIdTagline}
-										</span>
+										<span className="text-gray-400">#{riotIdTagline}</span>
 									</p>
-									<p className="text-gray-400 text-xs">
+									<p className="text-xs text-gray-400">
 										Level {teammate.summonerLevel}
 									</p>
 								</div>
 							</div>
 
-							{/* Middle section with Wins/Losses and Games Played */}
+							{/* Middle: Wins/Losses and Games Played */}
 							<div className="flex flex-col items-center w-2/5">
-								<p className="text-white text-xs leading-tight">
+								<p className="text-xs text-white leading-tight">
 									{teammate.wins}W / {teammate.losses}L
 								</p>
-								<p className="text-gray-400 text-xs">
+								<p className="text-xs text-gray-400">
 									{teammate.gamesPlayed} Played
 								</p>
 							</div>
 
-							{/* Right section with Win Rate */}
+							{/* Right: Win Rate */}
 							<div className="flex flex-col items-end w-1/5">
-								<p className="text-white text-xs">{winRate}%</p>
+								<p className="text-xs text-white">{winRate}%</p>
 							</div>
 						</div>
 					</Link>
