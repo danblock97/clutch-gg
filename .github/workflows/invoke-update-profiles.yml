@@ -9,7 +9,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Invoke Supabase Edge Function
       - name: Invoke Supabase Function
         run: |
           curl -X POST https://yeexeqbzfctlgotzciml.functions.supabase.co/updateProfiles \
