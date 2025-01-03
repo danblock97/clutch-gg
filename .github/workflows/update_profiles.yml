@@ -10,15 +10,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
       - name: Invoke Supabase Edge Function
         env:
           FUNCTION_URL: ${{ secrets.SUPABASE_UPDATE_PROFILES_URL }}
           FUNCTION_SECRET: ${{ secrets.FUNCTION_SECRET }}
         run: |
-          curl -X POST "$FUNCTION_URL" \
-            -H "Authorization: Bearer $FUNCTION_SECRET" \
+          response=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$FUNCTION_URL" \
+            -H "x-function-secret: $FUNCTION_SECRET" \
             -H "Content-Type: application/json" \
-            -d '{}'
+            -d '{}')
+          if [ "$response" -ne 200 ]; then
+            echo "Function invocation failed with status code $response"
+            exit 1
+          else
+            echo "Function invoked successfully with status code $response"
+          fi

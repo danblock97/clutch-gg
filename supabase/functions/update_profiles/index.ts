@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import pLimit from "https://esm.sh/p-limit@3.1.0";
 
-// Initialise Supabase client
+// Initialize Supabase client
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const supabase: SupabaseClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
@@ -280,15 +280,18 @@ const fetchAndUpdateProfileData = async (gameName: string, tagLine: string, regi
 // Handler for the Edge Function
 serve(async (req: Request) => {
   try {
-    // Authenticate the request using a secret token
-    const authHeader = req.headers.get("Authorization");
+    // Authenticate the request using a custom secret header
+    const secretHeader = req.headers.get("x-function-secret");
+    console.log("Received x-function-secret:", secretHeader);
 
-    if (!authHeader) {
-      return new Response("Unauthorized: Missing Authorization header", { status: 401 });
+    if (!secretHeader) {
+      console.log("Missing x-function-secret header");
+      return new Response("Unauthorized: Missing x-function-secret header", { status: 401 });
     }
 
-    if (authHeader !== `Bearer ${FUNCTION_SECRET}`) {
-      return new Response("Unauthorized: Invalid token", { status: 401 });
+    if (secretHeader !== FUNCTION_SECRET) {
+      console.log("Invalid x-function-secret");
+      return new Response("Unauthorized: Invalid secret", { status: 401 });
     }
 
     // Fetch all profiles from Supabase
