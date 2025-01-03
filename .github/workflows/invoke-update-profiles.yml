@@ -2,7 +2,7 @@ name: Invoke Supabase Update Profiles Function
 
 on:
   schedule:
-    - cron: "0 * * * *" # Run every hour
+    - cron: "*/30 * * * *"
 
 jobs:
   invoke-function:
