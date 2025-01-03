@@ -23,7 +23,8 @@
     "react-loading-skeleton": "^3.5.0",
     "react-tooltip": "^5.28.0",
     "react-top-loading-bar": "^2.3.1",
-    "react-type-animation": "^3.2.0"
+    "react-type-animation": "^3.2.0",
+    "supabase": "^2.2.1"
   },
   "devDependencies": {
     "eslint": "^9",

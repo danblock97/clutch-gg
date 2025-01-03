@@ -1,0 +1,24 @@
+name: Update Supabase Profiles
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+jobs:
+  update-profiles:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Invoke Supabase Edge Function
+        env:
+          FUNCTION_URL: ${{ secrets.SUPABASE_UPDATE_PROFILES_URL }}
+          FUNCTION_SECRET: ${{ secrets.FUNCTION_SECRET }}
+        run: |
+          curl -X POST "$FUNCTION_URL" \
+            -H "Authorization: Bearer $FUNCTION_SECRET" \
+            -H "Content-Type: application/json" \
+            -d '{}'
