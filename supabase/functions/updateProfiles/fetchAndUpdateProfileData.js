@@ -1,6 +1,6 @@
 import { supabase } from "./supabase.js";
 
-const RIOT_API_KEY = process.env.RIOT_API_KEY;
+const RIOT_API_KEY = Deno.env.get("RIOT_API_KEY");
 
 const regionToPlatform = {
 	BR1: "americas",
