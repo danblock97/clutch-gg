@@ -1,0 +1,17 @@
+name: Invoke Supabase Update Profiles Function
+
+on:
+  schedule:
+    - cron: "0 * * * *" # Run every hour
+
+jobs:
+  invoke-function:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Invoke Supabase Edge Function
+      - name: Invoke Supabase Function
+        run: |
+          curl -X POST https://yeexeqbzfctlgotzciml.functions.supabase.co/updateProfiles \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Content-Type: application/json"

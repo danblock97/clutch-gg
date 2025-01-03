@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { supabase } from "./supabase.js";
 
 const RIOT_API_KEY = process.env.RIOT_API_KEY;
 
