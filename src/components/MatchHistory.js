@@ -2,7 +2,16 @@ import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import Tag from "@/components/Tag";
 import MatchDetails from "@/components/MatchDetails"; // Import MatchDetails
-import { FaSkullCrossbones, FaBolt, FaShieldAlt, FaFire, FaStar, FaClock, FaTrophy, FaMedal } from "react-icons/fa";
+import {
+	FaSkullCrossbones,
+	FaBolt,
+	FaShieldAlt,
+	FaFire,
+	FaStar,
+	FaClock,
+	FaTrophy,
+	FaMedal,
+} from "react-icons/fa";
 
 const fetchArenaAugments = async () => {
 	const response = await fetch(
@@ -94,11 +103,13 @@ const getAdditionalTags = (match, currentPlayer) => {
 	// Tag for MVP (Highest KDA)
 	const highestKDA = match.info.participants.reduce((max, participant) => {
 		const kda =
-			(participant.kills + participant.assists) / Math.max(1, participant.deaths);
+			(participant.kills + participant.assists) /
+			Math.max(1, participant.deaths);
 		return kda > max ? kda : max;
 	}, 0);
 	const playerKDA =
-		(currentPlayer.kills + currentPlayer.assists) / Math.max(1, currentPlayer.deaths);
+		(currentPlayer.kills + currentPlayer.assists) /
+		Math.max(1, currentPlayer.deaths);
 
 	if (playerKDA === highestKDA) {
 		tags.push(
@@ -147,7 +158,8 @@ const getAdditionalTags = (match, currentPlayer) => {
 
 	// Tag for Gold Leader (e.g., highest gold earned)
 	const highestGold = match.info.participants.reduce(
-		(max, participant) => (participant.goldEarned > max ? participant.goldEarned : max),
+		(max, participant) =>
+			participant.goldEarned > max ? participant.goldEarned : max,
 		0
 	);
 	if (currentPlayer.goldEarned === highestGold) {
@@ -293,7 +305,13 @@ const MatchHistory = ({
 		setCurrentPage(pageNumber);
 	};
 
-	const getOutcomeClass = (win, isRemake) => {
+	/**
+	 * Updated getOutcomeClass to accept isMVP
+	 */
+	const getOutcomeClass = (win, isRemake, isMVP) => {
+		if (isMVP) {
+			return "text-yellow-500 border-yellow-500";
+		}
 		if (isRemake) {
 			return "text-yellow-400 border-yellow-400";
 		}
@@ -302,7 +320,13 @@ const MatchHistory = ({
 			: "text-red-400 border-red-400";
 	};
 
-	const getGradientBackground = (win, isRemake) => {
+	/**
+	 * Updated getGradientBackground to accept isMVP
+	 */
+	const getGradientBackground = (win, isRemake, isMVP) => {
+		if (isMVP) {
+			return "bg-gradient-to-r from-gray-800 via-yellow-600/20 to-gray-800";
+		}
 		if (isRemake) {
 			return "bg-gradient-to-r from-gray-800 via-yellow-600/20 to-gray-800";
 		}
@@ -384,9 +408,7 @@ const MatchHistory = ({
 								(participant) => participant.puuid === selectedSummonerPUUID
 							);
 
-							const tags = [
-								...getAdditionalTags(match, currentPlayer),
-							];
+							const tags = [...getAdditionalTags(match, currentPlayer)];
 
 							if (currentPlayer.firstBloodKill) {
 								tags.push(
@@ -475,8 +497,8 @@ const MatchHistory = ({
 								daysDifference > 0
 									? `${daysDifference} days ago`
 									: hoursDifference > 0
-										? `${hoursDifference} hours ago`
-										: `${minutesDifference} minutes ago`;
+									? `${hoursDifference} hours ago`
+									: `${minutesDifference} minutes ago`;
 
 							const kda = (
 								(currentPlayer.kills + currentPlayer.assists) /
@@ -512,6 +534,9 @@ const MatchHistory = ({
 
 							const isRemake = match.info.gameDuration < 300;
 
+							// Determine if MVP tag is present
+							const isMVP = tags.some((tag) => tag.key === "mvp");
+
 							return (
 								<div key={index}>
 									<div
@@ -524,7 +549,8 @@ const MatchHistory = ({
 										}
 										className={`rounded-lg shadow-lg p-6 cursor-pointer flex flex-col relative mb-2 ${getGradientBackground(
 											currentPlayer.win,
-											isRemake
+											isRemake,
+											isMVP // Pass isMVP to the gradient function
 										)} min-w-[768px]`}
 									>
 										{/* Match Card */}
@@ -535,7 +561,8 @@ const MatchHistory = ({
 													alt="Champion Icon"
 													className={`sm:w-12 sm:h-12 w-16 h-16 rounded-full border-2 ${getOutcomeClass(
 														currentPlayer.win,
-														isRemake
+														isRemake,
+														isMVP // Pass isMVP to the outcome class function
 													)}`}
 													width={64}
 													height={64}
@@ -546,14 +573,15 @@ const MatchHistory = ({
 													<p
 														className={`font-semibold mr-2 ${getOutcomeClass(
 															currentPlayer.win,
-															isRemake
+															isRemake,
+															isMVP // Pass isMVP to the outcome class function
 														)} sm:text-sm md:text-base lg:text-lg`}
 													>
 														{isRemake
 															? "Remake"
 															: currentPlayer.win
-																? "Victory"
-																: "Defeat"}
+															? "Victory"
+															: "Defeat"}
 													</p>
 													<p className="text-sm mr-2">
 														• {getQueueName(match.info.queueId)}
@@ -807,21 +835,19 @@ const MatchHistory = ({
 						</button>
 
 						{/* Page Numbers */}
-						{Array.from({ length: totalPages }, (_, i) => i + 1).map(
-							(page) => (
-								<button
-									key={page}
-									onClick={() => handlePageChange(page)}
-									className={`px-3 py-1 rounded ${
-										currentPage === page
-											? "bg-gray-700 text-white"
-											: "bg-gray-800 hover:bg-gray-700 text-gray-200"
-									}`}
-								>
-									{page}
-								</button>
-							)
-						)}
+						{Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+							<button
+								key={page}
+								onClick={() => handlePageChange(page)}
+								className={`px-3 py-1 rounded ${
+									currentPage === page
+										? "bg-gray-700 text-white"
+										: "bg-gray-800 hover:bg-gray-700 text-gray-200"
+								}`}
+							>
+								{page}
+							</button>
+						))}
 
 						<button
 							onClick={() => handlePageChange(currentPage + 1)}
