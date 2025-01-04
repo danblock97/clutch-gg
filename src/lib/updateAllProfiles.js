@@ -3,11 +3,13 @@ import { fetchAndUpdateProfileData } from "./fetchAndUpdateProfileData";
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export const updateAllProfiles = async () => {
+export const updateProfilesBatch = async (startIndex, batchSize) => {
 	try {
+		// Fetch profiles in the specified range
 		const { data: profiles, error } = await supabase
 			.from("profiles")
-			.select("*");
+			.select("*")
+			.range(startIndex, startIndex + batchSize - 1);
 
 		if (error) {
 			console.error("Error fetching profiles:", error);
@@ -17,7 +19,7 @@ export const updateAllProfiles = async () => {
 		if (profiles && profiles.length > 0) {
 			let requestCount = 0;
 			const maxRequestsPerBatch = 500; // Riot API limit: 500 requests every 10 seconds
-			const requestInterval = 10 * 1000; // 10 seconds in milliseconds
+			const requestInterval = 10 * 1000; // 10 seconds in ms
 			const requestsPerProfile = 26; // Max requests per profile based on function analysis
 
 			for (const profile of profiles) {
@@ -54,9 +56,9 @@ export const updateAllProfiles = async () => {
 				}
 			}
 		} else {
-			console.log("No profiles to update.");
+			console.log("No profiles found in the specified range.");
 		}
 	} catch (error) {
-		console.error("Error updating all profiles:", error);
+		console.error("Error updating profiles batch:", error);
 	}
 };

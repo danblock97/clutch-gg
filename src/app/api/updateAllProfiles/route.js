@@ -1,26 +1,14 @@
-import { updateAllProfiles } from "@/lib/updateAllProfiles";
-
-const SECRET_TOKEN = process.env.UPDATE_PROFILES_SECRET;
-
-export const config = {
-	runtime: "nodejs",
-};
+import { updateProfilesBatch } from "@/lib/updateAllProfiles";
 
 export async function POST(req) {
-	const authHeader = req.headers.get("Authorization");
-
-	if (authHeader !== `Bearer ${SECRET_TOKEN}`) {
-		return new Response(JSON.stringify({ error: "Unauthorized" }), {
-			status: 401,
-		});
-	}
+	const url = new URL(req.url);
+	const startIndex = parseInt(url.searchParams.get("startIndex") || "0");
+	const batchSize = parseInt(url.searchParams.get("batchSize") || "10");
 
 	try {
-		// Call the function to update all profiles
-		await updateAllProfiles();
+		await updateProfilesBatch(startIndex, batchSize);
 		return new Response(JSON.stringify({ success: true }), { status: 200 });
 	} catch (error) {
-		// Return a 500 status on error
 		return new Response(
 			JSON.stringify({ success: false, error: error.message }),
 			{ status: 500 }
