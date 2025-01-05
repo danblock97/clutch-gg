@@ -1,0 +1,8 @@
+{
+	"functions": {
+		"api/updateAllProfiles": {
+			"runtime": "nodejs18.x",
+			"maxDuration": 60
+		}
+	}
+}
