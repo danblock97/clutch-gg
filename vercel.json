@@ -1,8 +1,0 @@
-{
-	"functions": {
-		"api/updateAllProfiles": {
-			"runtime": "vercel/node@18.x",
-			"maxDuration": 60
-		}
-	}
-}
