@@ -3,15 +3,12 @@ import { fetchAndUpdateProfileData } from "./fetchAndUpdateProfileData";
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export const updateProfilesBatch = async (page, pageSize) => {
-	const startIndex = (page - 1) * pageSize;
-	const endIndex = startIndex + pageSize - 1;
-
+export const updateAllProfiles = async () => {
 	try {
+		// Fetch all profiles from the database
 		const { data: profiles, error } = await supabase
 			.from("profiles")
-			.select("*")
-			.range(startIndex, endIndex);
+			.select("*");
 
 		if (error) {
 			console.error("Error fetching profiles:", error);
@@ -19,11 +16,11 @@ export const updateProfilesBatch = async (page, pageSize) => {
 		}
 
 		if (!profiles || profiles.length === 0) {
-			console.log("No profiles found in the specified range.");
+			console.log("No profiles found in the table.");
 			return;
 		}
 
-		console.log(`Processing profiles ${startIndex} to ${endIndex}`);
+		console.log(`Fetched ${profiles.length} profiles for processing`);
 
 		let requestCount = 0;
 		const maxRequestsPerBatch = 500; // Riot API limit: 500 requests every 10 seconds
@@ -34,14 +31,17 @@ export const updateProfilesBatch = async (page, pageSize) => {
 			try {
 				console.log(`Updating profile: ${profile.gamename}#${profile.tagline}`);
 
+				// Call the function to update a single profile
 				await fetchAndUpdateProfileData(
 					profile.gamename,
 					profile.tagline,
 					profile.region
 				);
 
+				// Increment the request count
 				requestCount += requestsPerProfile;
 
+				// If the request count exceeds the limit, pause before continuing
 				if (requestCount >= maxRequestsPerBatch) {
 					console.log(
 						`Rate limit reached (${requestCount} requests). Pausing for ${
@@ -49,7 +49,7 @@ export const updateProfilesBatch = async (page, pageSize) => {
 						} seconds...`
 					);
 					await sleep(requestInterval);
-					requestCount = 0;
+					requestCount = 0; // Reset request count
 				}
 			} catch (error) {
 				console.error(
@@ -58,7 +58,9 @@ export const updateProfilesBatch = async (page, pageSize) => {
 				);
 			}
 		}
+
+		console.log("All profiles processed successfully.");
 	} catch (error) {
-		console.error("Error updating profiles batch:", error);
+		console.error("Error updating all profiles:", error);
 	}
 };

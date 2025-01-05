@@ -1,12 +1,8 @@
-import { updateProfilesBatch } from "@/lib/updateAllProfiles";
+import { updateAllProfiles } from "@/lib/updateAllProfiles";
 
 export async function POST(req) {
-	const url = new URL(req.url);
-	const page = parseInt(url.searchParams.get("page"), 10) || 1;
-	const pageSize = parseInt(url.searchParams.get("pageSize"), 10) || 10;
-
 	try {
-		await updateProfilesBatch(page, pageSize);
+		await updateAllProfiles();
 		return new Response(JSON.stringify({ success: true }), { status: 200 });
 	} catch (error) {
 		console.error("Error in API route:", error);
