@@ -24,17 +24,27 @@ const regionToPlatform = {
 
 const fetchAdditionalData = async (summonerId, puuid, region) => {
 	try {
-		const [rankedResponse, accountResponse, summonerResponse] = await Promise.all([
-			fetch(`https://${region}.api.riotgames.com/lol/league/v4/entries/by-summoner/${summonerId}`, {
-				headers: { "X-Riot-Token": RIOT_API_KEY },
-			}),
-			fetch(`https://europe.api.riotgames.com/riot/account/v1/accounts/by-puuid/${puuid}`, {
-				headers: { "X-Riot-Token": RIOT_API_KEY },
-			}),
-			fetch(`https://${region}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}`, {
-				headers: { "X-Riot-Token": RIOT_API_KEY },
-			}),
-		]);
+		const [rankedResponse, accountResponse, summonerResponse] =
+			await Promise.all([
+				fetch(
+					`https://${region}.api.riotgames.com/lol/league/v4/entries/by-summoner/${summonerId}`,
+					{
+						headers: { "X-Riot-Token": RIOT_API_KEY },
+					}
+				),
+				fetch(
+					`https://europe.api.riotgames.com/riot/account/v1/accounts/by-puuid/${puuid}`,
+					{
+						headers: { "X-Riot-Token": RIOT_API_KEY },
+					}
+				),
+				fetch(
+					`https://${region}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}`,
+					{
+						headers: { "X-Riot-Token": RIOT_API_KEY },
+					}
+				),
+			]);
 
 		if (!rankedResponse.ok || !accountResponse.ok || !summonerResponse.ok) {
 			throw new Error("Failed to fetch additional data");
@@ -46,10 +56,14 @@ const fetchAdditionalData = async (summonerId, puuid, region) => {
 			summonerResponse.json(),
 		]);
 
-		const soloQueueData = rankedData.find((queue) => queue.queueType === "RANKED_SOLO_5x5");
+		const soloQueueData = rankedData.find(
+			(queue) => queue.queueType === "RANKED_SOLO_5x5"
+		);
 
 		return {
-			rank: soloQueueData ? `${soloQueueData.tier} ${soloQueueData.rank}` : "Unranked",
+			rank: soloQueueData
+				? `${soloQueueData.tier} ${soloQueueData.rank}`
+				: "Unranked",
 			lp: soloQueueData ? soloQueueData.leaguePoints : 0,
 			wins: soloQueueData ? soloQueueData.wins : 0,
 			losses: soloQueueData ? soloQueueData.losses : 0,
