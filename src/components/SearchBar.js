@@ -140,7 +140,7 @@ const SearchBar = ({ onSearch, initialRegion }) => {
 				<select
 					value={selectedRegion}
 					onChange={handleRegionChange}
-					className="bg-[#13151b] text-white px-3 focus:outline-none text-sm"
+					className="bg-[#13151b] text-white px-3 focus:outline-none text-sm font-sans"
 					style={{ height: "100%" }}
 				>
 					{regions.map((region) => (
