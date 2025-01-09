@@ -1,11 +1,8 @@
-### ClutchGG.LOL v1.9.2
+### ClutchGG.LOL v1.9.3
 
 ## 🎮 Main Updates
-- **Region Merge Changes**: 
-  - With Riot Games' recent SEA region merges on January 8th, 2025, we've updated the ClutchGG.LOL app to reflect these changes. The new region structure now aligns with Riot's latest adjustments to the Southeast Asia region.
 
-## 🛠 Bug Fixes
-- **Font Styling Fix**:
-  - We've resolved an issue with the font styling on the region dropdown when viewed in Firefox. The dropdown now displays consistently across all supported browsers.
+- **Season 15 Assets Update**:
+  - We've updated all in-app assets to reflect the changes for League of Legends Season 15. This includes new visuals, champion updates, and other in-game elements to ensure the app stays in sync with the latest season.
 
-Thank you for using ClutchGG.LOL! Stay tuned for future updates.
+Thank you for using ClutchGG.LOL! We’re excited for the new season and will continue to bring you the best League of Legends experience.

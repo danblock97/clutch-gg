@@ -45,7 +45,7 @@ const MatchDetails = ({
 					const itemId = participant[`item${i}`];
 					if (itemId && itemId > 0) {
 						imagesToPrefetch.push(
-							`https://ddragon.leagueoflegends.com/cdn/14.19.1/img/item/${itemId}.png`
+							`https://ddragon.leagueoflegends.com/cdn/15.1.1/img/item/${itemId}.png`
 						);
 					}
 				}
@@ -391,7 +391,7 @@ const ParticipantDetails = ({
 							<div key={idx}>
 								{itemId > 0 ? (
 									<Image
-										src={`https://ddragon.leagueoflegends.com/cdn/14.19.1/img/item/${itemId}.png`}
+										src={`https://ddragon.leagueoflegends.com/cdn/15.1.1/img/item/${itemId}.png`}
 										alt="Item"
 										width={24}
 										height={24}
