@@ -54,7 +54,7 @@ const Dropdowns = ({
 			<select
 				value={region}
 				onChange={(e) => setRegion(e.target.value)}
-				className="bg-[#13151b] p-2 rounded"
+				className="bg-[#13151b] p-2 rounded font-sans"
 			>
 				{Object.entries(regionMappings).map(([value, label]) => (
 					<option key={value} value={value}>
@@ -65,7 +65,7 @@ const Dropdowns = ({
 			<select
 				value={tier}
 				onChange={(e) => setTier(e.target.value)}
-				className="bg-[#13151b] p-2 rounded"
+				className="bg-[#13151b] p-2 rounded font-sans"
 			>
 				{Object.entries(tierMappings).map(([value, label]) => (
 					<option key={value} value={value}>
