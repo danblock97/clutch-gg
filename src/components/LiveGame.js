@@ -18,9 +18,7 @@ const LiveGame = ({ liveGameData, region }) => {
 			const minutes = Math.floor((duration / (1000 * 60)) % 60);
 			const hours = Math.floor(duration / (1000 * 60 * 60));
 
-			setElapsedTime(
-				`${hours > 0 ? `${hours}h ` : ""}${minutes}m ${seconds}s`
-			);
+			setElapsedTime(`${hours > 0 ? `${hours}h ` : ""}${minutes}m ${seconds}s`);
 		};
 
 		updateElapsedTime();
@@ -42,6 +40,11 @@ const LiveGame = ({ liveGameData, region }) => {
 			participant.rank !== "Unranked"
 				? formatRankImageName(participant.rank)
 				: null;
+
+		// Calculate winrate if there are games played
+		const totalGames = participant.wins + participant.losses;
+		const winrate =
+			totalGames > 0 ? ((participant.wins / totalGames) * 100).toFixed(0) : 0; // Show 0% if no games are played
 
 		return (
 			<div
@@ -80,9 +83,7 @@ const LiveGame = ({ liveGameData, region }) => {
 						>
 							{participant.gameName}#{participant.tagLine}
 						</Link>
-						<div className="text-gray-400">
-							Lvl {participant.summonerLevel}
-						</div>
+						<div className="text-gray-400">Lvl {participant.summonerLevel}</div>
 					</div>
 				</div>
 
@@ -105,16 +106,10 @@ const LiveGame = ({ liveGameData, region }) => {
 
 				{/* Stats */}
 				<div className="w-3/12 flex flex-col items-center">
-                    <span className="font-bold">
-                        {participant.wins}W / {participant.losses}L
-                    </span>
-					<span className="text-gray-400">
-                        {(
-							(participant.wins / (participant.wins + participant.losses)) *
-							100
-						).toFixed(0)}
-						% WR
-                    </span>
+					<span className="font-bold">
+						{participant.wins}W / {participant.losses}L
+					</span>
+					<span className="text-gray-400">{winrate}% WR</span>
 				</div>
 			</div>
 		);
