@@ -50,11 +50,12 @@ const Dropdowns = ({
 	setDivision,
 }) => {
 	return (
-		<div className="flex space-x-4 mt-4">
+		<div className="mt-4 flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4">
+			{/* Region dropdown */}
 			<select
 				value={region}
 				onChange={(e) => setRegion(e.target.value)}
-				className="bg-[#13151b] p-2 rounded font-sans"
+				className="bg-[#13151b] text-gray-200 p-2 rounded font-sans text-sm sm:text-base"
 			>
 				{Object.entries(regionMappings).map(([value, label]) => (
 					<option key={value} value={value}>
@@ -62,10 +63,12 @@ const Dropdowns = ({
 					</option>
 				))}
 			</select>
+
+			{/* Tier dropdown */}
 			<select
 				value={tier}
 				onChange={(e) => setTier(e.target.value)}
-				className="bg-[#13151b] p-2 rounded font-sans"
+				className="bg-[#13151b] text-gray-200 p-2 rounded font-sans text-sm sm:text-base"
 			>
 				{Object.entries(tierMappings).map(([value, label]) => (
 					<option key={value} value={value}>
@@ -73,11 +76,13 @@ const Dropdowns = ({
 					</option>
 				))}
 			</select>
+
+			{/* Division dropdown (disabled for top tiers) */}
 			<select
 				value={division}
 				onChange={(e) => setDivision(e.target.value)}
-				className="bg-[#13151b] p-2 rounded"
 				disabled={["CHALLENGER", "GRANDMASTER", "MASTER"].includes(tier)}
+				className="bg-[#13151b] text-gray-200 p-2 rounded font-sans text-sm sm:text-base disabled:opacity-50"
 			>
 				{Object.entries(divisionMappings).map(([value, label]) => (
 					<option key={value} value={value}>
