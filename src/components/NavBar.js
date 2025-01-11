@@ -11,8 +11,8 @@ const NavBar = ({ isBannerVisible }) => {
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
 
+	// Show SearchBar only on /profile or /match
 	const isProfileOrMatch = pathname === "/profile" || pathname === "/match";
-
 	const region = isProfileOrMatch ? searchParams.get("region") : null;
 
 	return (
@@ -21,6 +21,7 @@ const NavBar = ({ isBannerVisible }) => {
 				isBannerVisible ? "pt-16" : "pt-4"
 			}`}
 		>
+			{/* Logo + site name */}
 			<div className="flex items-center space-x-4">
 				<Link href="/">
 					<Image
@@ -31,17 +32,20 @@ const NavBar = ({ isBannerVisible }) => {
 						className="h-8 w-8"
 					/>
 				</Link>
+				{/* Desktop-only site name */}
 				<Link href="/" className="text-lg font-bold hidden md:block">
 					ClutchGG.LOL
 				</Link>
 			</div>
 
+			{/* Desktop SearchBar (only if on /profile or /match) */}
 			{isProfileOrMatch && (
-				<div className="flex justify-center w-1/2 mx-auto">
+				<div className="hidden md:flex justify-center w-1/2 mx-auto">
 					<SearchBar initialRegion={region} />
 				</div>
 			)}
 
+			{/* Desktop links */}
 			<div className="hidden md:flex items-center space-x-6 ml-6">
 				<Link
 					href="/leaderboard"
@@ -64,6 +68,7 @@ const NavBar = ({ isBannerVisible }) => {
 				</Link>
 			</div>
 
+			{/* Mobile hamburger button */}
 			<div className="md:hidden">
 				<button
 					className="text-white p-2"
@@ -86,23 +91,72 @@ const NavBar = ({ isBannerVisible }) => {
 				</button>
 			</div>
 
-			{isMenuOpen && (
-				<div className="fixed inset-0 bg-[#13151b] flex flex-col items-center justify-center p-4 z-50">
+			{/* Mobile menu overlay (slides down from the top) */}
+			<div
+				className={`fixed top-0 left-0 w-full h-full bg-[#13151b] z-50 transform transition-transform duration-300 ${
+					isMenuOpen ? "translate-y-0" : "-translate-y-full"
+				}`}
+			>
+				{/* 
+          Container: 
+          - "relative" for the close button 
+          - "flex flex-col items-center justify-start" to top-align the content 
+          - "pt-20" to push everything down from the top 
+        */}
+				<div className="relative w-full h-full flex flex-col items-center justify-start p-4 pt-20">
+					{/* Close button in top-right corner */}
+					<button
+						onClick={() => setIsMenuOpen(false)}
+						className="text-white absolute top-4 right-4 p-1"
+					>
+						<svg
+							className="w-6 h-6"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+							xmlns="http://www.w3.org/2000/svg"
+						>
+							<path
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								strokeWidth="2"
+								d="M6 18L18 6M6 6l12 12"
+							/>
+						</svg>
+					</button>
+
+					{/* Search Bar (only if on /profile or /match) */}
+					{isProfileOrMatch && (
+						<div className="mb-8 w-full max-w-md">
+							<SearchBar initialRegion={region} />
+						</div>
+					)}
+
+					{/* Mobile menu links */}
 					<Link
 						href="/leaderboard"
-						className="text-xl text-gray-500 mb-6"
+						className="text-xl text-gray-300 hover:text-gray-200 mb-6"
 						onClick={() => setIsMenuOpen(false)}
 					>
 						Leaderboards
 					</Link>
-					<button
-						className="mt-8 text-white"
+
+					<Link
+						href="https://www.buymeacoffee.com/danblock97"
+						target="_blank"
+						rel="noopener noreferrer"
+						className="flex items-center text-gray-300 hover:text-gray-200 mb-6"
 						onClick={() => setIsMenuOpen(false)}
 					>
-						Close
-					</button>
+						<Image
+							src="https://img.buymeacoffee.com/button-api/?text=Buy me a pizza&emoji=🍕&slug=danblock97&button_colour=FFDD00&font_colour=000000&font_family=Comic&outline_colour=000000&coffee_colour=ffffff"
+							alt="Buy me a pizza"
+							width={120}
+							height={40}
+						/>
+					</Link>
 				</div>
-			)}
+			</div>
 		</nav>
 	);
 };
