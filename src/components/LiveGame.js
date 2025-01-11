@@ -23,7 +23,6 @@ const LiveGame = ({ liveGameData, region }) => {
 
 		updateElapsedTime();
 		const interval = setInterval(updateElapsedTime, 1000);
-
 		return () => clearInterval(interval);
 	}, [liveGameData]);
 
@@ -41,17 +40,21 @@ const LiveGame = ({ liveGameData, region }) => {
 				? formatRankImageName(participant.rank)
 				: null;
 
-		// Calculate winrate if there are games played
+		// Calculate winrate
 		const totalGames = participant.wins + participant.losses;
 		const winrate =
-			totalGames > 0 ? ((participant.wins / totalGames) * 100).toFixed(0) : 0; // Show 0% if no games are played
+			totalGames > 0 ? ((participant.wins / totalGames) * 100).toFixed(0) : 0; // Show 0% if no games played
 
 		return (
 			<div
 				key={participant.summonerId}
-				className="flex items-center py-1 border-b border-gray-700 text-sm"
+				className="flex items-center py-2 border-b border-gray-700 text-xs sm:text-sm min-w-[520px]"
+				/* 
+          min-w ensures columns don't squash too much on very narrow screens. 
+          Use a width that fits your layout. 
+        */
 			>
-				{/* Summoner Info */}
+				{/* Summoner Info (w-5/12) */}
 				<div className="flex items-center w-5/12 space-x-1">
 					<Image
 						src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${participant.championId}.png`}
@@ -79,7 +82,7 @@ const LiveGame = ({ liveGameData, region }) => {
 					<div className="flex flex-col">
 						<Link
 							href={`/profile?gameName=${participant.gameName}&tagLine=${participant.tagLine}&region=${region}`}
-							className="font-bold hover:underline"
+							className="font-bold hover:underline break-all"
 						>
 							{participant.gameName}#{participant.tagLine}
 						</Link>
@@ -87,8 +90,8 @@ const LiveGame = ({ liveGameData, region }) => {
 					</div>
 				</div>
 
-				{/* Rank */}
-				<div className="flex items-center w-4/12 justify-start">
+				{/* Rank (w-4/12) */}
+				<div className="flex items-center w-4/12 justify-start pl-2">
 					{rankImageName && (
 						<Image
 							src={`/images/rankedEmblems/${rankImageName}.webp`}
@@ -104,7 +107,7 @@ const LiveGame = ({ liveGameData, region }) => {
 					</div>
 				</div>
 
-				{/* Stats */}
+				{/* Stats (w-3/12) */}
 				<div className="w-3/12 flex flex-col items-center">
 					<span className="font-bold">
 						{participant.wins}W / {participant.losses}L
@@ -117,8 +120,11 @@ const LiveGame = ({ liveGameData, region }) => {
 
 	const renderTeam = (team, teamName, teamColor, teamId) => (
 		<div className="py-2 border-b border-gray-700">
+			{/* Team header + Bans */}
 			<div className="flex justify-between items-center mb-2">
-				<span className={`font-bold ${teamColor}`}>{teamName}</span>
+				<span className={`font-bold ${teamColor} text-sm sm:text-base`}>
+					{teamName}
+				</span>
 				<div className="flex space-x-1">
 					{liveGameData.bannedChampions
 						.filter((b) => b.teamId === teamId)
@@ -134,16 +140,22 @@ const LiveGame = ({ liveGameData, region }) => {
 						))}
 				</div>
 			</div>
-			{team.map((participant) => renderParticipant(participant))}
+			{/* Horizontal scroll container for participant rows */}
+			<div className="overflow-x-auto">
+				{team.map((participant) => renderParticipant(participant))}
+			</div>
 		</div>
 	);
 
 	return (
-		<div className="bg-[#13151b] text-white rounded-lg p-4 shadow-md max-w-7xl w-full">
-			<div className="py-2 px-4 text-lg font-bold bg-gray-900 rounded-t-lg flex justify-between items-center">
-				<span>Ranked Solo | SR</span>
+		<div className="bg-[#13151b] text-white rounded-lg p-2 sm:p-4 shadow-md w-full max-w-7xl">
+			{/* Header */}
+			<div className="py-2 px-4 text-sm sm:text-lg font-bold bg-gray-900 rounded-t-lg flex justify-between items-center">
+				<span>{isArena ? "Arena" : "Ranked Solo | SR"}</span>
 				<span>{elapsedTime}</span>
 			</div>
+
+			{/* Teams */}
 			{renderTeam(
 				liveGameData.participants.filter((p) => p.teamId === 100),
 				"Blue Team",

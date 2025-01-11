@@ -87,7 +87,7 @@ const queues = [
 const getAdditionalTags = (match, currentPlayer) => {
 	const tags = [];
 
-	// Tag for Fast Win
+	// Fast Win
 	if (match.info.gameDuration < 1200 && currentPlayer.win) {
 		tags.push(
 			<Tag
@@ -100,13 +100,14 @@ const getAdditionalTags = (match, currentPlayer) => {
 		);
 	}
 
-	// Tag for MVP (Highest KDA)
+	// MVP (Highest KDA)
 	const highestKDA = match.info.participants.reduce((max, participant) => {
 		const kda =
 			(participant.kills + participant.assists) /
 			Math.max(1, participant.deaths);
 		return kda > max ? kda : max;
 	}, 0);
+
 	const playerKDA =
 		(currentPlayer.kills + currentPlayer.assists) /
 		Math.max(1, currentPlayer.deaths);
@@ -123,7 +124,7 @@ const getAdditionalTags = (match, currentPlayer) => {
 		);
 	}
 
-	// Tag for Killing Spree (e.g., more than 10 kills)
+	// Killing Spree (>=10 kills)
 	if (currentPlayer.kills >= 10) {
 		tags.push(
 			<Tag
@@ -136,7 +137,7 @@ const getAdditionalTags = (match, currentPlayer) => {
 		);
 	}
 
-	// Tag for Objective Player (e.g., highest damage to objectives)
+	// Objective Master (most damage to objectives)
 	const highestObjectiveDamage = match.info.participants.reduce(
 		(max, participant) =>
 			participant.damageDealtToObjectives > max
@@ -156,7 +157,7 @@ const getAdditionalTags = (match, currentPlayer) => {
 		);
 	}
 
-	// Tag for Gold Leader (e.g., highest gold earned)
+	// Gold Leader
 	const highestGold = match.info.participants.reduce(
 		(max, participant) =>
 			participant.goldEarned > max ? participant.goldEarned : max,
@@ -189,7 +190,7 @@ const MatchHistory = ({
 	const [selectedLane, setSelectedLane] = useState(null); // Lane filter state
 	const [selectedQueue, setSelectedQueue] = useState(null); // Queue filter state
 
-	// Pagination States
+	// Pagination
 	const [currentPage, setCurrentPage] = useState(1);
 	const matchesPerPage = 10;
 
@@ -215,7 +216,6 @@ const MatchHistory = ({
 
 	const normalizeTeamPosition = (position) => {
 		if (!position) return "";
-
 		switch (position.toUpperCase()) {
 			case "TOP":
 				return "TOP";
@@ -243,6 +243,7 @@ const MatchHistory = ({
 		);
 	}
 
+	// Filter matches by Lane / Queue
 	const filteredMatches = matchDetails.filter((match) => {
 		const participants = match.info && match.info.participants;
 		if (!participants) return false;
@@ -250,23 +251,19 @@ const MatchHistory = ({
 		const currentPlayer = participants.find(
 			(participant) => participant.puuid === selectedSummonerPUUID
 		);
-
 		if (!currentPlayer) return false;
 
 		const playerLane = normalizeTeamPosition(currentPlayer.teamPosition);
-
 		if (selectedLane && playerLane !== selectedLane) {
 			return false;
 		}
-
 		if (selectedQueue && match.info.queueId !== selectedQueue) {
 			return false;
 		}
-
 		return true;
 	});
 
-	// Calculate pagination details
+	// Pagination logic
 	const totalMatches = filteredMatches.length;
 	const totalPages = Math.ceil(totalMatches / matchesPerPage);
 	const indexOfLastMatch = currentPage * matchesPerPage;
@@ -276,19 +273,17 @@ const MatchHistory = ({
 		indexOfLastMatch
 	);
 
-	// Group current matches by day
+	// Group matches by day
 	const matchesByDay = currentMatches.reduce((acc, match) => {
 		const matchDate = new Date(match.info.gameCreation);
 		const formattedDate = matchDate.toLocaleDateString("en-GB", {
 			day: "2-digit",
 			month: "short",
 		});
-
 		if (!acc[formattedDate]) {
 			acc[formattedDate] = [];
 		}
 		acc[formattedDate].push(match);
-
 		return acc;
 	}, {});
 
@@ -305,9 +300,7 @@ const MatchHistory = ({
 		setCurrentPage(pageNumber);
 	};
 
-	/**
-	 * Updated getOutcomeClass to accept isMVP
-	 */
+	// Used for color-based outcomes
 	const getOutcomeClass = (win, isRemake, isMVP) => {
 		if (isMVP) {
 			return "text-yellow-500 border-yellow-500";
@@ -320,9 +313,7 @@ const MatchHistory = ({
 			: "text-red-400 border-red-400";
 	};
 
-	/**
-	 * Updated getGradientBackground to accept isMVP
-	 */
+	// Background gradient
 	const getGradientBackground = (win, isRemake, isMVP) => {
 		if (isMVP) {
 			return "bg-gradient-to-r from-gray-800 via-yellow-600/20 to-gray-800";
@@ -344,7 +335,7 @@ const MatchHistory = ({
 
 	return (
 		<div className="text-gray-400 w-full max-w-screen-xl mx-auto px-4">
-			{/* Filters Container */}
+			{/* Filters */}
 			<div className="flex flex-col md:flex-row justify-between items-center mt-2 space-y-4 md:space-y-0">
 				{/* Lane Filter */}
 				<div className="flex items-center space-x-2">
@@ -380,11 +371,15 @@ const MatchHistory = ({
 				</div>
 			</div>
 
-			{/* Render grouped match history */}
+			{/* Match History by Day */}
 			<div className="mt-2">
 				{Object.entries(matchesByDay).map(([day, matches]) => (
 					<div key={day} className="mb-2">
 						<h2 className="text-xl font-semibold text-gray-200 my-4">{day}</h2>
+						{/* 
+              Wrap each match card in overflow-x-auto so that if it's too wide 
+              for mobile, the user can scroll horizontally 
+            */}
 						{matches.map((match, index) => {
 							const participants = match.info.participants;
 
@@ -405,11 +400,11 @@ const MatchHistory = ({
 							});
 
 							const currentPlayer = participants.find(
-								(participant) => participant.puuid === selectedSummonerPUUID
+								(p) => p.puuid === selectedSummonerPUUID
 							);
-
 							const tags = [...getAdditionalTags(match, currentPlayer)];
 
+							// Additional mini-tags
 							if (currentPlayer.firstBloodKill) {
 								tags.push(
 									<Tag
@@ -421,19 +416,17 @@ const MatchHistory = ({
 									/>
 								);
 							}
-
 							if (currentPlayer.tripleKills > 0) {
 								tags.push(
 									<Tag
 										key="triple-kill"
 										text="Triple Kill"
-										hoverText={`Nice job getting ${currentPlayer.tripleKills} Triple Kills!`}
+										hoverText={`You got ${currentPlayer.tripleKills} Triple Kills!`}
 										color="bg-yellow-500 text-white"
 										icon={<FaBolt />}
 									/>
 								);
 							}
-
 							if (currentPlayer.deaths === 0) {
 								tags.push(
 									<Tag
@@ -445,9 +438,7 @@ const MatchHistory = ({
 									/>
 								);
 							}
-
 							const damageThreshold = match.info.queueId === 450 ? 1700 : 900;
-
 							if (currentPlayer.challenges.damagePerMinute > damageThreshold) {
 								tags.push(
 									<Tag
@@ -459,7 +450,6 @@ const MatchHistory = ({
 									/>
 								);
 							}
-
 							if (currentPlayer.puuid === maxCsPerMinParticipant) {
 								tags.push(
 									<Tag
@@ -492,7 +482,6 @@ const MatchHistory = ({
 							const minutesDifference = Math.floor(
 								timeDifference / (1000 * 60)
 							);
-
 							const timeAgo =
 								daysDifference > 0
 									? `${daysDifference} days ago`
@@ -504,10 +493,12 @@ const MatchHistory = ({
 								(currentPlayer.kills + currentPlayer.assists) /
 								Math.max(1, currentPlayer.deaths)
 							).toFixed(1);
+
 							const csPerMinCalc = (
 								currentPlayer.totalMinionsKilled /
 								(match.info.gameDuration / 60)
 							).toFixed(1);
+
 							const cs =
 								currentPlayer.neutralMinionsKilled +
 								currentPlayer.totalMinionsKilled;
@@ -525,20 +516,18 @@ const MatchHistory = ({
 
 							const goldEarned = currentPlayer.goldEarned.toLocaleString();
 
-							const winningTeam = match.info.participants.filter(
-								(participant) => participant.win
-							);
-							const losingTeam = match.info.participants.filter(
-								(participant) => !participant.win
-							);
+							const winningTeam = match.info.participants.filter((p) => p.win);
+							const losingTeam = match.info.participants.filter((p) => !p.win);
 
 							const isRemake = match.info.gameDuration < 300;
 
-							// Determine if MVP tag is present
+							// Check for MVP tag
 							const isMVP = tags.some((tag) => tag.key === "mvp");
 
 							return (
-								<div key={index}>
+								<div key={index} className="overflow-x-auto">
+									{/* We set a min-width to keep layout from squashing; 
+                      plus smaller text on narrow screens */}
 									<div
 										onClick={() =>
 											setExpandedMatchId(
@@ -547,13 +536,13 @@ const MatchHistory = ({
 													: match.metadata.matchId
 											)
 										}
-										className={`rounded-lg shadow-lg p-6 cursor-pointer flex flex-col relative mb-2 ${getGradientBackground(
+										className={`rounded-lg shadow-lg p-6 cursor-pointer flex flex-col relative mb-2 min-w-[768px] text-xs sm:text-sm ${getGradientBackground(
 											currentPlayer.win,
 											isRemake,
-											isMVP // Pass isMVP to the gradient function
-										)} min-w-[768px]`}
+											isMVP
+										)}`}
 									>
-										{/* Match Card */}
+										{/* Match Card Content */}
 										<div className="absolute top-4 left-2 flex items-start">
 											<div className="flex items-center mr-4">
 												<Image
@@ -562,7 +551,7 @@ const MatchHistory = ({
 													className={`sm:w-12 sm:h-12 w-16 h-16 rounded-full border-2 ${getOutcomeClass(
 														currentPlayer.win,
 														isRemake,
-														isMVP // Pass isMVP to the outcome class function
+														isMVP
 													)}`}
 													width={64}
 													height={64}
@@ -574,7 +563,7 @@ const MatchHistory = ({
 														className={`font-semibold mr-2 ${getOutcomeClass(
 															currentPlayer.win,
 															isRemake,
-															isMVP // Pass isMVP to the outcome class function
+															isMVP
 														)} sm:text-sm md:text-base lg:text-lg`}
 													>
 														{isRemake
@@ -641,6 +630,8 @@ const MatchHistory = ({
 											</div>
 										</div>
 										<div className="h-24"></div>
+
+										{/* Summoner Spells & Items */}
 										<div className="absolute top-16 right-[270px] flex items-center justify-center">
 											<div className="flex flex-col items-center mr-2 gap-2">
 												{[
@@ -679,10 +670,10 @@ const MatchHistory = ({
 														)}
 													</div>
 												))}
-												{ward ? (
+												{items[6] ? (
 													<div className="flex items-center">
 														<Image
-															src={`https://ddragon.leagueoflegends.com/cdn/15.1.1/img/item/${ward}.png`}
+															src={`https://ddragon.leagueoflegends.com/cdn/15.1.1/img/item/${items[6]}.png`}
 															alt="Ward"
 															width={28}
 															height={28}
@@ -722,6 +713,7 @@ const MatchHistory = ({
 											</div>
 										</div>
 
+										{/* Arena Augments or Summaries */}
 										{match.info.queueId === 1700 ? (
 											<div className="absolute top-6 right-16 flex">
 												<div className="grid grid-cols-2 gap-2">
@@ -752,9 +744,7 @@ const MatchHistory = ({
 															/>
 															<p
 																className="text-sm truncate"
-																style={{
-																	width: "100px",
-																}}
+																style={{ width: "100px" }}
 															>
 																<span
 																	className={`${
@@ -781,9 +771,7 @@ const MatchHistory = ({
 															/>
 															<p
 																className="text-sm truncate"
-																style={{
-																	width: "100px",
-																}}
+																style={{ width: "100px" }}
 															>
 																<span
 																	className={`${
@@ -802,7 +790,7 @@ const MatchHistory = ({
 										)}
 									</div>
 
-									{/* Conditionally render MatchDetails */}
+									{/* Conditionally render expanded match details */}
 									{expandedMatchId === match.metadata.matchId && (
 										<div className="p-4 bg-gray-900 rounded-lg shadow-lg mb-2">
 											<MatchDetails
@@ -819,7 +807,7 @@ const MatchHistory = ({
 					</div>
 				))}
 
-				{/* Pagination Controls */}
+				{/* Pagination */}
 				{totalPages > 1 && (
 					<div className="flex justify-center items-center mt-6 space-x-1 text-sm">
 						<button
@@ -834,7 +822,6 @@ const MatchHistory = ({
 							Previous
 						</button>
 
-						{/* Page Numbers */}
 						{Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
 							<button
 								key={page}

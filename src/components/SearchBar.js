@@ -28,12 +28,14 @@ const SearchBar = ({ onSearch, initialRegion }) => {
 	const router = useRouter();
 	const dropdownRef = useRef(null);
 
+	// Sync region if initialRegion prop changes
 	useEffect(() => {
 		if (initialRegion) {
 			setSelectedRegion(initialRegion);
 		}
 	}, [initialRegion]);
 
+	// Fetch suggestions from Supabase
 	const fetchSuggestions = async (input) => {
 		if (!input) {
 			setSuggestions([]);
@@ -56,12 +58,14 @@ const SearchBar = ({ onSearch, initialRegion }) => {
 		}
 	};
 
+	// Debounce suggestions for better performance
 	const debouncedFetchSuggestions = useRef(
 		debounce((input) => {
 			fetchSuggestions(input);
 		}, 300)
 	).current;
 
+	// Input change handler
 	const handleInputChange = (e) => {
 		const value = e.target.value;
 		setCombinedInput(value);
@@ -69,10 +73,12 @@ const SearchBar = ({ onSearch, initialRegion }) => {
 		setIsDropdownVisible(true);
 	};
 
+	// Region change handler
 	const handleRegionChange = (e) => {
 		setSelectedRegion(e.target.value);
 	};
 
+	// Primary search logic
 	const handleSearch = (
 		gameNameFromClick,
 		tagLineFromClick,
@@ -95,15 +101,18 @@ const SearchBar = ({ onSearch, initialRegion }) => {
 			alert("Please enter both game name, tagline, and select a region.");
 		}
 
+		// Reset
 		setCombinedInput("");
 		setSuggestions([]);
 		setIsDropdownVisible(false);
 
+		// Optional callback
 		if (onSearch) {
 			onSearch();
 		}
 	};
 
+	// Handle Enter key
 	const handleKeyDown = (event) => {
 		if (event.key === "Enter") {
 			event.preventDefault();
@@ -111,6 +120,7 @@ const SearchBar = ({ onSearch, initialRegion }) => {
 		}
 	};
 
+	// Handle suggestion selection
 	const handleSuggestionClick = (suggestion) => {
 		const selectedGameName = suggestion.gamename;
 		const selectedTagLine = suggestion.tagline;
@@ -122,6 +132,7 @@ const SearchBar = ({ onSearch, initialRegion }) => {
 		handleSearch(selectedGameName, selectedTagLine, region);
 	};
 
+	// Close dropdown if user clicks outside
 	useEffect(() => {
 		const handleClickOutside = (event) => {
 			if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -135,13 +146,17 @@ const SearchBar = ({ onSearch, initialRegion }) => {
 	}, []);
 
 	return (
-		<div className="relative w-full flex items-center">
+		<div
+			className="relative mx-auto w-full max-w-xs sm:max-w-sm md:max-w-md"
+			ref={dropdownRef}
+		>
+			{/* Container for select + input + icon */}
 			<div className="flex w-full h-12 bg-[#13151b] rounded-md overflow-hidden border border-[#33374a] shadow-md">
+				{/* Region Dropdown */}
 				<select
 					value={selectedRegion}
 					onChange={handleRegionChange}
-					className="bg-[#13151b] text-white px-3 focus:outline-none text-sm font-sans"
-					style={{ height: "100%" }}
+					className="bg-[#13151b] text-white px-2 sm:px-3 text-xs sm:text-sm focus:outline-none font-sans"
 				>
 					{regions.map((region) => (
 						<option key={region.code} value={region.code}>
@@ -149,24 +164,27 @@ const SearchBar = ({ onSearch, initialRegion }) => {
 						</option>
 					))}
 				</select>
+
+				{/* Text Input */}
 				<input
-					className="flex-grow p-4 pl-3 text-white bg-[#13151b] focus:outline-none placeholder-gray-500 text-sm"
+					className="flex-grow p-3 sm:p-4 text-xs sm:text-sm text-white bg-[#13151b] focus:outline-none placeholder-gray-500"
 					type="text"
 					placeholder="Riot ID.. (e.g: Faker#SKT)"
 					value={combinedInput}
 					onChange={handleInputChange}
 					onKeyDown={handleKeyDown}
 				/>
+
+				{/* Search Icon/Button */}
 				<button
-					className="absolute top-1/2 right-4 transform -translate-y-1/2 bg-transparent border-none outline-none cursor-pointer"
+					className="flex items-center justify-center px-2 sm:px-3 text-gray-500 hover:text-white focus:outline-none"
 					onClick={() => handleSearch()}
 				>
 					<svg
-						className="w-6 h-6 text-gray-500 hover:text-white"
+						className="w-5 h-5 sm:w-6 sm:h-6"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
-						xmlns="http://www.w3.org/2000/svg"
 					>
 						<path
 							strokeLinecap="round"
@@ -178,9 +196,10 @@ const SearchBar = ({ onSearch, initialRegion }) => {
 				</button>
 			</div>
 
+			{/* Suggestions Dropdown */}
 			{isDropdownVisible && suggestions.length > 0 && (
 				<ul
-					className="absolute z-10 bg-[#1a1d26] border border-[#33374a] shadow-lg rounded-xl w-full mt-1"
+					className="absolute z-10 bg-[#1a1d26] border border-[#33374a] shadow-lg rounded-xl w-full mt-1 max-h-48 overflow-y-auto"
 					style={{ top: "100%" }}
 				>
 					{suggestions.map((suggestion, index) => (
@@ -207,6 +226,7 @@ const SearchBar = ({ onSearch, initialRegion }) => {
 	);
 };
 
+// Badge color logic
 const getBadgeColor = (region) => {
 	switch (region.toUpperCase()) {
 		case "EUW":
