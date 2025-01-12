@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Loading from "./Loading";
 import Link from "next/link";
-import Tag from "@/components/Tag";
 
 const fetchArenaAugments = async () => {
 	const response = await fetch(
@@ -30,17 +29,20 @@ const MatchDetails = ({
 
 	useEffect(() => {
 		if (!matchDetails || !augments) return;
+
 		const imagesToPrefetch = [];
 		matchDetails.forEach((match) => {
 			match.info.participants.forEach((participant) => {
 				imagesToPrefetch.push(
 					`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${participant.championId}.png`
 				);
+
 				[participant.summoner1Id, participant.summoner2Id].forEach(
 					(spellId) => {
 						imagesToPrefetch.push(`/images/summonerSpells/${spellId}.png`);
 					}
 				);
+
 				for (let i = 0; i < 7; i++) {
 					const itemId = participant[`item${i}`];
 					if (itemId && itemId > 0) {
@@ -50,6 +52,8 @@ const MatchDetails = ({
 					}
 				}
 			});
+
+			// Arena augments
 			if (match.info.queueId === 1700 && augments.length > 0) {
 				match.info.participants.forEach((participant) => {
 					if (participant.missions?.playerAugments) {
@@ -64,6 +68,8 @@ const MatchDetails = ({
 					}
 				});
 			}
+
+			// Champion bans
 			match.info.teams.forEach((team) => {
 				team.bans.forEach((ban) => {
 					imagesToPrefetch.push(
@@ -72,6 +78,7 @@ const MatchDetails = ({
 				});
 			});
 		});
+
 		imagesToPrefetch.forEach((src) => {
 			const img = new window.Image();
 			img.src = src;
@@ -103,83 +110,32 @@ const MatchDetails = ({
 	const participants = match.info.participants;
 	let maxCsPerMin = 0;
 	let maxCsPerMinParticipant = null;
+
 	participants.forEach((participant) => {
 		const csPerMin =
 			(participant.totalMinionsKilled + participant.neutralMinionsKilled) /
 			(match.info.gameDuration / 60);
 		participant.csPerMin = csPerMin;
+
 		if (csPerMin > maxCsPerMin) {
 			maxCsPerMin = csPerMin;
 			maxCsPerMinParticipant = participant.puuid;
 		}
 	});
 
-	const participant = participants.find(
-		(p) => p.puuid === selectedSummonerPUUID
-	);
-	const tags = [];
-	if (participant) {
-		if (participant.firstBloodKill) {
-			tags.push(
-				<Tag
-					key="first-blood"
-					text="FB"
-					hoverText="First Blood"
-					color="bg-green-500 text-white text-sm px-2 py-1"
-				/>
-			);
-		}
-		if (participant.tripleKills > 0) {
-			tags.push(
-				<Tag
-					key="triple-kill"
-					text="Triple"
-					hoverText={`Triple Kill x${participant.tripleKills}`}
-					color="bg-yellow-500 text-white text-sm px-2 py-1"
-				/>
-			);
-		}
-		if (participant.deaths === 0) {
-			tags.push(
-				<Tag
-					key="unkillable"
-					text="Unkillable"
-					hoverText="0 Deaths"
-					color="bg-yellow-500 text-white text-sm px-2 py-1"
-				/>
-			);
-		}
-		if (participant.challenges.damagePerMinute > 800) {
-			tags.push(
-				<Tag
-					key="good-damage"
-					text="Good DMG"
-					hoverText={`Damage Dealt: ${participant.totalDamageDealtToChampions.toLocaleString()}`}
-					color="bg-yellow-500 text-white text-sm px-2 py-1"
-				/>
-			);
-		}
-		if (participant.puuid === maxCsPerMinParticipant) {
-			tags.push(
-				<Tag
-					key="cs-star"
-					text="CS Star"
-					hoverText={`Highest CS/Min: ${participant.csPerMin.toFixed(1)}`}
-					color="bg-blue-500 text-white text-sm px-2 py-1"
-				/>
-			);
-		}
-	}
-
 	const isArena = match.info.queueId === 1700;
+
 	if (isArena) {
 		let arenaParticipants = match.info.participants;
 		let teams = {};
+
+		// Sort Arena participants by playerScore0
 		arenaParticipants = arenaParticipants.map((p) => ({
 			...p,
 			playerScore0: p.missions.playerScore0,
 		}));
 		arenaParticipants.sort((a, b) => a.playerScore0 - b.playerScore0);
+
 		arenaParticipants.forEach((p, i) => {
 			const teamId = Math.floor(i / 2);
 			if (!teams[teamId]) {
@@ -187,11 +143,13 @@ const MatchDetails = ({
 			}
 			teams[teamId].push(p);
 		});
+
 		function getOrdinal(n) {
 			const s = ["th", "st", "nd", "rd"];
 			const v = n % 100;
 			return n + (s[(v - 20) % 10] || s[v] || s[0]);
 		}
+
 		function getPlacementColor(placement) {
 			switch (placement) {
 				case 1:
@@ -214,9 +172,11 @@ const MatchDetails = ({
 					return "text-white";
 			}
 		}
+
 		const teamComponents = Object.values(teams).map((team, index) => {
 			const placement = team[0].playerScore0;
 			const colorClass = getPlacementColor(placement);
+
 			return (
 				<div
 					key={index}
@@ -236,12 +196,10 @@ const MatchDetails = ({
 				</div>
 			);
 		});
+
 		return (
 			<div className="bg-[#13151b] min-h-screen flex flex-col items-center justify-center px-2 py-1">
-				<div className="max-w-6xl w-full">
-					<div className="tags flex space-x-1 mb-2">{tags}</div>
-					{teamComponents}
-				</div>
+				<div className="max-w-6xl w-full">{teamComponents}</div>
 			</div>
 		);
 	}
@@ -272,68 +230,76 @@ const MatchDetails = ({
 	};
 
 	return (
-		<div className="bg-[#13151b] min-h-auto flex items-center justify-center px-2 py-1">
-			<div className="bg-[#13151b] text-white max-w-6xl w-full p-2">
-				<div className="tags flex space-x-1 mb-1 overflow-x-auto">{tags}</div>
-				<div className="flex justify-between items-center mb-1">
-					<span className="text-sm font-semibold text-[#3182CE]">Team 1</span>
-					<div className="text-sm font-semibold text-[#3182CE]">{`${team1Stats.kills} / ${team1Stats.deaths} / ${team1Stats.assists}`}</div>
-					<div className="flex justify-end items-center">
-						<span className="text-sm font-semibold text-[#3182CE] mr-1">
-							Bans:
-						</span>
-						{bans.team1.map((ban, idx) => (
-							<Image
-								key={idx}
-								src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${ban.championId}.png`}
-								alt="Champion Ban"
-								width={16}
-								height={16}
-								className="w-4 h-4"
+		<div className="min-h-auto flex items-center justify-center px-2 py-1">
+			<div className="overflow-x-auto w-full">
+				<div className="min-w-[768px] text-white max-w-6xl w-full">
+					{/* Team 1 Section */}
+					<div className="flex justify-between items-center mb-1">
+						<span className="text-sm font-semibold text-[#3182CE]">Team 1</span>
+						<div className="text-sm font-semibold text-[#3182CE]">
+							{`${team1Stats.kills} / ${team1Stats.deaths} / ${team1Stats.assists}`}
+						</div>
+						<div className="flex justify-end items-center">
+							<span className="text-sm font-semibold text-[#3182CE] mr-1">
+								Bans:
+							</span>
+							{bans.team1.map((ban, idx) => (
+								<Image
+									key={idx}
+									src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${ban.championId}.png`}
+									alt="Champion Ban"
+									width={16}
+									height={16}
+									className="w-4 h-4"
+								/>
+							))}
+						</div>
+					</div>
+					<div className="space-y-2 overflow-x-auto">
+						{team1.map((p, i) => (
+							<ParticipantDetails
+								key={i}
+								participant={p}
+								selectedSummonerPUUID={selectedSummonerPUUID}
+								getAugmentIcon={getAugmentIcon}
+								region={region}
 							/>
 						))}
 					</div>
-				</div>
-				<div className="flex flex-col space-y-1">
-					{team1.map((p, i) => (
-						<ParticipantDetails
-							key={i}
-							participant={p}
-							selectedSummonerPUUID={selectedSummonerPUUID}
-							getAugmentIcon={getAugmentIcon}
-							region={region}
-						/>
-					))}
-				</div>
-				<div className="flex justify-between items-center mt-1 mb-1">
-					<span className="text-sm font-semibold text-[#C53030]">Team 2</span>
-					<div className="text-sm font-semibold text-[#C53030]">{`${team2Stats.kills} / ${team2Stats.deaths} / ${team2Stats.assists}`}</div>
-					<div className="flex justify-end items-center">
-						<span className="text-sm font-semibold text-[#C53030] mr-1">
-							Bans:
-						</span>
-						{bans.team2.map((ban, idx) => (
-							<Image
-								key={idx}
-								src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${ban.championId}.png`}
-								alt="Champion Ban"
-								width={16}
-								height={16}
-								className="w-4 h-4"
+
+					{/* Team 2 Section */}
+					<div className="flex justify-between items-center mt-1 mb-1">
+						<span className="text-sm font-semibold text-[#C53030]">Team 2</span>
+						<div className="text-sm font-semibold text-[#C53030]">
+							{`${team2Stats.kills} / ${team2Stats.deaths} / ${team2Stats.assists}`}
+						</div>
+						<div className="flex justify-end items-center">
+							<span className="text-sm font-semibold text-[#C53030] mr-1">
+								Bans:
+							</span>
+							{bans.team2.map((ban, idx) => (
+								<Image
+									key={idx}
+									src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${ban.championId}.png`}
+									alt="Champion Ban"
+									width={16}
+									height={16}
+									className="w-4 h-4"
+								/>
+							))}
+						</div>
+					</div>
+					<div className="space-y-2 overflow-x-auto">
+						{team2.map((p, i) => (
+							<ParticipantDetails
+								key={i}
+								participant={p}
+								selectedSummonerPUUID={selectedSummonerPUUID}
+								getAugmentIcon={getAugmentIcon}
+								region={region}
 							/>
 						))}
 					</div>
-				</div>
-				<div className="flex flex-col space-y-1">
-					{team2.map((p, i) => (
-						<ParticipantDetails
-							key={i}
-							participant={p}
-							selectedSummonerPUUID={selectedSummonerPUUID}
-							getAugmentIcon={getAugmentIcon}
-							region={region}
-						/>
-					))}
 				</div>
 			</div>
 		</div>
@@ -358,19 +324,20 @@ const ParticipantDetails = ({
 		<Link
 			href={`/profile?gameName=${participant.riotIdGameName}&tagLine=${participant.riotIdTagline}&region=${region}`}
 		>
-			<div className="flex items-center justify-between p-2 bg-[#1e1e1e] rounded-lg hover:bg-[#2e2e2e] transition duration-150">
+			<div className="flex items-center justify-between p-2 bg-[#1e1e1e] rounded-lg hover:bg-[#2e2e2e] transition duration-150 mt-2">
 				<div className="flex items-center space-x-2 flex-shrink-0 w-1/4">
 					<Image
 						src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${participant.championId}.png`}
 						alt="Champion"
 						width={32}
 						height={32}
-						className="w-8 h-8"
+						className="w-8 h-8 rounded-full"
 					/>
 					<span className="text-sm font-semibold truncate">
 						{participant.riotIdGameName}#{participant.riotIdTagline}
 					</span>
 				</div>
+
 				<div className="flex items-center space-x-1 flex-shrink-0 w-1/6 justify-center">
 					{[participant.summoner1Id, participant.summoner2Id].map(
 						(spellId, idx) => (
@@ -385,6 +352,7 @@ const ParticipantDetails = ({
 						)
 					)}
 				</div>
+
 				<div className="flex items-center space-x-1 flex-shrink-0 w-1/4 justify-center">
 					{Array.from({ length: 6 }, (_, i) => participant[`item${i}`]).map(
 						(itemId, idx) => (
@@ -410,12 +378,14 @@ const ParticipantDetails = ({
 						)
 					)}
 				</div>
+
 				<div className="flex flex-col items-center flex-shrink-0 w-1/6">
 					<span className="text-sm font-semibold">
 						{participant.kills} / {participant.deaths} / {participant.assists}
 					</span>
 					<span className="text-xs text-gray-400">{kda} KDA</span>
 				</div>
+
 				<div className="flex flex-col items-center flex-shrink-0 w-1/6">
 					<span className="text-sm font-semibold">
 						{participant.totalMinionsKilled + participant.neutralMinionsKilled}{" "}

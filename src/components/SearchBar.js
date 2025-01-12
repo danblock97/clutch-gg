@@ -22,7 +22,7 @@ const regions = [
 
 const SearchBar = ({ onSearch, initialRegion }) => {
 	const [combinedInput, setCombinedInput] = useState("");
-	const [selectedRegion, setSelectedRegion] = useState(initialRegion || "NA1");
+	const [selectedRegion, setSelectedRegion] = useState(initialRegion || "EUW1");
 	const [suggestions, setSuggestions] = useState([]);
 	const [isDropdownVisible, setIsDropdownVisible] = useState(false);
 	const router = useRouter();

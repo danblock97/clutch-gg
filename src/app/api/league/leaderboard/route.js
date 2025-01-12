@@ -62,9 +62,10 @@ export async function GET(req) {
 	const queue = searchParams.get("queue") || "RANKED_SOLO_5x5";
 	const tier = searchParams.get("tier") || "CHALLENGER";
 	const division = searchParams.get("division") || "I";
-	const region = searchParams.get("region") || "euw1"; // Ensure the correct region
+	const region = searchParams.get("region") || "euw1"; // Ensure correct region, e.g. "EUW1"
 
 	try {
+		// 1) Fetch from Riot's League-Exp endpoint
 		const response = await fetch(
 			`https://${region}.api.riotgames.com/lol/league-exp/v4/entries/${queue}/${tier}/${division}?page=1`,
 			{
@@ -74,12 +75,32 @@ export async function GET(req) {
 			}
 		);
 
+		// 2) If response is NOT OK, log it & return an empty array with 200
+		//    so your client sees "no players" rather than 500 error
 		if (!response.ok) {
-			throw new Error("Failed to fetch leaderboard data");
+			console.error(
+				`Riot API returned non-OK status: ${response.status} ${response.statusText}`
+			);
+			return NextResponse.json([], { status: 200 });
 		}
 
-		const leaderboardData = await response.json();
+		// 3) Safely parse the JSON
+		let leaderboardData = [];
+		try {
+			leaderboardData = await response.json();
+		} catch (parseErr) {
+			console.error("Failed to parse Riot API JSON:", parseErr);
+			// Return empty array with 200 if JSON parse fails
+			return NextResponse.json([], { status: 200 });
+		}
 
+		// 4) If it's not an array or is empty => just return []
+		if (!Array.isArray(leaderboardData) || leaderboardData.length === 0) {
+			console.log("Rank is empty or data not an array, returning []");
+			return NextResponse.json([]);
+		}
+
+		// 5) We have an array of entries; enrich with profile data
 		const detailedDataPromises = leaderboardData.map(async (entry) => {
 			try {
 				const { puuid, profileIconId } = await fetchPUUID(
@@ -87,6 +108,7 @@ export async function GET(req) {
 					region
 				);
 				const accountData = await fetchAccountData(puuid);
+
 				return {
 					...entry,
 					profileData: {
@@ -111,10 +133,10 @@ export async function GET(req) {
 		});
 
 		const detailedData = await Promise.all(detailedDataPromises);
-
 		return NextResponse.json(detailedData);
 	} catch (error) {
-		console.error("Error in API route:", error);
-		return NextResponse.json({ error: error.message }, { status: 500 });
+		console.error("Error in leaderboard API route:", error);
+		// If truly cannot proceed, return empty array with 200
+		return NextResponse.json([], { status: 200 });
 	}
 }
