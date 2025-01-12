@@ -1,7 +1,7 @@
-import Image from "next/image";
 import React, { useEffect, useState } from "react";
+import Image from "next/image";
 import Tag from "@/components/Tag";
-import MatchDetails from "@/components/MatchDetails"; // Import MatchDetails
+import MatchDetails from "@/components/MatchDetails";
 import {
 	FaSkullCrossbones,
 	FaBolt,
@@ -13,6 +13,34 @@ import {
 	FaMedal,
 } from "react-icons/fa";
 
+// 1) Inline hook for detecting current breakpoint
+function useBreakpoint() {
+	const [breakpoint, setBreakpoint] = useState("mobile");
+
+	useEffect(() => {
+		function handleResize() {
+			const width = window.innerWidth;
+			if (width < 768) {
+				setBreakpoint("mobile");
+			} else if (width < 1024) {
+				setBreakpoint("md");
+			} else {
+				setBreakpoint("lg");
+			}
+		}
+
+		// Check breakpoint on mount
+		handleResize();
+
+		// Listen for resize events
+		window.addEventListener("resize", handleResize);
+		return () => window.removeEventListener("resize", handleResize);
+	}, []);
+
+	return breakpoint;
+}
+
+// 2) Fetch Arena Augments
 const fetchArenaAugments = async () => {
 	const response = await fetch(
 		"https://raw.communitydragon.org/latest/cdragon/arena/en_us.json"
@@ -21,6 +49,7 @@ const fetchArenaAugments = async () => {
 	return augments;
 };
 
+// 3) Queue name helper
 const getQueueName = (queueId) => {
 	switch (queueId) {
 		case 420:
@@ -52,6 +81,7 @@ const getQueueName = (queueId) => {
 	}
 };
 
+// 4) Lane icons for filter
 const lanes = [
 	{
 		id: "TOP",
@@ -75,6 +105,7 @@ const lanes = [
 	},
 ];
 
+// 5) Queue options for dropdown filter
 const queues = [
 	{ id: 420, name: "Ranked Solo/Duo" },
 	{ id: 440, name: "Ranked Flex" },
@@ -84,6 +115,7 @@ const queues = [
 	{ id: 1700, name: "Arena" },
 ];
 
+// 6) Additional tags logic
 const getAdditionalTags = (match, currentPlayer) => {
 	const tags = [];
 
@@ -178,6 +210,7 @@ const getAdditionalTags = (match, currentPlayer) => {
 	return tags;
 };
 
+// 7) Main component
 const MatchHistory = ({
 	matchDetails,
 	selectedSummonerPUUID,
@@ -193,6 +226,18 @@ const MatchHistory = ({
 	// Pagination
 	const [currentPage, setCurrentPage] = useState(1);
 	const matchesPerPage = 10;
+
+	// 8) Use our custom breakpoint hook
+	const breakpoint = useBreakpoint();
+
+	// Decide how many tags to show based on current breakpoint
+	let maxTagsToShow = 3; // default for large screens
+	if (breakpoint === "mobile") {
+		maxTagsToShow = 1;
+	} else if (breakpoint === "md") {
+		maxTagsToShow = 2;
+	}
+	// for "lg", we'll keep it at 3 (or you could do tags.length if you want *all* on large)
 
 	useEffect(() => {
 		const getAugments = async () => {
@@ -376,10 +421,7 @@ const MatchHistory = ({
 				{Object.entries(matchesByDay).map(([day, matches]) => (
 					<div key={day} className="mb-2">
 						<h2 className="text-xl font-semibold text-gray-200 my-4">{day}</h2>
-						{/* 
-              Wrap each match card in overflow-x-auto so that if it's too wide 
-              for mobile, the user can scroll horizontally 
-            */}
+
 						{matches.map((match, index) => {
 							const participants = match.info.participants;
 
@@ -392,7 +434,6 @@ const MatchHistory = ({
 										participant.neutralMinionsKilled) /
 									(match.info.gameDuration / 60);
 								participant.csPerMin = csPerMin;
-
 								if (csPerMin > maxCsPerMin) {
 									maxCsPerMin = csPerMin;
 									maxCsPerMinParticipant = participant.puuid;
@@ -402,6 +443,7 @@ const MatchHistory = ({
 							const currentPlayer = participants.find(
 								(p) => p.puuid === selectedSummonerPUUID
 							);
+							// Gather tags
 							const tags = [...getAdditionalTags(match, currentPlayer)];
 
 							// Additional mini-tags
@@ -438,6 +480,7 @@ const MatchHistory = ({
 									/>
 								);
 							}
+
 							const damageThreshold = match.info.queueId === 450 ? 1700 : 900;
 							if (currentPlayer.challenges.damagePerMinute > damageThreshold) {
 								tags.push(
@@ -520,14 +563,12 @@ const MatchHistory = ({
 							const losingTeam = match.info.participants.filter((p) => !p.win);
 
 							const isRemake = match.info.gameDuration < 300;
-
 							// Check for MVP tag
 							const isMVP = tags.some((tag) => tag.key === "mvp");
 
 							return (
 								<div key={index} className="overflow-x-auto">
-									{/* We set a min-width to keep layout from squashing; 
-                      plus smaller text on narrow screens */}
+									{/* Container with gradient based on outcome */}
 									<div
 										onClick={() =>
 											setExpandedMatchId(
@@ -542,7 +583,7 @@ const MatchHistory = ({
 											isMVP
 										)}`}
 									>
-										{/* Match Card Content */}
+										{/* Left side: champion info & queue info */}
 										<div className="absolute top-4 left-2 flex items-start">
 											<div className="flex items-center mr-4">
 												<Image
@@ -624,8 +665,10 @@ const MatchHistory = ({
 														</div>
 													)}
 												</div>
+
+												{/* The tags: limit based on breakpoint */}
 												<div className="flex mt-2 flex-wrap justify-start space-x-2">
-													{tags.slice(0, 3)}
+													{tags.slice(0, maxTagsToShow)}
 												</div>
 											</div>
 										</div>
@@ -821,7 +864,6 @@ const MatchHistory = ({
 						>
 							Previous
 						</button>
-
 						{Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
 							<button
 								key={page}
@@ -835,7 +877,6 @@ const MatchHistory = ({
 								{page}
 							</button>
 						))}
-
 						<button
 							onClick={() => handlePageChange(currentPage + 1)}
 							disabled={currentPage === totalPages}
