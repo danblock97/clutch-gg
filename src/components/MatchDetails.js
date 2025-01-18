@@ -1,96 +1,94 @@
-import React, { useEffect, useState } from "react";
-import Image from "next/image";
+// MatchDetails.js
+
+import React, { useEffect, useState, useRef } from "react";
+import ReactDOM from "react-dom"; // for portals
+import NextImage from "next/image";
 import Loading from "./Loading";
 import Link from "next/link";
 
+function mapCDragonAssetPath(jsonPath) {
+	if (!jsonPath) return null;
+	const lower = jsonPath.toLowerCase().replace("/lol-game-data/assets", "");
+	return `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default${lower}`;
+}
+
 const fetchArenaAugments = async () => {
-	const response = await fetch(
+	const res = await fetch(
 		"https://raw.communitydragon.org/latest/cdragon/arena/en_us.json"
 	);
-	const data = await response.json();
-	return data.augments;
+	return res.json();
 };
 
-const MatchDetails = ({
+const fetchPerks = async () => {
+	const res = await fetch(
+		"https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/perks.json"
+	);
+	return res.json();
+};
+
+export default function MatchDetails({
 	matchDetails,
 	matchId,
 	selectedSummonerPUUID,
 	region,
-}) => {
+}) {
 	const [augments, setAugments] = useState([]);
+	const [perks, setPerks] = useState([]);
 
 	useEffect(() => {
-		const getAugments = async () => {
-			const data = await fetchArenaAugments();
-			setAugments(data);
-		};
-		getAugments();
+		(async () => {
+			setAugments(await fetchArenaAugments());
+			setPerks(await fetchPerks());
+		})();
 	}, []);
 
 	useEffect(() => {
 		if (!matchDetails || !augments) return;
-
-		const imagesToPrefetch = [];
-		matchDetails.forEach((match) => {
-			match.info.participants.forEach((participant) => {
-				imagesToPrefetch.push(
-					`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${participant.championId}.png`
+		const toPrefetch = [];
+		matchDetails.forEach((m) => {
+			m.info.participants.forEach((p) => {
+				toPrefetch.push(
+					`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${p.championId}.png`
 				);
-
-				[participant.summoner1Id, participant.summoner2Id].forEach(
-					(spellId) => {
-						imagesToPrefetch.push(`/images/summonerSpells/${spellId}.png`);
-					}
-				);
-
+				[p.summoner1Id, p.summoner2Id].forEach((spellId) => {
+					toPrefetch.push(`/images/summonerSpells/${spellId}.png`);
+				});
 				for (let i = 0; i < 7; i++) {
-					const itemId = participant[`item${i}`];
+					const itemId = p[`item${i}`];
 					if (itemId && itemId > 0) {
-						imagesToPrefetch.push(
+						toPrefetch.push(
 							`https://ddragon.leagueoflegends.com/cdn/15.1.1/img/item/${itemId}.png`
 						);
 					}
 				}
 			});
-
-			// Arena augments
-			if (match.info.queueId === 1700 && augments.length > 0) {
-				match.info.participants.forEach((participant) => {
-					if (participant.missions?.playerAugments) {
-						participant.missions.playerAugments.forEach((augmentId) => {
-							const augmentData = augments.find((a) => a.id === augmentId);
-							if (augmentData) {
-								imagesToPrefetch.push(
-									`https://raw.communitydragon.org/latest/game/${augmentData.iconSmall}`
-								);
-							}
-						});
-					}
+			if (m.info.queueId === 1700 && augments.length) {
+				m.info.participants.forEach((p) => {
+					p.missions?.playerAugments?.forEach((aId) => {
+						const found = augments.find((a) => a.id === aId);
+						if (found) {
+							toPrefetch.push(
+								`https://raw.communitydragon.org/latest/game/${found.iconSmall}`
+							);
+						}
+					});
 				});
 			}
-
-			// Champion bans
-			match.info.teams.forEach((team) => {
-				team.bans.forEach((ban) => {
-					imagesToPrefetch.push(
-						`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${ban.championId}.png`
+			m.info.teams.forEach((t) => {
+				t.bans.forEach((b) => {
+					toPrefetch.push(
+						`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${b.championId}.png`
 					);
 				});
 			});
 		});
-
-		imagesToPrefetch.forEach((src) => {
-			const img = new window.Image();
+		toPrefetch.forEach((src) => {
+			const img = new Image();
 			img.src = src;
 		});
 	}, [matchDetails, augments]);
 
-	const getAugmentIcon = (id) => {
-		const augment = augments.find((aug) => aug.id === id);
-		return augment
-			? `https://raw.communitydragon.org/latest/game/${augment.iconSmall}`
-			: null;
-	};
+	const match = matchDetails?.find((m) => m.metadata.matchId === matchId);
 
 	if (!matchDetails) {
 		return (
@@ -99,59 +97,54 @@ const MatchDetails = ({
 			</div>
 		);
 	}
-
-	const match = matchDetails.find((m) => m.metadata.matchId === matchId);
 	if (!match) {
 		return (
 			<div className="text-center text-white">Match details not found.</div>
 		);
 	}
 
-	const participants = match.info.participants;
-	let maxCsPerMin = 0;
-	let maxCsPerMinParticipant = null;
+	const getAugmentIcon = (id) => {
+		const aug = augments.find((a) => a.id === id);
+		return aug
+			? `https://raw.communitydragon.org/latest/game/${aug.iconSmall}`
+			: null;
+	};
 
-	participants.forEach((participant) => {
-		const csPerMin =
-			(participant.totalMinionsKilled + participant.neutralMinionsKilled) /
+	const getPerkById = (id) => {
+		if (!perks || !perks.length) return null;
+		return perks.find((p) => p.id === id);
+	};
+
+	const parts = match.info.participants;
+	parts.forEach((p) => {
+		p.csPerMin =
+			(p.totalMinionsKilled + p.neutralMinionsKilled) /
 			(match.info.gameDuration / 60);
-		participant.csPerMin = csPerMin;
-
-		if (csPerMin > maxCsPerMin) {
-			maxCsPerMin = csPerMin;
-			maxCsPerMinParticipant = participant.puuid;
-		}
 	});
 
-	const isArena = match.info.queueId === 1700;
-
-	if (isArena) {
-		let arenaParticipants = match.info.participants;
-		let teams = {};
-
-		// Sort Arena participants by playerScore0
-		arenaParticipants = arenaParticipants.map((p) => ({
+	// Arena check
+	if (match.info.queueId === 1700) {
+		let grouped = {};
+		let sorted = [...parts].map((p) => ({
 			...p,
-			playerScore0: p.missions.playerScore0,
+			playerScore0: p.missions?.playerScore0,
 		}));
-		arenaParticipants.sort((a, b) => a.playerScore0 - b.playerScore0);
+		sorted.sort((a, b) => a.playerScore0 - b.playerScore0);
 
-		arenaParticipants.forEach((p, i) => {
-			const teamId = Math.floor(i / 2);
-			if (!teams[teamId]) {
-				teams[teamId] = [];
-			}
-			teams[teamId].push(p);
+		sorted.forEach((p, i) => {
+			const tId = Math.floor(i / 2);
+			if (!grouped[tId]) grouped[tId] = [];
+			grouped[tId].push(p);
 		});
 
-		function getOrdinal(n) {
+		const getOrdinal = (n) => {
 			const s = ["th", "st", "nd", "rd"];
 			const v = n % 100;
 			return n + (s[(v - 20) % 10] || s[v] || s[0]);
-		}
+		};
 
-		function getPlacementColor(placement) {
-			switch (placement) {
+		const getPlacementColor = (plc) => {
+			switch (plc) {
 				case 1:
 					return "text-yellow-500";
 				case 2:
@@ -171,26 +164,23 @@ const MatchDetails = ({
 				default:
 					return "text-white";
 			}
-		}
+		};
 
-		const teamComponents = Object.values(teams).map((team, index) => {
-			const placement = team[0].playerScore0;
-			const colorClass = getPlacementColor(placement);
-
+		const comps = Object.values(grouped).map((teamArr, i) => {
+			const place = teamArr[0].playerScore0;
 			return (
-				<div
-					key={index}
-					className="bg-[#13151b] text-white p-2 mb-2 rounded-lg"
-				>
-					<h3 className={`text-sm font-bold ${colorClass}`}>
-						{getOrdinal(team[0].playerScore0)} Place
+				<div key={i} className="bg-[#13151b] text-white p-2 mb-2 rounded-lg">
+					<h3 className={`text-sm font-bold ${getPlacementColor(place)}`}>
+						{getOrdinal(place)} Place
 					</h3>
-					{team.map((p) => (
-						<ParticipantDetails
+					{teamArr.map((p) => (
+						<Participant
 							key={p.participantId}
-							participant={p}
-							isArena={true}
-							getAugmentIcon={getAugmentIcon}
+							p={p}
+							r={region}
+							getA={getAugmentIcon}
+							getPerk={getPerkById}
+							arena
 						/>
 					))}
 				</div>
@@ -199,31 +189,28 @@ const MatchDetails = ({
 
 		return (
 			<div className="bg-[#13151b] min-h-screen flex flex-col items-center justify-center px-2 py-1">
-				<div className="max-w-6xl w-full">{teamComponents}</div>
+				<div className="max-w-6xl w-full">{comps}</div>
 			</div>
 		);
 	}
 
-	function calculateTeamStats(ps) {
+	// Summoner's Rift
+	const calcTeamStats = (ps) => {
 		return ps.reduce(
-			(acc, p) => {
-				acc.kills += p.kills;
-				acc.deaths += p.deaths;
-				acc.assists += p.assists;
-				return acc;
+			(a, c) => {
+				a.kills += c.kills;
+				a.deaths += c.deaths;
+				a.assists += c.assists;
+				return a;
 			},
-			{
-				kills: 0,
-				deaths: 0,
-				assists: 0,
-			}
+			{ kills: 0, deaths: 0, assists: 0 }
 		);
-	}
+	};
 
-	const team1 = match.info.participants.filter((p) => p.teamId === 100);
-	const team2 = match.info.participants.filter((p) => p.teamId === 200);
-	const team1Stats = calculateTeamStats(team1);
-	const team2Stats = calculateTeamStats(team2);
+	const t1 = parts.filter((p) => p.teamId === 100);
+	const t2 = parts.filter((p) => p.teamId === 200);
+	const t1Stats = calcTeamStats(t1);
+	const t2Stats = calcTeamStats(t2);
 	const bans = {
 		team1: match.info.teams.find((t) => t.teamId === 100).bans,
 		team2: match.info.teams.find((t) => t.teamId === 200).bans,
@@ -231,20 +218,20 @@ const MatchDetails = ({
 
 	return (
 		<div className="min-h-auto flex items-center justify-center px-2 py-1">
-			<div className="overflow-x-auto w-full">
+			<div className="overflow-x-auto overflow-y-visible w-full">
 				<div className="min-w-[768px] text-white max-w-6xl w-full">
-					{/* Team 1 Section */}
+					{/* Team 1 */}
 					<div className="flex justify-between items-center mb-1">
 						<span className="text-sm font-semibold text-[#3182CE]">Team 1</span>
 						<div className="text-sm font-semibold text-[#3182CE]">
-							{`${team1Stats.kills} / ${team1Stats.deaths} / ${team1Stats.assists}`}
+							{`${t1Stats.kills} / ${t1Stats.deaths} / ${t1Stats.assists}`}
 						</div>
 						<div className="flex justify-end items-center">
 							<span className="text-sm font-semibold text-[#3182CE] mr-1">
 								Bans:
 							</span>
 							{bans.team1.map((ban, idx) => (
-								<Image
+								<NextImage
 									key={idx}
 									src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${ban.championId}.png`}
 									alt="Champion Ban"
@@ -255,30 +242,32 @@ const MatchDetails = ({
 							))}
 						</div>
 					</div>
-					<div className="space-y-2 overflow-x-auto">
-						{team1.map((p, i) => (
-							<ParticipantDetails
+
+					<div className="space-y-2 overflow-x-visible overflow-y-visible">
+						{t1.map((p, i) => (
+							<Participant
 								key={i}
-								participant={p}
-								selectedSummonerPUUID={selectedSummonerPUUID}
-								getAugmentIcon={getAugmentIcon}
-								region={region}
+								p={p}
+								puuid={selectedSummonerPUUID}
+								r={region}
+								getA={getAugmentIcon}
+								getPerk={getPerkById}
 							/>
 						))}
 					</div>
 
-					{/* Team 2 Section */}
+					{/* Team 2 */}
 					<div className="flex justify-between items-center mt-1 mb-1">
 						<span className="text-sm font-semibold text-[#C53030]">Team 2</span>
 						<div className="text-sm font-semibold text-[#C53030]">
-							{`${team2Stats.kills} / ${team2Stats.deaths} / ${team2Stats.assists}`}
+							{`${t2Stats.kills} / ${t2Stats.deaths} / ${t2Stats.assists}`}
 						</div>
 						<div className="flex justify-end items-center">
 							<span className="text-sm font-semibold text-[#C53030] mr-1">
 								Bans:
 							</span>
 							{bans.team2.map((ban, idx) => (
-								<Image
+								<NextImage
 									key={idx}
 									src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${ban.championId}.png`}
 									alt="Champion Ban"
@@ -289,14 +278,16 @@ const MatchDetails = ({
 							))}
 						</div>
 					</div>
-					<div className="space-y-2 overflow-x-auto">
-						{team2.map((p, i) => (
-							<ParticipantDetails
+
+					<div className="space-y-2 overflow-x-visible overflow-y-visible">
+						{t2.map((p, i) => (
+							<Participant
 								key={i}
-								participant={p}
-								selectedSummonerPUUID={selectedSummonerPUUID}
-								getAugmentIcon={getAugmentIcon}
-								region={region}
+								p={p}
+								puuid={selectedSummonerPUUID}
+								r={region}
+								getA={getAugmentIcon}
+								getPerk={getPerkById}
 							/>
 						))}
 					</div>
@@ -304,71 +295,91 @@ const MatchDetails = ({
 			</div>
 		</div>
 	);
-};
+}
 
-const ParticipantDetails = ({
-	participant,
-	selectedSummonerPUUID,
-	getAugmentIcon,
-	region,
-}) => {
+function Participant({ p, puuid, r, getA, getPerk, arena }) {
 	const kda =
-		participant.deaths === 0
-			? (participant.kills + participant.assists).toFixed(1)
-			: (
-					(participant.kills + participant.assists) /
-					participant.deaths
-			  ).toFixed(1);
+		p.deaths === 0
+			? (p.kills + p.assists).toFixed(1)
+			: ((p.kills + p.assists) / p.deaths).toFixed(1);
+	const { perks } = p || {};
+	let keyPerk = null;
+	let subStyle = null;
+
+	if (perks?.styles) {
+		const prim = perks.styles.find((s) => s.description === "primaryStyle");
+		const sub = perks.styles.find((s) => s.description === "subStyle");
+		if (prim?.selections?.length) {
+			keyPerk = getPerk(prim.selections[0].perk);
+		}
+		if (sub?.style) {
+			subStyle = getPerk(sub.style);
+		}
+	}
 
 	return (
 		<Link
-			href={`/profile?gameName=${participant.riotIdGameName}&tagLine=${participant.riotIdTagline}&region=${region}`}
+			href={`/profile?gameName=${p.riotIdGameName}&tagLine=${p.riotIdTagline}&region=${r}`}
 		>
-			<div className="flex items-center justify-between p-2 bg-[#1e1e1e] rounded-lg hover:bg-[#2e2e2e] transition duration-150 mt-2">
+			<div className="flex items-center justify-between p-2 bg-[#1e1e1e] rounded-lg hover:bg-[#2e2e2e] transition duration-150 mt-2 relative">
 				<div className="flex items-center space-x-2 flex-shrink-0 w-1/4">
-					<Image
-						src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${participant.championId}.png`}
-						alt="Champion"
+					<NextImage
+						src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${p.championId}.png`}
+						alt=""
 						width={32}
 						height={32}
 						className="w-8 h-8 rounded-full"
 					/>
 					<span className="text-sm font-semibold truncate">
-						{participant.riotIdGameName}#{participant.riotIdTagline}
+						{p.riotIdGameName}#{p.riotIdTagline}
 					</span>
 				</div>
 
-				<div className="flex items-center space-x-1 flex-shrink-0 w-1/6 justify-center">
-					{[participant.summoner1Id, participant.summoner2Id].map(
-						(spellId, idx) => (
-							<Image
-								key={idx}
-								src={`/images/summonerSpells/${spellId}.png`}
-								alt={`Summoner Spell ${idx + 1}`}
-								width={24}
-								height={24}
-								className="w-6 h-6"
+				<div className="flex items-center space-x-2 flex-shrink-0 w-1/6 justify-center">
+					{[p.summoner1Id, p.summoner2Id].map((s, i) => (
+						<NextImage
+							key={i}
+							src={`/images/summonerSpells/${s}.png`}
+							alt=""
+							width={24}
+							height={24}
+							className="w-6 h-6"
+						/>
+					))}
+					<div className="flex items-center space-x-1">
+						{keyPerk && keyPerk.iconPath && (
+							<HoverableRuneIcon
+								perk={keyPerk}
+								allPerks={perks}
+								getPerk={getPerk}
 							/>
-						)
-					)}
+						)}
+						{subStyle && subStyle.iconPath && (
+							<HoverableRuneIcon
+								perk={subStyle}
+								allPerks={perks}
+								getPerk={getPerk}
+							/>
+						)}
+					</div>
 				</div>
 
 				<div className="flex items-center space-x-1 flex-shrink-0 w-1/4 justify-center">
-					{Array.from({ length: 6 }, (_, i) => participant[`item${i}`]).map(
+					{Array.from({ length: 6 }, (_, i) => p[`item${i}`]).map(
 						(itemId, idx) => (
 							<div key={idx}>
 								{itemId > 0 ? (
-									<Image
+									<NextImage
 										src={`https://ddragon.leagueoflegends.com/cdn/15.1.1/img/item/${itemId}.png`}
-										alt="Item"
+										alt=""
 										width={24}
 										height={24}
 										className="w-6 h-6"
 									/>
 								) : (
-									<Image
+									<NextImage
 										src="/images/placeholder.png"
-										alt="No item"
+										alt=""
 										width={24}
 										height={24}
 										className="w-6 h-6"
@@ -381,23 +392,209 @@ const ParticipantDetails = ({
 
 				<div className="flex flex-col items-center flex-shrink-0 w-1/6">
 					<span className="text-sm font-semibold">
-						{participant.kills} / {participant.deaths} / {participant.assists}
+						{p.kills} / {p.deaths} / {p.assists}
 					</span>
 					<span className="text-xs text-gray-400">{kda} KDA</span>
 				</div>
-
 				<div className="flex flex-col items-center flex-shrink-0 w-1/6">
 					<span className="text-sm font-semibold">
-						{participant.totalMinionsKilled + participant.neutralMinionsKilled}{" "}
-						CS
+						{p.totalMinionsKilled + p.neutralMinionsKilled} CS
 					</span>
 					<span className="text-xs text-gray-400">
-						{participant.totalDamageDealtToChampions.toLocaleString()} DMG
+						{p.totalDamageDealtToChampions?.toLocaleString()} DMG
 					</span>
 				</div>
 			</div>
 		</Link>
 	);
-};
+}
 
-export default MatchDetails;
+/**
+ * Renders a single rune icon with a Portal tooltip that accounts for scrolling.
+ */
+function HoverableRuneIcon({ perk, allPerks, getPerk }) {
+	const iconRef = useRef(null);
+	const [hovered, setHovered] = useState(false);
+	const [coords, setCoords] = useState({ top: 0, left: 0 });
+	const [flipAbove, setFlipAbove] = useState(false);
+
+	const onMouseEnter = () => {
+		if (!iconRef.current) return;
+		const rect = iconRef.current.getBoundingClientRect();
+		// Get scroll offsets
+		const scrollY = window.scrollY || document.documentElement.scrollTop;
+		const tooltipHeight = 220; // approximate
+		const spaceBelow = window.innerHeight - rect.bottom;
+
+		// If not enough space, flip
+		const flip = spaceBelow < tooltipHeight;
+		setFlipAbove(flip);
+
+		// If flipping, place tooltip above. Otherwise below.
+		let topVal = flip
+			? rect.top + scrollY - tooltipHeight - 8
+			: rect.bottom + scrollY + 8;
+
+		setCoords({
+			top: topVal,
+			left: rect.left + (window.scrollX || document.documentElement.scrollLeft),
+		});
+		setHovered(true);
+	};
+
+	const onMouseLeave = () => setHovered(false);
+
+	return (
+		<div ref={iconRef} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
+			<NextImage
+				src={mapCDragonAssetPath(perk.iconPath)}
+				alt={perk.name}
+				width={24}
+				height={24}
+				className="w-6 h-6"
+			/>
+			{hovered && (
+				<PortalTooltip
+					top={coords.top}
+					left={coords.left}
+					flipAbove={flipAbove}
+				>
+					<FullRuneTooltip perks={allPerks} getPerkById={getPerk} />
+				</PortalTooltip>
+			)}
+		</div>
+	);
+}
+
+/**
+ * A Portal that places the tooltip absolutely on the page,
+ * so it won't be clipped by parent overflow.
+ */
+function PortalTooltip({ top, left, flipAbove, children }) {
+	if (typeof document === "undefined") return null;
+
+	const style = {
+		position: "absolute",
+		top: `${top}px`,
+		left: `${left}px`,
+		transform: "translateX(-50%)", // Adjust for perfect centering
+		backgroundColor: "#222",
+		color: "white",
+		borderRadius: "8px",
+		padding: "12px",
+		boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.5)",
+		width: "220px",
+		zIndex: 9999,
+	};
+
+	return ReactDOM.createPortal(
+		<div style={style}>
+			<div
+				style={{
+					position: "absolute",
+					width: "0",
+					height: "0",
+					borderLeft: "6px solid transparent",
+					borderRight: "6px solid transparent",
+					borderBottom: `6px solid ${flipAbove ? "transparent" : "#222"}`,
+					borderTop: `6px solid ${flipAbove ? "#222" : "transparent"}`,
+					bottom: flipAbove ? "-6px" : "initial",
+					top: flipAbove ? "initial" : "-6px",
+					left: "50%",
+					transform: "translateX(-50%)",
+				}}
+			></div>
+			{children}
+		</div>,
+		document.body
+	);
+}
+
+function FullRuneTooltip({ perks, getPerkById }) {
+	if (!perks?.styles) return null;
+	const primary = perks.styles.find((s) => s.description === "primaryStyle");
+	const sub = perks.styles.find((s) => s.description === "subStyle");
+	const statPerks = perks.statPerks || {};
+	const primarySelections = primary?.selections || [];
+	const subSelections = sub?.selections || [];
+	const statPerksData = Object.values(statPerks).map((id) => getPerkById(id));
+
+	return (
+		<div className="text-xs">
+			{primary && (
+				<div className="mb-2">
+					<div className="font-bold">
+						Primary: {getPerkById(primary.style)?.name}
+					</div>
+					<div className="flex flex-wrap">
+						{primarySelections.map((sel, idx) => {
+							const pd = getPerkById(sel.perk);
+							if (!pd) return null;
+							return (
+								<div key={idx} className="mr-2 mt-1 flex items-center">
+									<NextImage
+										src={mapCDragonAssetPath(pd.iconPath)}
+										alt={pd.name}
+										width={20}
+										height={20}
+										className="mr-1"
+									/>
+									{pd.name}
+								</div>
+							);
+						})}
+					</div>
+				</div>
+			)}
+
+			{sub && (
+				<div className="mb-2">
+					<div className="font-bold">
+						Secondary: {getPerkById(sub.style)?.name}
+					</div>
+					<div className="flex flex-wrap">
+						{subSelections.map((sel, idx) => {
+							const pd = getPerkById(sel.perk);
+							if (!pd) return null;
+							return (
+								<div key={idx} className="mr-2 mt-1 flex items-center">
+									<NextImage
+										src={mapCDragonAssetPath(pd.iconPath)}
+										alt={pd.name}
+										width={20}
+										height={20}
+										className="mr-1"
+									/>
+									{pd.name}
+								</div>
+							);
+						})}
+					</div>
+				</div>
+			)}
+
+			{statPerksData?.length > 0 && (
+				<div>
+					<div className="font-bold mb-1">Stat Shards</div>
+					<div className="flex flex-wrap">
+						{statPerksData.map((pd, idx) => {
+							if (!pd) return null;
+							return (
+								<div key={idx} className="mr-2 mt-1 flex items-center">
+									<NextImage
+										src={mapCDragonAssetPath(pd.iconPath)}
+										alt={pd.name}
+										width={20}
+										height={20}
+										className="mr-1"
+									/>
+									{pd.name}
+								</div>
+							);
+						})}
+					</div>
+				</div>
+			)}
+		</div>
+	);
+}
