@@ -4,12 +4,41 @@ import ReactDOM from "react-dom";
 import Image from "next/image";
 import Link from "next/link";
 
+/* -------------------- GAME MODE & RANK HELPER -------------------- */
+function getModeAndRankStatus(gameMode, queueId) {
+	let modeName = "";
+	let isRanked = false;
+	switch (gameMode) {
+		case "CLASSIC":
+			modeName = "Summoner's Rift";
+			// Typical ranked queues for SR:
+			if (queueId === 420 || queueId === 440) {
+				isRanked = true;
+			}
+			break;
+		case "ARAM":
+			modeName = "ARAM";
+			break;
+		case "PRACTICETOOL":
+			modeName = "Practice Tool";
+			break;
+		case "TUTORIAL":
+			modeName = "Tutorial";
+			break;
+		default:
+			modeName = gameMode || "Unknown Mode";
+	}
+	return { modeName, isRanked };
+}
+
+/* -------------------- CDRAGON PATH -------------------- */
 function mapCDragonAssetPath(p) {
 	if (!p) return null;
 	const lower = p.toLowerCase().replace("/lol-game-data/assets", "");
 	return `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default${lower}`;
 }
 
+/* -------------------- FETCH PERKS -------------------- */
 async function fetchPerks() {
 	const r = await fetch(
 		"https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/perks.json"
@@ -17,6 +46,10 @@ async function fetchPerks() {
 	return r.json();
 }
 
+/* -------------------- PARSE LIVE GAME PERKS --------------------
+   Live spectator perks are simpler: perkIds[], perkStyle, perkSubStyle.
+   We'll reshape them to match post-game style (for full-rune tooltip).
+--------------------------------------------------------*/
 function parseSpectatorPerks(perks) {
 	if (!perks?.perkIds) return null;
 	const { perkIds, perkStyle, perkSubStyle } = perks;
@@ -64,9 +97,10 @@ function parseSpectatorPerks(perks) {
 	};
 }
 
+/* -------------------- PORTAL TOOLTIP -------------------- */
 function PortalTooltip({ children, top, left, flipAbove }) {
-	if (typeof document === "undefined") return null;
-	const st = {
+	if (typeof document === "undefined") return null; // SSR guard
+	const style = {
 		position: "absolute",
 		top,
 		left,
@@ -80,7 +114,7 @@ function PortalTooltip({ children, top, left, flipAbove }) {
 		zIndex: 9999,
 	};
 	return ReactDOM.createPortal(
-		<div style={st}>
+		<div style={style}>
 			<div
 				style={{
 					position: "absolute",
@@ -102,6 +136,7 @@ function PortalTooltip({ children, top, left, flipAbove }) {
 	);
 }
 
+/* -------------------- FULL RUNE TOOLTIP -------------------- */
 function FullRuneTooltip({ data, getPerk }) {
 	if (!data?.styles) return null;
 	const primary = data.styles.find((s) => s.description === "primaryStyle");
@@ -109,6 +144,7 @@ function FullRuneTooltip({ data, getPerk }) {
 	const ps = primary?.selections || [];
 	const ss = sub?.selections || [];
 	const sp = data.statPerks || {};
+
 	return (
 		<div className="text-[10px]">
 			{primary && (
@@ -188,6 +224,7 @@ function FullRuneTooltip({ data, getPerk }) {
 	);
 }
 
+/* -------------------- HOVER KEYSTONE ICON -------------------- */
 function HoverableRuneIcon({ perks, getPerk }) {
 	const parsed = parseSpectatorPerks(perks);
 	let keystoneIcon = null;
@@ -207,7 +244,7 @@ function HoverableRuneIcon({ perks, getPerk }) {
 		const r = ref.current.getBoundingClientRect();
 		const sy = window.scrollY || document.documentElement.scrollTop;
 		const sx = window.scrollX || document.documentElement.scrollLeft;
-		const h = 240;
+		const h = 240; // approximate tooltip height
 		const space = window.innerHeight - r.bottom;
 		const f = space < h;
 		setFlip(f);
@@ -217,12 +254,7 @@ function HoverableRuneIcon({ perks, getPerk }) {
 	};
 
 	return (
-		<div
-			ref={ref}
-			onMouseEnter={onEnter}
-			onMouseLeave={() => setHov(false)}
-			className="inline-block"
-		>
+		<div ref={ref} onMouseEnter={onEnter} onMouseLeave={() => setHov(false)}>
 			{keystoneIcon ? (
 				<Image src={keystoneIcon} alt="" width={20} height={20} />
 			) : (
@@ -237,13 +269,13 @@ function HoverableRuneIcon({ perks, getPerk }) {
 	);
 }
 
+/* -------------------- MAIN COMPONENT -------------------- */
 export default function LiveGame({ liveGameData, region }) {
-	const [arena, setArena] = useState(false);
-	const [time, setTime] = useState("");
 	const [perkList, setPerkList] = useState([]);
+	const [time, setTime] = useState("");
 
+	// Load perks & set game timer
 	useEffect(() => {
-		setArena(liveGameData.queueId === 1700);
 		(async () => setPerkList(await fetchPerks()))();
 		const upd = () => {
 			const now = Date.now();
@@ -254,20 +286,29 @@ export default function LiveGame({ liveGameData, region }) {
 			setTime(`${h > 0 ? h + "h " : ""}${m}m ${s}s`);
 		};
 		upd();
-		const i = setInterval(upd, 1000);
-		return () => clearInterval(i);
+		const interval = setInterval(upd, 1000);
+		return () => clearInterval(interval);
 	}, [liveGameData]);
 
-	const getPerkById = (id) => perkList.find((p) => p.id === id) || null;
+	const getPerkById = (id) => perkList.find((x) => x.id === id) || null;
 	const fmtRank = (r) => {
-		if (!r || typeof r !== "string") return "unranked";
-		return r.split(" ")[0].toLowerCase();
+		if (!r || typeof r !== "string") return "Unranked";
+		return r;
 	};
 
-	const partCard = (p) => {
-		const rankImg = p.rank !== "Unranked" ? fmtRank(p.rank) : null;
+	// Identify mode & rank
+	const { modeName, isRanked } = getModeAndRankStatus(
+		liveGameData.gameMode,
+		liveGameData.gameQueueConfigId
+	);
+
+	// Summoner card
+	const renderParticipantCard = (p) => {
+		const rankTxt = fmtRank(p.rank);
 		const total = p.wins + p.losses;
 		const wr = total > 0 ? ((p.wins / total) * 100).toFixed(0) : 0;
+		const shortRank =
+			rankTxt !== "Unranked" ? rankTxt.split(" ")[0].toLowerCase() : null;
 
 		return (
 			<div
@@ -311,10 +352,10 @@ export default function LiveGame({ liveGameData, region }) {
 				</div>
 				<HoverableRuneIcon perks={p.perks} getPerk={getPerkById} />
 				<div className="flex items-center my-1">
-					{rankImg && (
+					{shortRank && shortRank !== "unranked" && (
 						<div className="relative w-5 h-5 mr-1">
 							<Image
-								src={`/images/rankedEmblems/${rankImg}.webp`}
+								src={`/images/rankedEmblems/${shortRank}.webp`}
 								alt=""
 								fill
 								className="object-contain"
@@ -322,7 +363,7 @@ export default function LiveGame({ liveGameData, region }) {
 						</div>
 					)}
 					<span className="text-[10px] font-semibold">
-						{p.rank !== "Unranked" ? `${p.rank} (${p.lp} LP)` : "Unranked"}
+						{rankTxt !== "Unranked" ? `${rankTxt} (${p.lp} LP)` : "Unranked"}
 					</span>
 				</div>
 				<div className="text-center text-[10px]">
@@ -335,13 +376,14 @@ export default function LiveGame({ liveGameData, region }) {
 		);
 	};
 
-	const teamBox = (t, name, color, id) => (
+	// Team container
+	const renderTeam = (players, teamName, color, teamId) => (
 		<div className="bg-[#13151b] p-3 mb-2 rounded-md">
 			<div className="flex justify-between items-center mb-2">
-				<span className={`font-bold ${color} text-sm`}>{name}</span>
+				<span className={`font-bold ${color} text-sm`}>{teamName}</span>
 				<div className="flex space-x-1">
 					{liveGameData.bannedChampions
-						.filter((b) => b.teamId === id)
+						?.filter((b) => b.teamId === teamId)
 						.map((ban, i) => (
 							<div key={i} className="relative w-6 h-6">
 								<Image
@@ -355,24 +397,30 @@ export default function LiveGame({ liveGameData, region }) {
 				</div>
 			</div>
 			<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-2">
-				{t.map((p) => partCard(p))}
+				{players.map((p) => renderParticipantCard(p))}
 			</div>
 		</div>
 	);
 
+	// Render
 	return (
 		<div className="bg-[#13151b] text-white rounded-md shadow w-full max-w-7xl mx-auto">
+			{/* Header: show mode, isRanked, and time */}
 			<div className="py-2 px-3 text-sm font-bold bg-gray-900 rounded-t-md flex justify-between items-center">
-				<span>{arena ? "Arena" : "Ranked Solo | SR"}</span>
+				<span>
+					{modeName}
+					{isRanked ? " (Ranked)" : ""}
+				</span>
 				<span>{time}</span>
 			</div>
-			{teamBox(
+
+			{renderTeam(
 				liveGameData.participants.filter((x) => x.teamId === 100),
 				"Blue Team",
 				"text-blue-400",
 				100
 			)}
-			{teamBox(
+			{renderTeam(
 				liveGameData.participants.filter((x) => x.teamId === 200),
 				"Red Team",
 				"text-red-400",
