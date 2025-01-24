@@ -482,29 +482,33 @@ const MatchHistory = ({
 							}
 
 							const damageThreshold = match.info.queueId === 450 ? 1700 : 900;
-							if (currentPlayer.challenges.damagePerMinute > damageThreshold) {
-								tags.push(
-									<Tag
-										key="good-damage"
-										text="Good Damage"
-										hoverText={`Nice Damage Dealt: ${currentPlayer.totalDamageDealtToChampions.toLocaleString()}`}
-										color="bg-yellow-500 text-white"
-										icon={<FaFire />}
-									/>
-								);
-							}
-							if (currentPlayer.puuid === maxCsPerMinParticipant) {
-								tags.push(
-									<Tag
-										key="cs-star"
-										text="CS Star"
-										hoverText={`Most CS/min in the game: ${currentPlayer.csPerMin.toFixed(
-											1
-										)}`}
-										color="bg-blue-500 text-white"
-										icon={<FaStar />}
-									/>
-								);
+							if (match.info.gameMode !== "URF") {
+								if (
+									currentPlayer.challenges.damagePerMinute > damageThreshold
+								) {
+									tags.push(
+										<Tag
+											key="good-damage"
+											text="Good Damage"
+											hoverText={`Nice Damage Dealt: ${currentPlayer.totalDamageDealtToChampions.toLocaleString()}`}
+											color="bg-yellow-500 text-white"
+											icon={<FaFire />}
+										/>
+									);
+								}
+								if (currentPlayer.puuid === maxCsPerMinParticipant) {
+									tags.push(
+										<Tag
+											key="cs-star"
+											text="CS Star"
+											hoverText={`Most CS/min in the game: ${currentPlayer.csPerMin.toFixed(
+												1
+											)}`}
+											color="bg-blue-500 text-white"
+											icon={<FaStar />}
+										/>
+									);
+								}
 							}
 
 							const items = Array.from(
