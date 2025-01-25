@@ -28,9 +28,7 @@ const Last20GamesPerformance = ({ matchDetails, selectedSummonerPUUID }) => {
 			);
 
 			// Win/Loss
-			if (currentPlayer.win) {
-				totalWins++;
-			}
+			if (currentPlayer.win) totalWins++;
 
 			// Kills, Deaths, Assists
 			totalKills += currentPlayer.kills;
@@ -110,65 +108,64 @@ const Last20GamesPerformance = ({ matchDetails, selectedSummonerPUUID }) => {
         w-full
         max-w-screen-xl
         mx-auto
-        p-4 sm:p-6
-        rounded-lg
+        p-3 sm:p-4
+        rounded-md
         border border-[#2f2f46]
         bg-gradient-to-br from-[#232337] to-[#1b1b2d]
         shadow-[0_4px_15px_rgba(0,0,0,0.6)]
-        flex 
-        flex-col 
-        space-y-6
+        flex
+        flex-col
         items-center
-        sm:flex-row 
-        sm:justify-between 
-        sm:space-y-0
-        sm:space-x-8
-        text-sm sm:text-base
+        sm:flex-row
+        sm:items-center
+        justify-between
+        space-y-4 sm:space-y-0
+        sm:space-x-6
+        text-xs sm:text-sm
       "
 		>
 			{/* Winrate Section */}
-			<div className="flex items-center sm:items-start sm:flex-col space-x-4 sm:space-x-0 sm:space-y-2">
+			<div className="flex items-center sm:items-center sm:flex-row space-x-3">
 				{/* Winrate Circle */}
-				<div className="w-20 h-20 relative">
+				<div className="w-16 h-16 relative">
 					<svg className="w-full h-full transform -rotate-90">
 						<circle
 							className="text-gray-700"
-							strokeWidth="6"
+							strokeWidth="5"
 							stroke="currentColor"
 							fill="transparent"
-							r="30"
+							r="25"
 							cx="50%"
 							cy="50%"
 						/>
 						<circle
 							className="text-blue-400"
-							strokeWidth="6"
-							strokeDasharray={`${performanceStats.winRate * 1.88} 188`}
+							strokeWidth="5"
+							strokeDasharray={`${performanceStats.winRate * 1.57} 157`}
 							stroke="currentColor"
 							fill="transparent"
-							r="30"
+							r="25"
 							cx="50%"
 							cy="50%"
 						/>
 					</svg>
 					<div className="absolute inset-0 flex items-center justify-center">
-						<p className="text-blue-400 font-bold text-sm sm:text-base">
+						<p className="text-blue-400 font-bold text-xs sm:text-sm">
 							{performanceStats.winRate}%
 						</p>
 					</div>
 				</div>
-
-				<div className="sm:mt-2 text-center sm:text-left">
-					<p className="text-white font-bold">
+				<div className="text-center sm:text-left">
+					<p className="text-white font-semibold">
 						{performanceStats.totalWins}W - {performanceStats.totalLosses}L
 					</p>
-					<p className="text-gray-400 text-xs sm:text-sm">Winrate</p>
+					<p className="text-gray-400 text-[10px] sm:text-xs">Winrate</p>
 				</div>
 			</div>
 
 			{/* KDA Section */}
 			<div className="flex flex-col items-center text-center">
-				<p className="text-purple-400 font-bold text-xl sm:text-2xl">
+				<p className="text-purple-400 font-bold text-base sm:text-lg">
 					{performanceStats.avgKDA} KDA
 				</p>
 				<p className="text-gray-400">
@@ -179,8 +176,8 @@ const Last20GamesPerformance = ({ matchDetails, selectedSummonerPUUID }) => {
 
 			{/* Top Champion Performances */}
 			<div className="text-center">
-				<p className="text-gray-400 mb-2">Top Champions</p>
-				<div className="flex justify-center gap-4">
+				<p className="text-gray-400 text-xs sm:text-sm mb-1">Top Champions</p>
+				<div className="flex justify-center gap-3">
 					{topChampions.map((champId) => {
 						const champStats =
 							performanceStats.championPerformance[champId] || {};
@@ -192,17 +189,19 @@ const Last20GamesPerformance = ({ matchDetails, selectedSummonerPUUID }) => {
 						return (
 							<div
 								key={champId}
-								className="flex flex-col items-center justify-center text-center space-y-1"
+								className="flex flex-col items-center justify-center text-center space-y-0.5"
 							>
 								<Image
 									src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${champId}.png`}
-									alt={`Champion Icon`}
-									width={48}
-									height={48}
+									alt="Champion Icon"
+									width={36}
+									height={36}
 									className="rounded-full"
 								/>
-								<p className="text-white font-bold text-sm">{champWinRate}%</p>
-								<p className="text-gray-400 text-xs">
+								<p className="text-white font-semibold text-[10px] sm:text-xs">
+									{champWinRate}%
+								</p>
+								<p className="text-gray-400 text-[9px] sm:text-[10px]">
 									{champStats.wins}W - {champStats.losses}L
 								</p>
 							</div>
