@@ -71,10 +71,7 @@ async function fetchPerks() {
 	return r.json();
 }
 
-/* -------------------- PARSE LIVE GAME PERKS --------------------
-   Live spectator perks are simpler: perkIds[], perkStyle, perkSubStyle.
-   We'll reshape them to match post-game style (for full-rune tooltip).
---------------------------------------------------------*/
+/* -------------------- PARSE LIVE GAME PERKS -------------------- */
 function parseSpectatorPerks(perks) {
 	if (!perks?.perkIds) return null;
 	const { perkIds, perkStyle, perkSubStyle } = perks;
@@ -126,39 +123,49 @@ function parseSpectatorPerks(perks) {
 	};
 }
 
-/* -------------------- PORTAL TOOLTIP -------------------- */
+/* 
+  ============================
+  Refactored PortalTooltip
+  ============================
+*/
 function PortalTooltip({ children, top, left, flipAbove }) {
 	if (typeof document === "undefined") return null; // SSR guard
-	const style = {
-		position: "absolute",
-		top,
-		left,
-		transform: "translateX(-50%)",
-		backgroundColor: "#222",
-		color: "#fff",
-		borderRadius: "6px",
-		padding: "8px",
-		boxShadow: "0 4px 6px rgba(0,0,0,0.4)",
-		width: "200px",
-		zIndex: 9999,
+
+	const tooltipPosition = {
+		top: top || 0,
+		left: left || 0,
 	};
 
 	return ReactDOM.createPortal(
-		<div style={style}>
+		<div
+			className={`
+        absolute z-[9999] 
+        px-3 py-2 
+        bg-gray-800 text-white 
+        rounded-md shadow-lg
+        text-xs sm:text-sm
+        transform -translate-x-1/2
+        w-[90%] max-w-xs 
+        sm:w-auto sm:max-w-sm
+      `}
+			style={tooltipPosition}
+		>
+			{/* Tooltip arrow */}
 			<div
-				style={{
-					position: "absolute",
-					width: 0,
-					height: 0,
-					borderLeft: "5px solid transparent",
-					borderRight: "5px solid transparent",
-					borderBottom: `5px solid ${flipAbove ? "transparent" : "#222"}`,
-					borderTop: `5px solid ${flipAbove ? "#222" : "transparent"}`,
-					bottom: flipAbove ? "-5px" : "initial",
-					top: flipAbove ? "initial" : "-5px",
-					left: "50%",
-					transform: "translateX(-50%)",
-				}}
+				className={`
+          absolute left-1/2 -translate-x-1/2 w-0 h-0
+          border-x-4 border-x-transparent
+          ${
+						flipAbove
+							? "border-b-4 border-b-gray-800"
+							: "border-t-4 border-t-gray-800"
+					}
+        `}
+				style={
+					flipAbove
+						? { top: "auto", bottom: "-4px" }
+						: { top: "-4px", bottom: "auto" }
+				}
 			/>
 			{children}
 		</div>,
@@ -176,10 +183,10 @@ function FullRuneTooltip({ data, getPerk }) {
 	const sp = data.statPerks || {};
 
 	return (
-		<div className="text-[10px]">
+		<div className="space-y-3">
 			{primary && (
-				<div className="mb-2">
-					<div className="font-bold mb-1">
+				<div>
+					<div className="font-bold mb-1 text-[0.65rem] sm:text-xs uppercase">
 						Primary: {getPerk(primary.style)?.name}
 					</div>
 					<div className="flex flex-wrap">
@@ -187,7 +194,10 @@ function FullRuneTooltip({ data, getPerk }) {
 							const perkObj = getPerk(sel.perk);
 							if (!perkObj) return null;
 							return (
-								<div key={i} className="mr-1 mt-1 flex items-center">
+								<div
+									key={i}
+									className="mr-2 mb-2 flex items-center text-[0.65rem] sm:text-xs"
+								>
 									<Image
 										src={mapCDragonAssetPath(perkObj.iconPath)}
 										alt=""
@@ -203,8 +213,8 @@ function FullRuneTooltip({ data, getPerk }) {
 				</div>
 			)}
 			{sub && (
-				<div className="mb-2">
-					<div className="font-bold mb-1">
+				<div>
+					<div className="font-bold mb-1 text-[0.65rem] sm:text-xs uppercase">
 						Secondary: {getPerk(sub.style)?.name}
 					</div>
 					<div className="flex flex-wrap">
@@ -212,7 +222,10 @@ function FullRuneTooltip({ data, getPerk }) {
 							const perkObj = getPerk(sel.perk);
 							if (!perkObj) return null;
 							return (
-								<div key={i} className="mr-1 mt-1 flex items-center">
+								<div
+									key={i}
+									className="mr-2 mb-2 flex items-center text-[0.65rem] sm:text-xs"
+								>
 									<Image
 										src={mapCDragonAssetPath(perkObj.iconPath)}
 										alt=""
@@ -229,13 +242,18 @@ function FullRuneTooltip({ data, getPerk }) {
 			)}
 			{Object.values(sp).length > 0 && (
 				<div>
-					<div className="font-bold mb-1">Stat Shards</div>
+					<div className="font-bold mb-1 text-[0.65rem] sm:text-xs uppercase">
+						Stat Shards
+					</div>
 					<div className="flex flex-wrap">
 						{Object.values(sp).map((id, i) => {
 							const perkObj = getPerk(id);
 							if (!perkObj) return null;
 							return (
-								<div key={i} className="mr-1 mt-1 flex items-center">
+								<div
+									key={i}
+									className="mr-2 mb-2 flex items-center text-[0.65rem] sm:text-xs"
+								>
 									<Image
 										src={mapCDragonAssetPath(perkObj.iconPath)}
 										alt=""
@@ -276,17 +294,26 @@ function HoverableRuneIcon({ perks, getPerk }) {
 		const r = ref.current.getBoundingClientRect();
 		const sy = window.scrollY || document.documentElement.scrollTop;
 		const sx = window.scrollX || document.documentElement.scrollLeft;
-		const h = 240; // approximate tooltip height
-		const space = window.innerHeight - r.bottom;
-		const f = space < h;
-		setFlip(f);
-		const t = f ? r.top + sy - h - 8 : r.bottom + sy + 8;
-		setCoord({ top: t, left: r.left + sx + r.width / 2 });
+		// Approximate potential tooltip height
+		const h = 260;
+		const spaceBelow = window.innerHeight - r.bottom;
+		const shouldFlip = spaceBelow < h;
+		setFlip(shouldFlip);
+
+		const tooltipTop = shouldFlip ? r.top + sy - h - 8 : r.bottom + sy + 8;
+		const tooltipLeft = r.left + sx + r.width / 2;
+
+		setCoord({ top: tooltipTop, left: tooltipLeft });
 		setHov(true);
 	};
 
 	return (
-		<div ref={ref} onMouseEnter={onEnter} onMouseLeave={() => setHov(false)}>
+		<div
+			ref={ref}
+			onMouseEnter={onEnter}
+			onMouseLeave={() => setHov(false)}
+			className="inline-block"
+		>
 			{keystoneIcon ? (
 				<Image src={keystoneIcon} alt="" width={20} height={20} />
 			) : (
@@ -328,13 +355,11 @@ export default function LiveGame({ liveGameData, region }) {
 		return r;
 	};
 
-	// Identify mode & rank
 	const { modeName, isRanked } = getModeAndRankStatus(
 		liveGameData.gameMode,
 		liveGameData.gameQueueConfigId
 	);
 
-	// Summoner card
 	const renderParticipantCard = (p) => {
 		const rankTxt = fmtRank(p.rank);
 		const total = p.wins + p.losses;
@@ -345,7 +370,16 @@ export default function LiveGame({ liveGameData, region }) {
 		return (
 			<div
 				key={p.summonerId}
-				className="bg-[#1A1D21] border border-gray-700 rounded-md flex-shrink-0w-40 sm:w-44 md:w-48 lg:w-52 p-3 shadow-md text-center transition duration-200"
+				className="
+          bg-[#1A1D21] 
+          border border-gray-700 
+          rounded-md 
+          flex-shrink-0 w-40 sm:w-44 md:w-48 lg:w-52 
+          p-3 
+          shadow-md 
+          text-center 
+          transition duration-200
+        "
 			>
 				{/* Champion Icon */}
 				<div className="relative w-14 h-14 mx-auto mb-2">
