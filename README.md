@@ -1,4 +1,4 @@
-### ClutchGG.LOL v1.9.8
+### ClutchGG.LOL v1.9.9
 
 ## 🎮 Main Updates & Bug Fixes
 
