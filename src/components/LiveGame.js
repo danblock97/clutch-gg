@@ -10,10 +10,7 @@ function getModeAndRankStatus(gameMode, queueId) {
 
 	switch (gameMode) {
 		case "CLASSIC":
-			// Summoner's Rift or Twisted Treeline (deprecated),
-			// but the API calls them both CLASSIC.
 			modeName = "Summoner's Rift";
-			// Typical ranked queues for SR:
 			if (queueId === 420 || queueId === 440) {
 				isRanked = true;
 			}
@@ -21,14 +18,14 @@ function getModeAndRankStatus(gameMode, queueId) {
 		case "ARAM":
 			modeName = "ARAM";
 			break;
-		case "URF": // includes ARURF typically
+		case "URF":
 			modeName = "URF";
 			break;
 		case "ONEFORALL":
 			modeName = "One For All";
 			break;
 		case "ODIN":
-			modeName = "Dominion"; // old Dominion/Crystal Scar
+			modeName = "Dominion";
 			break;
 		case "ASCENSION":
 			modeName = "Ascension";
@@ -52,7 +49,6 @@ function getModeAndRankStatus(gameMode, queueId) {
 			modeName = "Tutorial";
 			break;
 		default:
-			// Fallback if Riot adds something new or unrecognized
 			modeName = gameMode || "Unknown Mode";
 			break;
 	}
@@ -83,6 +79,7 @@ function parseSpectatorPerks(perks) {
 	if (!perks?.perkIds) return null;
 	const { perkIds, perkStyle, perkSubStyle } = perks;
 	const c = perkIds.length;
+
 	if (c < 4) {
 		return {
 			styles: [
@@ -96,12 +93,15 @@ function parseSpectatorPerks(perks) {
 			statPerks: {},
 		};
 	}
+
 	const keystone = perkIds[0];
-	let primaryRunes = perkIds.slice(1, 4);
+	const primaryRunes = perkIds.slice(1, 4);
 	let subRunes = perkIds.slice(4, 6);
 	let shards = perkIds.slice(6);
+
 	if (c < 6) subRunes = [];
 	if (c < 7) shards = [];
+
 	return {
 		styles: [
 			{
@@ -142,6 +142,7 @@ function PortalTooltip({ children, top, left, flipAbove }) {
 		width: "200px",
 		zIndex: 9999,
 	};
+
 	return ReactDOM.createPortal(
 		<div style={style}>
 			<div
@@ -183,18 +184,18 @@ function FullRuneTooltip({ data, getPerk }) {
 					</div>
 					<div className="flex flex-wrap">
 						{ps.map((sel, i) => {
-							const p = getPerk(sel.perk);
-							if (!p) return null;
+							const perkObj = getPerk(sel.perk);
+							if (!perkObj) return null;
 							return (
 								<div key={i} className="mr-1 mt-1 flex items-center">
 									<Image
-										src={mapCDragonAssetPath(p.iconPath)}
+										src={mapCDragonAssetPath(perkObj.iconPath)}
 										alt=""
 										width={16}
 										height={16}
 										className="mr-1"
 									/>
-									{p.name}
+									{perkObj.name}
 								</div>
 							);
 						})}
@@ -208,18 +209,18 @@ function FullRuneTooltip({ data, getPerk }) {
 					</div>
 					<div className="flex flex-wrap">
 						{ss.map((sel, i) => {
-							const p = getPerk(sel.perk);
-							if (!p) return null;
+							const perkObj = getPerk(sel.perk);
+							if (!perkObj) return null;
 							return (
 								<div key={i} className="mr-1 mt-1 flex items-center">
 									<Image
-										src={mapCDragonAssetPath(p.iconPath)}
+										src={mapCDragonAssetPath(perkObj.iconPath)}
 										alt=""
 										width={16}
 										height={16}
 										className="mr-1"
 									/>
-									{p.name}
+									{perkObj.name}
 								</div>
 							);
 						})}
@@ -231,18 +232,18 @@ function FullRuneTooltip({ data, getPerk }) {
 					<div className="font-bold mb-1">Stat Shards</div>
 					<div className="flex flex-wrap">
 						{Object.values(sp).map((id, i) => {
-							const p = getPerk(id);
-							if (!p) return null;
+							const perkObj = getPerk(id);
+							if (!perkObj) return null;
 							return (
 								<div key={i} className="mr-1 mt-1 flex items-center">
 									<Image
-										src={mapCDragonAssetPath(p.iconPath)}
+										src={mapCDragonAssetPath(perkObj.iconPath)}
 										alt=""
 										width={16}
 										height={16}
 										className="mr-1"
 									/>
-									{p.name}
+									{perkObj.name}
 								</div>
 							);
 						})}
@@ -257,12 +258,14 @@ function FullRuneTooltip({ data, getPerk }) {
 function HoverableRuneIcon({ perks, getPerk }) {
 	const parsed = parseSpectatorPerks(perks);
 	let keystoneIcon = null;
+
 	if (parsed?.styles) {
 		const prim = parsed.styles.find((s) => s.description === "primaryStyle");
 		const keyId = prim?.selections?.[0]?.perk;
 		const obj = getPerk(keyId);
 		if (obj?.iconPath) keystoneIcon = mapCDragonAssetPath(obj.iconPath);
 	}
+
 	const ref = useRef(null);
 	const [hov, setHov] = useState(false);
 	const [coord, setCoord] = useState({ top: 0, left: 0 });
@@ -342,9 +345,10 @@ export default function LiveGame({ liveGameData, region }) {
 		return (
 			<div
 				key={p.summonerId}
-				className="bg-[#1A1D21] p-2 rounded-md flex flex-col items-center shadow"
+				className="bg-[#1A1D21] border border-gray-700 rounded-md flex-shrink-0w-40 sm:w-44 md:w-48 lg:w-52 p-3 shadow-md text-center transition duration-200"
 			>
-				<div className="relative w-12 h-12 mb-2">
+				{/* Champion Icon */}
+				<div className="relative w-14 h-14 mx-auto mb-2">
 					<Image
 						src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${p.championId}.png`}
 						alt=""
@@ -352,16 +356,20 @@ export default function LiveGame({ liveGameData, region }) {
 						className="rounded-full object-cover"
 					/>
 				</div>
+
+				{/* Summoner Name / Level */}
 				<div className="mb-1 text-center text-xs">
 					<Link
 						href={`/profile?gameName=${p.gameName}&tagLine=${p.tagLine}&region=${region}`}
-						className="font-bold hover:underline block truncate max-w-[90px]"
+						className="font-bold hover:underline block truncate max-w-[90px] mx-auto"
 					>
 						{p.gameName}#{p.tagLine}
 					</Link>
 					<div className="text-gray-400">Lvl {p.summonerLevel}</div>
 				</div>
-				<div className="flex space-x-1 mb-1">
+
+				{/* Spells */}
+				<div className="flex justify-center space-x-1 mb-2">
 					<div className="relative w-6 h-6">
 						<Image
 							src={`/images/summonerSpells/${p.spell1Id}.png`}
@@ -379,8 +387,14 @@ export default function LiveGame({ liveGameData, region }) {
 						/>
 					</div>
 				</div>
-				<HoverableRuneIcon perks={p.perks} getPerk={getPerkById} />
-				<div className="flex items-center my-1">
+
+				{/* Keystone Rune Centered */}
+				<div className="flex justify-center mb-2">
+					<HoverableRuneIcon perks={p.perks} getPerk={getPerkById} />
+				</div>
+
+				{/* Ranked Icon / Rank Text Centered */}
+				<div className="flex items-center justify-center text-[11px] my-1">
 					{shortRank && shortRank !== "unranked" && (
 						<div className="relative w-5 h-5 mr-1">
 							<Image
@@ -391,11 +405,13 @@ export default function LiveGame({ liveGameData, region }) {
 							/>
 						</div>
 					)}
-					<span className="text-[10px] font-semibold">
+					<span className="font-semibold">
 						{rankTxt !== "Unranked" ? `${rankTxt} (${p.lp} LP)` : "Unranked"}
 					</span>
 				</div>
-				<div className="text-center text-[10px]">
+
+				{/* Wins / Losses / Winrate */}
+				<div className="text-[11px]">
 					<div className="font-bold">
 						{p.wins}W / {p.losses}L
 					</div>
@@ -405,11 +421,10 @@ export default function LiveGame({ liveGameData, region }) {
 		);
 	};
 
-	// Team container
 	const renderTeam = (players, teamName, color, teamId) => (
-		<div className="bg-[#13151b] p-3 mb-2 rounded-md">
-			<div className="flex justify-between items-center mb-2">
-				<span className={`font-bold ${color} text-sm`}>{teamName}</span>
+		<div className="bg-[#13151b] mb-3 rounded-md px-2 pt-3 pb-4 md:px-[90px]">
+			<div className="flex justify-between items-center mb-3 px-1">
+				<span className={`font-bold ${color} text-base`}>{teamName}</span>
 				<div className="flex space-x-1">
 					{liveGameData.bannedChampions
 						?.filter((b) => b.teamId === teamId)
@@ -425,17 +440,15 @@ export default function LiveGame({ liveGameData, region }) {
 						))}
 				</div>
 			</div>
-			<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-2">
+			<div className="flex overflow-x-auto lg:overflow-x-visible md:justify-center space-x-3 px-1">
 				{players.map((p) => renderParticipantCard(p))}
 			</div>
 		</div>
 	);
 
-	// Render
 	return (
-		<div className="bg-[#13151b] text-white rounded-md shadow w-full max-w-7xl mx-auto">
-			{/* Header: show mode, isRanked, and time */}
-			<div className="py-2 px-3 text-sm font-bold bg-gray-900 rounded-t-md flex justify-between items-center">
+		<div className="bg-[#13151b] text-white rounded-md shadow w-full max-w-7xl mx-auto mt-4">
+			<div className="py-3 px-4 text-sm font-bold bg-gray-900 rounded-t-md flex justify-between items-center">
 				<span>
 					{modeName}
 					{isRanked ? " (Ranked)" : ""}
@@ -443,6 +456,7 @@ export default function LiveGame({ liveGameData, region }) {
 				<span>{time}</span>
 			</div>
 
+			{/* Team 1 on top, Team 2 below */}
 			{renderTeam(
 				liveGameData.participants.filter((x) => x.teamId === 100),
 				"Blue Team",
