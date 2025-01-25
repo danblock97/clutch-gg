@@ -5,31 +5,53 @@ import Image from "next/image";
 import Link from "next/link";
 
 /* -------------------- GAME MODE & RANK HELPER -------------------- */
-function getModeAndRankStatus(gameMode, queueId) {
-	let modeName = "";
-	let isRanked = false;
-	switch (gameMode) {
-		case "CLASSIC":
-			modeName = "Summoner's Rift";
-			// Typical ranked queues for SR:
-			if (queueId === 420 || queueId === 440) {
-				isRanked = true;
-			}
-			break;
-		case "ARAM":
-			modeName = "ARAM";
-			break;
-		case "PRACTICETOOL":
-			modeName = "Practice Tool";
-			break;
-		case "TUTORIAL":
-			modeName = "Tutorial";
-			break;
-		default:
-			modeName = gameMode || "Unknown Mode";
-	}
-	return { modeName, isRanked };
+switch (gameMode) {
+	case "CLASSIC":
+		modeName = "Summoner's Rift";
+		// Typical ranked queues for SR:
+		if (queueId === 420 || queueId === 440) {
+			isRanked = true;
+		}
+		break;
+	case "ARAM":
+		modeName = "ARAM";
+		break;
+	case "URF":
+		modeName = "URF";
+		break;
+	case "ONEFORALL":
+		modeName = "One For All";
+		break;
+	case "ODIN":
+		modeName = "Dominion";
+		break;
+	case "ASCENSION":
+		modeName = "Ascension";
+		break;
+	case "KINGPORO":
+		modeName = "Legend of the Poro King";
+		break;
+	case "NEXUSBLITZ":
+		modeName = "Nexus Blitz";
+		break;
+	case "ULTBOOK":
+		modeName = "Ultimate Spellbook";
+		break;
+	case "DOOMBOTSTEEMO":
+		modeName = "Doom Bots";
+		break;
+	case "PRACTICETOOL":
+		modeName = "Practice Tool";
+		break;
+	case "TUTORIAL":
+		modeName = "Tutorial";
+		break;
+	default:
+		modeName = gameMode || "Unknown Mode";
+		break;
 }
+
+return { modeName, isRanked };
 
 /* -------------------- CDRAGON PATH -------------------- */
 function mapCDragonAssetPath(p) {
