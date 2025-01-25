@@ -1,5 +1,3 @@
-// MatchDetails.js
-
 import React, { useEffect, useState, useRef } from "react";
 import ReactDOM from "react-dom"; // for portals
 import NextImage from "next/image";
@@ -43,16 +41,19 @@ export default function MatchDetails({
 	}, []);
 
 	useEffect(() => {
-		if (!matchDetails || !augments) return;
+		if (!matchDetails || !augments.length) return;
 		const toPrefetch = [];
 		matchDetails.forEach((m) => {
 			m.info.participants.forEach((p) => {
+				// Prefetch champion icons
 				toPrefetch.push(
 					`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${p.championId}.png`
 				);
+				// Prefetch summoner spells
 				[p.summoner1Id, p.summoner2Id].forEach((spellId) => {
 					toPrefetch.push(`/images/summonerSpells/${spellId}.png`);
 				});
+				// Prefetch items
 				for (let i = 0; i < 7; i++) {
 					const itemId = p[`item${i}`];
 					if (itemId && itemId > 0) {
@@ -62,6 +63,8 @@ export default function MatchDetails({
 					}
 				}
 			});
+
+			// Prefetch ARAM/Arena augments if any
 			if (m.info.queueId === 1700 && augments.length) {
 				m.info.participants.forEach((p) => {
 					p.missions?.playerAugments?.forEach((aId) => {
@@ -74,6 +77,8 @@ export default function MatchDetails({
 					});
 				});
 			}
+
+			// Prefetch bans
 			m.info.teams.forEach((t) => {
 				t.bans.forEach((b) => {
 					toPrefetch.push(
@@ -82,6 +87,7 @@ export default function MatchDetails({
 				});
 			});
 		});
+		// Trigger prefetch
 		toPrefetch.forEach((src) => {
 			const img = new Image();
 			img.src = src;
@@ -122,7 +128,7 @@ export default function MatchDetails({
 			(match.info.gameDuration / 60);
 	});
 
-	// Arena check
+	// ----------------- Arena Check --------------------
 	if (match.info.queueId === 1700) {
 		let grouped = {};
 		let sorted = [...parts].map((p) => ({
@@ -194,7 +200,7 @@ export default function MatchDetails({
 		);
 	}
 
-	// Summoner's Rift
+	// ----------------- Summoner's Rift (and others) --------------------
 	const calcTeamStats = (ps) => {
 		return ps.reduce(
 			(a, c) => {
@@ -409,8 +415,58 @@ function Participant({ p, puuid, r, getA, getPerk, arena }) {
 	);
 }
 
+/* 
+  =========================================
+  UPDATED PortalTooltip with Tailwind
+  =========================================
+*/
+function PortalTooltip({ top, left, flipAbove, children }) {
+	if (typeof document === "undefined") return null;
+
+	const tooltipPosition = {
+		top: `${top}px`,
+		left: `${left}px`,
+	};
+
+	return ReactDOM.createPortal(
+		<div
+			className={`
+        absolute z-[9999]
+        px-3 py-2
+        bg-gray-800 text-white
+        rounded-md shadow-lg
+        text-xs sm:text-sm
+        transform -translate-x-1/2
+        w-[90%] max-w-xs
+        sm:w-auto sm:max-w-sm
+      `}
+			style={tooltipPosition}
+		>
+			{/* Tooltip arrow */}
+			<div
+				className={`
+          absolute left-1/2 -translate-x-1/2 w-0 h-0
+          border-x-4 border-x-transparent
+          ${
+						flipAbove
+							? "border-b-4 border-b-gray-800"
+							: "border-t-4 border-t-gray-800"
+					}
+        `}
+				style={
+					flipAbove
+						? { top: "auto", bottom: "-4px" }
+						: { top: "-4px", bottom: "auto" }
+				}
+			/>
+			{children}
+		</div>,
+		document.body
+	);
+}
+
 /**
- * Renders a single rune icon with a Portal tooltip that accounts for scrolling.
+ * Displays a single rune icon and shows a responsive tooltip on hover.
  */
 function HoverableRuneIcon({ perk, allPerks, getPerk }) {
 	const iconRef = useRef(null);
@@ -421,23 +477,24 @@ function HoverableRuneIcon({ perk, allPerks, getPerk }) {
 	const onMouseEnter = () => {
 		if (!iconRef.current) return;
 		const rect = iconRef.current.getBoundingClientRect();
-		// Get scroll offsets
 		const scrollY = window.scrollY || document.documentElement.scrollTop;
-		const tooltipHeight = 220; // approximate
+		const scrollX = window.scrollX || document.documentElement.scrollLeft;
+
+		// Approximate potential tooltip height
+		const tooltipHeight = 220;
 		const spaceBelow = window.innerHeight - rect.bottom;
 
-		// If not enough space, flip
+		// Flip if not enough space below
 		const flip = spaceBelow < tooltipHeight;
 		setFlipAbove(flip);
 
-		// If flipping, place tooltip above. Otherwise below.
-		let topVal = flip
+		const topVal = flip
 			? rect.top + scrollY - tooltipHeight - 8
 			: rect.bottom + scrollY + 8;
 
 		setCoords({
 			top: topVal,
-			left: rect.left + (window.scrollX || document.documentElement.scrollLeft),
+			left: rect.left + scrollX + rect.width / 2,
 		});
 		setHovered(true);
 	};
@@ -466,64 +523,26 @@ function HoverableRuneIcon({ perk, allPerks, getPerk }) {
 	);
 }
 
-/**
- * A Portal that places the tooltip absolutely on the page,
- * so it won't be clipped by parent overflow.
- */
-function PortalTooltip({ top, left, flipAbove, children }) {
-	if (typeof document === "undefined") return null;
-
-	const style = {
-		position: "absolute",
-		top: `${top}px`,
-		left: `${left}px`,
-		transform: "translateX(-50%)", // Adjust for perfect centering
-		backgroundColor: "#222",
-		color: "white",
-		borderRadius: "8px",
-		padding: "12px",
-		boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.5)",
-		width: "220px",
-		zIndex: 9999,
-	};
-
-	return ReactDOM.createPortal(
-		<div style={style}>
-			<div
-				style={{
-					position: "absolute",
-					width: "0",
-					height: "0",
-					borderLeft: "6px solid transparent",
-					borderRight: "6px solid transparent",
-					borderBottom: `6px solid ${flipAbove ? "transparent" : "#222"}`,
-					borderTop: `6px solid ${flipAbove ? "#222" : "transparent"}`,
-					bottom: flipAbove ? "-6px" : "initial",
-					top: flipAbove ? "initial" : "-6px",
-					left: "50%",
-					transform: "translateX(-50%)",
-				}}
-			></div>
-			{children}
-		</div>,
-		document.body
-	);
-}
-
+/* 
+  =========================================
+  UPDATED FullRuneTooltip 
+  =========================================
+*/
 function FullRuneTooltip({ perks, getPerkById }) {
 	if (!perks?.styles) return null;
 	const primary = perks.styles.find((s) => s.description === "primaryStyle");
 	const sub = perks.styles.find((s) => s.description === "subStyle");
 	const statPerks = perks.statPerks || {};
+
 	const primarySelections = primary?.selections || [];
 	const subSelections = sub?.selections || [];
 	const statPerksData = Object.values(statPerks).map((id) => getPerkById(id));
 
 	return (
-		<div className="text-xs">
+		<div className="space-y-3">
 			{primary && (
-				<div className="mb-2">
-					<div className="font-bold">
+				<div>
+					<div className="font-bold mb-1 text-[0.65rem] sm:text-xs uppercase">
 						Primary: {getPerkById(primary.style)?.name}
 					</div>
 					<div className="flex flex-wrap">
@@ -531,12 +550,15 @@ function FullRuneTooltip({ perks, getPerkById }) {
 							const pd = getPerkById(sel.perk);
 							if (!pd) return null;
 							return (
-								<div key={idx} className="mr-2 mt-1 flex items-center">
+								<div
+									key={idx}
+									className="mr-2 mb-2 flex items-center text-[0.65rem] sm:text-xs"
+								>
 									<NextImage
 										src={mapCDragonAssetPath(pd.iconPath)}
 										alt={pd.name}
-										width={20}
-										height={20}
+										width={16}
+										height={16}
 										className="mr-1"
 									/>
 									{pd.name}
@@ -548,8 +570,8 @@ function FullRuneTooltip({ perks, getPerkById }) {
 			)}
 
 			{sub && (
-				<div className="mb-2">
-					<div className="font-bold">
+				<div>
+					<div className="font-bold mb-1 text-[0.65rem] sm:text-xs uppercase">
 						Secondary: {getPerkById(sub.style)?.name}
 					</div>
 					<div className="flex flex-wrap">
@@ -557,12 +579,15 @@ function FullRuneTooltip({ perks, getPerkById }) {
 							const pd = getPerkById(sel.perk);
 							if (!pd) return null;
 							return (
-								<div key={idx} className="mr-2 mt-1 flex items-center">
+								<div
+									key={idx}
+									className="mr-2 mb-2 flex items-center text-[0.65rem] sm:text-xs"
+								>
 									<NextImage
 										src={mapCDragonAssetPath(pd.iconPath)}
 										alt={pd.name}
-										width={20}
-										height={20}
+										width={16}
+										height={16}
 										className="mr-1"
 									/>
 									{pd.name}
@@ -575,17 +600,22 @@ function FullRuneTooltip({ perks, getPerkById }) {
 
 			{statPerksData?.length > 0 && (
 				<div>
-					<div className="font-bold mb-1">Stat Shards</div>
+					<div className="font-bold mb-1 text-[0.65rem] sm:text-xs uppercase">
+						Stat Shards
+					</div>
 					<div className="flex flex-wrap">
 						{statPerksData.map((pd, idx) => {
 							if (!pd) return null;
 							return (
-								<div key={idx} className="mr-2 mt-1 flex items-center">
+								<div
+									key={idx}
+									className="mr-2 mb-2 flex items-center text-[0.65rem] sm:text-xs"
+								>
 									<NextImage
 										src={mapCDragonAssetPath(pd.iconPath)}
 										alt={pd.name}
-										width={20}
-										height={20}
+										width={16}
+										height={16}
 										className="mr-1"
 									/>
 									{pd.name}

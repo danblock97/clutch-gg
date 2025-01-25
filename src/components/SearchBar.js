@@ -18,6 +18,9 @@ const regions = [
 	{ code: "OC1", name: "OCE" },
 	{ code: "TR1", name: "TR" },
 	{ code: "RU", name: "RU" },
+	{ code: "SG2", name: "SG" },
+	{ code: "TW2", name: "TW" },
+	{ code: "VN2", name: "VN" },
 ];
 
 const SearchBar = ({ onSearch, initialRegion }) => {

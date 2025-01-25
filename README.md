@@ -1,11 +1,15 @@
-### ClutchGG.LOL v1.9.7
+### ClutchGG.LOL v1.9.8
 
-## 🎮 Main Updates
+## 🎮 Main Updates & Bug Fixes
 
+- **Search Bar**:
+  - Fixed a bug where some regions wern't correctly showing in the Search Bar drop-down.
 - **Live Game**:
-  - Fixed a bug where URF games would cause the application to crash when updating profiles.
-- **Assets**:
-  - Assets have been updated to the latest patch to ensure Mel champion icon now shows.
-  - 
-Thank you for using ClutchGG.LOL! We’re excited for the new season and will continue to bring you the best League of Legends experience.
-
+  - Fixed a bug where some game modes were incorrectly showing.
+  - Improved the UI of the Live Game component on larger devices and made it fully mobile responsive.
+- **Outage Banner**:
+  - The outage banner is now more prominant but less screen invasive.
+- **Champion Performance**:
+  - Improved the styling of this component to make it less screen invasive and easier to read.
+- **Rune Tooltip**:
+  - Improved the readability of the rune tooltip found on Match Details & Live Game when hovering your keystone.
