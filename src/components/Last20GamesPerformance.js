@@ -1,7 +1,12 @@
 import React, { useMemo } from "react";
 import Image from "next/image";
 
-const Last20GamesPerformance = ({ matchDetails, selectedSummonerPUUID }) => {
+const Last20GamesPerformance = ({
+	matchDetails,
+	selectedSummonerPUUID,
+	onChampionClick,
+	selectedChampionId,
+}) => {
 	// Filter to get the last 20 matches of the selected player
 	const last20Matches = useMemo(() => {
 		return matchDetails
@@ -189,15 +194,24 @@ const Last20GamesPerformance = ({ matchDetails, selectedSummonerPUUID }) => {
 						return (
 							<div
 								key={champId}
-								className="flex flex-col items-center justify-center text-center space-y-0.5"
+								className="flex flex-col items-center justify-center text-center space-y-0.5 cursor-pointer"
+								onClick={() => onChampionClick(champId)}
 							>
-								<Image
-									src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${champId}.png`}
-									alt="Champion Icon"
-									width={36}
-									height={36}
-									className="rounded-full"
-								/>
+								<div
+									className={`rounded-full p-0.5 ${
+										selectedChampionId === champId
+											? "border-2 border-blue-400"
+											: ""
+									}`}
+								>
+									<Image
+										src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${champId}.png`}
+										alt="Champion Icon"
+										width={36}
+										height={36}
+										className="rounded-full"
+									/>
+								</div>
 								<p className="text-white font-semibold text-[10px] sm:text-xs">
 									{champWinRate}%
 								</p>

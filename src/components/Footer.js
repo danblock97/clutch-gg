@@ -23,22 +23,6 @@ const Footer = () => {
 						<ul>
 							<li>
 								<Link
-									href="https://apexpulse.vercel.app"
-									className="text-sm hover:underline"
-								>
-									Apex Pulse
-								</Link>
-							</li>
-							<li>
-								<Link
-									href="https://fortifinder.vercel.app"
-									className="text-sm hover:underline"
-								>
-									Forti Finder
-								</Link>
-							</li>
-							<li>
-								<Link
 									href="https://astrostats.vercel.app"
 									className="text-sm hover:underline"
 								>
@@ -60,7 +44,7 @@ const Footer = () => {
 							</li>
 							<li>
 								<Link
-									href="mailto:danblock1997@hotmail.co.uk"
+									href="mailto:contact@danblock.dev"
 									className="text-sm hover:underline"
 								>
 									Email
@@ -86,7 +70,7 @@ const Footer = () => {
 					</div>
 				</div>
 				<div className="text-center text-sm mt-8">
-					<p>Clutch.GG © 2024. All rights reserved.</p>
+					<p>Clutch.GG © 2025. All rights reserved.</p>
 				</div>
 			</div>
 		</footer>

@@ -217,6 +217,7 @@ const MatchHistory = ({
 	gameName,
 	tagLine,
 	region,
+	selectedChampionId,
 }) => {
 	const [augments, setAugments] = useState([]);
 	const [expandedMatchId, setExpandedMatchId] = useState(null); // State for expanded match
@@ -288,7 +289,7 @@ const MatchHistory = ({
 		);
 	}
 
-	// Filter matches by Lane / Queue
+	// Update filteredMatches to include champion filter
 	const filteredMatches = matchDetails.filter((match) => {
 		const participants = match.info && match.info.participants;
 		if (!participants) return false;
@@ -298,6 +299,15 @@ const MatchHistory = ({
 		);
 		if (!currentPlayer) return false;
 
+		// Champion filter
+		if (
+			selectedChampionId &&
+			currentPlayer.championId !== Number(selectedChampionId)
+		) {
+			return false;
+		}
+
+		// Existing filters
 		const playerLane = normalizeTeamPosition(currentPlayer.teamPosition);
 		if (selectedLane && playerLane !== selectedLane) {
 			return false;
