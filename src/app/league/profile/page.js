@@ -15,7 +15,7 @@ const ProfilePageContent = () => {
 	const searchParams = useSearchParams();
 	const gameName = searchParams.get("gameName");
 	const tagLine = searchParams.get("tagLine");
-	const region = searchParams.get("region"); // Retrieve the region from URL
+	const region = searchParams.get("region");
 
 	const [profileData, setProfileData] = useState(null);
 	const [accountData, setAccountData] = useState(null);
@@ -30,8 +30,8 @@ const ProfilePageContent = () => {
 	const [selectedChampionId, setSelectedChampionId] = useState(null);
 
 	const fetchProfileData = useCallback(async () => {
-		setIsLoading(true); // Start loading
-		setError(null); // Reset any previous errors
+		setIsLoading(true);
+		setError(null);
 		try {
 			const response = await fetch(
 				`/api/league/profile?gameName=${gameName}&tagLine=${tagLine}&region=${region}`
@@ -40,6 +40,7 @@ const ProfilePageContent = () => {
 				throw new Error("Failed to fetch profile");
 			}
 			const data = await response.json();
+			// Because our API returns a flat object, set state accordingly.
 			setProfileData(data.profiledata);
 			setAccountData(data.accountdata);
 			setRankedData(data.rankeddata);
@@ -49,7 +50,7 @@ const ProfilePageContent = () => {
 		} catch (error) {
 			setError(error.message);
 		} finally {
-			setIsLoading(false); // End loading
+			setIsLoading(false);
 		}
 	}, [gameName, tagLine, region]);
 
@@ -68,7 +69,7 @@ const ProfilePageContent = () => {
 					"Content-Type": "application/json",
 					"x-api-key": process.env.NEXT_PUBLIC_UPDATE_API_KEY,
 				},
-				body: JSON.stringify({ gameName, tagLine, region }), // Include region in the request body
+				body: JSON.stringify({ gameName, tagLine, region }),
 			});
 			if (!response.ok) {
 				throw new Error("Failed to trigger update");
