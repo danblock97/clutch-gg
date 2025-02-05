@@ -38,17 +38,20 @@ const SearchBar = ({ onSearch, initialRegion }) => {
 		}
 	}, [initialRegion]);
 
-	// Fetch suggestions from Supabase
+	// Fetch suggestions from the riot_accounts table
 	const fetchSuggestions = async (input) => {
 		if (!input) {
 			setSuggestions([]);
 			return;
 		}
 
+		// Split input at '#' (e.g. "Faker#SKT")
 		const [gameName, tagLinePartial] = input.split("#");
+		// Query the riot_accounts table instead of profiles.
 		const { data, error } = await supabase
-			.from("profiles")
+			.from("riot_accounts")
 			.select("gamename, tagline, region")
+			// Use ilike for case-insensitive matching.
 			.ilike("gamename", `${gameName || ""}%`)
 			.ilike("tagline", `%${tagLinePartial || ""}%`)
 			.limit(10);
@@ -87,6 +90,7 @@ const SearchBar = ({ onSearch, initialRegion }) => {
 		tagLineFromClick,
 		regionFromClick
 	) => {
+		// If values were passed from a suggestion click, use those; otherwise split the input.
 		const [gameName, tagLine] =
 			gameNameFromClick && tagLineFromClick
 				? [gameNameFromClick, tagLineFromClick]
@@ -95,6 +99,7 @@ const SearchBar = ({ onSearch, initialRegion }) => {
 		const region = regionFromClick || selectedRegion;
 
 		if (gameName && tagLine && region) {
+			// Redirect to the league profile route.
 			router.push(
 				`/league/profile?gameName=${encodeURIComponent(
 					gameName
@@ -104,12 +109,12 @@ const SearchBar = ({ onSearch, initialRegion }) => {
 			alert("Please enter both game name, tagline, and select a region.");
 		}
 
-		// Reset
+		// Reset the input and dropdown.
 		setCombinedInput("");
 		setSuggestions([]);
 		setIsDropdownVisible(false);
 
-		// Optional callback
+		// Call optional callback if provided.
 		if (onSearch) {
 			onSearch();
 		}
