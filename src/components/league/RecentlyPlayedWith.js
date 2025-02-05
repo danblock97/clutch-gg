@@ -87,7 +87,7 @@ const RecentlyPlayedWith = ({
 				);
 
 				const { riotIdGameName, riotIdTagline } = teammate;
-				const profileLink = `/profile?gameName=${encodeURIComponent(
+				const profileLink = `/league/profile?gameName=${encodeURIComponent(
 					riotIdGameName
 				)}&tagLine=${encodeURIComponent(
 					riotIdTagline

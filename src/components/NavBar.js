@@ -48,7 +48,7 @@ const NavBar = ({ isBannerVisible }) => {
 			{/* Desktop links */}
 			<div className="hidden md:flex items-center space-x-6 ml-6">
 				<Link
-					href="/leaderboard"
+					href="/league/leaderboard"
 					className="flex items-center px-3 py-2 text-gray-500"
 				>
 					<span className="ml-2">Leaderboards</span>
@@ -134,7 +134,7 @@ const NavBar = ({ isBannerVisible }) => {
 
 					{/* Mobile menu links */}
 					<Link
-						href="/leaderboard"
+						href="/league/leaderboard"
 						className="text-xl text-gray-300 hover:text-gray-200 mb-6"
 						onClick={() => setIsMenuOpen(false)}
 					>

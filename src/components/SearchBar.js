@@ -96,7 +96,7 @@ const SearchBar = ({ onSearch, initialRegion }) => {
 
 		if (gameName && tagLine && region) {
 			router.push(
-				`/profile?gameName=${encodeURIComponent(
+				`/league/profile?gameName=${encodeURIComponent(
 					gameName
 				)}&tagLine=${encodeURIComponent(tagLine)}&region=${region}`
 			);

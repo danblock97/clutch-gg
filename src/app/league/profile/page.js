@@ -2,14 +2,14 @@
 
 import React, { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import Profile from "@/components/Profile";
-import RankedInfo from "@/components/RankedInfo";
-import ChampionMastery from "@/components/ChampionMastery";
-import MatchHistory from "@/components/MatchHistory";
-import Last20GamesPerformance from "@/components/Last20GamesPerformance";
+import Profile from "@/components/league/Profile";
+import RankedInfo from "@/components/league/RankedInfo";
+import ChampionMastery from "@/components/league/ChampionMastery";
+import MatchHistory from "@/components/league/MatchHistory";
+import Last20GamesPerformance from "@/components/league/Last20GamesPerformance";
 import Loading from "@/components/Loading";
-import LiveGame from "@/components/LiveGame";
-import RecentlyPlayedWith from "@/components/RecentlyPlayedWith";
+import LiveGame from "@/components/league/LiveGame";
+import RecentlyPlayedWith from "@/components/league/RecentlyPlayedWith";
 
 const ProfilePageContent = () => {
 	const searchParams = useSearchParams();

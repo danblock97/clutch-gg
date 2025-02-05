@@ -16,7 +16,7 @@ const RankedInfo = ({ rankedData }) => {
 
 	const renderRankedFlex = (data) => {
 		const rankedIcon = data
-			? `/images/rankedEmblems/${data.tier.toLowerCase()}.webp`
+			? `/images/league/rankedEmblems/${data.tier.toLowerCase()}.webp`
 			: null;
 		const tier = data ? data.tier : "Unranked";
 		const rank = data ? data.rank : "";

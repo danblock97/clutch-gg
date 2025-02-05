@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import Tag from "@/components/Tag";
-import MatchDetails from "@/components/MatchDetails";
+import Tag from "@/components/league/Tag";
+import MatchDetails from "@/components/league/MatchDetails";
 import {
 	FaSkullCrossbones,
 	FaBolt,
@@ -697,7 +697,7 @@ const MatchHistory = ({
 												].map((spellId, idx) => (
 													<Image
 														key={idx}
-														src={`/images/summonerSpells/${spellId}.png`}
+														src={`/images/league/summonerSpells/${spellId}.png`}
 														alt={`Summoner Spell ${idx + 1}`}
 														width={28}
 														height={28}

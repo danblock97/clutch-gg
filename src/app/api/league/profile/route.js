@@ -1,4 +1,4 @@
-import { fetchAndUpdateProfileData } from "@/lib/fetchAndUpdateProfileData";
+import { fetchAndUpdateProfileData } from "@/lib/league/fetchAndUpdateProfileData";
 import { supabase } from "@/lib/supabase";
 
 export async function GET(req) {
