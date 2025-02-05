@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import ReactDOM from "react-dom"; // for portals
 import NextImage from "next/image";
-import Loading from "./Loading";
+import Loading from "../Loading";
 import Link from "next/link";
 
 function mapCDragonAssetPath(jsonPath) {
@@ -51,7 +51,7 @@ export default function MatchDetails({
 				);
 				// Prefetch summoner spells
 				[p.summoner1Id, p.summoner2Id].forEach((spellId) => {
-					toPrefetch.push(`/images/summonerSpells/${spellId}.png`);
+					toPrefetch.push(`/images/league/summonerSpells/${spellId}.png`);
 				});
 				// Prefetch items
 				for (let i = 0; i < 7; i++) {
@@ -325,7 +325,7 @@ function Participant({ p, puuid, r, getA, getPerk, arena }) {
 
 	return (
 		<Link
-			href={`/profile?gameName=${p.riotIdGameName}&tagLine=${p.riotIdTagline}&region=${r}`}
+			href={`/league/profile?gameName=${p.riotIdGameName}&tagLine=${p.riotIdTagline}&region=${r}`}
 		>
 			<div className="flex items-center justify-between p-2 bg-[#1e1e1e] rounded-lg hover:bg-[#2e2e2e] transition duration-150 mt-2 relative">
 				<div className="flex items-center space-x-2 flex-shrink-0 w-1/4">
@@ -345,7 +345,7 @@ function Participant({ p, puuid, r, getA, getPerk, arena }) {
 					{[p.summoner1Id, p.summoner2Id].map((s, i) => (
 						<NextImage
 							key={i}
-							src={`/images/summonerSpells/${s}.png`}
+							src={`/images/league/summonerSpells/${s}.png`}
 							alt=""
 							width={24}
 							height={24}

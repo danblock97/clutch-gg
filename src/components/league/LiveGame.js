@@ -394,7 +394,7 @@ export default function LiveGame({ liveGameData, region }) {
 				{/* Summoner Name / Level */}
 				<div className="mb-1 text-center text-xs">
 					<Link
-						href={`/profile?gameName=${p.gameName}&tagLine=${p.tagLine}&region=${region}`}
+						href={`/league/profile?gameName=${p.gameName}&tagLine=${p.tagLine}&region=${region}`}
 						className="font-bold hover:underline block truncate max-w-[90px] mx-auto"
 					>
 						{p.gameName}#{p.tagLine}
@@ -406,7 +406,7 @@ export default function LiveGame({ liveGameData, region }) {
 				<div className="flex justify-center space-x-1 mb-2">
 					<div className="relative w-6 h-6">
 						<Image
-							src={`/images/summonerSpells/${p.spell1Id}.png`}
+							src={`/images/league/summonerSpells/${p.spell1Id}.png`}
 							alt=""
 							fill
 							className="rounded"
@@ -414,7 +414,7 @@ export default function LiveGame({ liveGameData, region }) {
 					</div>
 					<div className="relative w-6 h-6">
 						<Image
-							src={`/images/summonerSpells/${p.spell2Id}.png`}
+							src={`/images/league/summonerSpells/${p.spell2Id}.png`}
 							alt=""
 							fill
 							className="rounded"
@@ -432,7 +432,7 @@ export default function LiveGame({ liveGameData, region }) {
 					{shortRank && shortRank !== "unranked" && (
 						<div className="relative w-5 h-5 mr-1">
 							<Image
-								src={`/images/rankedEmblems/${shortRank}.webp`}
+								src={`/images/league/rankedEmblems/${shortRank}.webp`}
 								alt=""
 								fill
 								className="object-contain"

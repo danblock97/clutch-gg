@@ -17,7 +17,7 @@ const Profile = ({
 	);
 
 	const rankedIcon = soloRankedData
-		? `/images/rankedEmblems/${soloRankedData.tier.toLowerCase()}.webp`
+		? `/images/league/rankedEmblems/${soloRankedData.tier.toLowerCase()}.webp`
 		: null;
 
 	const [isUpdated, setIsUpdated] = useState(false);

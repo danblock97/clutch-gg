@@ -37,7 +37,7 @@ const LeaderboardTable = ({ leaderboardData, region }) => {
 								<span className="truncate">
 									{entry.profileData ? (
 										<Link
-											href={`/profile?gameName=${encodeURIComponent(
+											href={`/league/profile?gameName=${encodeURIComponent(
 												entry.profileData.gameName
 											)}&tagLine=${encodeURIComponent(
 												entry.profileData.tagLine
