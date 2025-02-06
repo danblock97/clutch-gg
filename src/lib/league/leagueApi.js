@@ -87,7 +87,6 @@ export const upsertMatchDetail = async (matchId, puuid, matchDetail) => {
 			{
 				matchid: matchId,
 				playerid: puuid,
-				matchdetails: matchDetail,
 			},
 			{ onConflict: ["matchid"] }
 		);
