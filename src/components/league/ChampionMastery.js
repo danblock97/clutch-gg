@@ -41,7 +41,7 @@ const ChampionMastery = ({ championMasteryData }) => {
 					const championIcon = `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${mastery.championId}.png`;
 					const masteryLevel =
 						mastery.championLevel > 10 ? 10 : mastery.championLevel;
-					const masteryIcon = `https://raw.communitydragon.org/pbe/game/assets/ux/mastery/legendarychampionmastery/masterycrest_level_${masteryLevel}_art.png`;
+					const masteryIcon = `https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/mastery-${masteryLevel}.png`;
 
 					return (
 						<div
@@ -81,24 +81,23 @@ const ChampionMastery = ({ championMasteryData }) => {
 									className="rounded-md"
 									loading="lazy"
 								/>
-								<span
-									className="
-                    absolute
-                    -bottom-3
-                    left-1/2
-                    transform -translate-x-1/2
-                    bg-black
-                    bg-opacity-80
-                    text-white
-                    text-xs
-                    font-bold
-                    px-1
-                    py-0.5
-                    rounded-full
-                  "
-								>
-									{mastery.championLevel}
-								</span>
+								{/* Mastery Icon & Level Badge */}
+								<div className="relative mt-2">
+									{/* Mastery Plate Image */}
+									<Image
+										src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/mastery-level-plate.png"
+										alt="Mastery Level Plate"
+										width={70}
+										height={70}
+										className="rounded-md"
+										loading="lazy"
+									/>
+
+									{/* Mastery Level Text Overlay */}
+									<span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-gray-600 text-lg font-bold drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]">
+										{mastery.championLevel}
+									</span>
+								</div>
 							</div>
 
 							{/* Champion Name & Points */}
