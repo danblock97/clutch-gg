@@ -1,5 +1,7 @@
+// src/app/api/league/profile/route.js
+
 import { supabase } from "@/lib/supabase";
-import { fetchAccountData } from "@/lib/riot/riotAccountApi"; // Should return an object with a 'puuid'
+import { fetchAccountData } from "@/lib/riot/riotAccountApi";
 import {
 	fetchSummonerData,
 	fetchChampionMasteryData,
@@ -34,6 +36,7 @@ export async function GET(req) {
 	const gameName = searchParams.get("gameName");
 	const tagLine = searchParams.get("tagLine");
 	const region = searchParams.get("region");
+	const forceUpdate = searchParams.get("forceUpdate") === "true"; // new flag
 
 	if (!gameName || !tagLine || !region) {
 		return new Response(
@@ -55,7 +58,7 @@ export async function GET(req) {
 		if (accountError) throw accountError;
 
 		if (!riotAccount) {
-			// Not found—fetch account data from Riot’s API.
+			// Not found — fetch account data from Riot’s API.
 			const platform = regionToPlatform[region];
 			const accountData = await fetchAccountData(gameName, tagLine, platform);
 			if (!accountData || !accountData.puuid) {
@@ -69,27 +72,12 @@ export async function GET(req) {
 				puuid: accountData.puuid,
 			};
 
-			// Insert new record and request a full representation.
 			const { data: insertedAccount, error: insertError } = await supabase
 				.from("riot_accounts")
 				.insert([insertPayload], { returning: "representation" })
 				.single();
 			if (insertError) throw insertError;
-
-			if (!insertedAccount) {
-				// Fallback: reselect the record.
-				const { data: reselectData, error: reselectError } = await supabase
-					.from("riot_accounts")
-					.select("*")
-					.eq("gamename", gameName)
-					.eq("tagline", tagLine)
-					.eq("region", region)
-					.maybeSingle();
-				if (reselectError) throw reselectError;
-				riotAccount = reselectData;
-			} else {
-				riotAccount = insertedAccount;
-			}
+			riotAccount = insertedAccount;
 		}
 
 		if (!riotAccount || !riotAccount.puuid) {
@@ -97,14 +85,30 @@ export async function GET(req) {
 			throw new Error("Riot account record is missing the puuid.");
 		}
 
-		// 2. Fetch League-specific data using the puuid.
+		// 2. If not forcing update, check if we already have League data stored in DB.
+		if (!forceUpdate) {
+			let { data: storedLeagueData, error: leagueDataError } = await supabase
+				.from("league_data")
+				.select("*")
+				.eq("riot_account_id", riotAccount.id)
+				.maybeSingle();
+			if (leagueDataError) throw leagueDataError;
+			if (storedLeagueData) {
+				return new Response(JSON.stringify(storedLeagueData), {
+					status: 200,
+					headers: { "Content-Type": "application/json" },
+				});
+			}
+		}
+
+		// 3. (No league_data record or forceUpdate true) Fetch fresh data from Riot:
 		const platform = regionToPlatform[region];
 		const puuid = riotAccount.puuid;
 		const summonerData = await fetchSummonerData(puuid, region);
 		const rankedData = await fetchRankedData(summonerData.id, region);
 		const matchIds = await fetchMatchIds(puuid, platform);
 
-		// Manage match history: if there are 10+ matches, delete the oldest.
+		// Manage match history: delete the oldest match only if there are more than 10.
 		const { data: existingMatches, error: existingMatchesError } =
 			await supabase
 				.from("league_matches")
@@ -114,7 +118,7 @@ export async function GET(req) {
 		if (existingMatchesError) {
 			console.error("Error fetching existing matches:", existingMatchesError);
 		}
-		if (existingMatches && existingMatches.length >= 10) {
+		if (existingMatches && existingMatches.length > 10) {
 			const oldestMatchId = existingMatches[0].matchid;
 			const { error: deleteError } = await supabase
 				.from("league_matches")
@@ -156,7 +160,7 @@ export async function GET(req) {
 			updatedat: new Date(),
 		};
 
-		// 3. Upsert League data for this Riot account.
+		// 4. Upsert League data for this Riot account.
 		let { data: leagueRecord, error: leagueError } = await supabase
 			.from("league_data")
 			.upsert(
@@ -167,10 +171,8 @@ export async function GET(req) {
 				{ onConflict: ["riot_account_id"], returning: "representation" }
 			)
 			.single();
-
 		if (leagueError) throw leagueError;
 
-		// If upsert returns null or an empty array, try to select manually.
 		if (!leagueRecord) {
 			const { data: selectedLeagueData, error: selectError } = await supabase
 				.from("league_data")
@@ -181,7 +183,6 @@ export async function GET(req) {
 			leagueRecord = selectedLeagueData;
 		}
 
-		// Return the league_data record (flat structure) so the client gets the expected keys.
 		return new Response(JSON.stringify(leagueRecord), {
 			status: 200,
 			headers: { "Content-Type": "application/json" },
@@ -204,8 +205,18 @@ export async function POST(req) {
 				{ status: 400, headers: { "Content-Type": "application/json" } }
 			);
 		}
-		// For POST, force a refresh.
-		return await GET(req);
+
+		// Create a new URL including the forceUpdate flag
+		const url = new URL(req.url);
+		url.searchParams.set("gameName", gameName);
+		url.searchParams.set("tagLine", tagLine);
+		url.searchParams.set("region", region);
+		url.searchParams.set("forceUpdate", "true");
+
+		// Call GET with the updated URL
+		return await GET(
+			new Request(url.toString(), { method: "GET", headers: req.headers })
+		);
 	} catch (error) {
 		console.error("Error updating profile:", error);
 		return new Response(JSON.stringify({ error: error.message }), {
