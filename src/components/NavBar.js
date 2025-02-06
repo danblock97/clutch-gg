@@ -12,7 +12,8 @@ const NavBar = ({ isBannerVisible }) => {
 	const searchParams = useSearchParams();
 
 	// Show SearchBar only on /profile or /match
-	const isProfileOrMatch = pathname === "/profile" || pathname === "/match";
+	const isProfileOrMatch =
+		pathname === "/league/profile" || pathname === "/match";
 	const region = isProfileOrMatch ? searchParams.get("region") : null;
 
 	return (
@@ -97,12 +98,6 @@ const NavBar = ({ isBannerVisible }) => {
 					isMenuOpen ? "translate-y-0" : "-translate-y-full"
 				}`}
 			>
-				{/* 
-          Container: 
-          - "relative" for the close button 
-          - "flex flex-col items-center justify-start" to top-align the content 
-          - "pt-20" to push everything down from the top 
-        */}
 				<div className="relative w-full h-full flex flex-col items-center justify-start p-4 pt-20">
 					{/* Close button in top-right corner */}
 					<button
