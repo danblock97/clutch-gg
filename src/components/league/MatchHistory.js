@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Tag from "@/components/league/Tag";
+import DonutGraph from "@/components/league/DonutGraph";
 import MatchDetails from "@/components/league/MatchDetails";
 import {
 	FaSkullCrossbones,
@@ -39,6 +40,41 @@ function useBreakpoint() {
 
 	return breakpoint;
 }
+
+const calculateClutchScore = (match, currentPlayer) => {
+	// KDA score: assume full 20 if KDA is 5 or higher
+	const kda =
+		(currentPlayer.kills + currentPlayer.assists) /
+		Math.max(1, currentPlayer.deaths);
+	const kdaScore = Math.min(20, (kda / 5) * 20);
+
+	// Kill Participation score: based on team kills
+	const teamPlayers = match.info.participants.filter(
+		(p) => p.teamId === currentPlayer.teamId
+	);
+	const teamKills = teamPlayers.reduce((sum, p) => sum + p.kills, 0);
+	const killParticipation =
+		teamKills > 0
+			? (currentPlayer.kills + currentPlayer.assists) / teamKills
+			: 0;
+	const kpScore = Math.min(20, killParticipation * 20);
+
+	// Vision score: assume currentPlayer.visionScore exists (full 20 with a score of 40 or more)
+	const visionScore = currentPlayer.visionScore || 0;
+	const visionScoreNorm = Math.min(20, (visionScore / 40) * 20);
+
+	// Damage dealt to champions: assume full 20 at 20,000 damage
+	const damage = currentPlayer.totalDamageDealtToChampions || 0;
+	const damageScore = Math.min(20, (damage / 20000) * 20);
+
+	// Tower damage dealt: assume full 20 at 3,000 turret damage
+	const turretDamage = currentPlayer.damageDealtToTurrets || 0;
+	const turretScore = Math.min(20, (turretDamage / 3000) * 20);
+
+	return Math.round(
+		kdaScore + kpScore + visionScoreNorm + damageScore + turretScore
+	);
+};
 
 // 2) Fetch Arena Augments
 const fetchArenaAugments = async () => {
@@ -654,7 +690,7 @@ const MatchHistory = ({
 													</p>
 												</div>
 												<div className="flex">
-													<div className="flex flex-col mr-8">
+													<div className="flex flex-col justify-center mr-8">
 														<p className="sm:text-sm md:text-base lg:text-lg font-bold">
 															{kda} KDA
 														</p>
@@ -664,18 +700,30 @@ const MatchHistory = ({
 														</p>
 													</div>
 													{match.info.queueId === 1700 ? (
-														<div className="flex flex-col">
+														<div className="flex flex-col justify-center">
 															<p className="sm:text-sm md:text-base lg:text-lg font-bold">
 																{dpm} DPM
 															</p>
 															<p className="text-md">{goldEarned} Gold</p>
 														</div>
 													) : (
-														<div className="flex flex-col">
-															<p className="sm:text-sm md:text-base lg:text-lg font-bold">
-																{csPerMinCalc} CS/Min
-															</p>
-															<p className="text-md">{cs} CS</p>
+														<div className="flex items-center space-x-2">
+															<div className="flex flex-col justify-center">
+																<p className="sm:text-sm md:text-base lg:text-lg font-bold">
+																	{csPerMinCalc} CS/Min
+																</p>
+																<p className="text-md">{cs} CS</p>
+															</div>
+															{[420, 440, 490, 400].includes(
+																match.info.queueId
+															) && (
+																<DonutGraph
+																	score={calculateClutchScore(
+																		match,
+																		currentPlayer
+																	)}
+																/>
+															)}
 														</div>
 													)}
 												</div>
