@@ -10,6 +10,7 @@ import Last20GamesPerformance from "@/components/league/Last20GamesPerformance";
 import Loading from "@/components/Loading";
 import LiveGame from "@/components/league/LiveGame";
 import RecentlyPlayedWith from "@/components/league/RecentlyPlayedWith";
+import DiscordBotBanner from "@/components/DiscordBotBanner";
 
 const ProfilePageContent = () => {
 	const searchParams = useSearchParams();
@@ -40,7 +41,6 @@ const ProfilePageContent = () => {
 				throw new Error("Failed to fetch profile");
 			}
 			const data = await response.json();
-			// Because our API returns a flat object, set state accordingly.
 			setProfileData(data.profiledata);
 			setAccountData(data.accountdata);
 			setRankedData(data.rankeddata);
@@ -105,35 +105,40 @@ const ProfilePageContent = () => {
 	}
 
 	return (
-		<div className="min-h-screen bg-[#0e1015] relative">
-			<div
-				className={`w-full bg-black rounded-b-3xl ${
-					liveGameData
-						? "shadow-[0px_15px_10px_-5px_rgba(0,153,255,0.8)]"
-						: "shadow-[0px_15px_10px_-5px_rgba(255,255,255,0.5)]"
-				}`}
-			>
-				{profileData && accountData ? (
-					<Profile
-						accountData={accountData}
-						profileData={profileData}
-						rankedData={rankedData}
-						liveGameData={liveGameData}
-						toggleLiveGame={toggleLiveGame}
-						isLiveGameOpen={isLiveGameOpen}
-						triggerUpdate={triggerUpdate}
-						isUpdating={isUpdating}
-					/>
-				) : (
-					<p className="text-white">No profile data found.</p>
+		<div className="min-h-screen bg-[#0e1015] relative flex flex-col">
+			{/* Top section: Profile and Live Game */}
+			<div className="flex-1">
+				<div
+					className={`w-full bg-black rounded-b-3xl ${
+						liveGameData
+							? "shadow-[0px_15px_10px_-5px_rgba(0,153,255,0.8)]"
+							: "shadow-[0px_15px_10px_-5px_rgba(255,255,255,0.5)]"
+					}`}
+				>
+					{profileData && accountData ? (
+						<Profile
+							accountData={accountData}
+							profileData={profileData}
+							rankedData={rankedData}
+							liveGameData={liveGameData}
+							toggleLiveGame={toggleLiveGame}
+							isLiveGameOpen={isLiveGameOpen}
+							triggerUpdate={triggerUpdate}
+							isUpdating={isUpdating}
+						/>
+					) : (
+						<p className="text-white">No profile data found.</p>
+					)}
+				</div>
+				{liveGameData && isLiveGameOpen && (
+					<div className="max-w-screen-xl mx-auto mt-4">
+						<LiveGame liveGameData={liveGameData} region={region} />
+					</div>
 				)}
 			</div>
-			{liveGameData && isLiveGameOpen && (
-				<div className="max-w-screen-xl mx-auto mt-4">
-					<LiveGame liveGameData={liveGameData} region={region} />
-				</div>
-			)}
-			<div className="max-w-screen-xl mx-auto flex flex-col items-center gap-8 mt-8">
+
+			{/* Bottom section: Main content */}
+			<div className="w-full md:max-w-screen-xl mx-auto flex flex-col items-center gap-8 mt-8 flex-1">
 				<div className="w-full flex flex-col md:flex-row gap-4">
 					<div className="md:w-1/3 flex flex-col gap-4">
 						{rankedData ? <RankedInfo rankedData={rankedData} /> : <Loading />}
@@ -152,29 +157,35 @@ const ProfilePageContent = () => {
 							<Loading />
 						)}
 					</div>
-					<div className="md:w-2/3 flex flex-col gap-4">
-						{matchDetails && profileData ? (
-							<Last20GamesPerformance
-								matchDetails={matchDetails}
-								selectedSummonerPUUID={profileData.puuid}
-								onChampionClick={handleChampionClick}
-								selectedChampionId={selectedChampionId}
-							/>
-						) : (
-							<Loading />
-						)}
-						{matchDetails ? (
-							<MatchHistory
-								matchDetails={matchDetails}
-								selectedSummonerPUUID={profileData?.puuid || null}
-								gameName={accountData?.gameName}
-								tagLine={accountData?.tagLine}
-								region={region}
-								selectedChampionId={selectedChampionId}
-							/>
-						) : (
-							<Loading />
-						)}
+					<div className="md:w-2/3 flex flex-col md:flex-row gap-4">
+						<div className="flex-1 flex flex-col gap-4">
+							{matchDetails && profileData ? (
+								<Last20GamesPerformance
+									matchDetails={matchDetails}
+									selectedSummonerPUUID={profileData.puuid}
+									onChampionClick={handleChampionClick}
+									selectedChampionId={selectedChampionId}
+								/>
+							) : (
+								<Loading />
+							)}
+							{matchDetails ? (
+								<MatchHistory
+									matchDetails={matchDetails}
+									selectedSummonerPUUID={profileData?.puuid || null}
+									gameName={accountData?.gameName}
+									tagLine={accountData?.tagLine}
+									region={region}
+									selectedChampionId={selectedChampionId}
+								/>
+							) : (
+								<Loading />
+							)}
+						</div>
+						{/* Show DiscordBotBanner only on medium and larger devices */}
+						<div className="hidden md:flex justify-center md:w-auto">
+							<DiscordBotBanner />
+						</div>
 					</div>
 				</div>
 			</div>
