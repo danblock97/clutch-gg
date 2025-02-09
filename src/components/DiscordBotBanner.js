@@ -1,7 +1,6 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import BotImage from "../../public/images/astrostats.png";
 
 export default function DiscordBotBanner() {
 	return (
@@ -14,7 +13,7 @@ export default function DiscordBotBanner() {
 				<div className="absolute top-8 w-full flex justify-center">
 					<div className="relative">
 						<Image
-							src={BotImage}
+							src="/images/astrostats.png"
 							alt="AstroStats Logo"
 							width={120}
 							height={120}
