@@ -12,7 +12,6 @@ const NavBar = ({ isBannerVisible }) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // Show SearchBar only on /profile or /match
   const isProfileOrMatch =
     pathname === "/league/profile" || pathname === "/match";
   const region = isProfileOrMatch ? searchParams.get("region") : null;
@@ -23,7 +22,6 @@ const NavBar = ({ isBannerVisible }) => {
         isBannerVisible ? "pt-16" : "pt-4"
       }`}
     >
-      {/* Logo + site name */}
       <div className="flex items-center space-x-4">
         <Link href="/">
           <Image
@@ -34,7 +32,6 @@ const NavBar = ({ isBannerVisible }) => {
             className="h-8 w-8"
           />
         </Link>
-        {/* Desktop-only site name */}
         <Link href="/" className="text-lg font-bold hidden md:block">
           ClutchGG.LOL
         </Link>
@@ -88,7 +85,6 @@ const NavBar = ({ isBannerVisible }) => {
         </Link>
       </div>
 
-      {/* Mobile Hamburger Button */}
       <div className="md:hidden">
         <button
           className="text-white p-2"
@@ -118,7 +114,6 @@ const NavBar = ({ isBannerVisible }) => {
         }`}
       >
         <div className="relative w-full h-full flex flex-col items-center justify-start p-4 pt-20">
-          {/* Close Button */}
           <button
             onClick={() => setIsMenuOpen(false)}
             className="text-white absolute top-4 right-4 p-1"

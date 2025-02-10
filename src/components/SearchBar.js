@@ -32,7 +32,6 @@ const SearchBar = ({ onSearch, initialRegion, isModal, onModalClose }) => {
   const router = useRouter();
   const dropdownRef = useRef(null);
 
-  // Load recently searched from session storage on mount.
   useEffect(() => {
     if (typeof window !== "undefined") {
       const stored = sessionStorage.getItem("recentlySearched");
@@ -42,14 +41,12 @@ const SearchBar = ({ onSearch, initialRegion, isModal, onModalClose }) => {
     }
   }, []);
 
-  // Sync region if initialRegion prop changes.
   useEffect(() => {
     if (initialRegion) {
       setSelectedRegion(initialRegion);
     }
   }, [initialRegion]);
 
-  // Fetch suggestions from the riot_accounts table.
   const fetchSuggestions = async (input) => {
     if (!input) {
       setSuggestions([]);
@@ -97,7 +94,6 @@ const SearchBar = ({ onSearch, initialRegion, isModal, onModalClose }) => {
     const region = regionFromClick || selectedRegion;
 
     if (gameName && tagLine && region) {
-      // Store search in session storage for "Recently Searched" (max 5 items, unique)
       try {
         const newEntry = { gameName, tagLine, region };
         const stored = sessionStorage.getItem("recentlySearched");
@@ -174,9 +170,7 @@ const SearchBar = ({ onSearch, initialRegion, isModal, onModalClose }) => {
       className="relative mx-auto w-full max-w-xs sm:max-w-sm md:max-w-md"
       ref={dropdownRef}
     >
-      {/* Container for select + input + icon */}
       <div className="flex w-full h-12 bg-[#13151b] rounded-md overflow-hidden border border-[#33374a] shadow-md">
-        {/* Region Dropdown */}
         <select
           value={selectedRegion}
           onChange={handleRegionChange}
@@ -189,7 +183,6 @@ const SearchBar = ({ onSearch, initialRegion, isModal, onModalClose }) => {
           ))}
         </select>
 
-        {/* Text Input */}
         <input
           className="flex-grow p-3 sm:p-4 text-xs sm:text-sm text-white bg-[#13151b] focus:outline-none placeholder-gray-500"
           type="text"
@@ -199,7 +192,6 @@ const SearchBar = ({ onSearch, initialRegion, isModal, onModalClose }) => {
           onKeyDown={handleKeyDown}
         />
 
-        {/* Search Icon/Button */}
         <button
           className="flex items-center justify-center px-2 sm:px-3 text-gray-500 hover:text-white focus:outline-none"
           onClick={() => handleSearch()}
@@ -236,9 +228,7 @@ const SearchBar = ({ onSearch, initialRegion, isModal, onModalClose }) => {
                 {suggestion.gamename}#{suggestion.tagline}
               </div>
               <span
-                className={`px-3 py-1 text-xs rounded-lg font-medium ${getBadgeColor(
-                  suggestion.region
-                )}`}
+                className={"px-3 py-1 text-xs rounded-lg font-medium bg-gray-600 text-white"}
               >
                 {suggestion.region.toUpperCase()}
               </span>
@@ -297,24 +287,6 @@ const SearchBar = ({ onSearch, initialRegion, isModal, onModalClose }) => {
   }
   
   return searchBarContent;
-};
-
-// Badge color logic
-const getBadgeColor = (region) => {
-  switch (region.toUpperCase()) {
-    case "EUW":
-      return "bg-blue-600 text-white";
-    case "EUNE":
-      return "bg-green-600 text-white";
-    case "NA":
-      return "bg-purple-600 text-white";
-    case "BR":
-      return "bg-green-500 text-white";
-    case "TR":
-      return "bg-red-600 text-white";
-    default:
-      return "bg-gray-600 text-white";
-  }
 };
 
 export default SearchBar;
