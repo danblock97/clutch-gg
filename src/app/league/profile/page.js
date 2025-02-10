@@ -40,7 +40,7 @@ const ProfilePageContent = () => {
 			);
 			if (!response.ok) {
 				setError("Failed to fetch profile");
-            setIsLoading(false);
+				setIsLoading(false);
 			}
 			const data = await response.json();
 			setProfileData(data.profiledata);
