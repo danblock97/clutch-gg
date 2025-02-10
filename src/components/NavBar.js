@@ -195,7 +195,10 @@ const NavBar = ({ isBannerVisible }) => {
         <SearchBar
           initialRegion={region}
           isModal
-          onModalClose={() => setIsSearchModalOpen(false)}
+          onModalClose={() => {
+			setIsSearchModalOpen(false);
+			setIsMenuOpen(false);
+		  }}
         />
       )}
     </nav>
