@@ -1,6 +1,5 @@
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
-import NoActiveGameData from "./NoActiveGameData";
 
 const Profile = ({
 	accountData,
@@ -9,8 +8,8 @@ const Profile = ({
 	toggleLiveGame,
 	triggerUpdate,
 	isUpdating,
-	liveGameData, // Boolean or object indicating live game status
-	region, // New prop indicating the region/server
+	liveGameData,
+	region,
 }) => {
 	const soloRankedData = rankedData.find(
 		(item) => item.queueType === "RANKED_SOLO_5x5"
@@ -24,7 +23,6 @@ const Profile = ({
 	const [lastUpdated, setLastUpdated] = useState(null);
 	const [countdown, setCountdown] = useState(0);
 	const [updateTriggered, setUpdateTriggered] = useState(false);
-	const [showNoActiveGameData, setShowNoActiveGameData] = useState(false); // New state
 	const intervalRef = useRef(null);
 
 	// Initialize state from localStorage on mount
@@ -274,15 +272,6 @@ const Profile = ({
 					</div>
 				</div>
 			</div>
-
-			{/* Render NoActiveGameData Component */}
-			{showNoActiveGameData && (
-				<NoActiveGameData
-					summonerName={`${accountData.gameName}#${accountData.tagLine}`}
-					region={region}
-					onClose={handleCloseNoActiveGameData}
-				/>
-			)}
 		</div>
 	);
 };
