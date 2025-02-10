@@ -11,6 +11,7 @@ import Loading from "@/components/Loading";
 import LiveGame from "@/components/league/LiveGame";
 import RecentlyPlayedWith from "@/components/league/RecentlyPlayedWith";
 import DiscordBotBanner from "@/components/DiscordBotBanner";
+import NoProfileFound from "@/components/league/NoProfileFound";
 
 const ProfilePageContent = () => {
 	const searchParams = useSearchParams();
@@ -38,7 +39,8 @@ const ProfilePageContent = () => {
 				`/api/league/profile?gameName=${gameName}&tagLine=${tagLine}&region=${region}`
 			);
 			if (!response.ok) {
-				throw new Error("Failed to fetch profile");
+				setError("Failed to fetch profile");
+            setIsLoading(false);
 			}
 			const data = await response.json();
 			setProfileData(data.profiledata);
@@ -99,7 +101,7 @@ const ProfilePageContent = () => {
 	if (error) {
 		return (
 			<div className="min-h-screen bg-[#0e1015] flex items-center justify-center">
-				<p className="text-red-500">{error}</p>
+				<NoProfileFound />
 			</div>
 		);
 	}

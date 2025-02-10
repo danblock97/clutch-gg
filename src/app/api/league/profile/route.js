@@ -61,17 +61,22 @@ export async function GET(req) {
 			// Not found — fetch account data from Riot’s API.
 			const platform = regionToPlatform[region];
 			const accountData = await fetchAccountData(gameName, tagLine, platform);
+		
+			// If we fail to get valid account data, return an error response immediately.
 			if (!accountData || !accountData.puuid) {
-				throw new Error("Failed to retrieve valid account data from Riot.");
+				return new Response(
+					JSON.stringify({ error: "Invalid Riot account data." }),
+					{ status: 404, headers: { "Content-Type": "application/json" } }
+				);
 			}
-
+		
 			const insertPayload = {
 				gamename: gameName,
 				tagline: tagLine,
 				region,
 				puuid: accountData.puuid,
 			};
-
+		
 			const { data: insertedAccount, error: insertError } = await supabase
 				.from("riot_accounts")
 				.insert([insertPayload], { returning: "representation" })
