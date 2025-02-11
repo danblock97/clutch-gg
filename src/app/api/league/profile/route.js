@@ -48,43 +48,54 @@ export async function GET(req) {
 	}
 
 	try {
-		// 1. Look up the Riot account in the riot_accounts table.
-		let { data: riotAccount, error: accountError } = await supabase
+		// 1. Fetch account data from Riot's API to get the puuid.
+		const platform = regionToPlatform[region];
+		const accountData = await fetchAccountData(gameName, tagLine, platform);
+
+		if (!accountData || !accountData.puuid) {
+			return new Response(
+				JSON.stringify({ error: "Invalid Riot account data." }),
+				{ status: 404, headers: { "Content-Type": "application/json" } }
+			);
+		}
+
+		// 2. Check if there's already a record with that puuid.
+		let { data: riotAccount, error: puuidCheckError } = await supabase
 			.from("riot_accounts")
 			.select("*")
-			.eq("gamename", normalizedGameName)
-			.eq("tagline", normalizedTagLine)
-			.eq("region", region)
+			.eq("puuid", accountData.puuid)
 			.maybeSingle();
+		if (puuidCheckError) throw puuidCheckError;
 
-		if (accountError) throw accountError;
-
+		// If none, check if there's a record by name/tag/region.
 		if (!riotAccount) {
-			// Not found — fetch account data from Riot’s API.
-			const platform = regionToPlatform[region];
-			const accountData = await fetchAccountData(gameName, tagLine, platform);
-
-			// If we fail to get valid account data, return an error response immediately.
-			if (!accountData || !accountData.puuid) {
-				return new Response(
-					JSON.stringify({ error: "Invalid Riot account data." }),
-					{ status: 404, headers: { "Content-Type": "application/json" } }
-				);
-			}
-
-			const insertPayload = {
-				gamename: normalizedGameName,
-				tagline: normalizedTagLine,
-				region,
-				puuid: accountData.puuid,
-			};
-
-			const { data: insertedAccount, error: insertError } = await supabase
+			let { data: nameTagRecord, error: accountError } = await supabase
 				.from("riot_accounts")
-				.insert([insertPayload], { returning: "representation" })
-				.single();
-			if (insertError) throw insertError;
-			riotAccount = insertedAccount;
+				.select("*")
+				.eq("gamename", normalizedGameName)
+				.eq("tagline", normalizedTagLine)
+				.eq("region", region)
+				.maybeSingle();
+			if (accountError) throw accountError;
+
+			if (!nameTagRecord) {
+				// If still not found, insert it as a new record
+				const insertPayload = {
+					gamename: normalizedGameName,
+					tagline: normalizedTagLine,
+					region,
+					puuid: accountData.puuid,
+				};
+
+				const { data: insertedAccount, error: insertError } = await supabase
+					.from("riot_accounts")
+					.insert([insertPayload], { returning: "representation" })
+					.single();
+				if (insertError) throw insertError;
+				riotAccount = insertedAccount;
+			} else {
+				riotAccount = nameTagRecord;
+			}
 		}
 
 		if (!riotAccount || !riotAccount.puuid) {
@@ -92,7 +103,7 @@ export async function GET(req) {
 			throw new Error("Riot account record is missing the puuid.");
 		}
 
-		// 2. If not forcing update, check if we already have League data stored in DB.
+		// 3. If not forcing update, check if we have League data in DB:
 		if (!forceUpdate) {
 			let { data: storedLeagueData, error: leagueDataError } = await supabase
 				.from("league_data")
@@ -108,8 +119,7 @@ export async function GET(req) {
 			}
 		}
 
-		// 3. (No league_data record or forceUpdate true) Fetch fresh data from Riot:
-		const platform = regionToPlatform[region];
+		// 4. Fetch fresh data from Riot
 		const puuid = riotAccount.puuid;
 		const summonerData = await fetchSummonerData(puuid, region);
 		const rankedData = await fetchRankedData(summonerData.id, region);
@@ -167,7 +177,7 @@ export async function GET(req) {
 			updatedat: new Date(),
 		};
 
-		// 4. Upsert League data for this Riot account.
+		// 5. Upsert League data for this Riot account.
 		let { data: leagueRecord, error: leagueError } = await supabase
 			.from("league_data")
 			.upsert(
@@ -180,6 +190,7 @@ export async function GET(req) {
 			.single();
 		if (leagueError) throw leagueError;
 
+		// If upsert returns no record, fetch it
 		if (!leagueRecord) {
 			const { data: selectedLeagueData, error: selectError } = await supabase
 				.from("league_data")
