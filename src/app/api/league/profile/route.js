@@ -1,5 +1,3 @@
-// src/app/api/league/profile/route.js
-
 import { supabase } from "@/lib/supabase";
 import { fetchAccountData } from "@/lib/riot/riotAccountApi";
 import {
@@ -36,9 +34,13 @@ export async function GET(req) {
 	const gameName = searchParams.get("gameName");
 	const tagLine = searchParams.get("tagLine");
 	const region = searchParams.get("region");
-	const forceUpdate = searchParams.get("forceUpdate") === "true"; // new flag
+	const forceUpdate = searchParams.get("forceUpdate") === "true";
 
-	if (!gameName || !tagLine || !region) {
+	// Normalize to ensure consistent case
+	const normalizedGameName = gameName ? gameName.toLowerCase() : null;
+	const normalizedTagLine = tagLine ? tagLine.toLowerCase() : null;
+
+	if (!normalizedGameName || !normalizedTagLine || !region) {
 		return new Response(
 			JSON.stringify({ error: "Missing required query parameters" }),
 			{ status: 400, headers: { "Content-Type": "application/json" } }
@@ -50,8 +52,8 @@ export async function GET(req) {
 		let { data: riotAccount, error: accountError } = await supabase
 			.from("riot_accounts")
 			.select("*")
-			.eq("gamename", gameName)
-			.eq("tagline", tagLine)
+			.eq("gamename", normalizedGameName)
+			.eq("tagline", normalizedTagLine)
 			.eq("region", region)
 			.maybeSingle();
 
@@ -61,7 +63,7 @@ export async function GET(req) {
 			// Not found — fetch account data from Riot’s API.
 			const platform = regionToPlatform[region];
 			const accountData = await fetchAccountData(gameName, tagLine, platform);
-		
+
 			// If we fail to get valid account data, return an error response immediately.
 			if (!accountData || !accountData.puuid) {
 				return new Response(
@@ -69,14 +71,14 @@ export async function GET(req) {
 					{ status: 404, headers: { "Content-Type": "application/json" } }
 				);
 			}
-		
+
 			const insertPayload = {
-				gamename: gameName,
-				tagline: tagLine,
+				gamename: normalizedGameName,
+				tagline: normalizedTagLine,
 				region,
 				puuid: accountData.puuid,
 			};
-		
+
 			const { data: insertedAccount, error: insertError } = await supabase
 				.from("riot_accounts")
 				.insert([insertPayload], { returning: "representation" })
