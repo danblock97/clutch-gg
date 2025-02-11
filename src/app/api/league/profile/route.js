@@ -36,11 +36,7 @@ export async function GET(req) {
 	const region = searchParams.get("region");
 	const forceUpdate = searchParams.get("forceUpdate") === "true";
 
-	// Normalize to ensure consistent case
-	const normalizedGameName = gameName ? gameName.toLowerCase() : null;
-	const normalizedTagLine = tagLine ? tagLine.toLowerCase() : null;
-
-	if (!normalizedGameName || !normalizedTagLine || !region) {
+	if (!gameName || !tagLine || !region) {
 		return new Response(
 			JSON.stringify({ error: "Missing required query parameters" }),
 			{ status: 400, headers: { "Content-Type": "application/json" } }
@@ -67,35 +63,28 @@ export async function GET(req) {
 			.maybeSingle();
 		if (puuidCheckError) throw puuidCheckError;
 
-		// If none, check if there's a record by name/tag/region.
+		// If the record doesn't exist, insert a new one and re-fetch it.
 		if (!riotAccount) {
-			let { data: nameTagRecord, error: accountError } = await supabase
+			const insertPayload = {
+				gamename: gameName,
+				tagline: tagLine,
+				region,
+				puuid: accountData.puuid,
+			};
+
+			const { error: insertError } = await supabase
+				.from("riot_accounts")
+				.insert([insertPayload], { returning: "representation" });
+			if (insertError) throw insertError;
+
+			// Re-fetch the record after insertion to ensure it's stored.
+			const { data: fetchedAccount, error: fetchError } = await supabase
 				.from("riot_accounts")
 				.select("*")
-				.eq("gamename", normalizedGameName)
-				.eq("tagline", normalizedTagLine)
-				.eq("region", region)
+				.eq("puuid", accountData.puuid)
 				.maybeSingle();
-			if (accountError) throw accountError;
-
-			if (!nameTagRecord) {
-				// If still not found, insert it as a new record
-				const insertPayload = {
-					gamename: normalizedGameName,
-					tagline: normalizedTagLine,
-					region,
-					puuid: accountData.puuid,
-				};
-
-				const { data: insertedAccount, error: insertError } = await supabase
-					.from("riot_accounts")
-					.insert([insertPayload], { returning: "representation" })
-					.single();
-				if (insertError) throw insertError;
-				riotAccount = insertedAccount;
-			} else {
-				riotAccount = nameTagRecord;
-			}
+			if (fetchError) throw fetchError;
+			riotAccount = fetchedAccount;
 		}
 
 		if (!riotAccount || !riotAccount.puuid) {
@@ -190,7 +179,7 @@ export async function GET(req) {
 			.single();
 		if (leagueError) throw leagueError;
 
-		// If upsert returns no record, fetch it
+		// If upsert returns no record, fetch it.
 		if (!leagueRecord) {
 			const { data: selectedLeagueData, error: selectError } = await supabase
 				.from("league_data")
