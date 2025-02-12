@@ -2,16 +2,18 @@ import React from "react";
 
 const Tag = ({ text, hoverText, color, icon }) => {
 	return (
-		<div className={`relative group`}>
+		<div className="relative group">
 			<div
 				className={`px-1 py-1 text-xs font-semibold rounded-md bg-opacity-80 ${color} 
                 shadow-md 
                 relative z-10 
                 transition-transform transform 
-                group-hover:scale-105 flex items-center space-x-1`}
+                group-hover:scale-105 
+                flex items-center space-x-1
+                max-w-[100px] truncate`}
 			>
 				{icon && <span className="relative z-20 text-xs">{icon}</span>}
-				<span className="relative z-20">{text}</span>
+				<span className="relative z-20 truncate min-w-0">{text}</span>
 			</div>
 
 			{/* Tooltip on Hover */}
