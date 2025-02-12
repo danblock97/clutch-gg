@@ -1,8 +1,8 @@
-### ClutchGG.LOL v1.11.0
+### [ClutchGG.LOL](https://clutchgg.lol) v1.12.1
 
-## 🎮 Main Updates
+## 🎮 Main Updates & Bug Fixes
 
-- **Discord Bot**:
-  - Ever wanted to keep up with your League stats in your own discord server? You can now invite AstroStats which comes with your own League profile and many more minigames and features!
-- **Clutch Score**:
-  - Compare your own matches with that of your opponents with the new Clutch Score available now in your match history!
+- **Match Tags**:
+  - Fixed a bug that was causing some tags to overlap with summoner spells. The UI has been improved to ensure this won't happen.
+- **Performance**:
+  - Mainy performance related changes have been made such as backend API optimisation, profile page optimisaition and backend leaderboard changes to ensure everything runs as fast and as smoothly as possible.
