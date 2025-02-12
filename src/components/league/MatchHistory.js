@@ -727,11 +727,6 @@ const MatchHistory = ({
 														</div>
 													)}
 												</div>
-
-												{/* The tags: limit based on breakpoint */}
-												<div className="flex mt-2 flex-wrap justify-start space-x-2">
-													{tags.slice(0, maxTagsToShow)}
-												</div>
 											</div>
 										</div>
 										<div className="h-24"></div>
@@ -816,6 +811,11 @@ const MatchHistory = ({
 													</div>
 												))}
 											</div>
+										</div>
+
+										{/* The tags: limit based on breakpoint */}
+										<div className="flex flex-wrap justify-start space-x-2">
+											{tags.slice(0, maxTagsToShow)}
 										</div>
 
 										{/* Arena Augments or Summaries */}
