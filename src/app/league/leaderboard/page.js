@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import Loading from "@/components/Loading";
 import Dropdowns from "@/components/league/Dropdowns";
 import LeaderboardTable from "@/components/league/LeaderboardTable";
+import ErrorPage from "@/components/ErrorPage";
 
 const Leaderboard = () => {
 	const [leaderboardData, setLeaderboardData] = useState([]);
@@ -14,7 +15,7 @@ const Leaderboard = () => {
 	const [error, setError] = useState(null);
 	const [retryCountdown, setRetryCountdown] = useState(0);
 
-	const fetchLeaderboardData = async () => {
+	const fetchLeaderboardData = useCallback(async () => {
 		setLoading(true);
 		setError(null);
 
@@ -23,7 +24,6 @@ const Leaderboard = () => {
 				`/api/league/leaderboard?region=${region}&tier=${tier}&division=${division}`
 			);
 
-			// If the route you wrote above returns non-OK, handle it or fallback to []
 			if (!response.ok) {
 				console.warn(
 					"Non-OK HTTP status:",
@@ -37,18 +37,13 @@ const Leaderboard = () => {
 			}
 
 			let data = [];
-			// Try/catch for parsing JSON
 			try {
 				data = await response.json();
 			} catch (jsonError) {
-				console.warn(
-					"Failed to parse JSON from /api/league/leaderboard:",
-					jsonError
-				);
+				console.warn("Failed to parse JSON:", jsonError);
 				data = [];
 			}
 
-			// If data has "error" property, treat that as error
 			if (data && data.error) {
 				throw new Error(data.error);
 			}
@@ -57,22 +52,22 @@ const Leaderboard = () => {
 				console.warn("API returned non-array, setting to []");
 				setLeaderboardData([]);
 			} else {
-				setLeaderboardData(data); // an array, possibly empty
+				setLeaderboardData(data);
 			}
 
 			setError(null);
 		} catch (error) {
 			console.error("Error fetching leaderboard data:", error);
 			setError(error.message);
-			setRetryCountdown(10); // triggers your retry logic
+			setRetryCountdown(10);
 		} finally {
 			setLoading(false);
 		}
-	};
+	}, [region, tier, division]);
 
 	useEffect(() => {
 		fetchLeaderboardData();
-	}, [region, tier, division]);
+	}, [fetchLeaderboardData]);
 
 	// Retry logic
 	useEffect(() => {
@@ -85,7 +80,7 @@ const Leaderboard = () => {
 		} else if (retryCountdown === 0 && error) {
 			fetchLeaderboardData();
 		}
-	}, [retryCountdown, error]);
+	}, [retryCountdown, error, fetchLeaderboardData]);
 
 	return (
 		<div className="min-h-screen flex flex-col items-center bg-[#0e1015] text-white">
@@ -101,29 +96,18 @@ const Leaderboard = () => {
 			/>
 
 			{loading ? (
-				// 1) Show loading spinner
 				<div className="mt-8">
 					<Loading />
 				</div>
 			) : error ? (
-				// 2) Show error + auto-retry countdown
-				<div className="mt-8 text-red-500">
-					{error}
-					{retryCountdown > 0 && (
-						<p className="text-yellow-500">
-							Failed to fetch, automatic retry in {retryCountdown} seconds
-						</p>
-					)}
-				</div>
+				<ErrorPage error={error} retryCountdown={retryCountdown} />
 			) : leaderboardData.length === 0 ? (
-				// 3) Fallback message if no data
 				<div className="mt-8 text-gray-300">
 					<p>
 						No players found in {tier} {division} for this region.
 					</p>
 				</div>
 			) : (
-				// 4) Otherwise, render your table
 				<LeaderboardTable leaderboardData={leaderboardData} region={region} />
 			)}
 		</div>
