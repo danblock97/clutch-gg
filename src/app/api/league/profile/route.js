@@ -10,7 +10,6 @@ import {
 	fetchLiveGameData,
 } from "@/lib/league/leagueApi";
 
-// Map region to platform (used for certain endpoints)
 const regionToPlatform = {
 	BR1: "americas",
 	EUN1: "europe",
@@ -44,18 +43,18 @@ export async function GET(req) {
 	}
 
 	try {
-		// 1. Fetch account data from Riot's API to get the puuid.
+		// Fetch account data to get the puuid.
 		const platform = regionToPlatform[region];
 		const accountData = await fetchAccountData(gameName, tagLine, platform);
 
-		if (!accountData || !accountData.puuid) {
+		if (!accountData?.puuid) {
 			return new Response(
 				JSON.stringify({ error: "Invalid Riot account data." }),
 				{ status: 404, headers: { "Content-Type": "application/json" } }
 			);
 		}
 
-		// 2. Check if there's already a record with that puuid.
+		// Check and insert the Riot account as needed.
 		let { data: riotAccount, error: puuidCheckError } = await supabase
 			.from("riot_accounts")
 			.select("*")
@@ -63,7 +62,6 @@ export async function GET(req) {
 			.maybeSingle();
 		if (puuidCheckError) throw puuidCheckError;
 
-		// If the record doesn't exist, insert a new one and re-fetch it.
 		if (!riotAccount) {
 			const insertPayload = {
 				gamename: gameName,
@@ -71,13 +69,11 @@ export async function GET(req) {
 				region,
 				puuid: accountData.puuid,
 			};
-
 			const { error: insertError } = await supabase
 				.from("riot_accounts")
 				.insert([insertPayload], { returning: "representation" });
 			if (insertError) throw insertError;
 
-			// Re-fetch the record after insertion to ensure it's stored.
 			const { data: fetchedAccount, error: fetchError } = await supabase
 				.from("riot_accounts")
 				.select("*")
@@ -87,12 +83,11 @@ export async function GET(req) {
 			riotAccount = fetchedAccount;
 		}
 
-		if (!riotAccount || !riotAccount.puuid) {
-			console.error("Riot account record from DB:", riotAccount);
+		if (!riotAccount?.puuid) {
 			throw new Error("Riot account record is missing the puuid.");
 		}
 
-		// 3. If not forcing update, check if we have League data in DB:
+		// Return stored league data if forceUpdate isn't requested.
 		if (!forceUpdate) {
 			let { data: storedLeagueData, error: leagueDataError } = await supabase
 				.from("league_data")
@@ -108,49 +103,49 @@ export async function GET(req) {
 			}
 		}
 
-		// 4. Fetch fresh data from Riot
 		const puuid = riotAccount.puuid;
-		const summonerData = await fetchSummonerData(puuid, region);
-		const rankedData = await fetchRankedData(summonerData.id, region);
-		const matchIds = await fetchMatchIds(puuid, platform);
 
-		// Manage match history: delete the oldest match only if there are more than 10.
+		// Fetch summoner data once and use it for ranked data.
+		const summonerData = await fetchSummonerData(puuid, region);
+		const [rankedData, matchIds] = await Promise.all([
+			fetchRankedData(summonerData.id, region),
+			fetchMatchIds(puuid, platform),
+		]);
+
+		// Delete the oldest match if more than 10 exist.
 		const { data: existingMatches, error: existingMatchesError } =
 			await supabase
 				.from("league_matches")
 				.select("*")
 				.eq("playerid", summonerData.puuid)
 				.order("createdat", { ascending: true });
-		if (existingMatchesError) {
+		if (existingMatchesError)
 			console.error("Error fetching existing matches:", existingMatchesError);
-		}
 		if (existingMatches && existingMatches.length > 10) {
 			const oldestMatchId = existingMatches[0].matchid;
 			const { error: deleteError } = await supabase
 				.from("league_matches")
 				.delete()
 				.eq("matchid", oldestMatchId);
-			if (deleteError) {
+			if (deleteError)
 				console.error("Error deleting oldest match:", deleteError);
-			}
 		}
 
+		// Fetch match details concurrently.
 		const matchDetails = await Promise.all(
 			matchIds.map(async (matchId) => {
 				const matchDetail = await fetchMatchDetail(matchId, platform);
-				if (matchDetail) {
+				if (matchDetail)
 					await upsertMatchDetail(matchId, summonerData.puuid, matchDetail);
-				}
 				return matchDetail;
 			})
 		);
 
-		const championMasteryData = await fetchChampionMasteryData(puuid, region);
-		const liveGameData = await fetchLiveGameData(
-			summonerData.puuid,
-			region,
-			platform
-		);
+		// Execute champion mastery and live game data calls concurrently.
+		const [championMasteryData, liveGameData] = await Promise.all([
+			fetchChampionMasteryData(puuid, region),
+			fetchLiveGameData(summonerData.puuid, region, platform),
+		]);
 
 		const leagueDataObj = {
 			profiledata: summonerData,
@@ -166,7 +161,6 @@ export async function GET(req) {
 			updatedat: new Date(),
 		};
 
-		// 5. Upsert League data for this Riot account.
 		let { data: leagueRecord, error: leagueError } = await supabase
 			.from("league_data")
 			.upsert(
@@ -179,7 +173,6 @@ export async function GET(req) {
 			.single();
 		if (leagueError) throw leagueError;
 
-		// If upsert returns no record, fetch it.
 		if (!leagueRecord) {
 			const { data: selectedLeagueData, error: selectError } = await supabase
 				.from("league_data")
@@ -212,15 +205,12 @@ export async function POST(req) {
 				{ status: 400, headers: { "Content-Type": "application/json" } }
 			);
 		}
-
-		// Create a new URL including the forceUpdate flag
 		const url = new URL(req.url);
 		url.searchParams.set("gameName", gameName);
 		url.searchParams.set("tagLine", tagLine);
 		url.searchParams.set("region", region);
 		url.searchParams.set("forceUpdate", "true");
 
-		// Call GET with the updated URL
 		return await GET(
 			new Request(url.toString(), { method: "GET", headers: req.headers })
 		);

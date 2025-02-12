@@ -2,10 +2,6 @@ import { supabase } from "@/lib/supabase";
 
 const RIOT_API_KEY = process.env.RIOT_API_KEY;
 
-/* ===============================
-   League-Specific API Functions
-   =============================== */
-
 /**
  * Fetch League summoner data using an encrypted PUUID.
  */
@@ -17,7 +13,7 @@ export const fetchSummonerData = async (encryptedPUUID, region) => {
 	if (!summonerResponse.ok) {
 		throw new Error("Failed to fetch summoner data");
 	}
-	return await summonerResponse.json();
+	return summonerResponse.json();
 };
 
 /**
@@ -46,7 +42,7 @@ export const fetchRankedData = async (summonerId, region) => {
 	if (!rankedResponse.ok) {
 		throw new Error("Failed to fetch ranked data");
 	}
-	return await rankedResponse.json();
+	return rankedResponse.json();
 };
 
 /**
@@ -60,7 +56,7 @@ export const fetchMatchIds = async (encryptedPUUID, platform) => {
 	if (!matchResponse.ok) {
 		throw new Error("Failed to fetch match data");
 	}
-	return await matchResponse.json();
+	return matchResponse.json();
 };
 
 /**
@@ -74,7 +70,7 @@ export const fetchMatchDetail = async (matchId, platform) => {
 	if (!matchDetailResponse.ok) {
 		return null;
 	}
-	return await matchDetailResponse.json();
+	return matchDetailResponse.json();
 };
 
 /**
@@ -103,21 +99,20 @@ export const fetchLiveGameData = async (puuid, region, platform) => {
 		`https://${region}.api.riotgames.com/lol/spectator/v5/active-games/by-summoner/${puuid}`,
 		{ headers: { "X-Riot-Token": RIOT_API_KEY } }
 	);
-	let liveGameData = null;
-	if (liveGameResponse.ok) {
-		liveGameData = await liveGameResponse.json();
-		// Enrich each participant with additional League-specific data.
-		liveGameData.participants = await Promise.all(
-			liveGameData.participants.map(async (participant) => {
-				const additionalData = await fetchAdditionalData(
-					participant.summonerId,
-					participant.puuid,
-					region
-				);
-				return { ...participant, ...additionalData };
-			})
-		);
-	}
+	if (!liveGameResponse.ok) return null;
+
+	const liveGameData = await liveGameResponse.json();
+	// Enrich each participant with additional League-specific data concurrently.
+	liveGameData.participants = await Promise.all(
+		liveGameData.participants.map(async (participant) => {
+			const additionalData = await fetchAdditionalData(
+				participant.summonerId,
+				participant.puuid,
+				region
+			);
+			return { ...participant, ...additionalData };
+		})
+	);
 	return liveGameData;
 };
 
@@ -141,9 +136,11 @@ export const fetchAdditionalData = async (summonerId, puuid, region) => {
 					{ headers: { "X-Riot-Token": RIOT_API_KEY } }
 				),
 			]);
+
 		if (!rankedResponse.ok || !accountResponse.ok || !summonerResponse.ok) {
 			throw new Error("Failed to fetch additional data");
 		}
+
 		const [rankedData, accountData, summonerData] = await Promise.all([
 			rankedResponse.json(),
 			accountResponse.json(),
@@ -206,5 +203,5 @@ export const fetchAccountDataByPUUID = async (puuid) => {
 	if (!response.ok) {
 		throw new Error(`Failed to fetch account data for puuid: ${puuid}`);
 	}
-	return await response.json();
+	return response.json();
 };
