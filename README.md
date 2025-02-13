@@ -1,8 +1,15 @@
-### [ClutchGG.LOL](https://clutchgg.lol) v1.12.1
+# Release notes - [ClutchGG.LOL](https://clutchgg.lol) - v1.12.2
 
-## 🎮 Main Updates & Bug Fixes
+### Task
 
-- **Match Tags**:
-  - Fixed a bug that was causing some tags to overlap with summoner spells. The UI has been improved to ensure this won't happen.
-- **Performance**:
-  - Many performance related changes have been made such as backend API optimisation, profile page optimisaition and backend leaderboard changes to ensure everything runs as fast and as smoothly as possible.
+CLUTCH-13 Make Discord Banner Sticky
+
+CLUTCH-14 Change Not Found Page to Link to Discord
+
+CLUTCH-15 Colour Matching in Perk Tooltip
+
+### Bug
+
+CLUTCH-12 Champion Icons Have Black Background
+
+CLUTCH-16 Mastery Champion Name is Undefined
