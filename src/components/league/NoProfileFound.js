@@ -15,14 +15,14 @@ const NoProfileFound = () => {
 			<p className="text-xl text-white text-center">
 				<>
 					Unable to find a profile. Please ensure the correct region and Riot ID
-					are entered. If this keeps happening, please open an issue on{" "}
+					are entered. If this keeps happening, please open an issue on our{" "}
 					<Link
-						href="https://github.com/danblock97/clutch-gg/issues"
+						href="https://discord.gg/BeszQxTn9D"
 						target="_blank"
 						rel="noopener noreferrer"
 						className="text-blue-500"
 					>
-						GitHub
+						Discord Support Server
 					</Link>
 					.
 				</>

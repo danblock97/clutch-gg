@@ -36,7 +36,7 @@ const Footer = () => {
 						<ul>
 							<li>
 								<Link
-									href="https://discord.gg/neeSSbRzrJ"
+									href="https://discord.gg/BeszQxTn9D"
 									className="text-sm hover:underline"
 								>
 									Discord
