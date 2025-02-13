@@ -60,13 +60,12 @@ const ChampionMastery = ({ championMasteryData }) => {
 							title={`Champion: ${mastery.championName}, Mastery Level: ${mastery.championLevel}`}
 						>
 							{/* Champion Icon */}
-							<div className="relative">
+							<div className="relative w-[60px] h-[60px] rounded-full overflow-hidden">
 								<Image
 									src={championIcon}
 									alt={`${mastery.championName} Icon`}
-									width={60}
-									height={60}
-									className="rounded-full"
+									fill
+									className="object-cover transform scale-110"
 									loading="lazy"
 								/>
 							</div>
