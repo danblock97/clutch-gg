@@ -57,7 +57,7 @@ const ChampionMastery = ({ championMasteryData }) => {
                 transition-colors
                 duration-200
               "
-							title={`Champion: ${mastery.championName}, Mastery Level: ${mastery.championLevel}`}
+							title={`Mastery Level: ${mastery.championLevel}`}
 						>
 							{/* Champion Icon */}
 							<div className="relative w-[60px] h-[60px] rounded-full overflow-hidden">
