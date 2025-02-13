@@ -239,7 +239,7 @@ const ProfilePageContent = () => {
 							)}
 						</div>
 						{/* Show DiscordBotBanner only on medium and larger devices */}
-						<div className="hidden md:flex justify-center md:w-auto">
+						<div className="hidden md:flex md:sticky top-4 self-start justify-center z-50">
 							<DiscordBotBanner />
 						</div>
 					</div>
