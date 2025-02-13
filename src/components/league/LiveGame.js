@@ -141,7 +141,7 @@ function PortalTooltip({ children, top, left, flipAbove }) {
 			className={`
         absolute z-[9999] 
         px-3 py-2 
-        bg-gray-800 text-white 
+        bg-gradient-to-br from-[#232337] to-[#1b1b2d] text-white 
         rounded-md shadow-lg
         text-xs sm:text-sm
         transform -translate-x-1/2
