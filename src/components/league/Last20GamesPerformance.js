@@ -155,7 +155,7 @@ const Last20GamesPerformance = ({
 						/>
 					</svg>
 					<div className="absolute inset-0 flex items-center justify-center">
-						<p className="text-blue-400 font-bold text-xs sm:text-sm">
+						<p className="text-blue-400 font-bold text-xs sm:text-xs">
 							{performanceStats.winRate}%
 						</p>
 					</div>

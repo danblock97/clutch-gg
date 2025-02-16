@@ -112,25 +112,6 @@ export async function GET(req) {
 			fetchMatchIds(puuid, platform),
 		]);
 
-		// Delete the oldest match if more than 10 exist.
-		const { data: existingMatches, error: existingMatchesError } =
-			await supabase
-				.from("league_matches")
-				.select("*")
-				.eq("playerid", summonerData.puuid)
-				.order("createdat", { ascending: true });
-		if (existingMatchesError)
-			console.error("Error fetching existing matches:", existingMatchesError);
-		if (existingMatches && existingMatches.length > 10) {
-			const oldestMatchId = existingMatches[0].matchid;
-			const { error: deleteError } = await supabase
-				.from("league_matches")
-				.delete()
-				.eq("matchid", oldestMatchId);
-			if (deleteError)
-				console.error("Error deleting oldest match:", deleteError);
-		}
-
 		// Fetch match details concurrently.
 		const matchDetails = await Promise.all(
 			matchIds.map(async (matchId) => {
