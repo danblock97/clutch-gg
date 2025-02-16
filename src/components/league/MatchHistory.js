@@ -148,6 +148,7 @@ const queues = [
 	{ id: 450, name: "ARAM" },
 	{ id: 490, name: "Normal (Quickplay)" },
 	{ id: 400, name: "Normal (Draft)" },
+	{ id: 900, name: "ARURF" },
 	{ id: 1700, name: "Arena" },
 ];
 

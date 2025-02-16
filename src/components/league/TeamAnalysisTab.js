@@ -7,16 +7,10 @@ export default function TeamAnalysisTab({ matchDetails, matchId }) {
 	const match = matchDetails.find((m) => m.metadata.matchId === matchId);
 	if (!match) return <div className="text-white">No match found.</div>;
 
-	// Separate participants by teamId
 	const parts = match.info.participants;
 	const team1 = parts.filter((p) => p.teamId === 100);
 	const team2 = parts.filter((p) => p.teamId === 200);
 
-	// You can detect which team won if you like:
-	// const t1Won = match.info.teams.find((t) => t.teamId === 100)?.win === "Win";
-	// (We won't reorder them; we’ll just keep T1 on left, T2 on right.)
-
-	// Stats to display (same order as your screenshot)
 	const stats = [
 		{
 			label: "Kills",
@@ -46,15 +40,14 @@ export default function TeamAnalysisTab({ matchDetails, matchId }) {
 
 	return (
 		<div className="text-white max-w-6xl w-full space-y-8">
-			{/* Legend at the top */}
 			<div className="flex items-center justify-center space-x-6 mb-2">
 				<div className="flex items-center space-x-1">
 					<span className="inline-block w-3 h-3 rounded-full bg-blue-500" />
-					<span className="text-sm text-gray-200">Team 1 (Blue)</span>
+					<span className="text-sm text-gray-200">Blue 1</span>
 				</div>
 				<div className="flex items-center space-x-1">
 					<span className="inline-block w-3 h-3 rounded-full bg-red-500" />
-					<span className="text-sm text-gray-200">Team 2 (Red)</span>
+					<span className="text-sm text-gray-200">Red 2</span>
 				</div>
 			</div>
 
@@ -71,12 +64,6 @@ export default function TeamAnalysisTab({ matchDetails, matchId }) {
 	);
 }
 
-/**
- * Shows one row of stats:
- *  - Left: Team1 sorted by that stat (blue)
- *  - Center: Donut comparing total T1 vs T2
- *  - Right: Team2 sorted by that stat (red)
- */
 function TeamAnalysisRow({ label, team1, team2, getValue }) {
 	// Sort each side by the chosen stat
 	const t1Sorted = [...team1].sort((a, b) => getValue(b) - getValue(a));
@@ -135,7 +122,7 @@ function TeamAnalysisRow({ label, team1, team2, getValue }) {
 							championId={p.championId}
 							value={getValue(p)}
 							total={t2Total}
-							barColor="#E53E3E" // Red
+							barColor="#E53E3E"
 						/>
 					))}
 				</div>
@@ -144,10 +131,6 @@ function TeamAnalysisRow({ label, team1, team2, getValue }) {
 	);
 }
 
-/**
- * One champion row: champion icon + a colored bar + numeric value
- * The bar width is that champion's fraction of the team's total.
- */
 function ChampionStatBar({ championId, value, total, barColor }) {
 	const fraction = total > 0 ? value / total : 0;
 
