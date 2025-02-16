@@ -1,15 +1,20 @@
-# Release notes - [ClutchGG.LOL](https://clutchgg.lol) - v1.12.2
+### [ClutchGG.LOL](https://clutchgg.lol) v1.13.0
 
-### Task
+## 🎮 Main Updates
 
-CLUTCH-13 Make Discord Banner Sticky
+- **Match History**:
 
-CLUTCH-14 Change Not Found Page to Link to Discord
+  - A new 'Team Analysis' feature has been added to your match details! Showing you in depth stats into your game.
 
-CLUTCH-15 Colour Matching in Perk Tooltip
+- **Minor UI Fixes**:
+  - Improved the UI in champion performance
+  - Improved the UI on match history
+  - Improved the UI on Champion Mastery by including 6 champions
+  - Improved the UI on recently played.
 
-### Bug
+## 🎮 Bug Fixes
 
-CLUTCH-12 Champion Icons Have Black Background
-
-CLUTCH-16 Mastery Champion Name is Undefined
+- **Match History**:
+  - Fixed a bug where ARURF was not showing in the Game Mode filter
+  - Fixed a bug where the screen was growing in size when expanding a match
+  - Fixed a bug with the remaining champion icons being zoomed out.
