@@ -204,13 +204,15 @@ const Last20GamesPerformance = ({
 											: ""
 									}`}
 								>
-									<Image
-										src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${champId}.png`}
-										alt="Champion Icon"
-										width={36}
-										height={36}
-										className="rounded-full"
-									/>
+									<div className="overflow-hidden">
+										<Image
+											src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${champId}.png`}
+											alt="Champion Icon"
+											width={36}
+											height={36}
+											className="rounded-full transform scale-110 duration-300"
+										/>
+									</div>
 								</div>
 								<p className="text-white font-semibold text-[10px] sm:text-xs">
 									{champWinRate}%

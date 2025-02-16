@@ -28,7 +28,7 @@ export const fetchChampionMasteryData = async (encryptedPUUID, region) => {
 		throw new Error("Failed to fetch champion mastery data");
 	}
 	const masteryData = await championMasteryResponse.json();
-	return masteryData.slice(0, 5);
+	return masteryData.slice(0, 6);
 };
 
 /**

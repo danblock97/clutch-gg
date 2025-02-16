@@ -637,17 +637,21 @@ const MatchHistory = ({
 										{/* Left side: champion info & queue info */}
 										<div className="absolute top-4 left-2 flex items-start">
 											<div className="flex items-center mr-4">
-												<Image
-													src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${currentPlayer.championId}.png`}
-													alt="Champion Icon"
+												<div
 													className={`sm:w-12 sm:h-12 w-16 h-16 rounded-full border-2 ${getOutcomeClass(
 														currentPlayer.win,
 														isRemake,
 														isMVP
-													)}`}
-													width={64}
-													height={64}
-												/>
+													)} overflow-hidden`}
+												>
+													<Image
+														src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${currentPlayer.championId}.png`}
+														alt="Champion Icon"
+														width={64}
+														height={64}
+														className="object-cover transform scale-110"
+													/>
+												</div>
 											</div>
 											<div className="flex flex-col">
 												<div className="flex items-center mb-2">
@@ -841,13 +845,15 @@ const MatchHistory = ({
 												<div className="flex flex-col items-start">
 													{winningTeam.map((participant, idx) => (
 														<div key={idx} className="flex items-center">
-															<Image
-																src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${participant.championId}.png`}
-																alt="Participant Champion"
-																width={24}
-																height={24}
-																className="sm:w-6 sm:h-6 w-6 h-6 rounded-full border border-gray-700 ml-1"
-															/>
+															<div className="sm:w-6 sm:h-6 w-6 h-6 rounded-full border border-gray-700 ml-1 overflow-hidden">
+																<Image
+																	src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${participant.championId}.png`}
+																	alt="Participant Champion"
+																	width={24}
+																	height={24}
+																	className="object-cover transform scale-110"
+																/>
+															</div>
 															<p
 																className="text-sm truncate"
 																style={{ width: "100px" }}
@@ -868,13 +874,15 @@ const MatchHistory = ({
 												<div className="flex flex-col items-start">
 													{losingTeam.map((participant, idx) => (
 														<div key={idx} className="flex items-center">
-															<Image
-																src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${participant.championId}.png`}
-																alt="Participant Champion"
-																width={24}
-																height={24}
-																className="sm:w-6 sm:h-6 w-6 h-6 rounded-full border border-gray-700 mr-1"
-															/>
+															<div className="sm:w-6 sm:h-6 w-6 h-6 rounded-full border border-gray-700 mr-1 overflow-hidden">
+																<Image
+																	src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${participant.championId}.png`}
+																	alt="Participant Champion"
+																	width={24}
+																	height={24}
+																	className="object-cover transform scale-110"
+																/>
+															</div>
 															<p
 																className="text-sm truncate"
 																style={{ width: "100px" }}
