@@ -12,6 +12,8 @@ import {
 	FaClock,
 	FaTrophy,
 	FaMedal,
+	FaChevronDown,
+	FaChevronUp,
 } from "react-icons/fa";
 
 // 1) Inline hook for detecting current breakpoint
@@ -275,7 +277,7 @@ const MatchHistory = ({
 	} else if (breakpoint === "md") {
 		maxTagsToShow = 2;
 	}
-	// for "lg", we'll keep it at 3 (or you could do tags.length if you want *all* on large)
+	// for "lg", we'll keep it at 3
 
 	useEffect(() => {
 		const getAugments = async () => {
@@ -902,6 +904,15 @@ const MatchHistory = ({
 												</div>
 											</div>
 										)}
+
+										{/* Arrow Indicator for expanding match details */}
+										<div className="absolute bottom-2 right-2">
+											{expandedMatchId === match.metadata.matchId ? (
+												<FaChevronUp className="text-gray-200" />
+											) : (
+												<FaChevronDown className="text-gray-200" />
+											)}
+										</div>
 									</div>
 
 									{/* Conditionally render expanded match details */}
