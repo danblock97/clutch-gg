@@ -49,15 +49,12 @@ const RecentlyPlayedWith = ({
 		});
 
 		// Filter teammates with more than 1 game
-		return Object.values(teammateStats).filter(
+		const data = Object.values(teammateStats).filter(
 			(teammate) => teammate.gamesPlayed > 1
 		);
+		// Limit to last 10 entries
+		return data.slice(-10);
 	}, [matchDetails, selectedSummonerPUUID]);
-
-	// Return null if there's no data
-	if (teammatesData.length === 0) {
-		return null; // Component renders nothing
-	}
 
 	const handleProfileClick = (e, link) => {
 		e.preventDefault();
@@ -68,89 +65,93 @@ const RecentlyPlayedWith = ({
 	return (
 		<div
 			className="
-        p-4
-        rounded-xl
+        p-2
+        rounded-md
         text-white
         border border-[#2f2f46]
         bg-gradient-to-br from-[#232337] to-[#1b1b2d]
-        shadow-[0_4px_15px_rgba(0,0,0,0.6)]
-        relative
+        shadow-sm
+        mt-4
       "
 		>
-			<h3 className="text-sm mb-4 font-semibold tracking-wide">
-				Recently Played With (Recent 20 Games)
+			<h3 className="text-xs mb-2 font-semibold tracking-wide">
+				Recently Played With (Last 10 Games)
 			</h3>
 
-			{teammatesData.map((teammate, index) => {
-				const winRate = ((teammate.wins / teammate.gamesPlayed) * 100).toFixed(
-					0
-				);
+			{teammatesData.length > 0 ? (
+				teammatesData.map((teammate, index) => {
+					const winRate = (
+						(teammate.wins / teammate.gamesPlayed) *
+						100
+					).toFixed(0);
+					const { riotIdGameName, riotIdTagline } = teammate;
+					const profileLink = `/league/profile?gameName=${encodeURIComponent(
+						riotIdGameName
+					)}&tagLine=${encodeURIComponent(
+						riotIdTagline
+					)}&region=${encodeURIComponent(region)}`;
 
-				const { riotIdGameName, riotIdTagline } = teammate;
-				const profileLink = `/league/profile?gameName=${encodeURIComponent(
-					riotIdGameName
-				)}&tagLine=${encodeURIComponent(
-					riotIdTagline
-				)}&region=${encodeURIComponent(region)}`;
-
-				return (
-					<Link key={index} href={profileLink}>
-						<div
-							onClick={(e) => handleProfileClick(e, profileLink)}
-							className="
+					return (
+						<Link key={index} href={profileLink}>
+							<div
+								onClick={(e) => handleProfileClick(e, profileLink)}
+								className="
                 flex
                 items-center
                 justify-between
-                mb-2
-                p-2
+                mb-1
+                p-1
                 bg-[#2c2c3d]
-                rounded-md
+                rounded-sm
                 border
                 border-[#3d3d57]
                 cursor-pointer
                 transition-shadow
                 duration-200
-                hover:shadow-[0_4px_14px_rgba(0,0,0,0.6)]
+                hover:shadow-md
               "
-						>
-							{/* Left: Champion Icon & Player Info */}
-							<div className="flex items-center w-2/5">
-								<Image
-									src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${teammate.championId}.png`}
-									alt="Champion Icon"
-									width={28}
-									height={28}
-									className="rounded-full border-2 border-gray-500"
-								/>
-								<div className="ml-2">
-									<p className="text-xs font-semibold leading-tight text-white">
-										{riotIdGameName}
-										<span className="text-gray-400">#{riotIdTagline}</span>
+							>
+								{/* Left: Champion Icon & Player Info */}
+								<div className="flex items-center w-2/5">
+									<Image
+										src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${teammate.championId}.png`}
+										alt="Champion Icon"
+										width={24}
+										height={24}
+										className="rounded-full border border-gray-500"
+									/>
+									<div className="ml-1">
+										<p className="text-[10px] font-semibold">
+											{riotIdGameName}
+											<span className="text-gray-400">#{riotIdTagline}</span>
+										</p>
+										<p className="text-[9px] text-gray-400">
+											Level {teammate.summonerLevel}
+										</p>
+									</div>
+								</div>
+
+								{/* Middle: Wins/Losses and Games Played */}
+								<div className="flex flex-col items-center w-2/5">
+									<p className="text-[10px]">
+										{teammate.wins}W / {teammate.losses}L
 									</p>
-									<p className="text-xs text-gray-400">
-										Level {teammate.summonerLevel}
+									<p className="text-[9px] text-gray-400">
+										{teammate.gamesPlayed} Played
 									</p>
 								</div>
-							</div>
 
-							{/* Middle: Wins/Losses and Games Played */}
-							<div className="flex flex-col items-center w-2/5">
-								<p className="text-xs text-white leading-tight">
-									{teammate.wins}W / {teammate.losses}L
-								</p>
-								<p className="text-xs text-gray-400">
-									{teammate.gamesPlayed} Played
-								</p>
+								{/* Right: Win Rate */}
+								<div className="flex flex-col items-end w-1/5">
+									<p className="text-[10px]">{winRate}%</p>
+								</div>
 							</div>
-
-							{/* Right: Win Rate */}
-							<div className="flex flex-col items-end w-1/5">
-								<p className="text-xs text-white">{winRate}%</p>
-							</div>
-						</div>
-					</Link>
-				);
-			})}
+						</Link>
+					);
+				})
+			) : (
+				<div className="text-[10px] text-gray-300">No teammates found.</div>
+			)}
 		</div>
 	);
 };
