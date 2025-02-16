@@ -897,7 +897,7 @@ const MatchHistory = ({
 
 									{/* Conditionally render expanded match details */}
 									{expandedMatchId === match.metadata.matchId && (
-										<div className="p-4 bg-gray-900 rounded-lg shadow-lg mb-2">
+										<div>
 											<MatchDetails
 												matchDetails={matchDetails}
 												matchId={match.metadata.matchId}
