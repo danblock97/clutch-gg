@@ -9,7 +9,6 @@ export default function MatchDetails(props) {
 
 	return (
 		<div className="pb-3 flex flex-col">
-			{/* Tab bar */}
 			<div className="flex flex-wrap space-x-2 mt-4 mb-4">
 				<button
 					className={`
@@ -45,7 +44,6 @@ export default function MatchDetails(props) {
 				</button>
 			</div>
 
-			{/* Render the correct tab */}
 			{activeTab === "stats" && <MatchStatsTab {...props} />}
 			{activeTab === "analysis" && <TeamAnalysisTab {...props} />}
 		</div>

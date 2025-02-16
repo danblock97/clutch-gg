@@ -1,7 +1,5 @@
-// MatchStatsTab.js
-
 import React, { useEffect, useState, useRef } from "react";
-import ReactDOM from "react-dom"; // for portals
+import ReactDOM from "react-dom";
 import NextImage from "next/image";
 import Loading from "../Loading";
 import Link from "next/link";
@@ -417,9 +415,6 @@ function Participant({ p, puuid, r, getA, getPerk, arena }) {
 	);
 }
 
-/* =========================================
-   PortalTooltip with Tailwind
-   ========================================= */
 function PortalTooltip({ top, left, flipAbove, children }) {
 	if (typeof document === "undefined") return null;
 
@@ -477,11 +472,9 @@ function HoverableRuneIcon({ perk, allPerks, getPerk }) {
 		const scrollY = window.scrollY || document.documentElement.scrollTop;
 		const scrollX = window.scrollX || document.documentElement.scrollLeft;
 
-		// Approximate potential tooltip height
 		const tooltipHeight = 220;
 		const spaceBelow = window.innerHeight - rect.bottom;
 
-		// Flip if not enough space below
 		const flip = spaceBelow < tooltipHeight;
 		setFlipAbove(flip);
 
