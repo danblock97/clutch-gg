@@ -21,7 +21,7 @@ export default function TeamAnalysisTab({ matchDetails, matchId }) {
 			getValue: (p) => p.goldEarned,
 		},
 		{
-			label: "Damage dealt to champions",
+			label: "Damage dealt",
 			getValue: (p) => p.totalDamageDealtToChampions,
 		},
 		{
