@@ -43,11 +43,11 @@ export default function TeamAnalysisTab({ matchDetails, matchId }) {
 			<div className="flex items-center justify-center space-x-6 mb-2">
 				<div className="flex items-center space-x-1">
 					<span className="inline-block w-3 h-3 rounded-full bg-blue-500" />
-					<span className="text-sm text-gray-200">Blue 1</span>
+					<span className="text-sm text-gray-200">Winning Team</span>
 				</div>
 				<div className="flex items-center space-x-1">
 					<span className="inline-block w-3 h-3 rounded-full bg-red-500" />
-					<span className="text-sm text-gray-200">Red 2</span>
+					<span className="text-sm text-gray-200">Losing Team</span>
 				</div>
 			</div>
 
