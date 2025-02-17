@@ -20,12 +20,15 @@ export const fetchSummonerData = async (encryptedPUUID, region) => {
  * Fetch champion mastery data.
  */
 export const fetchChampionMasteryData = async (encryptedPUUID, region) => {
-	const championMasteryResponse = await fetch(
-		`https://${region}.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-puuid/${encryptedPUUID}`,
-		{ headers: { "X-Riot-Token": RIOT_API_KEY } }
-	);
+	const url = `https://${region}.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-puuid/${encryptedPUUID}`;
+	const championMasteryResponse = await fetch(url, {
+		headers: { "X-Riot-Token": RIOT_API_KEY },
+	});
 	if (!championMasteryResponse.ok) {
-		throw new Error("Failed to fetch champion mastery data");
+		const errorText = await championMasteryResponse.text();
+		throw new Error(
+			`Failed to fetch champion mastery data. Status: ${championMasteryResponse.status} - ${errorText}`
+		);
 	}
 	const masteryData = await championMasteryResponse.json();
 	return masteryData.slice(0, 6);

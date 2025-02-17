@@ -330,9 +330,9 @@ const MatchHistory = ({
 
 	// Update filteredMatches to include champion filter
 	const filteredMatches = matchDetails.filter((match) => {
-		const participants = match.info && match.info.participants;
-		if (!participants) return false;
+		if (!match || !match.info || !match.info.participants) return false;
 
+		const participants = match.info.participants;
 		const currentPlayer = participants.find(
 			(participant) => participant.puuid === selectedSummonerPUUID
 		);
@@ -354,6 +354,7 @@ const MatchHistory = ({
 		if (selectedQueue && match.info.queueId !== selectedQueue) {
 			return false;
 		}
+
 		return true;
 	});
 

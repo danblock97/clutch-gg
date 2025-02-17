@@ -13,6 +13,9 @@ const RecentlyPlayedWith = ({
 		const teammateStats = {};
 
 		matchDetails.forEach((match) => {
+			// Guard: ensure match, match.info, and match.info.participants exist
+			if (!match || !match.info || !match.info.participants) return;
+
 			const currentPlayer = match.info.participants.find(
 				(participant) => participant.puuid === selectedSummonerPUUID
 			);

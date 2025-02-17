@@ -10,10 +10,14 @@ const Last20GamesPerformance = ({
 	// Filter to get the last 20 matches of the selected player
 	const last20Matches = useMemo(() => {
 		return matchDetails
-			.filter((match) =>
-				match.info.participants.some(
-					(participant) => participant.puuid === selectedSummonerPUUID
-				)
+			.filter(
+				(match) =>
+					match &&
+					match.info &&
+					match.info.participants &&
+					match.info.participants.some(
+						(participant) => participant.puuid === selectedSummonerPUUID
+					)
 			)
 			.slice(0, 20);
 	}, [matchDetails, selectedSummonerPUUID]);
@@ -28,9 +32,14 @@ const Last20GamesPerformance = ({
 		const championPerformance = {};
 
 		last20Matches.forEach((match) => {
+			// Safe guard in case match.info.participants is missing
+			if (!match || !match.info || !match.info.participants) return;
+
 			const currentPlayer = match.info.participants.find(
 				(participant) => participant.puuid === selectedSummonerPUUID
 			);
+
+			if (!currentPlayer) return;
 
 			// Win/Loss
 			if (currentPlayer.win) totalWins++;

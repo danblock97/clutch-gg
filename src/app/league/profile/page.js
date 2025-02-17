@@ -121,13 +121,17 @@ const ProfilePageContent = () => {
 				},
 				body: JSON.stringify({ gameName, tagLine, region }),
 			});
+			const data = await response.json();
 			if (!response.ok) {
-				throw new Error("Failed to trigger update");
+				console.error("API update error:", data);
+				throw new Error(
+					data.error || `Failed to trigger update: ${response.status}`
+				);
 			}
-			await response.json();
+			// Removed the extra await response.json() call.
 			fetchProfileData();
 		} catch (error) {
-			console.error("Error triggering update:", error);
+			console.error("Error triggering update:", error.message);
 			dispatch({ type: "FETCH_FAILURE", payload: error.message });
 		} finally {
 			dispatch({ type: "UPDATE_END" });
