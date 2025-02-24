@@ -40,8 +40,8 @@ const NavBar = ({ isBannerVisible }) => {
 
 		window.ATL_JQ_PAGE_PROPS = {
 			fieldValues: {
-				components: "AstroStats",
-				priority: "Medium",
+				components: ["10321"],
+				priority: "2",
 			},
 			triggerFunction: function (showCollectorDialog) {
 				window.jQuery("#myCustomTrigger").click(function (e) {
