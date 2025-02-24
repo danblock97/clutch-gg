@@ -5,7 +5,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import SearchBar from "@/components/SearchBar";
-import { FaCoffee, FaDiscord } from "react-icons/fa";
+import { FaCoffee } from "react-icons/fa";
 
 const NavBar = ({ isBannerVisible }) => {
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -98,12 +98,6 @@ const NavBar = ({ isBannerVisible }) => {
 					>
 						<span className="ml-2">Leaderboards</span>
 					</Link>
-					<button
-						id="myCustomTrigger"
-						className="flex items-center px-3 py-2 text-gray-500 font-bold hover:text-gray-300"
-					>
-						Report a Bug
-					</button>
 					<Link
 						href="https://buymeacoffee.com/danblock97"
 						target="_blank"
@@ -116,17 +110,14 @@ const NavBar = ({ isBannerVisible }) => {
 				</div>
 			</div>
 
-			{/* Discord Button on the far right (Desktop Only) */}
+			{/* Report a Bug Button on the far right (Desktop Only) */}
 			<div className="hidden md:flex items-center">
-				<Link
-					href="https://discord.gg/BeszQxTn9D"
-					target="_blank"
-					rel="noopener noreferrer"
-					className="flex items-center px-3 py-2 bg-[#7289DA] text-white rounded-md font-bold hover:bg-[#677bc4]"
+				<button
+					id="myCustomTrigger"
+					className="flex items-center px-3 py-2 text-gray-500 font-bold hover:text-gray-300"
 				>
-					<FaDiscord className="w-5 h-5 mr-2" />
-					<span>Support</span>
-				</Link>
+					Report a Bug
+				</button>
 			</div>
 
 			{/* Mobile Hamburger */}
