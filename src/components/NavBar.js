@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import SearchBar from "@/components/SearchBar";
-import { FaCoffee, FaDiscord } from "react-icons/fa"; // <-- added FaDiscord
+import { FaCoffee, FaDiscord } from "react-icons/fa";
 
 const NavBar = ({ isBannerVisible }) => {
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -16,6 +16,41 @@ const NavBar = ({ isBannerVisible }) => {
 	const isProfileOrMatch =
 		pathname === "/league/profile" || pathname === "/match";
 	const region = isProfileOrMatch ? searchParams.get("region") : null;
+
+	useEffect(() => {
+		// Load jQuery if not already loaded
+		if (typeof window !== "undefined" && !window.jQuery) {
+			const jqueryScript = document.createElement("script");
+			jqueryScript.src =
+				"https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js";
+			jqueryScript.async = true;
+			document.body.appendChild(jqueryScript);
+			jqueryScript.onload = loadJiraCollector;
+		} else {
+			loadJiraCollector();
+		}
+
+		function loadJiraCollector() {
+			const script = document.createElement("script");
+			script.src =
+				"https://danblock97.atlassian.net/s/d41d8cd98f00b204e9800998ecf8427e-T/g2slup/b/9/b0105d975e9e59f24a3230a22972a71a/_/download/batch/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector-embededjs/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector-embededjs.js?locale=en-GB&collectorId=66de944a";
+			script.async = true;
+			document.body.appendChild(script);
+		}
+
+		window.ATL_JQ_PAGE_PROPS = {
+			fieldValues: {
+				components: "AstroStats",
+				priority: "Medium",
+			},
+			triggerFunction: function (showCollectorDialog) {
+				window.jQuery("#myCustomTrigger").click(function (e) {
+					e.preventDefault();
+					showCollectorDialog();
+				});
+			},
+		};
+	}, []);
 
 	return (
 		<nav
@@ -63,6 +98,12 @@ const NavBar = ({ isBannerVisible }) => {
 					>
 						<span className="ml-2">Leaderboards</span>
 					</Link>
+					<button
+						id="myCustomTrigger"
+						className="flex items-center px-3 py-2 text-gray-500 font-bold hover:text-gray-300"
+					>
+						Report a Bug
+					</button>
 					<Link
 						href="https://buymeacoffee.com/danblock97"
 						target="_blank"
@@ -172,6 +213,13 @@ const NavBar = ({ isBannerVisible }) => {
 					>
 						Leaderboards
 					</Link>
+					<hr className="border-gray-600 w-full my-2" />
+					<button
+						id="myCustomTrigger"
+						className="text-xl text-gray-300 hover:text-gray-200 mb-6 font-bold w-full text-center"
+					>
+						Report a Bug
+					</button>
 					<hr className="border-gray-600 w-full my-2" />
 					<Link
 						href="https://buymeacoffee.com/danblock97"
