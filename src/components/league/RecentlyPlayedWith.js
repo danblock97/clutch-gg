@@ -68,14 +68,13 @@ const RecentlyPlayedWith = ({
 	return (
 		<div
 			className="
-        p-2
-        rounded-md
-        text-white
-        border border-[#2f2f46]
-        bg-gradient-to-br from-[#232337] to-[#1b1b2d]
-        shadow-sm
-        mt-4
-      "
+    p-4
+    rounded-xl
+    text-white
+    border border-[#2f2f46]
+    bg-gradient-to-br from-[#232337] to-[#1b1b2d]
+    shadow-sm
+  "
 		>
 			<h3 className="text-xs mb-2 font-semibold tracking-wide">
 				Recently Played With (Last 10 Games)
