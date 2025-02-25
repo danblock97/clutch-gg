@@ -44,7 +44,8 @@ const NavBar = ({ isBannerVisible }) => {
 				priority: "2",
 			},
 			triggerFunction: function (showCollectorDialog) {
-				window.jQuery("#myCustomTrigger").click(function (e) {
+				// Use delegated binding so that both desktop and mobile "Report a Bug" buttons work.
+				window.jQuery(document).on("click", "#myCustomTrigger", function (e) {
 					e.preventDefault();
 					showCollectorDialog();
 				});
