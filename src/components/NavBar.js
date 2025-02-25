@@ -33,15 +33,14 @@ const NavBar = ({ isBannerVisible }) => {
 		function loadJiraCollector() {
 			const script = document.createElement("script");
 			script.src =
-				"https://danblock97.atlassian.net/s/d41d8cd98f00b204e9800998ecf8427e-T/g2slup/b/9/b0105d975e9e59f24a3230a22972a71a/_/download/batch/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector-embededjs/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector-embededjs.js?locale=en-GB&collectorId=66de944a";
+				"https://danblock97.atlassian.net/s/d41d8cd98f00b204e9800998ecf8427e-T/g2slup/b/9/b0105d975e9e59f24a3230a22972a71a/_/download/batch/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector-embededjs/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector-embededjs.js?locale=en-GB&collectorId=6eba8a2a";
 			script.async = true;
 			document.body.appendChild(script);
 		}
 
 		window.ATL_JQ_PAGE_PROPS = {
 			fieldValues: {
-				components: ["10321"],
-				priority: "2",
+				priority: "3",
 			},
 			triggerFunction: function (showCollectorDialog) {
 				// Use delegated binding so that both desktop and mobile "Report a Bug" buttons work.
