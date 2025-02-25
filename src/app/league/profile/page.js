@@ -193,8 +193,8 @@ const ProfilePageContent = () => {
 
 			{/* Bottom section: Main content */}
 			<div className="w-full md:max-w-screen-xl mx-auto flex flex-col items-center gap-8 mt-8 flex-1">
-				<div className="w-full flex flex-col md:flex-row gap-4">
-					<div className="md:w-1/3 flex flex-col gap-4">
+				<div className="w-full flex flex-col md:flex-row gap-2">
+					<div className="md:w-1/3 flex flex-col gap-2">
 						{state.rankedData ? (
 							<RankedInfo rankedData={state.rankedData} />
 						) : (
@@ -210,14 +210,12 @@ const ProfilePageContent = () => {
 							<Loading />
 						)}
 						{state.championMasteryData ? (
-							<ChampionMastery
-								championMasteryData={state.championMasteryData}
-							/>
+							<ChampionMastery championMasteryData={state.championMasteryData} />
 						) : (
 							<Loading />
 						)}
 					</div>
-					<div className="md:w-2/3 flex flex-col md:flex-row gap-4">
+					<div className="md:w-2/3 flex flex-col md:flex-row gap-2">
 						<div className="flex-1 flex flex-col gap-4">
 							{state.matchDetails && state.profileData ? (
 								<Last20GamesPerformance
