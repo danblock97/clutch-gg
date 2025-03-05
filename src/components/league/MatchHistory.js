@@ -154,9 +154,92 @@ const queues = [
 	{ id: 1700, name: "Arena" },
 ];
 
+
+const getPerformanceTags = (match, currentPlayer) => {
+	const tags = [];
+
+	// Get all participants and separate by team
+	const winningTeam = match.info.participants.filter(p => p.win);
+	const losingTeam = match.info.participants.filter(p => !p.win);
+	const currentTeam = currentPlayer.win ? winningTeam : losingTeam;
+
+	// Calculate different performance metrics
+	const playerKDA = (currentPlayer.kills + currentPlayer.assists) / Math.max(1, currentPlayer.deaths);
+	const damageScore = currentPlayer.totalDamageDealtToChampions;
+	const visionScore = currentPlayer.visionScore || 0;
+	const killParticipation = currentTeam.reduce((sum, p) => sum + p.kills, 0) > 0 ?
+		(currentPlayer.kills + currentPlayer.assists) / currentTeam.reduce((sum, p) => sum + p.kills, 0) : 0;
+
+	// Calculate team averages
+	const teamAvgKDA = currentTeam.reduce((sum, p) => {
+		return sum + (p.kills + p.assists) / Math.max(1, p.deaths);
+	}, 0) / currentTeam.length;
+
+	const teamAvgDamage = currentTeam.reduce((sum, p) => sum + p.totalDamageDealtToChampions, 0) / currentTeam.length;
+	const teamAvgVision = currentTeam.reduce((sum, p) => sum + (p.visionScore || 0), 0) / currentTeam.length;
+
+	// MVP Score (weighted metrics)
+	const mvpScore =
+		(playerKDA / teamAvgKDA) * 0.35 +
+		(damageScore / teamAvgDamage) * 0.25 +
+		(visionScore / Math.max(1, teamAvgVision)) * 0.15 +
+		killParticipation * 0.25;
+
+	// Calculate team MVP scores to find the highest
+	const teamMVPScores = currentTeam.map(p => {
+		const pKDA = (p.kills + p.assists) / Math.max(1, p.deaths);
+		const pDamage = p.totalDamageDealtToChampions;
+		const pVision = p.visionScore || 0;
+		const pKP = currentTeam.reduce((sum, teammate) => sum + teammate.kills, 0) > 0 ?
+			(p.kills + p.assists) / currentTeam.reduce((sum, teammate) => sum + teammate.kills, 0) : 0;
+
+		return {
+			puuid: p.puuid,
+			score: (pKDA / teamAvgKDA) * 0.35 +
+				(pDamage / teamAvgDamage) * 0.25 +
+				(pVision / Math.max(1, teamAvgVision)) * 0.15 +
+				pKP * 0.25
+		};
+	});
+
+	// Sort by score descending
+	teamMVPScores.sort((a, b) => b.score - a.score);
+
+	// MVP must be top in their team AND have score > 1.2 (indicating above average performance)
+	if (currentPlayer.win && teamMVPScores[0]?.puuid === currentPlayer.puuid && mvpScore > 1.2) {
+		tags.push(
+			<Tag
+				key="mvp"
+				text="MVP"
+				hoverText="Outstanding KDA, damage, vision and KP!"
+				color="bg-yellow-500 text-white"
+				icon={<FaTrophy />}
+			/>
+		);
+	}
+
+	// Ace tag for losing team's best performer with score > 1.3 (harder threshold for losing team)
+	if (!currentPlayer.win && teamMVPScores[0]?.puuid === currentPlayer.puuid && mvpScore > 1.3) {
+		tags.push(
+			<Tag
+				key="ace"
+				text="Team Ace"
+				hoverText="Best performer on your team despite the loss!"
+				color="bg-purple-500 text-white"
+				icon={<FaStar />}
+			/>
+		);
+	}
+
+	return tags;
+};
+
 // 6) Additional tags logic
 const getAdditionalTags = (match, currentPlayer) => {
 	const tags = [];
+
+	// Add performance tags (MVP/Ace)
+	tags.push(...getPerformanceTags(match, currentPlayer));
 
 	// Fast Win
 	if (match.info.gameDuration < 1200 && currentPlayer.win) {
@@ -171,7 +254,8 @@ const getAdditionalTags = (match, currentPlayer) => {
 		);
 	}
 
-	// MVP (Highest KDA)
+	// REMOVE THE DUPLICATE MVP TAG LOGIC - We're already using the enhanced MVP logic from getPerformanceTags
+	// highestKDA and playerKDA calculations can stay for other potential uses
 	const highestKDA = match.info.participants.reduce((max, participant) => {
 		const kda =
 			(participant.kills + participant.assists) /
@@ -182,18 +266,6 @@ const getAdditionalTags = (match, currentPlayer) => {
 	const playerKDA =
 		(currentPlayer.kills + currentPlayer.assists) /
 		Math.max(1, currentPlayer.deaths);
-
-	if (playerKDA === highestKDA) {
-		tags.push(
-			<Tag
-				key="mvp"
-				text="MVP"
-				hoverText="You had the highest KDA in the game!"
-				color="bg-yellow-500 text-white"
-				icon={<FaTrophy />}
-			/>
-		);
-	}
 
 	// Killing Spree (>=10 kills)
 	if (currentPlayer.kills >= 10) {
