@@ -11,6 +11,7 @@ function getModeAndRankStatus(gameMode, queueId) {
 	switch (gameMode) {
 		case "CLASSIC":
 			modeName = "Summoner's Rift";
+			// Check if queue is Solo/Duo or Flex
 			if (queueId === 420 || queueId === 440) {
 				isRanked = true;
 			}
@@ -47,6 +48,10 @@ function getModeAndRankStatus(gameMode, queueId) {
 			break;
 		case "TUTORIAL":
 			modeName = "Tutorial";
+			break;
+		case "CHERRY":
+			// Riot calls it "CHERRY", but it's actually Arena
+			modeName = "Arena";
 			break;
 		default:
 			modeName = gameMode || "Unknown Mode";
@@ -123,13 +128,14 @@ function parseSpectatorPerks(perks) {
 	};
 }
 
-/* 
+/*
   ============================
   Refactored PortalTooltip
   ============================
 */
 function PortalTooltip({ children, top, left, flipAbove }) {
-	if (typeof document === "undefined") return null; // SSR guard
+	// SSR guard
+	if (typeof document === "undefined") return null;
 
 	const tooltipPosition = {
 		top: top || 0,
@@ -156,10 +162,10 @@ function PortalTooltip({ children, top, left, flipAbove }) {
           absolute left-1/2 -translate-x-1/2 w-0 h-0
           border-x-4 border-x-transparent
           ${
-						flipAbove
-							? "border-b-4 border-b-gray-800"
-							: "border-t-4 border-t-gray-800"
-					}
+					flipAbove
+						? "border-b-4 border-b-gray-800"
+						: "border-t-4 border-t-gray-800"
+				}
         `}
 				style={
 					flipAbove
@@ -335,17 +341,27 @@ export default function LiveGame({ liveGameData, region }) {
 
 	// Load perks & set game timer
 	useEffect(() => {
-		(async () => setPerkList(await fetchPerks()))();
-		const upd = () => {
+		(async () => {
+			try {
+				const perks = await fetchPerks();
+				setPerkList(perks);
+			} catch (err) {
+				console.error("Error fetching perks:", err);
+				setPerkList([]);
+			}
+		})();
+
+		const updateTimer = () => {
 			const now = Date.now();
-			const dur = now - liveGameData.gameStartTime;
+			const dur = now - liveGameData.gameStartTime; // Make sure gameStartTime is in ms
 			const s = Math.floor((dur / 1000) % 60);
 			const m = Math.floor((dur / 60000) % 60);
 			const h = Math.floor(dur / 3600000);
 			setTime(`${h > 0 ? h + "h " : ""}${m}m ${s}s`);
 		};
-		upd();
-		const interval = setInterval(upd, 1000);
+
+		updateTimer();
+		const interval = setInterval(updateTimer, 1000);
 		return () => clearInterval(interval);
 	}, [liveGameData]);
 
@@ -360,6 +376,7 @@ export default function LiveGame({ liveGameData, region }) {
 		liveGameData.gameQueueConfigId
 	);
 
+	/* -------------------- PARTICIPANT CARD -------------------- */
 	const renderParticipantCard = (p) => {
 		const rankTxt = fmtRank(p.rank);
 		const total = p.wins + p.losses;
@@ -371,14 +388,13 @@ export default function LiveGame({ liveGameData, region }) {
 			<div
 				key={p.summonerId}
 				className="
-          bg-[#1A1D21] 
-          border border-gray-700 
-          rounded-md 
-          flex-shrink-0 w-40 sm:w-44 md:w-48 lg:w-52 
-          p-3 
-          shadow-md 
-          text-center 
-          transition duration-200
+          bg-[#1A1D21]
+          border border-gray-700
+          rounded-md
+          p-3
+          shadow-md
+          text-center
+          flex-shrink-0
         "
 			>
 				{/* Champion Icon */}
@@ -440,8 +456,8 @@ export default function LiveGame({ liveGameData, region }) {
 						</div>
 					)}
 					<span className="font-semibold">
-						{rankTxt !== "Unranked" ? `${rankTxt} (${p.lp} LP)` : "Unranked"}
-					</span>
+            {rankTxt !== "Unranked" ? `${rankTxt} (${p.lp} LP)` : "Unranked"}
+          </span>
 				</div>
 
 				{/* Wins / Losses / Winrate */}
@@ -455,6 +471,7 @@ export default function LiveGame({ liveGameData, region }) {
 		);
 	};
 
+	/* -------------------- TEAM LAYOUT -------------------- */
 	const renderTeam = (players, teamName, color, teamId) => (
 		<div className="bg-[#13151b] mb-3 rounded-md px-2 pt-3 pb-4 md:px-[90px]">
 			<div className="flex justify-between items-center mb-3 px-1">
@@ -480,17 +497,37 @@ export default function LiveGame({ liveGameData, region }) {
 		</div>
 	);
 
+	/* -------------------- ARENA LAYOUT (QueueID 1700) -------------------- */
+	if (liveGameData.gameQueueConfigId === 1700) {
+		// Arena typically has 8 or 16 participants. We just place them in a responsive grid.
+		return (
+			<div className="bg-[#13151b] text-white rounded-md shadow w-full max-w-7xl mx-auto mt-4">
+				{/* Header with Mode & Time */}
+				<div className="py-3 px-4 text-sm font-bold bg-gray-900 rounded-t-md flex justify-between items-center">
+					<span>{modeName || "Arena"}</span>
+					<span>{time}</span>
+				</div>
+
+				{/* Grid of participants */}
+				<div className="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 xl:grid-cols-4 gap-4">
+					{liveGameData.participants.map((p) => renderParticipantCard(p))}
+				</div>
+			</div>
+		);
+	}
+
+	/* -------------------- STANDARD LAYOUT (NON-ARENA) -------------------- */
 	return (
 		<div className="bg-[#13151b] text-white rounded-md shadow w-full max-w-7xl mx-auto mt-4">
 			<div className="py-3 px-4 text-sm font-bold bg-gray-900 rounded-t-md flex justify-between items-center">
-				<span>
-					{modeName}
-					{isRanked ? " (Ranked)" : ""}
-				</span>
+        <span>
+          {modeName}
+			{isRanked ? " (Ranked)" : ""}
+        </span>
 				<span>{time}</span>
 			</div>
 
-			{/* Team 1 on top, Team 2 below */}
+			{/* Team 1 (Blue) on top, Team 2 (Red) below */}
 			{renderTeam(
 				liveGameData.participants.filter((x) => x.teamId === 100),
 				"Blue Team",
