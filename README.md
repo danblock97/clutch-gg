@@ -1,13 +1,18 @@
-# ClutchGG.LOL v1.13.2
+# ClutchGG.LOL v1.13.3
 
-## Tag Logic Makeover
-We've reimagined the way standout performances are celebrated. The MVP tag now demands even more brilliance, ensuring only the most exceptional plays earn that coveted title. And if your team falls short? No worries—our new **Ace** tag recognizes the best player on the losing side, proving that even in defeat, individual genius shines through.
+## Overview
+This update is all about refining your gaming experience by squashing some pesky bugs and polishing key features. We’ve focused on making gameplay clearer and more consistent, especially in Arena and non-Arena modes.
 
-## Asset Patch Overhaul
-Our assets just got a facelift! By updating our asset patch to the latest version, every icon and visual detail is now sharper and more up-to-date, enhancing the overall aesthetic and gameplay experience.
+## Bug Fixes
 
-## Bug Exterminations
-- **Tooltip Tamer:** No more wandering tooltips. They've been corralled to stay right where you need them.
-- **Arena Mode Polish:** The Live Game component in Arena Mode has been fine-tuned for a smoother, more immersive experience.
+- **Accurate Arena Placement:**  
+  No more ambiguous "Victory" or "Defeat" messages. Now, Arena mode accurately displays your actual placement so you always know exactly where you stand.
 
-Thank you for using ClutchGG.LOL—where every match is a chance to redefine excellence!
+- **Cleaner Arena Interface:**  
+  We removed unnecessary tags that clutter the view. Enjoy a sleeker, more focused display in Arena mode that highlights what truly matters.
+
+- **Enhanced Live Game Player Cards:**  
+  Player cards in non-Arena modes have been resized for better visibility and consistency. Keeping track of game stats has never been easier!
+
+## What’s Next?
+We’re always listening and working to improve your ClutchGG.LOL experience. Stay tuned for more updates and exciting features coming soon!
