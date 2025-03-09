@@ -383,22 +383,28 @@ export default function LiveGame({ liveGameData, region }) {
 		const wr = total > 0 ? ((p.wins / total) * 100).toFixed(0) : 0;
 		const shortRank =
 			rankTxt !== "Unranked" ? rankTxt.split(" ")[0].toLowerCase() : null;
+		// Determine if this is Arena mode
+		const isArena = liveGameData.gameQueueConfigId === 1700;
+		// For non-Arena modes, use a larger minimum width so the cards fill the space better.
+		const cardSizeClass = isArena ? "" : "min-w-[240px]";
+		// Increase the sizes of inner elements for non-Arena modes.
+		const championIconClass = isArena
+			? "relative w-14 h-14 mx-auto mb-2"
+			: "relative w-16 h-16 mx-auto mb-2";
+		const spellIconClass = isArena
+			? "relative w-6 h-6"
+			: "relative w-8 h-8";
+		const rankedIconClass = isArena
+			? "relative w-5 h-5 mr-1"
+			: "relative w-6 h-6 mr-1";
 
 		return (
 			<div
 				key={p.summonerId}
-				className="
-          bg-[#1A1D21]
-          border border-gray-700
-          rounded-md
-          p-3
-          shadow-md
-          text-center
-          flex-shrink-0
-        "
+				className={`bg-[#1A1D21] border border-gray-700 rounded-md p-3 shadow-md text-center flex-shrink-0 ${cardSizeClass}`}
 			>
 				{/* Champion Icon */}
-				<div className="relative w-14 h-14 mx-auto mb-2">
+				<div className={championIconClass}>
 					<Image
 						src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${p.championId}.png`}
 						alt=""
@@ -420,7 +426,7 @@ export default function LiveGame({ liveGameData, region }) {
 
 				{/* Spells */}
 				<div className="flex justify-center space-x-1 mb-2">
-					<div className="relative w-6 h-6">
+					<div className={spellIconClass}>
 						<Image
 							src={`/images/league/summonerSpells/${p.spell1Id}.png`}
 							alt=""
@@ -428,7 +434,7 @@ export default function LiveGame({ liveGameData, region }) {
 							className="rounded"
 						/>
 					</div>
-					<div className="relative w-6 h-6">
+					<div className={spellIconClass}>
 						<Image
 							src={`/images/league/summonerSpells/${p.spell2Id}.png`}
 							alt=""
@@ -446,7 +452,7 @@ export default function LiveGame({ liveGameData, region }) {
 				{/* Ranked Icon / Rank Text Centered */}
 				<div className="flex items-center justify-center text-[11px] my-1">
 					{shortRank && shortRank !== "unranked" && (
-						<div className="relative w-5 h-5 mr-1">
+						<div className={rankedIconClass}>
 							<Image
 								src={`/images/league/rankedEmblems/${shortRank}.webp`}
 								alt=""
@@ -456,8 +462,8 @@ export default function LiveGame({ liveGameData, region }) {
 						</div>
 					)}
 					<span className="font-semibold">
-            {rankTxt !== "Unranked" ? `${rankTxt} (${p.lp} LP)` : "Unranked"}
-          </span>
+						{rankTxt !== "Unranked" ? `${rankTxt} (${p.lp} LP)` : "Unranked"}
+					</span>
 				</div>
 
 				{/* Wins / Losses / Winrate */}
@@ -520,10 +526,10 @@ export default function LiveGame({ liveGameData, region }) {
 	return (
 		<div className="bg-[#13151b] text-white rounded-md shadow w-full max-w-7xl mx-auto mt-4">
 			<div className="py-3 px-4 text-sm font-bold bg-gray-900 rounded-t-md flex justify-between items-center">
-        <span>
-          {modeName}
-			{isRanked ? " (Ranked)" : ""}
-        </span>
+				<span>
+					{modeName}
+					{isRanked ? " (Ranked)" : ""}
+				</span>
 				<span>{time}</span>
 			</div>
 
