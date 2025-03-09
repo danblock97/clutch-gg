@@ -819,9 +819,11 @@ const MatchHistory = ({
 												))}
 											</div>
 										</div>
-										<div className="flex flex-wrap justify-start space-x-2">
-											{tags.slice(0, maxTagsToShow)}
-										</div>
+										{match.info.queueId !== 1700 && (
+											<div className="flex flex-wrap justify-start space-x-2">
+												{tags.slice(0, maxTagsToShow)}
+											</div>
+										)}
 										{match.info.queueId === 1700 ? (
 											<div className="absolute top-6 right-16 flex">
 												<div className="grid grid-cols-2 gap-2">
