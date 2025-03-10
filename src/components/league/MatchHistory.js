@@ -275,6 +275,60 @@ const getAdditionalTags = (match, currentPlayer) => {
 	return tags;
 };
 
+// Updated getGradientBackground with a static mapping for arena placements.
+const getGradientBackground = (match, currentPlayer, isRemake, isMVP) => {
+	if (match.info.queueId === 1700) {
+		// Mapping for arena placements to gradient classes
+		const placementGradientClasses = {
+			1: "bg-gradient-to-r from-gray-800 via-yellow-500/20 to-gray-800",
+			2: "bg-gradient-to-r from-gray-800 via-pink-500/20 to-gray-800",
+			3: "bg-gradient-to-r from-gray-800 via-orange-500/20 to-gray-800",
+			4: "bg-gradient-to-r from-gray-800 via-blue-500/20 to-gray-800",
+			5: "bg-gradient-to-r from-gray-800 via-red-500/20 to-gray-800",
+			6: "bg-gradient-to-r from-gray-800 via-green-500/20 to-gray-800",
+			7: "bg-gradient-to-r from-gray-800 via-purple-500/20 to-gray-800",
+			8: "bg-gradient-to-r from-gray-800 via-indigo-500/20 to-gray-800",
+		};
+		// Sort participants based on missions.playerScore0
+		let sortedParticipants = [...match.info.participants].map((p) => ({
+			...p,
+			playerScore0: p.missions?.playerScore0 || 0,
+		}));
+		sortedParticipants.sort((a, b) => a.playerScore0 - b.playerScore0);
+		const currentIndex = sortedParticipants.findIndex(
+			(p) => p.puuid === currentPlayer.puuid
+		);
+		const placement = Math.floor(currentIndex / 2) + 1;
+		return placementGradientClasses[placement] || "bg-gradient-to-r from-gray-800 via-white/20 to-gray-800";
+	}
+	if (isMVP) return "bg-gradient-to-r from-gray-800 via-yellow-600/20 to-gray-800";
+	if (isRemake) return "bg-gradient-to-r from-gray-800 via-yellow-600/20 to-gray-800";
+	return currentPlayer.win
+		? "bg-gradient-to-r from-gray-800 via-green-900/20 to-gray-800"
+		: "bg-gradient-to-r from-gray-800 via-red-900/20 to-gray-800";
+};
+
+const normaliseTeamPosition = (position) => {
+	if (!position) return "";
+	switch (position.toUpperCase()) {
+		case "TOP":
+			return "TOP";
+		case "JUNGLE":
+			return "JUNGLE";
+		case "MIDDLE":
+		case "MID":
+			return "MID";
+		case "BOTTOM":
+		case "ADC":
+			return "BOTTOM";
+		case "UTILITY":
+		case "SUPPORT":
+			return "SUPPORT";
+		default:
+			return position.toUpperCase();
+	}
+};
+
 const MatchHistory = ({
 						  matchDetails,
 						  selectedSummonerPUUID,
@@ -311,27 +365,6 @@ const MatchHistory = ({
 		return augment && augment.iconSmall
 			? `https://raw.communitydragon.org/latest/game/${augment.iconSmall}`
 			: "/images/placeholder.png";
-	};
-
-	const normaliseTeamPosition = (position) => {
-		if (!position) return "";
-		switch (position.toUpperCase()) {
-			case "TOP":
-				return "TOP";
-			case "JUNGLE":
-				return "JUNGLE";
-			case "MIDDLE":
-			case "MID":
-				return "MID";
-			case "BOTTOM":
-			case "ADC":
-				return "BOTTOM";
-			case "UTILITY":
-			case "SUPPORT":
-				return "SUPPORT";
-			default:
-				return position.toUpperCase();
-		}
 	};
 
 	if (!matchDetails || matchDetails.length === 0) {
@@ -404,14 +437,6 @@ const MatchHistory = ({
 		if (isMVP) return "text-yellow-500 border-yellow-500";
 		if (isRemake) return "text-yellow-400 border-yellow-400";
 		return win ? "text-green-400 border-green-400" : "text-red-400 border-red-400";
-	};
-
-	const getGradientBackground = (win, isRemake, isMVP) => {
-		if (isMVP) return "bg-gradient-to-r from-gray-800 via-yellow-600/20 to-gray-800";
-		if (isRemake) return "bg-gradient-to-r from-gray-800 via-yellow-600/20 to-gray-800";
-		return win
-			? "bg-gradient-to-r from-gray-800 via-green-900/20 to-gray-800"
-			: "bg-gradient-to-r from-gray-800 via-red-900/20 to-gray-800";
 	};
 
 	const truncateName = (name, maxLength) => {
@@ -567,8 +592,7 @@ const MatchHistory = ({
 								currentPlayer.neutralMinionsKilled +
 								currentPlayer.totalMinionsKilled;
 							const dpm = (
-								currentPlayer.totalDamageDealtToChampions /
-								(match.info.gameDuration / 60)
+								currentPlayer.totalDamageDealtToChampions / (match.info.gameDuration / 60)
 							).toFixed(1);
 
 							const goldEarned = currentPlayer.goldEarned.toLocaleString();
@@ -596,11 +620,7 @@ const MatchHistory = ({
 													: match.metadata.matchId
 											)
 										}
-										className={`rounded-lg shadow-lg p-6 cursor-pointer flex flex-col relative mb-2 min-w-[768px] text-xs sm:text-sm ${getGradientBackground(
-											currentPlayer.win,
-											isRemake,
-											isMVP
-										)}`}
+										className={`rounded-lg shadow-lg p-6 cursor-pointer flex flex-col relative mb-2 min-w-[768px] text-xs sm:text-sm ${getGradientBackground(match, currentPlayer, isRemake, isMVP)}`}
 									>
 										<div className="absolute top-4 left-2 flex items-start">
 											<div className="flex items-center mr-4">
