@@ -8,33 +8,28 @@ export default function DiscordBotBanner() {
 			href="https://discord.com/oauth2/authorize?client_id=1088929834748616785&permissions=2147747840&scope=bot"
 			className="block"
 		>
-			<div className="relative w-full sm:w-[200px] h-auto sm:h-[600px] border border-[#2f2f46] bg-gradient-to-br from-[#232337] to-[#1b1b2d] rounded-lg overflow-hidden shadow-lg flex flex-col items-center justify-between p-4 text-white text-center">
-				{/* AstroStats Bot Image */}
-				<div className="absolute top-8 w-full flex justify-center">
-					<div className="relative">
-						<Image
-							src="/images/astrostats.png"
-							alt="AstroStats Logo"
-							width={120}
-							height={120}
-							className="drop-shadow-lg animate-pulse"
-						/>
-					</div>
+			<div className="w-full max-w-md h-20 mt-12 rounded-lg overflow-hidden flex flex-row items-center">
+				{/* Logo on the left */}
+				<div className="flex-shrink-0 w-20 h-full flex items-center justify-center">
+					<Image
+						src="/images/astrostats.png"
+						alt="AstroStats Logo"
+						width={80}
+						height={80}
+					/>
 				</div>
-
-				{/* Headline */}
-				<div className="px-4 mt-20 sm:mt-40">
-					<h2 className="text-2xl font-extrabold tracking-wide">
+				{/* Text Section */}
+				<div className="flex flex-col justify-center flex-grow pl-4">
+					<h2 className="text-lg font-bold text-gray-600">
 						Outsmart Your Opponents!
 					</h2>
-					<p className="text-sm mt-3 opacity-90">
-						Track your League stats seamlessly in Discord with AstroStats.
+					<p className="text-sm text-gray-400">
+						Track League stats directly in Discord.
 					</p>
 				</div>
-
-				{/* CTA Button */}
-				<div className="mb-6">
-					<div className="bg-white text-[#3B4CCA] py-2 px-5 rounded-full font-bold text-sm hover:scale-105 transition-transform duration-200">
+				{/* Invite Button */}
+				<div className="flex-shrink-0 pr-2">
+					<div className="bg-gray-200 text-gray-800 py-2 px-3 rounded-lg font-semibold text-sm">
 						Invite Now
 					</div>
 				</div>

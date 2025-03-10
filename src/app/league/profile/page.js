@@ -10,7 +10,6 @@ import Last20GamesPerformance from "@/components/league/Last20GamesPerformance";
 import Loading from "@/components/Loading";
 import LiveGame from "@/components/league/LiveGame";
 import RecentlyPlayedWith from "@/components/league/RecentlyPlayedWith";
-import DiscordBotBanner from "@/components/DiscordBotBanner";
 import NoProfileFound from "@/components/league/NoProfileFound";
 
 const initialState = {
@@ -70,7 +69,6 @@ const ProfilePageContent = () => {
 	const [state, dispatch] = useReducer(reducer, initialState);
 
 	const fetchProfileData = useCallback(() => {
-		// Create a new controller for each fetch
 		const controller = new AbortController();
 		const signal = controller.signal;
 
@@ -91,7 +89,6 @@ const ProfilePageContent = () => {
 				const data = await response.json();
 				dispatch({ type: "FETCH_SUCCESS", payload: data });
 			} catch (error) {
-				// Skip abort errors
 				if (error.name !== "AbortError") {
 					dispatch({ type: "FETCH_FAILURE", payload: error.message });
 				}
@@ -128,7 +125,6 @@ const ProfilePageContent = () => {
 					data.error || `Failed to trigger update: ${response.status}`
 				);
 			}
-			// Removed the extra await response.json() call.
 			fetchProfileData();
 		} catch (error) {
 			console.error("Error triggering update:", error.message);
@@ -179,6 +175,7 @@ const ProfilePageContent = () => {
 							isLiveGameOpen={state.isLiveGameOpen}
 							triggerUpdate={triggerUpdate}
 							isUpdating={state.isUpdating}
+							region={region}
 						/>
 					) : (
 						<p className="text-white">No profile data found.</p>
@@ -239,10 +236,6 @@ const ProfilePageContent = () => {
 							) : (
 								<Loading />
 							)}
-						</div>
-						{/* Show DiscordBotBanner only on medium and larger devices */}
-						<div className="hidden md:flex md:sticky top-4 self-start justify-center z-50">
-							<DiscordBotBanner />
 						</div>
 					</div>
 				</div>
