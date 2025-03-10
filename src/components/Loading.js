@@ -19,15 +19,27 @@ const Loading = () => {
     }, []);
 
     return (
-        <div className="min-h-screen bg-[#0e1015] flex items-center justify-center relative">
-            {/* Top Loading Bar */}
-            <LoadingBar color="#f11946" ref={loadingBarRef} />
-
-            {/* Centered Spinner */}
-            <div className="flex flex-col items-center">
-                <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-gray-200"></div>
-                <h2 className="text-white text-lg mt-4">Loading...</h2>
+        <div className="flex flex-col items-center justify-center min-h-screen">
+            <div className="relative w-48 h-48">
+                <div className="absolute -inset-2 rounded-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 animate-rotate"></div>
+                <div className="absolute inset-2 rounded-full bg-[#0e1015]"></div>
             </div>
+            <p className="mt-4 text-white text-xl animate-pulse">
+                Loading, please wait...
+            </p>
+            <style>{`
+        @keyframes rotate {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
+        .animate-rotate {
+          animation: rotate 2s linear infinite;
+        }
+      `}</style>
         </div>
     );
 };
