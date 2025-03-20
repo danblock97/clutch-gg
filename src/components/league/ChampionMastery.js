@@ -82,18 +82,8 @@ const ChampionMastery = ({ championMasteryData }) => {
 								/>
 								{/* Mastery Icon & Level Badge */}
 								<div className="relative mt-2">
-									{/* Mastery Plate Image */}
-									<Image
-										src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/mastery-level-plate.png"
-										alt="Mastery Level Plate"
-										width={70}
-										height={70}
-										className="rounded-md"
-										loading="lazy"
-									/>
-
 									{/* Mastery Level Text Overlay */}
-									<span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-gray-600 text-lg font-bold drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]">
+									<span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-lg font-bold drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]">
 										{mastery.championLevel}
 									</span>
 								</div>
