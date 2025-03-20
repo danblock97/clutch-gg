@@ -58,7 +58,7 @@ export default function MatchStatsTab({
 					const itemId = p[`item${i}`];
 					if (itemId && itemId > 0) {
 						toPrefetch.push(
-							`https://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${itemId}.png`
+							`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/item/${itemId}.png`
 						);
 					}
 				}
@@ -376,7 +376,7 @@ function Participant({ p, puuid, r, getA, getPerk, arena }) {
 							<div key={idx}>
 								{itemId > 0 ? (
 									<NextImage
-										src={`https://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${itemId}.png`}
+										src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/item/${itemId}.png`}
 										alt=""
 										width={24}
 										height={24}
