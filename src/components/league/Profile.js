@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 import DiscordBotBanner from "@/components/DiscordBotBanner.js";
+import SeasonRanks from "./SeasonRanks";
 
 const Profile = ({
 					 accountData,
@@ -110,14 +111,7 @@ const Profile = ({
 	const handleLiveGameClick = () => {
 		if (liveGameData) {
 			toggleLiveGame();
-		} else {
-			setShowNoActiveGameData(true);
 		}
-	};
-
-	// Handler to close NoActiveGameData component
-	const handleCloseNoActiveGameData = () => {
-		setShowNoActiveGameData(false);
 	};
 
 	return (
@@ -151,8 +145,15 @@ const Profile = ({
 								{`${accountData.gameName}#${accountData.tagLine}`}
 							</h1>
 
+							{/* Season Ranks - Add the new component here */}
+							<SeasonRanks
+								gameName={accountData.gameName}
+								tagLine={accountData.tagLine}
+								region={region}
+							/>
+
 							{/* Ranked Data and Buttons Container */}
-							<div className="flex flex-col">
+							<div className="flex flex-col mt-2">
 								{soloRankedData ? (
 									<div className="flex items-center">
 										{rankedIcon && (
