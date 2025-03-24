@@ -78,29 +78,35 @@ export async function GET(req) {
 
         const rankHistory = [];
 
-        $('tr.bg-main-100').each((index, element) => {
-            const season = $(element).find('strong.h-\\[18px\\].rounded-sm.bg-gray-200').text().trim();
-
-            const tier = $(element).find('span.text-xs.lowercase.first-letter\\:uppercase').text().trim();
-
-            const lpText = $(element).find('td[align="right"].text-xs.text-gray-500').text().trim();
-            let lp = null;
-            if (lpText) {
-                lp = parseInt(lpText, 10);
-            }
-
-            if (season && tier) {
-                rankHistory.push({
-                    season,
-                    tier: tier.charAt(0).toUpperCase() + tier.slice(1),
-                    lp
-                });
-            }
+// Filter for the table with the caption "Ranked Solo/Duo"
+        const rankedSoloDuoTable = $('table').filter((i, table) => {
+            return $(table).find('caption').text().trim() === 'Ranked Solo/Duo';
         });
 
-        if (rankHistory.length > 0) {
-            console.log("Successfully parsed rank history:", rankHistory);
+        if (rankedSoloDuoTable.length) {
+            // Iterate over each row in the tbody of the target table
+            rankedSoloDuoTable.find('tbody tr').each((i, row) => {
+                const season = $(row).find('td:first-child strong').text().trim();
+                const tier = $(row).find('td:nth-child(2) span').first().text().trim();
+                const lpText = $(row).find('td:last-child').text().trim();
+                const lp = lpText ? parseInt(lpText, 10) : null;
 
+                if (season && tier) {
+                    rankHistory.push({
+                        season,
+                        tier: tier.charAt(0).toUpperCase() + tier.slice(1),
+                        lp,
+                    });
+                }
+            });
+        } else {
+            console.error("Ranked Solo/Duo table not found.");
+        }
+
+
+
+
+        if (rankHistory.length > 0) {
             // Cache the data
             CACHE.set(cacheKey, {
                 data: rankHistory,
