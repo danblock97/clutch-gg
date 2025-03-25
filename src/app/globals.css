@@ -1,3 +1,259 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+    --primary: #3a86ff;
+    --primary-dark: #2667cc;
+    --secondary: #8338ec;
+    --accent: #ff006e;
+    --background: #0e1015;
+    --card-bg: #1a1d26;
+    --card-bg-secondary: #232337;
+    --card-border: #2f2f46;
+    --text-primary: #ffffff;
+    --text-secondary: #94a3b8;
+    --success: #10b981;
+    --error: #ef4444;
+    --warning: #f59e0b;
+    --iron: #6e6e6e;
+    --bronze: #a26220;
+    --silver: #95a5a6;
+    --gold: #f0b267;
+    --platinum: #35c2c2;
+    --emerald: #04a86c;
+    --diamond: #738ff5;
+    --master: #9d4dc5;
+    --grandmaster: #d73636;
+    --challenger: #e8be56;
+}
+
+@layer base {
+    body {
+        @apply bg-[--background] text-[--text-primary] font-sans;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        @apply font-bold;
+    }
+}
+
+@layer components {
+    .card {
+        @apply bg-[--card-bg] border border-[--card-border] rounded-xl p-4 shadow-lg transition-all duration-200;
+    }
+
+    .card-highlight {
+        @apply bg-gradient-to-br from-[--card-bg-secondary] to-[--card-bg] border border-[--card-border] rounded-xl p-4 shadow-lg;
+    }
+
+    .btn-primary {
+        @apply bg-[--primary] hover:bg-[--primary-dark] text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200;
+    }
+
+    .btn-secondary {
+        @apply bg-[--secondary] hover:opacity-90 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200;
+    }
+
+    .btn-outline {
+        @apply border border-[--primary] text-[--primary] hover:bg-[--primary] hover:text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200;
+    }
+
+    .btn-success {
+        @apply bg-[--success] hover:opacity-90 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200;
+    }
+
+    .btn-error {
+        @apply bg-[--error] hover:opacity-90 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200;
+    }
+
+    .nav-link {
+        @apply text-[--text-secondary] hover:text-[--text-primary] transition-colors duration-200;
+    }
+
+    .stat-block {
+        @apply flex flex-col items-center bg-[--card-bg] rounded-lg p-3 text-center;
+    }
+
+    .match-win {
+        @apply bg-gradient-to-r from-[#172e40] via-[#1a4a6b] to-[#172e40] border-l-4 border-[--success];
+    }
+
+    .match-loss {
+        @apply bg-gradient-to-r from-[#3a1d1d] via-[#4a2222] to-[#3a1d1d] border-l-4 border-[--error];
+    }
+
+    .match-remake {
+        @apply bg-gradient-to-r from-[#2d2a16] via-[#3d3a1c] to-[#2d2a16] border-l-4 border-[--warning];
+    }
+
+    .animate-pulse-custom {
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    .rank-icon {
+        @apply relative flex items-center justify-center;
+    }
+
+    .rank-icon::after {
+        @apply content-[''] absolute inset-0 rounded-full bg-gradient-to-b opacity-60 -z-10;
+    }
+
+    .rank-iron::after {
+        @apply from-[--iron] to-transparent;
+    }
+
+    .rank-bronze::after {
+        @apply from-[--bronze] to-transparent;
+    }
+
+    .rank-silver::after {
+        @apply from-[--silver] to-transparent;
+    }
+
+    .rank-gold::after {
+        @apply from-[--gold] to-transparent;
+    }
+
+    .rank-platinum::after {
+        @apply from-[--platinum] to-transparent;
+    }
+
+    .rank-emerald::after {
+        @apply from-[--emerald] to-transparent;
+    }
+
+    .rank-diamond::after {
+        @apply from-[--diamond] to-transparent;
+    }
+
+    .rank-master::after {
+        @apply from-[--master] to-transparent;
+    }
+
+    .rank-grandmaster::after {
+        @apply from-[--grandmaster] to-transparent;
+    }
+
+    .rank-challenger::after {
+        @apply from-[--challenger] to-transparent;
+    }
+
+    /* Stat Card Animation */
+    .stat-card {
+        @apply relative overflow-hidden;
+    }
+
+    .stat-card::before {
+        @apply content-[''] absolute -inset-1 z-0 bg-gradient-to-r from-transparent via-[--primary] to-transparent opacity-0 transition-opacity duration-1000;
+        transform: rotate(45deg);
+    }
+
+    .stat-card:hover::before {
+        @apply opacity-20;
+        animation: shine 2s ease-in-out;
+    }
+
+    /* Glass effect */
+    .glass {
+        @apply bg-white/10 backdrop-blur-lg border border-white/20 shadow-lg;
+    }
+
+    /* Scrollbar */
+    .custom-scrollbar::-webkit-scrollbar {
+        @apply w-2;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+        @apply bg-transparent;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        @apply bg-[--card-border] rounded-full;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        @apply bg-[--primary];
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+@keyframes shine {
+    0% {
+        left: -100%;
+        opacity: 0;
+    }
+    50% {
+        opacity: 0.3;
+    }
+    100% {
+        left: 100%;
+        opacity: 0;
+    }
+}
+
+/* Profile header background animation */
+.profile-header-bg {
+    background: linear-gradient(45deg, #0e1015, #1a1d26, #232337, #1a1d26, #0e1015);
+    background-size: 400% 400%;
+    animation: gradient 15s ease infinite;
+}
+
+@keyframes gradient {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* Loading animation */
+.loading-spinner {
+    @apply relative w-16 h-16;
+}
+
+.loading-spinner::before,
+.loading-spinner::after {
+    @apply content-[''] absolute w-16 h-16 rounded-full border-4 border-transparent;
+}
+
+.loading-spinner::before {
+    @apply border-t-[--primary] border-r-[--primary] animate-spin;
+    animation-duration: 1s;
+}
+
+.loading-spinner::after {
+    @apply border-b-[--secondary] border-l-[--secondary] animate-spin;
+    animation-duration: 1.5s;
+}
+
+/* Responsive typography */
+@media (max-width: 640px) {
+    html {
+        font-size: 14px;
+    }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+    html {
+        font-size: 15px;
+    }
+}
+
+@media (min-width: 1025px) {
+    html {
+        font-size: 16px;
+    }
+}

@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 import DiscordBotBanner from "@/components/DiscordBotBanner.js";
-import SeasonRanks from "./SeasonRanks";
+import SeasonRanks from "./seasonRanks.js";
 
 const Profile = ({
 					 accountData,
@@ -25,6 +25,7 @@ const Profile = ({
 	const [lastUpdated, setLastUpdated] = useState(null);
 	const [countdown, setCountdown] = useState(0);
 	const [updateTriggered, setUpdateTriggered] = useState(false);
+	const [seasonUpdateTrigger, setSeasonUpdateTrigger] = useState(0); // Add this state for SeasonRanks updates
 	const intervalRef = useRef(null);
 
 	// Initialize state from localStorage on mount
@@ -53,6 +54,7 @@ const Profile = ({
 			setLastUpdated(now);
 			setCountdown(120);
 			setUpdateTriggered(false);
+			setSeasonUpdateTrigger(prev => prev + 1); // Trigger SeasonRanks update
 			localStorage.setItem("lastUpdated", now.toISOString());
 		}
 	}, [isUpdating, updateTriggered]);
@@ -107,180 +109,172 @@ const Profile = ({
 		return "Just now";
 	};
 
-	// Handler for Live Game button click
-	const handleLiveGameClick = () => {
-		if (liveGameData) {
-			toggleLiveGame();
-		}
-	};
-
 	return (
-		<div className="relative w-full py-6 shadow-md overflow-hidden">
-			<div className="relative w-full max-w-screen-xl mx-auto flex flex-col md:flex-row items-center justify-between p-4">
-				{/* Left side: Profile Information */}
-				<div className="flex-1">
-					<div className="relative flex items-center justify-between">
-						{/* Profile Icon */}
-						<div className="relative">
-							<div className="rounded-full overflow-hidden w-20 h-20 border-4 border-transparent bg-gradient-to-r from-blue-500 to-indigo-500">
+		<>
+			<div className="profile-header-bg w-full py-8 shadow-2xl overflow-hidden">
+				<div className="w-full max-w-screen-xl mx-auto px-4 sm:px-6">
+					<div className="relative flex flex-col lg:flex-row items-start lg:items-center gap-6">
+						{/* Left Side: Profile Icon & Level */}
+						<div className="flex-shrink-0 relative">
+							<div className="rank-icon rank-gold w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden">
 								<Image
 									src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/${profileData.profileIconId}.jpg`}
 									alt="Player Icon"
-									layout="responsive"
-									width={80}
-									height={80}
-									className="rounded-full object-cover"
+									width={112}
+									height={112}
+									className="w-full h-full object-cover"
 								/>
 							</div>
-
-							{/* Region Badge */}
-							<div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white text-xs font-bold py-1 px-2 rounded-full shadow-lg">
+							<div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-[--primary] to-[--secondary] text-white text-sm font-bold py-1 px-3 rounded-full shadow-lg">
 								{profileData.summonerLevel}
 							</div>
 						</div>
 
-						{/* Name, Tag, Rank */}
-						<div className="ml-4 flex-1">
-							<h1 className="text-3xl font-bold text-white">
-								{`${accountData.gameName}#${accountData.tagLine}`}
+						{/* Middle: Name, Tag, Ranked Info */}
+						<div className="flex-grow flex flex-col">
+							<h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold mb-1 bg-clip-text text-transparent bg-gradient-to-r from-white via-blue-100 to-white">
+								{`${accountData.gameName}`}
+								<span className="text-[--text-secondary] text-base sm:text-lg md:text-xl font-medium">
+                  #{accountData.tagLine}
+                </span>
 							</h1>
 
-							{/* Season Ranks - Add the new component here */}
-							<SeasonRanks
-								gameName={accountData.gameName}
-								tagLine={accountData.tagLine}
-								region={region}
-							/>
-
-							{/* Ranked Data and Buttons Container */}
-							<div className="flex flex-col mt-2">
-								{soloRankedData ? (
-									<div className="flex items-center">
-										{rankedIcon && (
+							{/* Solo Queue Rank */}
+							{soloRankedData ? (
+								<div className="flex items-center mt-2">
+									{rankedIcon && (
+										<div className="relative mr-3">
 											<Image
 												src={rankedIcon}
 												alt={`${soloRankedData.tier} Emblem`}
-												width={32}
-												height={32}
-												className="rounded-full mr-4"
+												width={40}
+												height={40}
+												className="drop-shadow-md"
 											/>
-										)}
-										<div>
-											<p className="text-blue-400 font-semibold">
-												{soloRankedData.tier} {soloRankedData.rank}{" "}
-												{soloRankedData.leaguePoints} LP
-											</p>
-											<p className="text-gray-400 text-sm">
-												{soloRankedData.wins}W - {soloRankedData.losses}L (
-												{(
-													(soloRankedData.wins /
-														(soloRankedData.wins + soloRankedData.losses)) *
-													100
-												).toFixed(1)}
-												% WR)
-											</p>
+											<div className="absolute -bottom-1 -right-1 bg-[--card-bg] text-xs px-1 rounded-md border border-[--card-border]">
+												{soloRankedData.rank}
+											</div>
 										</div>
-									</div>
-								) : (
-									<p className="text-gray-400 font-semibold">Unranked</p>
-								)}
-
-								<div className="flex flex-col items-start mt-3 space-y-2">
-									{/* Buttons Container */}
-									<div className="flex space-x-2">
-										{/* Update Button */}
-										<button
-											onClick={(e) => {
-												e.stopPropagation();
-												triggerUpdate();
-												setUpdateTriggered(true);
-											}}
-											className={`px-4 py-2 rounded-md text-sm inline-flex items-center justify-center transition-colors duration-300 ${
-												isUpdating
-													? "bg-blue-600 opacity-50 cursor-not-allowed"
-													: isUpdated
-														? "bg-green-500 hover:bg-green-600"
-														: "bg-blue-600 hover:bg-blue-700"
-											} `}
-											disabled={isUpdating || countdown > 0}
-										>
-											{isUpdating ? (
-												<svg
-													className="animate-spin h-5 w-5 mr-2 text-white"
-													xmlns="http://www.w3.org/2000/svg"
-													fill="none"
-													viewBox="0 0 24 24"
-												>
-													<circle
-														className="opacity-25"
-														cx="12"
-														cy="12"
-														r="10"
-														stroke="currentColor"
-														strokeWidth="4"
-													></circle>
-													<path
-														className="opacity-75"
-														fill="currentColor"
-														d="M4 12a8 8 0 018-8v8H4z"
-													></path>
-												</svg>
-											) : null}
-											{isUpdating
-												? "Updating..."
-												: isUpdated
-													? "Updated"
-													: "Update"}
-										</button>
-
-										{/* Live Game Button with Tooltip */}
-										<div className="relative group">
-											<button
-												onClick={(e) => {
-													e.stopPropagation();
-													handleLiveGameClick();
-												}}
-												disabled={!liveGameData}
-												className={`px-4 py-2 rounded-md text-sm inline-flex items-center justify-center transition-colors duration-300 ${
-													liveGameData
-														? "bg-green-600 hover:bg-green-700 text-white"
-														: "bg-gray-600 text-gray-300 cursor-not-allowed"
-												}`}
-											>
-												Live Game
-											</button>
-
-											{liveGameData && (
-												<div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-													Currently in Game
-												</div>
-											)}
-										</div>
-									</div>
-
-									{/* Update Status */}
-									{isUpdated && countdown > 0 ? (
-										<p className="text-xs text-gray-300">
-											Available in {countdown} second
-											{countdown !== 1 ? "s" : ""}
+									)}
+									<div>
+										<p className="font-semibold text-lg">
+                      <span className={`text-[--${soloRankedData.tier.toLowerCase()}]`}>
+                        {soloRankedData.tier}
+                      </span>
+											<span className="text-[--text-primary] ml-2">
+                        {soloRankedData.leaguePoints} LP
+                      </span>
 										</p>
-									) : lastUpdated ? (
-										<p className="text-xs text-gray-300">
-											Last Updated {timeAgo(lastUpdated)}
+										<p className="text-[--text-secondary] text-sm">
+											{soloRankedData.wins}W - {soloRankedData.losses}L (
+											{(
+												(soloRankedData.wins /
+													(soloRankedData.wins + soloRankedData.losses)) *
+												100
+											).toFixed(1)}
+											% WR)
 										</p>
-									) : null}
+									</div>
 								</div>
+							) : (
+								<p className="text-[--text-secondary] font-semibold">Unranked</p>
+							)}
+
+							{/* Action Buttons */}
+							<div className="flex flex-wrap gap-3 mt-4">
+								<button
+									onClick={(e) => {
+										e.stopPropagation();
+										triggerUpdate();
+										setUpdateTriggered(true);
+									}}
+									className={`relative overflow-hidden rounded-lg text-sm font-medium transition-all duration-300 inline-flex items-center justify-center px-4 py-2
+                    ${
+										isUpdating
+											? "bg-gray-600 opacity-50 cursor-not-allowed"
+											: isUpdated
+												? "btn-success"
+												: "btn-primary"
+									}`}
+									disabled={isUpdating || countdown > 0}
+								>
+									{isUpdating && (
+										<svg
+											className="animate-spin h-4 w-4 mr-2"
+											xmlns="http://www.w3.org/2000/svg"
+											fill="none"
+											viewBox="0 0 24 24"
+										>
+											<circle
+												className="opacity-25"
+												cx="12"
+												cy="12"
+												r="10"
+												stroke="currentColor"
+												strokeWidth="4"
+											></circle>
+											<path
+												className="opacity-75"
+												fill="currentColor"
+												d="M4 12a8 8 0 018-8v8H4z"
+											></path>
+										</svg>
+									)}
+									{isUpdating
+										? "Updating..."
+										: isUpdated
+											? "Updated"
+											: "Update Profile"}
+								</button>
+
+								<button
+									onClick={(e) => {
+										e.stopPropagation();
+										if (liveGameData) toggleLiveGame();
+									}}
+									disabled={!liveGameData}
+									className={`relative overflow-hidden rounded-lg text-sm font-medium transition-all duration-300 inline-flex items-center justify-center px-4 py-2
+                    ${
+										liveGameData
+											? "bg-gradient-to-r from-green-600 to-teal-500 hover:from-green-500 hover:to-teal-400 text-white"
+											: "bg-gray-700 text-gray-400 cursor-not-allowed"
+									}`}
+								>
+									{liveGameData ? (
+										<>
+                      <span className="relative flex h-2 w-2 mr-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-red-600"></span>
+                      </span>
+											Live Game
+										</>
+									) : (
+										"Not In Game"
+									)}
+								</button>
+
+								{/* Timer */}
+								{isUpdated && countdown > 0 && (
+									<div className="text-xs text-[--text-secondary] self-center">
+										Next update available in {countdown}s
+									</div>
+								)}
 							</div>
 						</div>
+
+						{/* Right Side: Discord Bot Banner (Desktop) */}
+						<div className="hidden lg:block flex-shrink-0">
+							<DiscordBotBanner />
+						</div>
+					</div>
+
+					{/* Discord Banner (Mobile) - Appears below on smaller screens */}
+					<div className="lg:hidden mt-6">
+						<DiscordBotBanner />
 					</div>
 				</div>
-
-				{/* Right side: Discord Bot Banner */}
-				<div className="mt-6 md:mt-0 md:ml-6">
-					<DiscordBotBanner />
-				</div>
 			</div>
-		</div>
+		</>
 	);
 };
 

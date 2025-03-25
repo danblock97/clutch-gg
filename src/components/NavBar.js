@@ -5,11 +5,24 @@ import { usePathname, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import SearchBar from "@/components/SearchBar";
-import { FaCoffee } from "react-icons/fa";
+import {
+	FaCoffee,
+	FaSearch,
+	FaBars,
+	FaTimes,
+	FaTrophy,
+	FaDiscord,
+	FaBug,
+	FaChevronDown,
+	FaChevronUp,
+	FaHome
+} from "react-icons/fa";
 
 const NavBar = ({ isBannerVisible }) => {
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 	const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+	const [scrolled, setScrolled] = useState(false);
+	const [navbarHeight, setNavbarHeight] = useState(0);
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
 
@@ -17,6 +30,26 @@ const NavBar = ({ isBannerVisible }) => {
 		pathname === "/league/profile" || pathname === "/match";
 	const region = isProfileOrMatch ? searchParams.get("region") : null;
 
+	// Handle scroll events to change navbar appearance
+	useEffect(() => {
+		const handleScroll = () => {
+			const offset = window.scrollY;
+			setScrolled(offset > 10);
+		};
+
+		// Get navbar height for offset
+		const navbar = document.getElementById('main-navbar');
+		if (navbar) {
+			setNavbarHeight(navbar.offsetHeight);
+		}
+
+		window.addEventListener('scroll', handleScroll);
+		return () => {
+			window.removeEventListener('scroll', handleScroll);
+		};
+	}, []);
+
+	// Load jQuery and Jira collector
 	useEffect(() => {
 		// Load jQuery if not already loaded
 		if (typeof window !== "undefined" && !window.jQuery) {
@@ -52,180 +85,217 @@ const NavBar = ({ isBannerVisible }) => {
 		};
 	}, []);
 
+	// Handle closing mobile menu when a link is clicked
+	const handleLinkClick = () => {
+		setIsMenuOpen(false);
+	};
+
 	return (
-		<nav
-			className={`bg-black text-white py-4 px-6 flex items-center justify-between ${
-				isBannerVisible ? "pt-16" : "pt-4"
-			}`}
+		<header
+			style={{
+				paddingTop: isBannerVisible ? "2.5rem" : "0",
+			}}
 		>
-			<div className="flex items-center space-x-4">
-				<Link href="/">
-					<Image
-						src="/images/logo.png"
-						alt="Logo"
-						width={32}
-						height={32}
-						className="h-8 w-8"
-					/>
-				</Link>
-				{/* Search Trigger (Desktop Only) */}
-				{isProfileOrMatch && (
-					<button
-						onClick={() => setIsSearchModalOpen(true)}
-						className="hidden md:flex items-center p-2 bg-[#13151b] rounded-md hover:bg-[#2f3242] font-bold"
-					>
-						<svg
-							className="w-6 h-6 text-gray-300"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								strokeWidth="2"
-								d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-							></path>
-						</svg>
-						<span className="ml-2 px-2 hidden sm:inline">Search</span>
-					</button>
-				)}
-				{/* Desktop Links (Left Aligned) */}
-				<div className="hidden md:flex items-center space-x-4">
-					<Link
-						href="/league/leaderboard"
-						className="flex items-center px-3 py-2 text-gray-500 font-bold"
-					>
-						<span className="ml-2">Leaderboards</span>
-					</Link>
-					<Link
-						href="https://buymeacoffee.com/danblock97"
-						target="_blank"
-						rel="noopener noreferrer"
-						className="flex items-center px-3 py-1 bg-gray-800 text-white rounded-md font-bold hover:bg-gray-700"
-					>
-						<FaCoffee className="w-5 h-5" />
-						<span className="ml-2">Support Us</span>
-					</Link>
-				</div>
-			</div>
-
-			{/* Report a Bug Button on the far right (Desktop Only) */}
-			<div className="hidden md:flex items-center">
-				<button
-					id="myCustomTrigger"
-					className="flex items-center px-3 py-2 text-gray-500 font-bold hover:text-gray-300"
-				>
-					Report a Bug
-				</button>
-			</div>
-
-			{/* Mobile Hamburger */}
-			<div className="md:hidden">
-				<button
-					className="text-white p-2"
-					onClick={() => setIsMenuOpen(!isMenuOpen)}
-				>
-					<svg
-						className="w-6 h-6"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-						xmlns="http://www.w3.org/2000/svg"
-					>
-						<path
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							strokeWidth="2"
-							d="M4 6h16M4 12h16M4 18h16"
-						></path>
-					</svg>
-				</button>
-			</div>
-
-			{/* Mobile Menu Overlay */}
-			<div
-				className={`fixed top-0 left-0 w-full h-full bg-[#13151b] z-50 transform transition-transform duration-300 ${
-					isMenuOpen ? "translate-y-0" : "-translate-y-full"
-				}`}
+			<nav
+				id="main-navbar"
+				className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
+					scrolled ? 'bg-[--background]/90 backdrop-blur-md shadow-lg' : 'bg-transparent'
+				} ${isBannerVisible ? 'mt-10' : ''}`}
 			>
-				<div className="relative w-full h-full flex flex-col items-center justify-start p-4 pt-20">
-					<button
-						onClick={() => setIsMenuOpen(false)}
-						className="text-white absolute top-4 right-4 p-1"
-					>
-						<svg
-							className="w-6 h-6"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-							xmlns="http://www.w3.org/2000/svg"
-						>
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								strokeWidth="2"
-								d="M6 18L18 6M6 6l12 12"
-							/>
-						</svg>
-					</button>
+				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+					<div className="flex items-center justify-between h-16">
+						{/* Logo & Left-side links */}
+						<div className="flex items-center space-x-6">
+							<Link href="/" className="flex-shrink-0 flex items-center space-x-2">
+								<div className="relative w-8 h-8 overflow-hidden">
+									<Image
+										src="/images/logo.png"
+										alt="ClutchGG.LOL"
+										width={32}
+										height={32}
+										className="object-contain"
+									/>
+								</div>
+								<span className="font-bold text-lg hidden sm:inline-block bg-clip-text text-transparent bg-gradient-to-r from-[--primary] to-[--secondary]">
+                  ClutchGG.LOL
+                </span>
+							</Link>
 
-					{/* Mobile Search Trigger */}
-					{isProfileOrMatch && (
-						<>
-							<button
-								onClick={() => setIsSearchModalOpen(true)}
-								className="flex items-center justify-center p-2 bg-[#13151b] rounded-md hover:bg-[#2f3242] font-bold w-full"
-							>
-								<svg
-									className="w-6 h-6 text-gray-300"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24"
+							{/* Desktop Navigation Links */}
+							<div className="hidden md:flex items-center space-x-6">
+								<Link
+									href="/"
+									className={`nav-link flex items-center space-x-1 ${
+										pathname === "/" ? "text-[--primary]" : ""
+									}`}
 								>
-									<path
-										strokeLinecap="round"
-										strokeLinejoin="round"
-										strokeWidth="2"
-										d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-									></path>
-								</svg>
-								<span className="ml-2 px-2">Search</span>
+									<FaHome className="text-sm" />
+									<span>Home</span>
+								</Link>
+								<Link
+									href="/league/leaderboard"
+									className={`nav-link flex items-center space-x-1 ${
+										pathname === "/league/leaderboard" ? "text-[--primary]" : ""
+									}`}
+								>
+									<FaTrophy className="text-sm" />
+									<span>Leaderboards</span>
+								</Link>
+							</div>
+						</div>
+
+						{/* Right Side - Actions */}
+						<div className="flex items-center space-x-4">
+							{/* Search Button - Show on profile or match pages */}
+							{isProfileOrMatch && (
+								<button
+									onClick={() => setIsSearchModalOpen(true)}
+									className="btn-outline py-1 px-3 hidden md:flex items-center space-x-1"
+								>
+									<FaSearch className="text-sm" />
+									<span>Search</span>
+								</button>
+							)}
+
+							{/* Desktop Actions */}
+							<div className="hidden md:flex items-center space-x-4">
+								<Link
+									href="https://discord.gg/BeszQxTn9D"
+									target="_blank"
+									rel="noopener noreferrer"
+									className="nav-link flex items-center space-x-1"
+								>
+									<FaDiscord className="text-lg" />
+									<span>Discord</span>
+								</Link>
+
+								<button
+									id="myCustomTrigger"
+									className="nav-link flex items-center space-x-1"
+								>
+									<FaBug className="text-sm" />
+									<span>Report Bug</span>
+								</button>
+
+								<Link
+									href="https://buymeacoffee.com/danblock97"
+									target="_blank"
+									rel="noopener noreferrer"
+									className="btn-primary py-1 px-3 flex items-center space-x-1"
+								>
+									<FaCoffee className="text-sm" />
+									<span>Support</span>
+								</Link>
+							</div>
+
+							{/* Mobile menu button */}
+							<button
+								onClick={() => setIsMenuOpen(!isMenuOpen)}
+								className="inline-flex items-center justify-center p-2 rounded-md text-[--text-secondary] hover:text-[--text-primary] focus:outline-none md:hidden"
+								aria-expanded="false"
+							>
+								<span className="sr-only">Open main menu</span>
+								{isMenuOpen ? (
+									<FaTimes className="block h-6 w-6" aria-hidden="true" />
+								) : (
+									<FaBars className="block h-6 w-6" aria-hidden="true" />
+								)}
 							</button>
-							<hr className="border-gray-600 w-full my-2" />
-						</>
-					)}
-
-					{/* Mobile Menu Links */}
-					<Link
-						href="/league/leaderboard"
-						className="text-xl text-gray-300 hover:text-gray-200 mb-6 font-bold w-full text-center"
-						onClick={() => setIsMenuOpen(false)}
-					>
-						Leaderboards
-					</Link>
-					<hr className="border-gray-600 w-full my-2" />
-					<button
-						id="myCustomTrigger"
-						className="text-xl text-gray-300 hover:text-gray-200 mb-6 font-bold w-full text-center"
-					>
-						Report a Bug
-					</button>
-					<hr className="border-gray-600 w-full my-2" />
-					<Link
-						href="https://buymeacoffee.com/danblock97"
-						target="_blank"
-						rel="noopener noreferrer"
-						className="flex items-center justify-center px-3 py-2 bg-gray-800 text-white rounded-md font-bold hover:bg-gray-700 w-full"
-						onClick={() => setIsMenuOpen(false)}
-					>
-						<FaCoffee className="w-5 h-5" />
-						<span className="ml-2">Support Us</span>
-					</Link>
+						</div>
+					</div>
 				</div>
-			</div>
 
-			{/* Render the SearchBar modal if active */}
+				{/* Mobile menu, show/hide based on menu state */}
+				<div
+					className={`md:hidden transition-all duration-300 ease-in-out ${
+						isMenuOpen
+							? 'max-h-screen opacity-100 visible'
+							: 'max-h-0 opacity-0 invisible'
+					}`}
+				>
+					<div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-[--card-bg] border-t border-[--card-border] shadow-lg">
+						<Link
+							href="/"
+							className="nav-link block px-3 py-2 rounded-md hover:bg-[--card-bg-secondary]"
+							onClick={handleLinkClick}
+						>
+							<div className="flex items-center space-x-3">
+								<FaHome />
+								<span>Home</span>
+							</div>
+						</Link>
+
+						<Link
+							href="/league/leaderboard"
+							className="nav-link block px-3 py-2 rounded-md hover:bg-[--card-bg-secondary]"
+							onClick={handleLinkClick}
+						>
+							<div className="flex items-center space-x-3">
+								<FaTrophy />
+								<span>Leaderboards</span>
+							</div>
+						</Link>
+
+						{/* Mobile Search Option (only on profile/match pages) */}
+						{isProfileOrMatch && (
+							<button
+								onClick={() => {
+									setIsSearchModalOpen(true);
+									setIsMenuOpen(false);
+								}}
+								className="w-full text-left nav-link block px-3 py-2 rounded-md hover:bg-[--card-bg-secondary]"
+							>
+								<div className="flex items-center space-x-3">
+									<FaSearch />
+									<span>Search Summoner</span>
+								</div>
+							</button>
+						)}
+
+						<Link
+							href="https://discord.gg/BeszQxTn9D"
+							target="_blank"
+							rel="noopener noreferrer"
+							className="nav-link block px-3 py-2 rounded-md hover:bg-[--card-bg-secondary]"
+							onClick={handleLinkClick}
+						>
+							<div className="flex items-center space-x-3">
+								<FaDiscord />
+								<span>Discord Community</span>
+							</div>
+						</Link>
+
+						<button
+							id="myCustomTrigger"
+							className="w-full text-left nav-link block px-3 py-2 rounded-md hover:bg-[--card-bg-secondary]"
+							onClick={handleLinkClick}
+						>
+							<div className="flex items-center space-x-3">
+								<FaBug />
+								<span>Report a Bug</span>
+							</div>
+						</button>
+
+						<Link
+							href="https://buymeacoffee.com/danblock97"
+							target="_blank"
+							rel="noopener noreferrer"
+							className="block px-3 py-2 rounded-md bg-[--primary] text-white hover:bg-[--primary-dark]"
+							onClick={handleLinkClick}
+						>
+							<div className="flex items-center space-x-3">
+								<FaCoffee />
+								<span>Support Us</span>
+							</div>
+						</Link>
+					</div>
+				</div>
+			</nav>
+
+			{/* Spacer to prevent content from being hidden under the navbar */}
+			<div style={{ height: `${navbarHeight}px` }}></div>
+
+			{/* Search Modal */}
 			{isSearchModalOpen && (
 				<SearchBar
 					initialRegion={region}
@@ -236,7 +306,7 @@ const NavBar = ({ isBannerVisible }) => {
 					}}
 				/>
 			)}
-		</nav>
+		</header>
 	);
 };
 

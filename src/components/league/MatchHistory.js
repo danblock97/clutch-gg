@@ -275,19 +275,19 @@ const getAdditionalTags = (match, currentPlayer) => {
 	return tags;
 };
 
-// Updated getGradientBackground with a static mapping for arena placements.
+// Updated getGradientBackground with consistent styling using CSS variables
 const getGradientBackground = (match, currentPlayer, isRemake, isMVP) => {
 	if (match.info.queueId === 1700) {
 		// Mapping for arena placements to gradient classes
 		const placementGradientClasses = {
-			1: "bg-gradient-to-r from-gray-800 via-yellow-500/20 to-gray-800",
-			2: "bg-gradient-to-r from-gray-800 via-pink-500/20 to-gray-800",
-			3: "bg-gradient-to-r from-gray-800 via-orange-500/20 to-gray-800",
-			4: "bg-gradient-to-r from-gray-800 via-blue-500/20 to-gray-800",
-			5: "bg-gradient-to-r from-gray-800 via-red-500/20 to-gray-800",
-			6: "bg-gradient-to-r from-gray-800 via-green-500/20 to-gray-800",
-			7: "bg-gradient-to-r from-gray-800 via-purple-500/20 to-gray-800",
-			8: "bg-gradient-to-r from-gray-800 via-indigo-500/20 to-gray-800",
+			1: "bg-gradient-to-r from-[--card-bg] via-yellow-500/20 to-[--card-bg] border border-[--card-border]",
+			2: "bg-gradient-to-r from-[--card-bg] via-pink-500/20 to-[--card-bg] border border-[--card-border]",
+			3: "bg-gradient-to-r from-[--card-bg] via-orange-500/20 to-[--card-bg] border border-[--card-border]",
+			4: "bg-gradient-to-r from-[--card-bg] via-blue-500/20 to-[--card-bg] border border-[--card-border]",
+			5: "bg-gradient-to-r from-[--card-bg] via-red-500/20 to-[--card-bg] border border-[--card-border]",
+			6: "bg-gradient-to-r from-[--card-bg] via-green-500/20 to-[--card-bg] border border-[--card-border]",
+			7: "bg-gradient-to-r from-[--card-bg] via-purple-500/20 to-[--card-bg] border border-[--card-border]",
+			8: "bg-gradient-to-r from-[--card-bg] via-indigo-500/20 to-[--card-bg] border border-[--card-border]",
 		};
 		// Sort participants based on missions.playerScore0
 		let sortedParticipants = [...match.info.participants].map((p) => ({
@@ -299,13 +299,13 @@ const getGradientBackground = (match, currentPlayer, isRemake, isMVP) => {
 			(p) => p.puuid === currentPlayer.puuid
 		);
 		const placement = Math.floor(currentIndex / 2) + 1;
-		return placementGradientClasses[placement] || "bg-gradient-to-r from-gray-800 via-white/20 to-gray-800";
+		return placementGradientClasses[placement] || "bg-gradient-to-r from-[--card-bg] via-white/20 to-[--card-bg] border border-[--card-border]";
 	}
-	if (isMVP) return "bg-gradient-to-r from-gray-800 via-yellow-600/20 to-gray-800";
-	if (isRemake) return "bg-gradient-to-r from-gray-800 via-yellow-600/20 to-gray-800";
+	if (isMVP) return "bg-gradient-to-r from-[--card-bg] via-yellow-600/20 to-[--card-bg] border border-[--card-border]";
+	if (isRemake) return "bg-gradient-to-r from-[--card-bg] via-yellow-600/20 to-[--card-bg] border border-[--card-border]";
 	return currentPlayer.win
-		? "bg-gradient-to-r from-gray-800 via-green-900/20 to-gray-800"
-		: "bg-gradient-to-r from-gray-800 via-red-900/20 to-gray-800";
+		? "bg-gradient-to-r from-[--card-bg] via-green-900/20 to-[--card-bg] border border-[--card-border]"
+		: "bg-gradient-to-r from-[--card-bg] via-red-900/20 to-[--card-bg] border border-[--card-border]";
 };
 
 const normaliseTeamPosition = (position) => {
@@ -620,7 +620,7 @@ const MatchHistory = ({
 													: match.metadata.matchId
 											)
 										}
-										className={`rounded-lg shadow-lg p-6 cursor-pointer flex flex-col relative mb-2 min-w-[768px] text-xs sm:text-sm ${getGradientBackground(match, currentPlayer, isRemake, isMVP)}`}
+										className={`card-highlight rounded-lg shadow-lg p-6 cursor-pointer flex flex-col relative mb-2 min-w-[768px] text-xs sm:text-sm ${getGradientBackground(match, currentPlayer, isRemake, isMVP)}`}
 									>
 										<div className="absolute top-4 left-2 flex items-start">
 											<div className="flex items-center mr-4">

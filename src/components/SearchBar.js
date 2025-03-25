@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import debounce from "lodash.debounce";
+import { FaSearch, FaHistory, FaTimes } from "react-icons/fa";
 
 const regions = [
 	{ code: "BR1", name: "BR" },
@@ -29,8 +30,10 @@ const SearchBar = ({ onSearch, initialRegion, isModal, onModalClose }) => {
 	const [suggestions, setSuggestions] = useState([]);
 	const [isDropdownVisible, setIsDropdownVisible] = useState(false);
 	const [recentlySearched, setRecentlySearched] = useState([]);
+	const [isInputFocused, setIsInputFocused] = useState(false);
 	const router = useRouter();
 	const dropdownRef = useRef(null);
+	const inputRef = useRef(null);
 
 	useEffect(() => {
 		if (typeof window !== "undefined") {
@@ -127,7 +130,11 @@ const SearchBar = ({ onSearch, initialRegion, isModal, onModalClose }) => {
 			);
 			if (isModal && onModalClose) onModalClose();
 		} else {
-			alert("Please enter both game name, tagline, and select a region.");
+			// Show error in a more user-friendly way
+			inputRef.current.classList.add('animate-shake');
+			setTimeout(() => {
+				inputRef.current.classList.remove('animate-shake');
+			}, 500);
 		}
 
 		setCombinedInput("");
@@ -157,6 +164,12 @@ const SearchBar = ({ onSearch, initialRegion, isModal, onModalClose }) => {
 		handleSearch(selectedGameName, selectedTagLine, region);
 	};
 
+	const clearInput = () => {
+		setCombinedInput("");
+		setSuggestions([]);
+		inputRef.current.focus();
+	};
+
 	useEffect(() => {
 		const handleClickOutside = (event) => {
 			if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -169,123 +182,197 @@ const SearchBar = ({ onSearch, initialRegion, isModal, onModalClose }) => {
 		};
 	}, []);
 
+	// Adding keybinding for Escape to close modal
+	useEffect(() => {
+		const handleEscKey = (e) => {
+			if (e.key === 'Escape' && isModal && onModalClose) {
+				onModalClose();
+			}
+		};
+
+		window.addEventListener('keydown', handleEscKey);
+		return () => window.removeEventListener('keydown', handleEscKey);
+	}, [isModal, onModalClose]);
+
 	const searchBarContent = (
 		<div
-			className="relative mx-auto w-full max-w-xs sm:max-w-sm md:max-w-md"
+			className="relative w-full max-w-xs sm:max-w-sm md:max-w-md"
 			ref={dropdownRef}
 		>
-			<div className="flex w-full h-12 bg-[#13151b] rounded-md overflow-hidden border border-[#33374a] shadow-md">
+			<div className={`flex w-full h-12 glass rounded-lg overflow-hidden border transition-all duration-200 
+        ${isInputFocused ? 'border-[--primary] shadow-lg shadow-[--primary]/20' : 'border-[--card-border]'}
+        ${!combinedInput && inputRef.current?.classList.contains('animate-shake') ? 'border-[--error]' : ''}`}
+			>
 				<select
 					value={selectedRegion}
 					onChange={handleRegionChange}
-					className="bg-[#13151b] text-white px-2 sm:px-3 text-xs sm:text-sm focus:outline-none font-sans"
+					className="bg-transparent text-[--text-primary] px-2 sm:px-3 text-xs sm:text-sm focus:outline-none focus:bg-[--card-bg]/40 font-medium"
 				>
 					{regions.map((region) => (
-						<option key={region.code} value={region.code}>
+						<option key={region.code} value={region.code} className="bg-[--card-bg] text-[--text-primary]">
 							{region.name}
 						</option>
 					))}
 				</select>
 
-				<input
-					className="flex-grow p-3 sm:p-4 text-xs sm:text-sm text-white bg-[#13151b] focus:outline-none placeholder-gray-500"
-					type="text"
-					placeholder="Riot ID.. (e.g: Faker#SKT)"
-					value={combinedInput}
-					onChange={handleInputChange}
-					onKeyDown={handleKeyDown}
-				/>
+				<div className="relative flex-grow flex items-center">
+					<input
+						ref={inputRef}
+						className="w-full h-full p-3 text-xs sm:text-sm text-[--text-primary] bg-transparent focus:outline-none placeholder-gray-500"
+						type="text"
+						placeholder="Summoner name#tag"
+						value={combinedInput}
+						onChange={handleInputChange}
+						onKeyDown={handleKeyDown}
+						onFocus={() => setIsInputFocused(true)}
+						onBlur={() => setIsInputFocused(false)}
+						autoComplete="off"
+					/>
+					{combinedInput && (
+						<button
+							className="absolute right-1 text-gray-400 hover:text-white p-1 rounded-full"
+							onClick={clearInput}
+						>
+							<FaTimes />
+						</button>
+					)}
+				</div>
 
 				<button
-					className="flex items-center justify-center px-2 sm:px-3 text-gray-500 hover:text-white focus:outline-none"
+					className="flex items-center justify-center px-3 sm:px-4 text-[--text-primary] hover:bg-[--primary] transition-colors duration-200"
 					onClick={() => handleSearch()}
+					aria-label="Search"
 				>
-					<svg
-						className="w-5 h-5 sm:w-6 sm:h-6"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-					>
-						<path
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							strokeWidth="2"
-							d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-						></path>
-					</svg>
+					<FaSearch className="w-4 h-4 sm:w-5 sm:h-5" />
 				</button>
 			</div>
 
 			{/* Suggestions Dropdown */}
-			{isDropdownVisible && suggestions.length > 0 && (
-				<ul
-					className="absolute z-10 bg-[#1a1d26] border border-[#33374a] shadow-lg rounded-xl w-full mt-1 max-h-48 overflow-y-auto"
+			{isDropdownVisible && (suggestions.length > 0 || recentlySearched.length > 0) && (
+				<div
+					className="absolute z-20 bg-[--card-bg] border border-[--card-border] shadow-xl rounded-xl w-full mt-2 overflow-hidden"
 					style={{ top: "100%" }}
 				>
-					{suggestions.map((suggestion, index) => (
-						<li
-							key={index}
-							className="flex justify-between items-center p-3 hover:bg-[#2f3242] cursor-pointer"
-							onClick={() => handleSuggestionClick(suggestion)}
-						>
-							<div className="text-white">
-								{suggestion.gamename}#{suggestion.tagline}
+					{suggestions.length > 0 && (
+						<>
+							<div className="px-3 py-2 text-xs text-[--text-secondary] uppercase font-semibold border-b border-[--card-border]">
+								Suggestions
 							</div>
-							<span
-								className={
-									"px-3 py-1 text-xs rounded-lg font-medium bg-gray-600 text-white"
-								}
-							>
-								{suggestion.region.toUpperCase()}
-							</span>
-						</li>
-					))}
-				</ul>
+							<ul>
+								{suggestions.map((suggestion, index) => (
+									<li
+										key={index}
+										className="flex justify-between items-center p-3 hover:bg-[--card-bg-secondary] cursor-pointer transition-colors duration-150"
+										onClick={() => handleSuggestionClick(suggestion)}
+									>
+										<div className="text-[--text-primary] flex items-center">
+											<FaSearch className="text-[--text-secondary] mr-2 w-3 h-3" />
+											<span>
+                        {suggestion.gamename}
+												<span className="text-[--text-secondary]">#{suggestion.tagline}</span>
+                      </span>
+										</div>
+										<span className="px-2 py-1 text-xs rounded-md font-medium bg-[--card-bg-secondary] text-[--text-secondary]">
+                      {suggestion.region.toUpperCase()}
+                    </span>
+									</li>
+								))}
+							</ul>
+						</>
+					)}
+
+					{recentlySearched.length > 0 && (
+						<>
+							<div className="px-3 py-2 text-xs text-[--text-secondary] uppercase font-semibold border-b border-[--card-border]">
+								Recent Searches
+							</div>
+							<ul>
+								{recentlySearched.map((entry, index) => (
+									<li
+										key={index}
+										className="flex justify-between items-center p-3 hover:bg-[--card-bg-secondary] cursor-pointer transition-colors duration-150"
+										onClick={() => handleSearch(entry.gameName, entry.tagLine, entry.region)}
+									>
+										<div className="text-[--text-primary] flex items-center">
+											<FaHistory className="text-[--text-secondary] mr-2 w-3 h-3" />
+											<span>
+                        {entry.gameName}
+												<span className="text-[--text-secondary]">#{entry.tagLine}</span>
+                      </span>
+										</div>
+										<span className="px-2 py-1 text-xs rounded-md font-medium bg-[--card-bg-secondary] text-[--text-secondary]">
+                      {entry.region}
+                    </span>
+									</li>
+								))}
+							</ul>
+						</>
+					)}
+				</div>
 			)}
 		</div>
 	);
 
 	if (isModal) {
 		return (
-			<div className="fixed inset-0 flex items-center justify-center z-50">
+			<div className="fixed inset-0 z-50 flex items-center justify-center">
 				<div
-					className="absolute inset-0 backdrop-blur-md"
+					className="absolute inset-0 bg-black/70 backdrop-blur-sm"
 					onClick={onModalClose}
 				></div>
-				<div className="relative p-4 w-full">
-					<h1 className="text-center text-white text-6xl font-bold mb-4">
-						Find Players
+				<div className="relative p-6 w-full max-w-lg bg-[--card-bg] rounded-xl shadow-2xl border border-[--card-border] animate-fade-in-up">
+					<button
+						className="absolute top-3 right-3 text-[--text-secondary] hover:text-[--text-primary] transition-colors"
+						onClick={onModalClose}
+					>
+						<FaTimes />
+					</button>
+
+					<h1 className="text-center text-2xl font-bold mb-4 text-[--text-primary]">
+						Find a Summoner
 					</h1>
-					{searchBarContent}
-					<div className="mt-4 mx-auto w-full max-w-xs sm:max-w-sm md:max-w-md">
-						<div className="flex items-center my-4">
-							<hr className="flex-grow border-gray-400" />
-							<span className="mx-2 text-gray-400 text-xs">
-								Recently Searched
-							</span>
-							<hr className="flex-grow border-gray-400" />
-						</div>
-						<ul>
-							{recentlySearched.map((entry, index) => (
-								<li
-									key={index}
-									onClick={() => {
-										router.push(
-											`/league/profile?gameName=${encodeURIComponent(
-												entry.gameName
-											)}&tagLine=${encodeURIComponent(entry.tagLine)}&region=${
-												entry.region
-											}`
-										);
-										if (onModalClose) onModalClose();
-									}}
-									className="text-white text-center text-md cursor-pointer hover:underline my-1"
-								>
-									{entry.gameName}#{entry.tagLine} ({entry.region})
-								</li>
-							))}
-						</ul>
+
+					<div className="mb-6">
+						{searchBarContent}
 					</div>
+
+					{recentlySearched.length > 0 && !isDropdownVisible && (
+						<div className="mt-4">
+							<div className="flex items-center my-4">
+								<hr className="flex-grow border-[--card-border]" />
+								<span className="mx-2 text-[--text-secondary] text-xs font-medium px-2">
+                  RECENT SEARCHES
+                </span>
+								<hr className="flex-grow border-[--card-border]" />
+							</div>
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+								{recentlySearched.slice(0, 6).map((entry, index) => (
+									<div
+										key={index}
+										onClick={() => {
+											router.push(
+												`/league/profile?gameName=${encodeURIComponent(
+													entry.gameName
+												)}&tagLine=${encodeURIComponent(entry.tagLine)}&region=${
+													entry.region
+												}`
+											);
+											if (onModalClose) onModalClose();
+										}}
+										className="text-[--text-primary] flex items-center p-2 rounded-lg hover:bg-[--card-bg-secondary] cursor-pointer transition-colors"
+									>
+										<FaHistory className="text-[--text-secondary] mr-2" />
+										<span className="truncate">
+                      {entry.gameName}#{entry.tagLine}
+                    </span>
+										<span className="ml-auto text-xs font-medium text-[--text-secondary] bg-[--card-bg] px-2 py-1 rounded-md">
+                      {entry.region}
+                    </span>
+									</div>
+								))}
+							</div>
+						</div>
+					)}
 				</div>
 			</div>
 		);

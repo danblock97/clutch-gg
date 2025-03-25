@@ -13,9 +13,9 @@ import { metadata } from "./metadata";
 const inter = Inter({ subsets: ["latin"] });
 
 export default function RootLayout({ children }) {
-	const [isBannerVisible, setIsBannerVisible] = useState(
-		!!process.env.NEXT_PUBLIC_OUTAGE_MESSAGE
-	);
+	// Only show banner if there's an actual message
+	const outageMessage = process.env.NEXT_PUBLIC_OUTAGE_MESSAGE || "";
+	const [isBannerVisible, setIsBannerVisible] = useState(outageMessage.trim() !== "");
 
 	const handleBannerClose = () => {
 		setIsBannerVisible(false);
@@ -23,26 +23,26 @@ export default function RootLayout({ children }) {
 
 	return (
 		<html lang="en">
-			<head>
-				<title>{metadata.title}</title>
-				<meta name="description" content={metadata.description} />
-				<link rel="icon" href={metadata.icons.icon} />
-			</head>
-			<body className={inter.className}>
-				<OutageBanner
-					message={
-						isBannerVisible ? process.env.NEXT_PUBLIC_OUTAGE_MESSAGE : ""
-					}
-					onClose={handleBannerClose}
-				/>
-				<Suspense fallback={<div>Loading...</div>}>
-					<NavBar isBannerVisible={isBannerVisible} />
-				</Suspense>
-				<div>{children}</div>
-				<SpeedInsights />
-				<Analytics />
-				<Footer />
-			</body>
+		<head>
+			<title>{metadata.title}</title>
+			<meta name="description" content={metadata.description} />
+			<link rel="icon" href={metadata.icons.icon} />
+		</head>
+		<body className={inter.className}>
+		{isBannerVisible && (
+			<OutageBanner
+				message={outageMessage}
+				onClose={handleBannerClose}
+			/>
+		)}
+		<Suspense fallback={<div>Loading...</div>}>
+			<NavBar isBannerVisible={isBannerVisible} />
+		</Suspense>
+		<div>{children}</div>
+		<SpeedInsights />
+		<Analytics />
+		<Footer />
+		</body>
 		</html>
 	);
 }

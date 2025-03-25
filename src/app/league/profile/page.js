@@ -4,6 +4,7 @@ import React, { useReducer, useCallback, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Profile from "@/components/league/Profile";
 import RankedInfo from "@/components/league/RankedInfo";
+import SeasonRanks from "@/components/league/SeasonRanks";
 import ChampionMastery from "@/components/league/ChampionMastery";
 import MatchHistory from "@/components/league/MatchHistory";
 import Last20GamesPerformance from "@/components/league/Last20GamesPerformance";
@@ -140,7 +141,7 @@ const ProfilePageContent = () => {
 
 	if (state.isLoading) {
 		return (
-			<div className="bg-[#0e1015] min-h-screen flex items-center justify-center">
+			<div className="min-h-screen flex items-center justify-center">
 				<Loading />
 			</div>
 		);
@@ -148,55 +149,75 @@ const ProfilePageContent = () => {
 
 	if (state.error) {
 		return (
-			<div className="min-h-screen bg-[#0e1015] flex items-center justify-center">
+			<div className="min-h-screen flex items-center justify-center">
 				<NoProfileFound />
 			</div>
 		);
 	}
 
 	return (
-		<div className="min-h-screen bg-[#0e1015] relative flex flex-col">
-			{/* Top section: Profile and Live Game */}
-			<div className="flex-1">
-				<div
-					className={`w-full bg-black rounded-b-3xl ${
-						state.liveGameData
-							? "shadow-[0px_15px_10px_-5px_rgba(0,153,255,0.8)]"
-							: "shadow-[0px_15px_10px_-5px_rgba(255,255,255,0.5)]"
-					}`}
-				>
-					{state.profileData && state.accountData ? (
-						<Profile
-							accountData={state.accountData}
-							profileData={state.profileData}
-							rankedData={state.rankedData}
-							liveGameData={state.liveGameData}
-							toggleLiveGame={toggleLiveGame}
-							isLiveGameOpen={state.isLiveGameOpen}
-							triggerUpdate={triggerUpdate}
-							isUpdating={state.isUpdating}
-							region={region}
-						/>
-					) : (
-						<p className="text-white">No profile data found.</p>
-					)}
-				</div>
-				{state.liveGameData && state.isLiveGameOpen && (
-					<div className="max-w-screen-xl mx-auto mt-4">
-						<LiveGame liveGameData={state.liveGameData} region={region} />
-					</div>
+		<div className="min-h-screen relative flex flex-col pb-12">
+			{/* Profile Header Section */}
+			<div className="w-full">
+				{state.profileData && state.accountData ? (
+					<Profile
+						accountData={state.accountData}
+						profileData={state.profileData}
+						rankedData={state.rankedData}
+						liveGameData={state.liveGameData}
+						toggleLiveGame={toggleLiveGame}
+						isLiveGameOpen={state.isLiveGameOpen}
+						triggerUpdate={triggerUpdate}
+						isUpdating={state.isUpdating}
+						region={region}
+					/>
+				) : (
+					<p className="text-white">No profile data found.</p>
 				)}
 			</div>
 
-			{/* Bottom section: Main content */}
-			<div className="w-full md:max-w-screen-xl mx-auto flex flex-col items-center gap-8 mt-8 flex-1">
-				<div className="w-full flex flex-col md:flex-row gap-2">
-					<div className="md:w-1/3 flex flex-col gap-2">
+			{/* Live Game Section (Conditionally Rendered) */}
+			{state.liveGameData && state.isLiveGameOpen && (
+				<div className="max-w-screen-xl w-full mx-auto px-4 mt-4">
+					<LiveGame liveGameData={state.liveGameData} region={region} />
+				</div>
+			)}
+
+			{/* Main Content Section */}
+			<div className="max-w-screen-xl w-full mx-auto px-4 mt-8 flex flex-col gap-8">
+				{/* Performance Overview */}
+				{state.matchDetails && state.profileData && (
+					<div className="w-full">
+						<Last20GamesPerformance
+							matchDetails={state.matchDetails}
+							selectedSummonerPUUID={state.profileData.puuid}
+							onChampionClick={handleChampionClick}
+							selectedChampionId={state.selectedChampionId}
+						/>
+					</div>
+				)}
+
+				{/* Two-column layout for main content */}
+				<div className="flex flex-col lg:flex-row gap-6">
+					{/* Left Column: Stats & Info */}
+					<div className="w-full lg:w-1/3 space-y-6">
+						{/* Ranked Info section */}
 						{state.rankedData ? (
 							<RankedInfo rankedData={state.rankedData} />
 						) : (
-							<Loading />
+							<div className="card animate-pulse-custom h-32"></div>
 						)}
+
+						{/* Season Ranks - Moved here as requested */}
+						{state.accountData && (
+							<SeasonRanks
+								gameName={state.accountData.gameName}
+								tagLine={state.accountData.tagLine}
+								region={region}
+							/>
+						)}
+
+						{/* Recently Played With section */}
 						{state.matchDetails && state.profileData ? (
 							<RecentlyPlayedWith
 								matchDetails={state.matchDetails}
@@ -204,39 +225,31 @@ const ProfilePageContent = () => {
 								region={region}
 							/>
 						) : (
-							<Loading />
+							<div className="card animate-pulse-custom h-64"></div>
 						)}
+
+						{/* Champion Mastery section */}
 						{state.championMasteryData ? (
 							<ChampionMastery championMasteryData={state.championMasteryData} />
 						) : (
-							<Loading />
+							<div className="card animate-pulse-custom h-48"></div>
 						)}
 					</div>
-					<div className="md:w-2/3 flex flex-col md:flex-row gap-2">
-						<div className="flex-1 flex flex-col gap-4">
-							{state.matchDetails && state.profileData ? (
-								<Last20GamesPerformance
-									matchDetails={state.matchDetails}
-									selectedSummonerPUUID={state.profileData.puuid}
-									onChampionClick={handleChampionClick}
-									selectedChampionId={state.selectedChampionId}
-								/>
-							) : (
-								<Loading />
-							)}
-							{state.matchDetails ? (
-								<MatchHistory
-									matchDetails={state.matchDetails}
-									selectedSummonerPUUID={state.profileData?.puuid || null}
-									gameName={state.accountData?.gameName}
-									tagLine={state.accountData?.tagLine}
-									region={region}
-									selectedChampionId={state.selectedChampionId}
-								/>
-							) : (
-								<Loading />
-							)}
-						</div>
+
+					{/* Right Column: Match History */}
+					<div className="w-full lg:w-2/3">
+						{state.matchDetails ? (
+							<MatchHistory
+								matchDetails={state.matchDetails}
+								selectedSummonerPUUID={state.profileData?.puuid || null}
+								gameName={state.accountData?.gameName}
+								tagLine={state.accountData?.tagLine}
+								region={region}
+								selectedChampionId={state.selectedChampionId}
+							/>
+						) : (
+							<div className="card animate-pulse-custom h-96"></div>
+						)}
 					</div>
 				</div>
 			</div>

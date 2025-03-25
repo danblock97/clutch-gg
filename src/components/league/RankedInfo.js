@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Image from "next/image";
-import { FaChevronDown, FaChevronUp } from "react-icons/fa";
+import { FaChevronDown, FaChevronUp, FaTrophy, FaChartLine } from "react-icons/fa";
 
 const RankedInfo = ({ rankedData }) => {
 	// Fetch the Ranked Flex data only
@@ -25,59 +25,94 @@ const RankedInfo = ({ rankedData }) => {
 		const leaguePoints = data ? data.leaguePoints : 0;
 		const winRate = data ? ((wins / (wins + losses)) * 100).toFixed(1) : "0.0";
 
+		// Determine color class based on tier
+		const tierColorClass = data ? `text-[--${tier.toLowerCase()}]` : "text-gray-400";
+
 		return (
 			<div
-				className="
-          w-full
-          p-4
-          rounded-xl
-          text-white
-          border border-[#2f2f46]
-          bg-gradient-to-br from-[#232337] to-[#1b1b2d]
-          shadow-[0_4px_15px_rgba(0,0,0,0.6)]
-          transition-shadow
-          duration-200
-          cursor-pointer
-          hover:shadow-[0_8px_30px_rgba(0,0,0,0.8)]
-        "
+				className="card-highlight group cursor-pointer transition-all duration-300 hover:shadow-xl"
 				onClick={handleToggleExpand}
 			>
 				<div className="flex justify-between items-center">
-					<h2 className="text-sm font-bold">Ranked Flex</h2>
-					<div className="flex items-center space-x-2">
+					<div className="flex items-center gap-2">
+						<div className="p-2 rounded-full bg-[--card-bg] flex items-center justify-center">
+							<FaTrophy className="text-[--gold] text-lg" />
+						</div>
+						<h2 className="text-base font-bold">Ranked Flex</h2>
+					</div>
+
+					<div className="flex items-center gap-3">
 						{rankedIcon && (
-							<Image
-								src={rankedIcon}
-								alt={`${tier} Emblem`}
-								width={20}
-								height={20}
-								className="rounded-full"
-							/>
+							<div className="flex items-center">
+								<Image
+									src={rankedIcon}
+									alt={`${tier} Emblem`}
+									width={28}
+									height={28}
+									className="drop-shadow-lg"
+								/>
+								<p className={`ml-2 font-semibold ${tierColorClass}`}>
+									{data ? `${tier} ${rank}` : "Unranked"}
+								</p>
+							</div>
 						)}
-						<p className="text-gray-300 text-sm">
-							{data ? `${tier} ${rank}` : "Unranked"}
-						</p>
-						<div aria-label={isExpanded ? "Collapse" : "Expand"}>
-							{isExpanded ? (
-								<FaChevronUp className="text-gray-400" />
-							) : (
-								<FaChevronDown className="text-gray-400" />
-							)}
+
+						<div className="text-[--text-secondary] group-hover:text-[--primary] transition-colors duration-200">
+							{isExpanded ? <FaChevronUp /> : <FaChevronDown />}
 						</div>
 					</div>
 				</div>
 
 				{isExpanded && (
-					<div className="mt-2 text-sm text-gray-300">
-						<p>
-							<strong>Wins:</strong> {wins} | <strong>Losses:</strong> {losses}
-						</p>
-						<p>
-							<strong>Winrate:</strong> {winRate}%
-						</p>
-						<p>
-							<strong>LP:</strong> {leaguePoints} LP
-						</p>
+					<div className="mt-4 pt-4 border-t border-[--card-border] grid grid-cols-3 gap-4 text-center">
+						<div className="stat-block">
+							<span className="text-xs text-[--text-secondary] uppercase">Win Rate</span>
+							<div className="relative my-2">
+								<svg className="w-16 h-16" viewBox="0 0 36 36">
+									<path
+										d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+										fill="none"
+										stroke="#444"
+										strokeWidth="1"
+									/>
+									<path
+										d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+										fill="none"
+										stroke={parseFloat(winRate) > 50 ? "#10b981" : "#ef4444"}
+										strokeWidth="3"
+										strokeDasharray={`${winRate}, 100`}
+										strokeLinecap="round"
+									/>
+									<text
+										x="18"
+										y="20.5"
+										textAnchor="middle"
+										fontSize="8"
+										fill="white"
+										fontWeight="bold"
+									>
+										{winRate}%
+									</text>
+								</svg>
+							</div>
+						</div>
+
+						<div className="stat-block">
+							<span className="text-xs text-[--text-secondary] uppercase">W/L</span>
+							<div className="flex items-center justify-center gap-1 mt-2">
+								<span className="text-[--success] font-semibold">{wins}W</span>
+								<span className="text-[--text-secondary]">/</span>
+								<span className="text-[--error] font-semibold">{losses}L</span>
+							</div>
+						</div>
+
+						<div className="stat-block">
+							<span className="text-xs text-[--text-secondary] uppercase">LP</span>
+							<div className="flex items-center justify-center mt-2">
+								<FaChartLine className="text-[--primary] mr-1" />
+								<span className="font-bold text-lg">{leaguePoints}</span>
+							</div>
+						</div>
 					</div>
 				)}
 			</div>
@@ -85,7 +120,7 @@ const RankedInfo = ({ rankedData }) => {
 	};
 
 	return (
-		<div className="flex flex-col space-y-4">
+		<div className="space-y-4">
 			{renderRankedFlex(flexRankedData)}
 		</div>
 	);

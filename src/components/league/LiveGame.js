@@ -401,7 +401,7 @@ export default function LiveGame({ liveGameData, region }) {
 		return (
 			<div
 				key={p.summonerId}
-				className={`bg-[#1A1D21] border border-gray-700 rounded-md p-3 shadow-md text-center flex-shrink-0 ${cardSizeClass}`}
+				className={`card-highlight text-[--text-primary] border-b border-[--card-border] rounded-md p-3 shadow-md text-center flex-shrink-0 ${cardSizeClass}`}
 			>
 				{/* Champion Icon */}
 				<div className={championIconClass}>
