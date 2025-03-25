@@ -33,21 +33,21 @@ const HomePage = () => {
 
 	return (
 		<div className="min-h-screen flex flex-col">
-			{/* Hero Section */}
-			<section className="pt-24 pb-16 px-4">
-				<div className="max-w-6xl mt-14 mx-auto relative">
+			{/* Hero Section - Adjusted for mobile */}
+			<section className="pt-16 md:pt-24 pb-12 md:pb-16 px-4">
+				<div className="max-w-6xl mx-auto relative">
 
 					{/* Content */}
-					<div className="flex flex-col lg:flex-row items-center justify-between gap-12">
+					<div className="flex flex-col lg:flex-row items-center justify-between gap-8 md:gap-12">
 						{/* Left side - Text */}
-						<div className="w-full lg:w-3/5 text-center lg:text-left space-y-6">
-							<h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold">
+						<div className="w-full lg:w-3/5 text-center lg:text-left space-y-4 md:space-y-6">
+							<h1 className="text-3xl sm:text-4xl lg:text-6xl font-extrabold">
                 <span className="bg-clip-text text-transparent bg-gradient-to-r from-[--primary] to-[--secondary]">
                   ClutchGG.LOL
                 </span>
 							</h1>
 
-							<div className="text-2xl sm:text-3xl lg:text-4xl font-bold h-16">
+							<div className="text-xl sm:text-2xl lg:text-4xl font-bold h-12 md:h-16">
 								<TypeAnimation
 									sequence={[
 										"Match History",
@@ -67,12 +67,15 @@ const HomePage = () => {
 								/>
 							</div>
 
-							<p className="text-[--text-secondary] text-lg max-w-xl mx-auto lg:mx-0">
+							<p className="text-[--text-secondary] text-base lg:text-lg max-w-xl mx-auto lg:mx-0">
 								Your ultimate destination for in-depth League of Legends analytics and real-time insights into players' performance.
 							</p>
 
-							<div className="w-full max-w-xl mx-auto lg:mx-0">
-								<SearchBar />
+							{/* Search Bar - Properly centered on mobile */}
+							<div className="flex justify-center lg:block">
+								<div className="w-full max-w-xs sm:max-w-sm">
+									<SearchBar />
+								</div>
 							</div>
 
 							<div className="flex flex-wrap justify-center lg:justify-start gap-4 pt-2">
@@ -91,7 +94,7 @@ const HomePage = () => {
 
 						{/* Right side - Logo and glow */}
 						<div className="w-full lg:w-2/5 flex justify-center lg:justify-end">
-							<div className="relative w-64 h-64 sm:w-80 sm:h-80">
+							<div className="relative w-52 h-52 sm:w-64 sm:h-64 md:w-80 md:h-80">
 								<div className="absolute inset-0 rounded-full bg-gradient-to-r from-[--primary] to-[--secondary] opacity-20 blur-xl"></div>
 								<Image
 									src="/images/logo.png"
@@ -107,17 +110,17 @@ const HomePage = () => {
 				</div>
 			</section>
 
-			{/* Features Section */}
-			<section className="py-20 mb-24 bg-[--card-bg]/50">
+			{/* Features Section - Added padding for mobile */}
+			<section className="py-12 md:py-20 bg-[--card-bg]/50 mb-12 md:mb-24">
 				<div className="max-w-6xl mx-auto px-4 sm:px-6">
-					<div className="text-center mb-16">
-						<h2 className="text-3xl font-bold mb-4">Elevate Your League Experience</h2>
+					<div className="text-center mb-10 md:mb-16">
+						<h2 className="text-2xl md:text-3xl font-bold mb-4">Elevate Your League Experience</h2>
 						<p className="text-[--text-secondary] max-w-2xl mx-auto">
 							ClutchGG.LOL provides powerful tools to analyze and improve your gameplay
 						</p>
 					</div>
 
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
 						{features.map((feature, index) => (
 							<div
 								key={index}

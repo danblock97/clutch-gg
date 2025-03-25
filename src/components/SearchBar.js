@@ -196,7 +196,7 @@ const SearchBar = ({ onSearch, initialRegion, isModal, onModalClose }) => {
 
 	const searchBarContent = (
 		<div
-			className="relative w-full max-w-xs sm:max-w-sm md:max-w-md"
+			className="relative w-full max-w-xs sm:max-w-sm md:max-w-md mx-auto lg:mx-0"
 			ref={dropdownRef}
 		>
 			<div className={`flex w-full h-12 glass rounded-lg overflow-hidden border transition-all duration-200 
