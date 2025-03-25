@@ -1,7 +1,6 @@
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 import DiscordBotBanner from "@/components/DiscordBotBanner.js";
-import SeasonRanks from "./seasonRanks.js";
 
 const Profile = ({
 					 accountData,
@@ -25,7 +24,7 @@ const Profile = ({
 	const [lastUpdated, setLastUpdated] = useState(null);
 	const [countdown, setCountdown] = useState(0);
 	const [updateTriggered, setUpdateTriggered] = useState(false);
-	const [seasonUpdateTrigger, setSeasonUpdateTrigger] = useState(0); // Add this state for SeasonRanks updates
+	const [seasonUpdateTrigger, setSeasonUpdateTrigger] = useState(0);
 	const intervalRef = useRef(null);
 
 	// Initialize state from localStorage on mount
