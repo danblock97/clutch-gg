@@ -662,14 +662,17 @@ const MatchHistory = ({
               return (
                 <div key={index} className="overflow-x-auto">
                   <div
-                    onClick={() =>
-                      setExpandedMatchId(
-                        expandedMatchId === match.metadata.matchId
-                          ? null
-                          : match.metadata.matchId,
-                      )
+                    onClick={
+                      breakpoint !== "mobile"
+                        ? () =>
+                            setExpandedMatchId(
+                              expandedMatchId === match.metadata.matchId
+                                ? null
+                                : match.metadata.matchId,
+                            )
+                        : undefined
                     }
-                    className={`card-highlight rounded-lg shadow-lg p-6 cursor-pointer flex flex-col relative mb-2 min-w-[768px] text-xs sm:text-sm ${getGradientBackground(match, currentPlayer, isRemake, isMVP)}`}
+                    className={`card-highlight rounded-lg shadow-lg p-6 ${breakpoint !== "mobile" ? "cursor-pointer" : ""} flex flex-col relative mb-2 min-w-[768px] text-xs sm:text-sm ${getGradientBackground(match, currentPlayer, isRemake, isMVP)}`}
                   >
                     <div className="absolute top-4 left-2 flex items-start">
                       <div className="flex items-center mr-4">
@@ -985,13 +988,16 @@ const MatchHistory = ({
                         </div>
                       </div>
                     )}
-                    <div className="absolute bottom-2 right-2">
-                      {expandedMatchId === match.metadata.matchId ? (
-                        <FaChevronUp className="text-gray-200" />
-                      ) : (
-                        <FaChevronDown className="text-gray-200" />
-                      )}
-                    </div>
+                    {/* Only show the expand/collapse arrow on non-mobile devices */}
+                    {breakpoint !== "mobile" && (
+                      <div className="absolute bottom-2 right-2">
+                        {expandedMatchId === match.metadata.matchId ? (
+                          <FaChevronUp className="text-gray-200" />
+                        ) : (
+                          <FaChevronDown className="text-gray-200" />
+                        )}
+                      </div>
+                    )}
                   </div>
                   {expandedMatchId === match.metadata.matchId && (
                     <div>
