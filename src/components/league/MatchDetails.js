@@ -20,14 +20,12 @@ export default function MatchDetails(props) {
 			id: "analysis",
 			label: "Team Breakdown",
 			icon: <FaChartBar className="mr-2" />,
-			isNew: true,
 			component: <TeamAnalysisTab {...props} />,
 		},
 		{
 			id: "stats",
 			label: "In Depth Stats",
 			icon: <FaListAlt className="mr-2" />,
-			isNew: true,
 			component: <StatsTab {...props} />,
 		},
 	];
@@ -43,10 +41,11 @@ export default function MatchDetails(props) {
 							className={`
                 flex items-center px-4 py-3 font-medium text-sm relative
                 transition-colors duration-200
-                ${activeTab === tab.id
-								? "text-[--primary]"
-								: "text-[--text-secondary] hover:text-[--text-primary]"
-							}
+                ${
+									activeTab === tab.id
+										? "text-[--primary]"
+										: "text-[--text-secondary] hover:text-[--text-primary]"
+								}
               `}
 							onClick={() => setActiveTab(tab.id)}
 						>
@@ -56,8 +55,8 @@ export default function MatchDetails(props) {
 							{/* New badge */}
 							{tab.isNew && (
 								<span className="ml-2 bg-[--primary] text-white text-[10px] px-1.5 py-0.5 rounded-full">
-                  New
-                </span>
+									New
+								</span>
 							)}
 
 							{/* Active indicator */}
@@ -71,7 +70,7 @@ export default function MatchDetails(props) {
 
 			{/* Tab Content */}
 			<div className="pt-2">
-				{tabs.find(tab => tab.id === activeTab)?.component}
+				{tabs.find((tab) => tab.id === activeTab)?.component}
 			</div>
 		</div>
 	);
