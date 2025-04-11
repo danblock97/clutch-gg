@@ -1,0 +1,152 @@
+import { supabase } from "@/lib/supabase";
+
+const TFT_API_KEY = process.env.TFT_API_KEY;
+
+/**
+ * Fetch TFT summoner data using an encrypted PUUID.
+ */
+export const fetchTFTSummonerData = async (encryptedPUUID, region) => {
+	const summonerResponse = await fetch(
+		`https://${region}.api.riotgames.com/tft/summoner/v1/summoners/by-puuid/${encryptedPUUID}`,
+		{ headers: { "X-Riot-Token": TFT_API_KEY } }
+	);
+	if (!summonerResponse.ok) {
+		throw new Error("Failed to fetch TFT summoner data");
+	}
+	return summonerResponse.json();
+};
+
+/**
+ * Fetch TFT ranked data.
+ */
+export const fetchTFTRankedData = async (summonerId, region) => {
+	const rankedResponse = await fetch(
+		`https://${region}.api.riotgames.com/tft/league/v1/entries/by-summoner/${summonerId}`,
+		{ headers: { "X-Riot-Token": TFT_API_KEY } }
+	);
+	if (!rankedResponse.ok) {
+		throw new Error("Failed to fetch TFT ranked data");
+	}
+	return rankedResponse.json();
+};
+
+/**
+ * Fetch TFT match IDs.
+ */
+export const fetchTFTMatchIds = async (encryptedPUUID, platform) => {
+	const matchResponse = await fetch(
+		`https://${platform}.api.riotgames.com/tft/match/v1/matches/by-puuid/${encryptedPUUID}/ids?count=20`,
+		{ headers: { "X-Riot-Token": TFT_API_KEY } }
+	);
+	if (!matchResponse.ok) {
+		throw new Error("Failed to fetch TFT match data");
+	}
+	return matchResponse.json();
+};
+
+/**
+ * Fetch detailed TFT match data.
+ */
+export const fetchTFTMatchDetail = async (matchId, platform) => {
+	const matchDetailResponse = await fetch(
+		`https://${platform}.api.riotgames.com/tft/match/v1/matches/${matchId}`,
+		{ headers: { "X-Riot-Token": TFT_API_KEY } }
+	);
+	if (!matchDetailResponse.ok) {
+		return null;
+	}
+	return matchDetailResponse.json();
+};
+
+/**
+ * Upsert TFT match detail into the matches table.
+ * Only stores the matchid and playerid as reference for cached matches.
+ */
+export const upsertTFTMatchDetail = async (matchId, puuid, matchDetail) => {
+	const { error: insertMatchError } = await supabase.from("tft_matches").upsert(
+		{
+			matchid: matchId,
+			playerid: puuid,
+			// removed match_data as the column doesn't exist in the table
+		},
+		{ onConflict: ["matchid"] }
+	);
+	if (insertMatchError) {
+		console.error("Error inserting TFT match:", insertMatchError);
+	}
+};
+
+/**
+ * Fetch additional data for TFT player enrichment.
+ */
+export const fetchTFTAdditionalData = async (summonerId, puuid, region) => {
+	try {
+		const [rankedResponse, accountResponse, summonerResponse] =
+			await Promise.all([
+				fetch(
+					`https://${region}.api.riotgames.com/tft/league/v1/entries/by-summoner/${summonerId}`,
+					{ headers: { "X-Riot-Token": TFT_API_KEY } }
+				),
+				fetch(
+					`https://europe.api.riotgames.com/riot/account/v1/accounts/by-puuid/${puuid}`,
+					{ headers: { "X-Riot-Token": TFT_API_KEY } }
+				),
+				fetch(
+					`https://${region}.api.riotgames.com/tft/summoner/v1/summoners/by-puuid/${puuid}`,
+					{ headers: { "X-Riot-Token": TFT_API_KEY } }
+				),
+			]);
+
+		if (!rankedResponse.ok || !accountResponse.ok || !summonerResponse.ok) {
+			throw new Error("Failed to fetch additional TFT data");
+		}
+
+		const [rankedData, accountData, summonerData] = await Promise.all([
+			rankedResponse.json(),
+			accountResponse.json(),
+			summonerResponse.json(),
+		]);
+
+		// TFT ranked data structure is different from League
+		const rankedTftData = rankedData.find(
+			(queue) => queue.queueType === "RANKED_TFT"
+		);
+
+		return {
+			rank: rankedTftData
+				? `${rankedTftData.tier} ${rankedTftData.rank}`
+				: "Unranked",
+			lp: rankedTftData ? rankedTftData.leaguePoints : 0,
+			wins: rankedTftData ? rankedTftData.wins : 0,
+			losses: rankedTftData ? rankedTftData.losses : 0,
+			gameName: accountData.gameName,
+			tagLine: accountData.tagLine,
+			summonerLevel: summonerData.summonerLevel,
+		};
+	} catch (error) {
+		return {
+			rank: "Unranked",
+			lp: 0,
+			wins: 0,
+			losses: 0,
+			gameName: "",
+			tagLine: "",
+			summonerLevel: 0,
+		};
+	}
+};
+
+/**
+ * Fetch TFT summoner details to get the PUUID and profile icon.
+ */
+export const fetchTFTSummonerPUUID = async (summonerId, region) => {
+	const response = await fetch(
+		`https://${region}.api.riotgames.com/tft/summoner/v1/summoners/${summonerId}`,
+		{ headers: { "X-Riot-Token": TFT_API_KEY } }
+	);
+	if (!response.ok) {
+		throw new Error(`Failed to fetch PUUID for TFT summonerId: ${summonerId}`);
+	}
+	const data = await response.json();
+	return { puuid: data.puuid, profileIconId: data.profileIconId };
+};
