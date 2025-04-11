@@ -4,7 +4,13 @@ import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import debounce from "lodash.debounce";
-import { FaSearch, FaHistory, FaTimes } from "react-icons/fa";
+import {
+	FaSearch,
+	FaHistory,
+	FaTimes,
+	FaGamepad,
+	FaChessKnight,
+} from "react-icons/fa";
 
 const regions = [
 	{ code: "BR1", name: "BR" },
@@ -31,6 +37,7 @@ const SearchBar = ({ onSearch, initialRegion, isModal, onModalClose }) => {
 	const [isDropdownVisible, setIsDropdownVisible] = useState(false);
 	const [recentlySearched, setRecentlySearched] = useState([]);
 	const [isInputFocused, setIsInputFocused] = useState(false);
+	const [gameType, setGameType] = useState("league"); // "league" or "tft"
 	const router = useRouter();
 	const dropdownRef = useRef(null);
 	const inputRef = useRef(null);
@@ -88,10 +95,15 @@ const SearchBar = ({ onSearch, initialRegion, isModal, onModalClose }) => {
 		setSelectedRegion(e.target.value);
 	};
 
+	const handleGameTypeChange = (type) => {
+		setGameType(type);
+	};
+
 	const handleSearch = (
 		gameNameFromClick,
 		tagLineFromClick,
-		regionFromClick
+		regionFromClick,
+		gameTypeFromClick
 	) => {
 		const [gameName, tagLine] =
 			gameNameFromClick && tagLineFromClick
@@ -99,10 +111,16 @@ const SearchBar = ({ onSearch, initialRegion, isModal, onModalClose }) => {
 				: combinedInput.split("#");
 
 		const region = regionFromClick || selectedRegion;
+		const selectedGameType = gameTypeFromClick || gameType;
 
 		if (gameName && tagLine && region) {
 			try {
-				const newEntry = { gameName, tagLine, region };
+				const newEntry = {
+					gameName,
+					tagLine,
+					region,
+					gameType: selectedGameType,
+				};
 				const stored = sessionStorage.getItem("recentlySearched");
 				let recent = stored ? JSON.parse(stored) : [];
 				recent.unshift(newEntry);
@@ -123,17 +141,19 @@ const SearchBar = ({ onSearch, initialRegion, isModal, onModalClose }) => {
 				console.error(e);
 			}
 
+			// Route to the appropriate page based on the game type
+			const basePath = selectedGameType === "league" ? "/league" : "/tft";
 			router.push(
-				`/league/profile?gameName=${encodeURIComponent(
+				`${basePath}/profile?gameName=${encodeURIComponent(
 					gameName
 				)}&tagLine=${encodeURIComponent(tagLine)}&region=${region}`
 			);
 			if (isModal && onModalClose) onModalClose();
 		} else {
 			// Show error in a more user-friendly way
-			inputRef.current.classList.add('animate-shake');
+			inputRef.current.classList.add("animate-shake");
 			setTimeout(() => {
-				inputRef.current.classList.remove('animate-shake');
+				inputRef.current.classList.remove("animate-shake");
 			}, 500);
 		}
 
@@ -185,13 +205,13 @@ const SearchBar = ({ onSearch, initialRegion, isModal, onModalClose }) => {
 	// Adding keybinding for Escape to close modal
 	useEffect(() => {
 		const handleEscKey = (e) => {
-			if (e.key === 'Escape' && isModal && onModalClose) {
+			if (e.key === "Escape" && isModal && onModalClose) {
 				onModalClose();
 			}
 		};
 
-		window.addEventListener('keydown', handleEscKey);
-		return () => window.removeEventListener('keydown', handleEscKey);
+		window.addEventListener("keydown", handleEscKey);
+		return () => window.removeEventListener("keydown", handleEscKey);
 	}, [isModal, onModalClose]);
 
 	const searchBarContent = (
@@ -199,9 +219,45 @@ const SearchBar = ({ onSearch, initialRegion, isModal, onModalClose }) => {
 			className="relative w-full max-w-xs sm:max-w-sm md:max-w-md mx-auto lg:mx-0"
 			ref={dropdownRef}
 		>
-			<div className={`flex w-full h-12 glass rounded-lg overflow-hidden border transition-all duration-200 
-        ${isInputFocused ? 'border-[--primary] shadow-lg shadow-[--primary]/20' : 'border-[--card-border]'}
-        ${!combinedInput && inputRef.current?.classList.contains('animate-shake') ? 'border-[--error]' : ''}`}
+			{/* Game Type Toggle */}
+			<div className="flex justify-center mb-2">
+				<div className="inline-flex rounded-md border border-[--card-border] overflow-hidden">
+					<button
+						className={`px-3 py-1 text-xs sm:text-sm flex items-center ${
+							gameType === "league"
+								? "bg-[--primary] text-white"
+								: "bg-[--card-bg] text-[--text-secondary] hover:bg-[--card-bg-secondary]"
+						}`}
+						onClick={() => handleGameTypeChange("league")}
+					>
+						<FaGamepad className="mr-1" /> League
+					</button>
+					<button
+						className={`px-3 py-1 text-xs sm:text-sm flex items-center ${
+							gameType === "tft"
+								? "bg-[--primary] text-white"
+								: "bg-[--card-bg] text-[--text-secondary] hover:bg-[--card-bg-secondary]"
+						}`}
+						onClick={() => handleGameTypeChange("tft")}
+					>
+						<FaChessKnight className="mr-1" /> TFT
+					</button>
+				</div>
+			</div>
+
+			<div
+				className={`flex w-full h-12 glass rounded-lg overflow-hidden border transition-all duration-200 
+        ${
+					isInputFocused
+						? "border-[--primary] shadow-lg shadow-[--primary]/20"
+						: "border-[--card-border]"
+				}
+        ${
+					!combinedInput &&
+					inputRef.current?.classList.contains("animate-shake")
+						? "border-[--error]"
+						: ""
+				}`}
 			>
 				<select
 					value={selectedRegion}
@@ -209,7 +265,11 @@ const SearchBar = ({ onSearch, initialRegion, isModal, onModalClose }) => {
 					className="bg-transparent text-[--text-primary] px-2 sm:px-3 text-xs sm:text-sm focus:outline-none focus:bg-[--card-bg]/40 font-medium"
 				>
 					{regions.map((region) => (
-						<option key={region.code} value={region.code} className="bg-[--card-bg] text-[--text-primary]">
+						<option
+							key={region.code}
+							value={region.code}
+							className="bg-[--card-bg] text-[--text-primary]"
+						>
 							{region.name}
 						</option>
 					))}
@@ -248,68 +308,89 @@ const SearchBar = ({ onSearch, initialRegion, isModal, onModalClose }) => {
 			</div>
 
 			{/* Suggestions Dropdown */}
-			{isDropdownVisible && (suggestions.length > 0 || recentlySearched.length > 0) && (
-				<div
-					className="absolute z-20 bg-[--card-bg] border border-[--card-border] shadow-xl rounded-xl w-full mt-2 overflow-hidden"
-					style={{ top: "100%" }}
-				>
-					{suggestions.length > 0 && (
-						<>
-							<div className="px-3 py-2 text-xs text-[--text-secondary] uppercase font-semibold border-b border-[--card-border]">
-								Suggestions
-							</div>
-							<ul>
-								{suggestions.map((suggestion, index) => (
-									<li
-										key={index}
-										className="flex justify-between items-center p-3 hover:bg-[--card-bg-secondary] cursor-pointer transition-colors duration-150"
-										onClick={() => handleSuggestionClick(suggestion)}
-									>
-										<div className="text-[--text-primary] flex items-center">
-											<FaSearch className="text-[--text-secondary] mr-2 w-3 h-3" />
-											<span>
-                        {suggestion.gamename}
-												<span className="text-[--text-secondary]">#{suggestion.tagline}</span>
-                      </span>
-										</div>
-										<span className="px-2 py-1 text-xs rounded-md font-medium bg-[--card-bg-secondary] text-[--text-secondary]">
-                      {suggestion.region.toUpperCase()}
-                    </span>
-									</li>
-								))}
-							</ul>
-						</>
-					)}
+			{isDropdownVisible &&
+				(suggestions.length > 0 || recentlySearched.length > 0) && (
+					<div
+						className="absolute z-20 bg-[--card-bg] border border-[--card-border] shadow-xl rounded-xl w-full mt-2 overflow-hidden"
+						style={{ top: "100%" }}
+					>
+						{suggestions.length > 0 && (
+							<>
+								<div className="px-3 py-2 text-xs text-[--text-secondary] uppercase font-semibold border-b border-[--card-border]">
+									Suggestions
+								</div>
+								<ul>
+									{suggestions.map((suggestion, index) => (
+										<li
+											key={index}
+											className="flex justify-between items-center p-3 hover:bg-[--card-bg-secondary] cursor-pointer transition-colors duration-150"
+											onClick={() => handleSuggestionClick(suggestion)}
+										>
+											<div className="text-[--text-primary] flex items-center">
+												<FaSearch className="text-[--text-secondary] mr-2 w-3 h-3" />
+												<span>
+													{suggestion.gamename}
+													<span className="text-[--text-secondary]">
+														#{suggestion.tagline}
+													</span>
+												</span>
+											</div>
+											<span className="px-2 py-1 text-xs rounded-md font-medium bg-[--card-bg-secondary] text-[--text-secondary]">
+												{suggestion.region.toUpperCase()}
+											</span>
+										</li>
+									))}
+								</ul>
+							</>
+						)}
 
-					{recentlySearched.length > 0 && (
-						<>
-							<div className="px-3 py-2 text-xs text-[--text-secondary] uppercase font-semibold border-b border-[--card-border]">
-								Recent Searches
-							</div>
-							<ul>
-								{recentlySearched.map((entry, index) => (
-									<li
-										key={index}
-										className="flex justify-between items-center p-3 hover:bg-[--card-bg-secondary] cursor-pointer transition-colors duration-150"
-										onClick={() => handleSearch(entry.gameName, entry.tagLine, entry.region)}
-									>
-										<div className="text-[--text-primary] flex items-center">
-											<FaHistory className="text-[--text-secondary] mr-2 w-3 h-3" />
-											<span>
-                        {entry.gameName}
-												<span className="text-[--text-secondary]">#{entry.tagLine}</span>
-                      </span>
-										</div>
-										<span className="px-2 py-1 text-xs rounded-md font-medium bg-[--card-bg-secondary] text-[--text-secondary]">
-                      {entry.region}
-                    </span>
-									</li>
-								))}
-							</ul>
-						</>
-					)}
-				</div>
-			)}
+						{recentlySearched.length > 0 && (
+							<>
+								<div className="px-3 py-2 text-xs text-[--text-secondary] uppercase font-semibold border-b border-[--card-border]">
+									Recent Searches
+								</div>
+								<ul>
+									{recentlySearched.map((entry, index) => (
+										<li
+											key={index}
+											className="flex justify-between items-center p-3 hover:bg-[--card-bg-secondary] cursor-pointer transition-colors duration-150"
+											onClick={() =>
+												handleSearch(
+													entry.gameName,
+													entry.tagLine,
+													entry.region,
+													entry.gameType
+												)
+											}
+										>
+											<div className="text-[--text-primary] flex items-center">
+												<FaHistory className="text-[--text-secondary] mr-2 w-3 h-3" />
+												<span>
+													{entry.gameName}
+													<span className="text-[--text-secondary]">
+														#{entry.tagLine}
+													</span>
+												</span>
+											</div>
+											<div className="flex items-center">
+												<span className="text-xs font-medium rounded-md mr-1">
+													{entry.gameType === "tft" ? (
+														<FaChessKnight className="text-[--text-secondary]" />
+													) : (
+														<FaGamepad className="text-[--text-secondary]" />
+													)}
+												</span>
+												<span className="px-2 py-1 text-xs rounded-md font-medium bg-[--card-bg-secondary] text-[--text-secondary]">
+													{entry.region}
+												</span>
+											</div>
+										</li>
+									))}
+								</ul>
+							</>
+						)}
+					</div>
+				)}
 		</div>
 	);
 
@@ -329,20 +410,18 @@ const SearchBar = ({ onSearch, initialRegion, isModal, onModalClose }) => {
 					</button>
 
 					<h1 className="text-center text-2xl font-bold mb-4 text-[--text-primary]">
-						Find a Summoner
+						Find a Player
 					</h1>
 
-					<div className="mb-6">
-						{searchBarContent}
-					</div>
+					<div className="mb-6">{searchBarContent}</div>
 
 					{recentlySearched.length > 0 && !isDropdownVisible && (
 						<div className="mt-4">
 							<div className="flex items-center my-4">
 								<hr className="flex-grow border-[--card-border]" />
 								<span className="mx-2 text-[--text-secondary] text-xs font-medium px-2">
-                  RECENT SEARCHES
-                </span>
+									RECENT SEARCHES
+								</span>
 								<hr className="flex-grow border-[--card-border]" />
 							</div>
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -350,12 +429,14 @@ const SearchBar = ({ onSearch, initialRegion, isModal, onModalClose }) => {
 									<div
 										key={index}
 										onClick={() => {
+											const basePath =
+												entry.gameType === "league" ? "/league" : "/tft";
 											router.push(
-												`/league/profile?gameName=${encodeURIComponent(
+												`${basePath}/profile?gameName=${encodeURIComponent(
 													entry.gameName
-												)}&tagLine=${encodeURIComponent(entry.tagLine)}&region=${
-													entry.region
-												}`
+												)}&tagLine=${encodeURIComponent(
+													entry.tagLine
+												)}&region=${entry.region}`
 											);
 											if (onModalClose) onModalClose();
 										}}
@@ -363,11 +444,20 @@ const SearchBar = ({ onSearch, initialRegion, isModal, onModalClose }) => {
 									>
 										<FaHistory className="text-[--text-secondary] mr-2" />
 										<span className="truncate">
-                      {entry.gameName}#{entry.tagLine}
-                    </span>
-										<span className="ml-auto text-xs font-medium text-[--text-secondary] bg-[--card-bg] px-2 py-1 rounded-md">
-                      {entry.region}
-                    </span>
+											{entry.gameName}#{entry.tagLine}
+										</span>
+										<div className="ml-auto flex items-center">
+											<span className="text-xs mr-1">
+												{entry.gameType === "tft" ? (
+													<FaChessKnight className="text-[--text-secondary]" />
+												) : (
+													<FaGamepad className="text-[--text-secondary]" />
+												)}
+											</span>
+											<span className="text-xs font-medium text-[--text-secondary] bg-[--card-bg] px-2 py-1 rounded-md">
+												{entry.region}
+											</span>
+										</div>
 									</div>
 								))}
 							</div>
