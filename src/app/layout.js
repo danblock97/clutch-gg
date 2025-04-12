@@ -11,6 +11,7 @@ import JiraCollectors from "@/components/JiraCollectors";
 import { useState, Suspense } from "react";
 import { metadata } from "./metadata";
 import { GameTypeProvider } from "@/context/GameTypeContext";
+import { AuthProvider } from "@/context/AuthContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -34,17 +35,22 @@ export default function RootLayout({ children }) {
 			</head>
 			<body className={inter.className}>
 				<GameTypeProvider>
-					<JiraCollectors />
-					{isBannerVisible && (
-						<OutageBanner message={outageMessage} onClose={handleBannerClose} />
-					)}
-					<Suspense fallback={<div>Loading...</div>}>
-						<NavBar isBannerVisible={isBannerVisible} />
-					</Suspense>
-					<div>{children}</div>
-					<SpeedInsights />
-					<Analytics />
-					<Footer />
+					<AuthProvider>
+						<JiraCollectors />
+						{isBannerVisible && (
+							<OutageBanner
+								message={outageMessage}
+								onClose={handleBannerClose}
+							/>
+						)}
+						<Suspense fallback={<div>Loading...</div>}>
+							<NavBar isBannerVisible={isBannerVisible} />
+						</Suspense>
+						<div>{children}</div>
+						<SpeedInsights />
+						<Analytics />
+						<Footer />
+					</AuthProvider>
 				</GameTypeProvider>
 			</body>
 		</html>

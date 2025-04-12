@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import SearchBar from "@/components/SearchBar";
 import { useGameType } from "@/context/GameTypeContext";
+import { useAuth } from "@/context/AuthContext";
 import {
 	FaCoffee,
 	FaSearch,
@@ -20,6 +21,9 @@ import {
 	FaHome,
 	FaGamepad,
 	FaChessKnight,
+	FaUser,
+	FaSignInAlt,
+	FaSignOutAlt,
 } from "react-icons/fa";
 
 const NavBar = ({ isBannerVisible }) => {
@@ -28,7 +32,9 @@ const NavBar = ({ isBannerVisible }) => {
 	const [scrolled, setScrolled] = useState(false);
 	const [navbarHeight, setNavbarHeight] = useState(0);
 	const [mounted, setMounted] = useState(false);
+	const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 	const { gameType, setGameType } = useGameType();
+	const { user, loginWithRiot, logout, navigateToProfile } = useAuth();
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
 	const router = useRouter();
@@ -73,6 +79,7 @@ const NavBar = ({ isBannerVisible }) => {
 	// Handle closing mobile menu when a link is clicked
 	const handleLinkClick = () => {
 		setIsMenuOpen(false);
+		setIsDropdownOpen(false);
 	};
 
 	// Toggle between game types
@@ -112,6 +119,13 @@ const NavBar = ({ isBannerVisible }) => {
 	const getLeaderboardLink = () => {
 		if (!mounted) return isTftPath ? "/tft/leaderboard" : "/league/leaderboard";
 		return gameType === "tft" ? "/tft/leaderboard" : "/league/leaderboard";
+	};
+
+	// Get button style class based on game type
+	const getButtonClass = () => {
+		return (!mounted && isTftPath) || (mounted && gameType === "tft")
+			? "btn-primary-tft py-1 px-3 flex items-center space-x-1"
+			: "btn-primary py-1 px-3 flex items-center space-x-1";
 	};
 
 	// If we're dealing with server-side logic for initial render
@@ -254,6 +268,57 @@ const NavBar = ({ isBannerVisible }) => {
 									<span>Discord</span>
 								</Link>
 
+								{/* User Profile or Login Button */}
+								{user ? (
+									<div className="relative">
+										<button
+											onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+											className={getButtonClass()}
+										>
+											<FaUser className="text-sm" />
+											<span>{user.gameName}</span>
+											{isDropdownOpen ? (
+												<FaChevronUp className="ml-1 text-xs" />
+											) : (
+												<FaChevronDown className="ml-1 text-xs" />
+											)}
+										</button>
+										{isDropdownOpen && (
+											<div className="absolute right-0 mt-2 w-48 bg-[--card-bg] rounded-md shadow-lg py-1 z-50 border border-[--card-border]">
+												<button
+													onClick={() => {
+														navigateToProfile();
+														setIsDropdownOpen(false);
+													}}
+													className="w-full text-left block px-4 py-2 text-sm text-[--text-primary] hover:bg-[--card-bg-secondary]"
+												>
+													<div className="flex items-center">
+														<FaUser className="mr-2" />
+														My Profile
+													</div>
+												</button>
+												<button
+													onClick={() => {
+														logout();
+														setIsDropdownOpen(false);
+													}}
+													className="w-full text-left block px-4 py-2 text-sm text-[--text-primary] hover:bg-[--card-bg-secondary]"
+												>
+													<div className="flex items-center">
+														<FaSignOutAlt className="mr-2" />
+														Sign Out
+													</div>
+												</button>
+											</div>
+										)}
+									</div>
+								) : (
+									<button onClick={loginWithRiot} className={getButtonClass()}>
+										<FaSignInAlt className="text-sm" />
+										<span>Login with Riot</span>
+									</button>
+								)}
+
 								<Link
 									href="https://buymeacoffee.com/danblock97"
 									target="_blank"
@@ -360,6 +425,49 @@ const NavBar = ({ isBannerVisible }) => {
 							</button>
 						)}
 
+						{/* User Profile or Login Button - Mobile */}
+						{user ? (
+							<>
+								<button
+									onClick={() => {
+										navigateToProfile();
+										setIsMenuOpen(false);
+									}}
+									className="w-full text-left nav-link block px-3 py-2 rounded-md hover:bg-[--card-bg-secondary]"
+								>
+									<div className="flex items-center space-x-3">
+										<FaUser />
+										<span>My Profile ({user.gameName})</span>
+									</div>
+								</button>
+								<button
+									onClick={() => {
+										logout();
+										setIsMenuOpen(false);
+									}}
+									className="w-full text-left nav-link block px-3 py-2 rounded-md hover:bg-[--card-bg-secondary]"
+								>
+									<div className="flex items-center space-x-3">
+										<FaSignOutAlt />
+										<span>Sign Out</span>
+									</div>
+								</button>
+							</>
+						) : (
+							<button
+								onClick={() => {
+									loginWithRiot();
+									setIsMenuOpen(false);
+								}}
+								className="w-full text-left nav-link block px-3 py-2 rounded-md hover:bg-[--card-bg-secondary]"
+							>
+								<div className="flex items-center space-x-3">
+									<FaSignInAlt />
+									<span>Login with Riot</span>
+								</div>
+							</button>
+						)}
+
 						{/* Bug Report Button - Mobile */}
 						<button
 							id="bugReportTrigger"
@@ -375,6 +483,7 @@ const NavBar = ({ isBannerVisible }) => {
 						<button
 							id="featureRequestTrigger"
 							className="w-full text-left nav-link block px-3 py-2 rounded-md hover:bg-[--card-bg-secondary]"
+							onClick={handleLinkClick}
 						>
 							<div className="flex items-center space-x-3">
 								<FaLightbulb />
