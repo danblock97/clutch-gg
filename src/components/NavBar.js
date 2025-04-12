@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -22,7 +22,6 @@ import {
 	FaGamepad,
 	FaChessKnight,
 	FaUser,
-	FaSignInAlt,
 	FaSignOutAlt,
 } from "react-icons/fa";
 
@@ -33,11 +32,13 @@ const NavBar = ({ isBannerVisible }) => {
 	const [navbarHeight, setNavbarHeight] = useState(0);
 	const [mounted, setMounted] = useState(false);
 	const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+	const [isGameTypeDropdownOpen, setIsGameTypeDropdownOpen] = useState(false);
 	const { gameType, setGameType } = useGameType();
 	const { user, loginWithRiot, logout, navigateToProfile } = useAuth();
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
 	const router = useRouter();
+	const gameTypeDropdownRef = useRef(null);
 
 	// Mark component as mounted to prevent hydration mismatch
 	useEffect(() => {
@@ -52,6 +53,23 @@ const NavBar = ({ isBannerVisible }) => {
 			setGameType("league");
 		}
 	}, [pathname, setGameType]);
+
+	// Close dropdown when clicking outside
+	useEffect(() => {
+		const handleClickOutside = (event) => {
+			if (
+				gameTypeDropdownRef.current &&
+				!gameTypeDropdownRef.current.contains(event.target)
+			) {
+				setIsGameTypeDropdownOpen(false);
+			}
+		};
+
+		document.addEventListener("mousedown", handleClickOutside);
+		return () => {
+			document.removeEventListener("mousedown", handleClickOutside);
+		};
+	}, []);
 
 	const isProfileOrMatch =
 		pathname?.includes("/profile") || pathname?.includes("/match");
@@ -80,11 +98,13 @@ const NavBar = ({ isBannerVisible }) => {
 	const handleLinkClick = () => {
 		setIsMenuOpen(false);
 		setIsDropdownOpen(false);
+		setIsGameTypeDropdownOpen(false);
 	};
 
 	// Toggle between game types
 	const handleGameTypeChange = (type) => {
 		setGameType(type);
+		setIsGameTypeDropdownOpen(false);
 		// Navigate to corresponding section when game type changes
 		if (type === "tft") {
 			// If currently on leaderboard page, navigate to the corresponding leaderboard
@@ -121,15 +141,23 @@ const NavBar = ({ isBannerVisible }) => {
 		return gameType === "tft" ? "/tft/leaderboard" : "/league/leaderboard";
 	};
 
-	// Get button style class based on game type
-	const getButtonClass = () => {
-		return (!mounted && isTftPath) || (mounted && gameType === "tft")
-			? "btn-primary-tft py-1 px-3 flex items-center space-x-1"
-			: "btn-primary py-1 px-3 flex items-center space-x-1";
+	// Get current game type display text and icon
+	const getCurrentGameTypeDisplay = () => {
+		if ((!mounted && isTftPath) || (mounted && gameType === "tft")) {
+			return (
+				<>
+					<FaChessKnight className="text-sm mr-1" />
+					<span>TFT</span>
+				</>
+			);
+		}
+		return (
+			<>
+				<FaGamepad className="text-sm mr-1" />
+				<span>League</span>
+			</>
+		);
 	};
-
-	// If we're dealing with server-side logic for initial render
-	const initialGameType = isTftPath ? "tft" : "league";
 
 	return (
 		<header
@@ -169,44 +197,55 @@ const NavBar = ({ isBannerVisible }) => {
 								</span>
 							</Link>
 
-							{/* Game Type Selector (Desktop) */}
-							<div className="hidden md:flex items-center space-x-4 pr-2 border-r border-[--card-border]">
+							{/* Game Type Dropdown (Desktop) */}
+							<div
+								className="hidden md:block relative"
+								ref={gameTypeDropdownRef}
+							>
 								<button
-									onClick={() => handleGameTypeChange("league")}
-									className={`nav-link flex items-center space-x-1 ${
-										(!mounted && !isTftPath) ||
-										(mounted && gameType === "league")
-											? "league-active"
-											: ""
+									onClick={() =>
+										setIsGameTypeDropdownOpen(!isGameTypeDropdownOpen)
+									}
+									className={`nav-link flex items-center space-x-1 px-2 py-1 border border-transparent rounded-md hover:border-[--card-border] ${
+										isGameTypeDropdownOpen ? "bg-[--card-bg-secondary]" : ""
 									}`}
 								>
-									<FaGamepad className="text-sm" />
-									<span>League</span>
+									{getCurrentGameTypeDisplay()}
+									<FaChevronDown className="ml-1 text-xs" />
 								</button>
-								<button
-									onClick={() => handleGameTypeChange("tft")}
-									className={`nav-link flex items-center space-x-1 ${
-										(!mounted && isTftPath) || (mounted && gameType === "tft")
-											? "tft-active"
-											: ""
-									}`}
-								>
-									<FaChessKnight className="text-sm" />
-									<span>TFT</span>
-								</button>
+
+								{isGameTypeDropdownOpen && (
+									<div className="absolute mt-2 w-40 bg-[--card-bg] rounded-md shadow-lg py-1 z-50 border border-[--card-border]">
+										<button
+											onClick={() => handleGameTypeChange("league")}
+											className={`w-full text-left px-4 py-2 text-sm flex items-center hover:bg-[--card-bg-secondary] ${
+												(!mounted && !isTftPath) ||
+												(mounted && gameType === "league")
+													? "text-[--primary]"
+													: "text-[--text-primary]"
+											}`}
+										>
+											<FaGamepad className="mr-2" />
+											League
+										</button>
+										<button
+											onClick={() => handleGameTypeChange("tft")}
+											className={`w-full text-left px-4 py-2 text-sm flex items-center hover:bg-[--card-bg-secondary] ${
+												(!mounted && isTftPath) ||
+												(mounted && gameType === "tft")
+													? "text-[--tft-primary]"
+													: "text-[--text-primary]"
+											}`}
+										>
+											<FaChessKnight className="mr-2" />
+											TFT
+										</button>
+									</div>
+								)}
 							</div>
 
 							{/* Desktop Navigation Links */}
 							<div className="hidden md:flex items-center space-x-6">
-								<Link
-									href="/"
-									className={`nav-link flex items-center space-x-1 ${
-										pathname === "/" ? getActiveColorClass() : ""
-									}`}
-								>
-									<FaHome className="text-sm" />
-									<span>Home</span>
-								</Link>
 								<Link
 									href={getLeaderboardLink()}
 									className={`nav-link flex items-center space-x-1 ${
@@ -227,112 +266,66 @@ const NavBar = ({ isBannerVisible }) => {
 							{isProfileOrMatch && (
 								<button
 									onClick={() => setIsSearchModalOpen(true)}
-									className={`${
-										(!mounted && isTftPath) || (mounted && gameType === "tft")
-											? "btn-outline-tft"
-											: "btn-outline"
-									} py-1 px-3 hidden md:flex items-center space-x-1`}
+									className={`border border-[--card-border] bg-[--card-bg-secondary] hover:bg-[--card-bg] text-[--text-primary] py-1 px-3 hidden md:flex items-center space-x-1 rounded-md transition-colors duration-200`}
 								>
 									<FaSearch className="text-sm" />
 									<span>Search</span>
 								</button>
 							)}
 
-							{/* Desktop Actions */}
-							<div className="hidden md:flex items-center space-x-4">
-								{/* Bug Report Button */}
-								<button
-									id="bugReportTrigger"
-									className="nav-link flex items-center space-x-1"
-								>
-									<FaBug className="text-sm" />
-									<span>Report Bug</span>
-								</button>
-
-								{/* Feature Request Button */}
-								<button
-									id="featureRequestTrigger"
-									className="nav-link flex items-center space-x-1"
-								>
-									<FaLightbulb className="text-sm" />
-									<span>Request Feature</span>
-								</button>
-
-								<Link
-									href="https://discord.gg/BeszQxTn9D"
-									target="_blank"
-									rel="noopener noreferrer"
-									className="nav-link flex items-center space-x-1"
-								>
-									<FaDiscord className="text-lg" />
-									<span>Discord</span>
-								</Link>
-
-								{/* User Profile or Login Button */}
-								{user ? (
-									<div className="relative">
-										<button
-											onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-											className={getButtonClass()}
-										>
-											<FaUser className="text-sm" />
-											<span>{user.gameName}</span>
-											{isDropdownOpen ? (
-												<FaChevronUp className="ml-1 text-xs" />
-											) : (
-												<FaChevronDown className="ml-1 text-xs" />
-											)}
-										</button>
-										{isDropdownOpen && (
-											<div className="absolute right-0 mt-2 w-48 bg-[--card-bg] rounded-md shadow-lg py-1 z-50 border border-[--card-border]">
-												<button
-													onClick={() => {
-														navigateToProfile();
-														setIsDropdownOpen(false);
-													}}
-													className="w-full text-left block px-4 py-2 text-sm text-[--text-primary] hover:bg-[--card-bg-secondary]"
-												>
-													<div className="flex items-center">
-														<FaUser className="mr-2" />
-														My Profile
-													</div>
-												</button>
-												<button
-													onClick={() => {
-														logout();
-														setIsDropdownOpen(false);
-													}}
-													className="w-full text-left block px-4 py-2 text-sm text-[--text-primary] hover:bg-[--card-bg-secondary]"
-												>
-													<div className="flex items-center">
-														<FaSignOutAlt className="mr-2" />
-														Sign Out
-													</div>
-												</button>
-											</div>
+							{/* User Profile or Login Button */}
+							{user ? (
+								<div className="relative hidden md:block">
+									<button
+										onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+										className="border border-[--card-border] bg-[--card-bg-secondary] hover:bg-[--card-bg] text-[--text-primary] py-1 px-3 flex items-center space-x-1 rounded-md transition-colors duration-200"
+									>
+										<FaUser className="text-sm" />
+										<span>{user.gameName}</span>
+										{isDropdownOpen ? (
+											<FaChevronUp className="ml-1 text-xs" />
+										) : (
+											<FaChevronDown className="ml-1 text-xs" />
 										)}
-									</div>
-								) : (
-									<button onClick={loginWithRiot} className={getButtonClass()}>
-										<FaSignInAlt className="text-sm" />
-										<span>Login with Riot</span>
 									</button>
-								)}
-
-								<Link
-									href="https://buymeacoffee.com/danblock97"
-									target="_blank"
-									rel="noopener noreferrer"
-									className={
-										(!mounted && isTftPath) || (mounted && gameType === "tft")
-											? "btn-primary-tft py-1 px-3 flex items-center space-x-1"
-											: "btn-primary py-1 px-3 flex items-center space-x-1"
-									}
+									{isDropdownOpen && (
+										<div className="absolute right-0 mt-2 w-48 bg-[--card-bg] rounded-md shadow-lg py-1 z-50 border border-[--card-border]">
+											<button
+												onClick={() => {
+													navigateToProfile();
+													setIsDropdownOpen(false);
+												}}
+												className="w-full text-left block px-4 py-2 text-sm text-[--text-primary] hover:bg-[--card-bg-secondary]"
+											>
+												<div className="flex items-center">
+													<FaUser className="mr-2" />
+													My Profile
+												</div>
+											</button>
+											<button
+												onClick={() => {
+													logout();
+													setIsDropdownOpen(false);
+												}}
+												className="w-full text-left block px-4 py-2 text-sm text-[--text-primary] hover:bg-[--card-bg-secondary]"
+											>
+												<div className="flex items-center">
+													<FaSignOutAlt className="mr-2" />
+													Sign Out
+												</div>
+											</button>
+										</div>
+									)}
+								</div>
+							) : (
+								<button
+									onClick={loginWithRiot}
+									className="hidden md:flex border border-[--card-border] bg-[--card-bg-secondary] hover:bg-[--card-bg] text-[--text-primary] py-1 px-3 items-center space-x-1 rounded-md transition-colors duration-200"
 								>
-									<FaCoffee className="text-sm" />
-									<span>Support</span>
-								</Link>
-							</div>
+									<FaSignOutAlt className="text-sm" />
+									<span>Log In With Riot</span>
+								</button>
+							)}
 
 							{/* Mobile menu button */}
 							<button
@@ -386,17 +379,6 @@ const NavBar = ({ isBannerVisible }) => {
 								</button>
 							</div>
 						</div>
-
-						<Link
-							href="/"
-							className="nav-link block px-3 py-2 rounded-md hover:bg-[--card-bg-secondary]"
-							onClick={handleLinkClick}
-						>
-							<div className="flex items-center space-x-3">
-								<FaHome />
-								<span>Home</span>
-							</div>
-						</Link>
 
 						<Link
 							href={getLeaderboardLink()}
@@ -462,64 +444,10 @@ const NavBar = ({ isBannerVisible }) => {
 								className="w-full text-left nav-link block px-3 py-2 rounded-md hover:bg-[--card-bg-secondary]"
 							>
 								<div className="flex items-center space-x-3">
-									<FaSignInAlt />
-									<span>Login with Riot</span>
+									<span>Log In With Riot</span>
 								</div>
 							</button>
 						)}
-
-						{/* Bug Report Button - Mobile */}
-						<button
-							id="bugReportTrigger"
-							className="w-full text-left nav-link block px-3 py-2 rounded-md hover:bg-[--card-bg-secondary]"
-						>
-							<div className="flex items-center space-x-3">
-								<FaBug />
-								<span>Report Bug</span>
-							</div>
-						</button>
-
-						{/* Feature Request Button - Mobile */}
-						<button
-							id="featureRequestTrigger"
-							className="w-full text-left nav-link block px-3 py-2 rounded-md hover:bg-[--card-bg-secondary]"
-							onClick={handleLinkClick}
-						>
-							<div className="flex items-center space-x-3">
-								<FaLightbulb />
-								<span>Request Feature</span>
-							</div>
-						</button>
-
-						<Link
-							href="https://discord.gg/BeszQxTn9D"
-							target="_blank"
-							rel="noopener noreferrer"
-							className="nav-link block px-3 py-2 rounded-md hover:bg-[--card-bg-secondary]"
-							onClick={handleLinkClick}
-						>
-							<div className="flex items-center space-x-3">
-								<FaDiscord />
-								<span>Discord Community</span>
-							</div>
-						</Link>
-
-						<Link
-							href="https://buymeacoffee.com/danblock97"
-							target="_blank"
-							rel="noopener noreferrer"
-							className={`block px-3 py-2 rounded-md text-white hover:opacity-90 ${
-								(!mounted && isTftPath) || (mounted && gameType === "tft")
-									? "bg-[--tft-primary]"
-									: "bg-[--primary]"
-							}`}
-							onClick={handleLinkClick}
-						>
-							<div className="flex items-center space-x-3">
-								<FaCoffee />
-								<span>Support Us</span>
-							</div>
-						</Link>
 					</div>
 				</div>
 			</nav>

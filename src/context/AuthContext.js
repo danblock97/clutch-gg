@@ -56,12 +56,13 @@ export const AuthProvider = ({ children }) => {
 		if (!user) return;
 
 		const basePath = gameType === "tft" ? "/tft" : "/league";
+		// Ensure region is in uppercase format for API compatibility
+		const normalizedRegion = user.region ? user.region.toUpperCase() : "EUW1";
+
 		router.push(
 			`${basePath}/profile?gameName=${encodeURIComponent(
 				user.gameName
-			)}&tagLine=${encodeURIComponent(user.tagLine)}&region=${
-				user.region || "euw1"
-			}`
+			)}&tagLine=${encodeURIComponent(user.tagLine)}&region=${normalizedRegion}`
 		);
 	};
 

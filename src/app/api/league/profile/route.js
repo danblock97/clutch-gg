@@ -43,8 +43,19 @@ export async function GET(req) {
 	}
 
 	try {
+		// Normalize region to uppercase to ensure API compatibility
+		const normalizedRegion = region.toUpperCase();
+		// Get the corresponding platform for the region
+		const platform = regionToPlatform[normalizedRegion];
+
+		if (!platform) {
+			return new Response(
+				JSON.stringify({ error: `Invalid region: ${region}` }),
+				{ status: 400, headers: { "Content-Type": "application/json" } }
+			);
+		}
+
 		// Fetch account data to get the puuid.
-		const platform = regionToPlatform[region];
 		const accountData = await fetchAccountData(gameName, tagLine, platform);
 
 		if (!accountData?.puuid) {

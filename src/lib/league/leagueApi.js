@@ -6,8 +6,11 @@ const RIOT_API_KEY = process.env.RIOT_API_KEY;
  * Fetch League summoner data using an encrypted PUUID.
  */
 export const fetchSummonerData = async (encryptedPUUID, region) => {
+	// Ensure region is uppercase for API compatibility
+	const normalizedRegion = region.toUpperCase();
+
 	const summonerResponse = await fetch(
-		`https://${region}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${encryptedPUUID}`,
+		`https://${normalizedRegion}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${encryptedPUUID}`,
 		{ headers: { "X-Riot-Token": RIOT_API_KEY } }
 	);
 	if (!summonerResponse.ok) {
@@ -20,7 +23,10 @@ export const fetchSummonerData = async (encryptedPUUID, region) => {
  * Fetch champion mastery data.
  */
 export const fetchChampionMasteryData = async (encryptedPUUID, region) => {
-	const url = `https://${region}.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-puuid/${encryptedPUUID}`;
+	// Ensure region is uppercase for API compatibility
+	const normalizedRegion = region.toUpperCase();
+
+	const url = `https://${normalizedRegion}.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-puuid/${encryptedPUUID}`;
 	const championMasteryResponse = await fetch(url, {
 		headers: { "X-Riot-Token": RIOT_API_KEY },
 	});
@@ -38,8 +44,11 @@ export const fetchChampionMasteryData = async (encryptedPUUID, region) => {
  * Fetch ranked data.
  */
 export const fetchRankedData = async (summonerId, region) => {
+	// Ensure region is uppercase for API compatibility
+	const normalizedRegion = region.toUpperCase();
+
 	const rankedResponse = await fetch(
-		`https://${region}.api.riotgames.com/lol/league/v4/entries/by-summoner/${summonerId}`,
+		`https://${normalizedRegion}.api.riotgames.com/lol/league/v4/entries/by-summoner/${summonerId}`,
 		{ headers: { "X-Riot-Token": RIOT_API_KEY } }
 	);
 	if (!rankedResponse.ok) {
@@ -98,8 +107,11 @@ export const upsertMatchDetail = async (matchId, puuid, matchDetail) => {
  * Fetch live game data.
  */
 export const fetchLiveGameData = async (puuid, region, platform) => {
+	// Ensure region is uppercase for API compatibility
+	const normalizedRegion = region.toUpperCase();
+
 	const liveGameResponse = await fetch(
-		`https://${region}.api.riotgames.com/lol/spectator/v5/active-games/by-summoner/${puuid}`,
+		`https://${normalizedRegion}.api.riotgames.com/lol/spectator/v5/active-games/by-summoner/${puuid}`,
 		{ headers: { "X-Riot-Token": RIOT_API_KEY } }
 	);
 	if (!liveGameResponse.ok) return null;
@@ -111,7 +123,7 @@ export const fetchLiveGameData = async (puuid, region, platform) => {
 			const additionalData = await fetchAdditionalData(
 				participant.summonerId,
 				participant.puuid,
-				region
+				normalizedRegion
 			);
 			return { ...participant, ...additionalData };
 		})
@@ -124,10 +136,13 @@ export const fetchLiveGameData = async (puuid, region, platform) => {
  */
 export const fetchAdditionalData = async (summonerId, puuid, region) => {
 	try {
+		// Ensure region is uppercase for API compatibility
+		const normalizedRegion = region.toUpperCase();
+
 		const [rankedResponse, accountResponse, summonerResponse] =
 			await Promise.all([
 				fetch(
-					`https://${region}.api.riotgames.com/lol/league/v4/entries/by-summoner/${summonerId}`,
+					`https://${normalizedRegion}.api.riotgames.com/lol/league/v4/entries/by-summoner/${summonerId}`,
 					{ headers: { "X-Riot-Token": RIOT_API_KEY } }
 				),
 				fetch(
@@ -135,7 +150,7 @@ export const fetchAdditionalData = async (summonerId, puuid, region) => {
 					{ headers: { "X-Riot-Token": RIOT_API_KEY } }
 				),
 				fetch(
-					`https://${region}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}`,
+					`https://${normalizedRegion}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}`,
 					{ headers: { "X-Riot-Token": RIOT_API_KEY } }
 				),
 			]);
