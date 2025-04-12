@@ -5,14 +5,17 @@ import TFTRankedInfo from "./RankedInfo";
 import TFTMatchHistory from "./MatchHistory";
 import TopTraits from "./TopTraits";
 import TopUnits from "./TopUnits";
+import LiveGame from "./LiveGame";
 import Loading from "@/components/Loading";
 import NoProfileFound from "@/components/league/NoProfileFound";
 import DiscordBotBanner from "@/components/DiscordBotBanner.js";
+import { FaChevronDown, FaGamepad } from "react-icons/fa";
 
-export default function Profile({ profileData }) {
-	const { summonerData, rankedData, matchDetails, isLoading } =
+export default function Profile({ profileData, triggerUpdate, isUpdating }) {
+	const { summonerData, rankedData, matchDetails, liveGameData, isLoading } =
 		useTFTProfileData(profileData);
 	const [tab, setTab] = useState("matches");
+	const [isLiveGameOpen, setIsLiveGameOpen] = useState(false);
 
 	// Update functionality
 	const [isUpdated, setIsUpdated] = useState(false);
@@ -63,6 +66,18 @@ export default function Profile({ profileData }) {
 		};
 	}, [isUpdated, countdown]);
 
+	// We'll now use the useEffect to handle updates just like the League implementation
+	useEffect(() => {
+		if (!isUpdating && updateTriggered) {
+			const now = new Date();
+			setIsUpdated(true);
+			setLastUpdated(now);
+			setCountdown(120);
+			setUpdateTriggered(false);
+			localStorage.setItem("tft_lastUpdated", now.toISOString());
+		}
+	}, [isUpdating, updateTriggered]);
+
 	if (isLoading) {
 		return <Loading />;
 	}
@@ -78,19 +93,6 @@ export default function Profile({ profileData }) {
 		tftRanked && tftRanked.tier
 			? `/images/league/rankedEmblems/${tftRanked.tier.toLowerCase()}.webp`
 			: null;
-
-	// Handle refresh/update
-	const handleUpdate = () => {
-		setUpdateTriggered(true);
-		window.location.reload();
-
-		// Store update time
-		const now = new Date();
-		setIsUpdated(true);
-		setLastUpdated(now);
-		setCountdown(120);
-		localStorage.setItem("tft_lastUpdated", now.toISOString());
-	};
 
 	return (
 		<main className="min-h-screen bg-gray-900 text-white">
@@ -169,13 +171,63 @@ export default function Profile({ profileData }) {
 							{/* Action Buttons */}
 							<div className="flex flex-wrap gap-3 mt-4">
 								<button
-									onClick={handleUpdate}
+									onClick={(e) => {
+										e.stopPropagation();
+										triggerUpdate();
+										setUpdateTriggered(true);
+									}}
 									className={`relative overflow-hidden rounded-lg text-sm font-medium transition-all duration-300 inline-flex items-center justify-center px-4 py-2
-                    ${isUpdated ? "btn-success" : "btn-primary"}`}
-									disabled={countdown > 0}
+                    ${
+											isUpdating
+												? "bg-gray-600 opacity-50 cursor-not-allowed"
+												: isUpdated
+												? "btn-success"
+												: "btn-primary-tft"
+										}`}
+									disabled={isUpdating || countdown > 0}
 								>
-									{isUpdated ? "Updated" : "Update Profile"}
+									{isUpdating && (
+										<svg
+											className="animate-spin h-4 w-4 mr-2"
+											xmlns="http://www.w3.org/2000/svg"
+											fill="none"
+											viewBox="0 0 24 24"
+										>
+											<circle
+												className="opacity-25"
+												cx="12"
+												cy="12"
+												r="10"
+												stroke="currentColor"
+												strokeWidth="4"
+											></circle>
+											<path
+												className="opacity-75"
+												fill="currentColor"
+												d="M4 12a8 8 0 018-8v8H4z"
+											></path>
+										</svg>
+									)}
+									{isUpdating
+										? "Updating..."
+										: isUpdated
+										? "Updated"
+										: "Update Profile"}
 								</button>
+
+								{/* Live Game Button - only displayed if there's a live game */}
+								{liveGameData && (
+									<button
+										onClick={() => setIsLiveGameOpen(!isLiveGameOpen)}
+										className="relative overflow-hidden rounded-lg text-sm font-medium transition-all duration-300 inline-flex items-center justify-center px-4 py-2 bg-gradient-to-r from-green-600 to-teal-500 hover:from-green-500 hover:to-teal-400 text-white"
+									>
+										<span className="relative flex h-2 w-2 mr-2">
+											<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
+											<span className="relative inline-flex rounded-full h-2 w-2 bg-red-600"></span>
+										</span>
+										Live Game
+									</button>
+								)}
 
 								{/* Timer */}
 								{isUpdated && countdown > 0 && (
@@ -201,6 +253,13 @@ export default function Profile({ profileData }) {
 
 			{/* Main Content */}
 			<div className="container mx-auto px-4 py-8">
+				{/* Live Game Section (Conditionally Rendered) */}
+				{liveGameData && isLiveGameOpen && (
+					<div className="max-w-screen-xl w-full mx-auto mb-8">
+						<LiveGame liveGameData={liveGameData} region={profileData.region} />
+					</div>
+				)}
+
 				<div className="flex flex-col lg:flex-row gap-6">
 					{/* Left Column */}
 					<div className="w-full lg:w-1/3">

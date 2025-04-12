@@ -6,6 +6,7 @@ import {
 	fetchTFTMatchIds,
 	fetchTFTMatchDetail,
 	upsertTFTMatchDetail,
+	fetchTFTLiveGameData,
 } from "@/lib/tft/tftApi";
 
 // TFT uses the same region to platform mapping as League
@@ -106,9 +107,10 @@ export async function GET(req) {
 
 		// Fetch summoner data once and use it for ranked data.
 		const summonerData = await fetchTFTSummonerData(puuid, region);
-		const [rankedData, matchIds] = await Promise.all([
+		const [rankedData, matchIds, liveGameData] = await Promise.all([
 			fetchTFTRankedData(summonerData.id, region),
 			fetchTFTMatchIds(puuid, platform),
+			fetchTFTLiveGameData(puuid, region, platform),
 		]);
 
 		// Fetch match details concurrently.
@@ -130,6 +132,7 @@ export async function GET(req) {
 			rankeddata: rankedData,
 			matchdata: matchIds,
 			matchdetails: matchDetails,
+			livegamedata: liveGameData,
 			updatedat: new Date(),
 		};
 
@@ -170,6 +173,19 @@ export async function GET(req) {
 
 export async function POST(req) {
 	try {
+		// First validate the API key for security
+		const apiKey = req.headers.get("x-api-key");
+
+		// Use the same environment variable as the League implementation
+		const validApiKey = process.env.NEXT_PUBLIC_UPDATE_API_KEY;
+
+		if (apiKey !== validApiKey) {
+			return new Response(
+				JSON.stringify({ error: "Unauthorized: Invalid API key" }),
+				{ status: 401, headers: { "Content-Type": "application/json" } }
+			);
+		}
+
 		const { gameName, tagLine, region } = await req.json();
 		if (!gameName || !tagLine || !region) {
 			return new Response(
