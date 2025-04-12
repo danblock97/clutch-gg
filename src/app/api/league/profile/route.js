@@ -92,16 +92,13 @@ export async function GET(req) {
 						insertError.code === "23505" &&
 						insertError.message.includes("puuid")
 					) {
-						console.log(
-							"Race condition detected, fetching existing record instead"
-						);
+						// Race condition detected, fetching existing record instead
 					} else {
 						// For other errors, we should still throw
 						throw insertError;
 					}
 				}
 			} catch (error) {
-				console.error("Error in insertion process:", error);
 				// We'll continue to fetch the account even if insertion failed due to duplication
 			}
 
@@ -201,7 +198,7 @@ export async function GET(req) {
 			headers: { "Content-Type": "application/json" },
 		});
 	} catch (error) {
-		console.error("Error fetching profile data:", error);
+		// Error fetching profile data
 		return new Response(JSON.stringify({ error: error.message }), {
 			status: 500,
 			headers: { "Content-Type": "application/json" },
@@ -228,7 +225,7 @@ export async function POST(req) {
 			new Request(url.toString(), { method: "GET", headers: req.headers })
 		);
 	} catch (error) {
-		console.error("Error updating profile:", error);
+		// Error updating profile
 		return new Response(JSON.stringify({ error: error.message }), {
 			status: 500,
 			headers: { "Content-Type": "application/json" },

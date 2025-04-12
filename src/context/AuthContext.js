@@ -30,7 +30,7 @@ export const AuthProvider = ({ children }) => {
 			// Redirect to Riot OAuth endpoint - we'll define this in our API route
 			window.location.href = "/api/auth/login";
 		} catch (error) {
-			console.error("Error logging in with Riot:", error);
+			// Silent error handling
 		}
 	};
 
@@ -47,7 +47,7 @@ export const AuthProvider = ({ children }) => {
 			// Redirect to logout endpoint
 			window.location.href = "/api/auth/logout";
 		} catch (error) {
-			console.error("Error logging out:", error);
+			// Silent error handling
 		}
 	};
 

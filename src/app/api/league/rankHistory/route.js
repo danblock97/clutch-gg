@@ -25,8 +25,6 @@ export async function GET(req) {
 		const cachedData = CACHE.get(cacheKey);
 
 		if (Date.now() < cachedData.expiresAt) {
-			console.log(`Using cached rank history for ${gameName}#${tagLine}`);
-
 			return NextResponse.json(cachedData.data, {
 				status: 200,
 				headers: {
@@ -60,8 +58,6 @@ export async function GET(req) {
 		const opggUrl = `https://${opggRegion}.op.gg/summoners/${opggRegion}/${encodeURIComponent(
 			gameName
 		)}-${encodeURIComponent(tagLine)}`;
-
-		console.log(`Fetching data from: ${opggUrl}`);
 
 		const response = await axios.get(opggUrl, {
 			headers: {
@@ -109,8 +105,6 @@ export async function GET(req) {
 					});
 				}
 			});
-		} else {
-			console.error("Ranked Solo/Duo table not found.");
 		}
 
 		if (rankHistory.length > 0) {
@@ -160,8 +154,6 @@ export async function GET(req) {
 		});
 
 		if (rankRows.length > 0) {
-			console.log("Used alternative parsing for rank history:", rankRows);
-
 			// Cache the data
 			CACHE.set(cacheKey, {
 				data: rankRows,
@@ -205,8 +197,6 @@ export async function GET(req) {
 			});
 
 			if (directRows.length > 0) {
-				console.log("Used direct HTML fragment parsing:", directRows);
-
 				// Cache the data
 				CACHE.set(cacheKey, {
 					data: directRows,
@@ -223,12 +213,10 @@ export async function GET(req) {
 				});
 			}
 		} catch (fragmentError) {
-			console.error("Error parsing HTML fragment:", fragmentError);
+			// Error handling silently
 		}
 
 		// If all attempts failed, return an empty array
-		console.log("All parsing attempts failed. No rank history found.");
-
 		return NextResponse.json([], {
 			status: 200,
 			headers: {
@@ -237,12 +225,6 @@ export async function GET(req) {
 			},
 		});
 	} catch (error) {
-		console.error("Error scraping rank history:", error.message);
-		if (error.response) {
-			console.error("HTTP Status:", error.response.status);
-			console.error("Response headers:", error.response.headers);
-		}
-
 		// Return an empty array with appropriate status code
 		return NextResponse.json([], {
 			status: 200,

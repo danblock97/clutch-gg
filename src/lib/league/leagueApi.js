@@ -98,9 +98,7 @@ export const upsertMatchDetail = async (matchId, puuid, matchDetail) => {
 			},
 			{ onConflict: ["matchid"] }
 		);
-	if (insertMatchError) {
-		console.error("Error inserting match:", insertMatchError);
-	}
+	// Silent error handling
 };
 
 /**

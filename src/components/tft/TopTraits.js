@@ -54,23 +54,9 @@ export default function TopTraits({ matchDetails, summonerData }) {
 	const [isLoading, setIsLoading] = useState(true);
 	const [currentSetNumber, setCurrentSetNumber] = useState(null);
 
-	// Debug logging
-	useEffect(() => {
-		if (matchDetails) {
-			console.log(`TopTraits: Received ${matchDetails.length} matches`);
-			console.log(
-				`TopTraits: Looking for player PUUID: ${summonerData?.puuid?.slice(
-					0,
-					10
-				)}...`
-			);
-		}
-	}, [matchDetails, summonerData]);
-
 	useEffect(() => {
 		async function fetchTraitsData() {
 			try {
-				console.log("TopTraits: Fetching traits data");
 				// Fetch traits data from Community Dragon
 				const traitsResponse = await fetch(
 					"https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/tfttraits.json"
@@ -93,11 +79,8 @@ export default function TopTraits({ matchDetails, summonerData }) {
 				});
 
 				setTraitsData(traitsMap);
-				console.log(
-					`TopTraits: Loaded ${Object.keys(traitsMap).length} traits`
-				);
 			} catch (error) {
-				console.error("Error fetching traits data:", error);
+				// Silent error handling
 			}
 		}
 
@@ -112,13 +95,9 @@ export default function TopTraits({ matchDetails, summonerData }) {
 		}
 
 		try {
-			console.log("TopTraits: Processing match history");
 			// Determine current set number from the first match
 			if (matchDetails[0]?.info?.tft_set_number) {
 				setCurrentSetNumber(matchDetails[0].info.tft_set_number);
-				console.log(
-					`TopTraits: Current set is ${matchDetails[0].info.tft_set_number}`
-				);
 			}
 
 			// Process match details to extract trait statistics
@@ -132,14 +111,9 @@ export default function TopTraits({ matchDetails, summonerData }) {
 				);
 			});
 
-			console.log(
-				`TopTraits: Found ${currentSetMatches.length} matches from the current set`
-			);
-
 			// Use the same approach as MatchHistory component to find the player in each match
 			currentSetMatches.forEach((match) => {
 				if (!match.info) {
-					console.log("TopTraits: Match missing info data");
 					return;
 				}
 
@@ -149,19 +123,12 @@ export default function TopTraits({ matchDetails, summonerData }) {
 				);
 
 				if (!participant) {
-					console.log(
-						`TopTraits: Player with PUUID ${summonerData.puuid.slice(
-							0,
-							8
-						)}... not found in participants`
-					);
 					return;
 				}
 
 				// Check for traits array
 				const traits = participant.traits;
 				if (!Array.isArray(traits) || traits.length === 0) {
-					console.log("TopTraits: No traits found for participant");
 					return;
 				}
 
@@ -227,13 +194,6 @@ export default function TopTraits({ matchDetails, summonerData }) {
 				traitStats[traitName].unitCounts[unitCount]++;
 			}
 
-			console.log(
-				`TopTraits: Processed ${processedMatches} matches with valid data`
-			);
-			console.log(
-				`TopTraits: Found ${Object.keys(traitStats).length} unique traits`
-			);
-
 			// Calculate most frequent style and unit count for each trait
 			const traitsArray = Object.values(traitStats)
 				.filter((trait) => trait.gamesPlayed > 0)
@@ -269,15 +229,6 @@ export default function TopTraits({ matchDetails, summonerData }) {
 					};
 				});
 
-			// Log the trait stats before sorting
-			console.log(
-				"Trait stats before sorting:",
-				traitsArray.map(
-					(t) =>
-						`${t.name}: ${t.gamesPlayed} games, style:${t.mostCommonStyle}, avg:${t.avgPlacement}`
-				)
-			);
-
 			// Sort by most games played, then by best average placement
 			traitsArray.sort((a, b) => {
 				if (b.gamesPlayed !== a.gamesPlayed) {
@@ -288,21 +239,11 @@ export default function TopTraits({ matchDetails, summonerData }) {
 
 			// Take top 4 traits or all if less than 4
 			const top = traitsArray.slice(0, 4);
-			console.log(`TopTraits: Selected ${top.length} top traits`);
-
-			// Log the final selection
-			console.log(
-				"Final top traits:",
-				top.map(
-					(t) =>
-						`${t.name}: ${t.gamesPlayed} games, style:${t.mostCommonStyle}, avg:${t.avgPlacement}`
-				)
-			);
 
 			setTopTraits(top);
 			setIsLoading(false);
 		} catch (error) {
-			console.error("Error processing trait statistics:", error);
+			// Silent error handling
 			setIsLoading(false);
 		}
 	}, [matchDetails, summonerData]);

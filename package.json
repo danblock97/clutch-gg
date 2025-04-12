@@ -4,8 +4,6 @@
 	"private": true,
 	"scripts": {
 		"dev": "next dev",
-		"dev:rso": "node -e \"require('dotenv').config({path:'.env.local.dev'})\" && next dev",
-		"setup:rso": "node scripts/setup-local-rso.js",
 		"build": "next build"
 	},
 	"dependencies": {
