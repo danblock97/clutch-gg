@@ -43,7 +43,6 @@ const ProfilePageContent = () => {
 			const data = await response.json();
 			setProfileData(data);
 		} catch (err) {
-			console.error("Error fetching profile data:", err);
 			setError(err.message);
 		} finally {
 			setIsLoading(false);
@@ -75,7 +74,6 @@ const ProfilePageContent = () => {
 
 			if (!response.ok) {
 				const data = await response.json();
-				console.error("API update error:", data);
 				throw new Error(
 					data.error || `Failed to trigger update: ${response.status}`
 				);
@@ -84,7 +82,6 @@ const ProfilePageContent = () => {
 			// Fetch updated profile data
 			await fetchProfileData();
 		} catch (error) {
-			console.error("Error triggering TFT profile update:", error.message);
 			setError(error.message);
 		} finally {
 			setIsUpdating(false);

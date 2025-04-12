@@ -43,8 +43,19 @@ export async function GET(req) {
 	}
 
 	try {
+		// Normalize region to uppercase to ensure API compatibility
+		const normalizedRegion = region.toUpperCase();
+		// Get the corresponding platform for the region
+		const platform = regionToPlatform[normalizedRegion];
+
+		if (!platform) {
+			return new Response(
+				JSON.stringify({ error: `Invalid region: ${region}` }),
+				{ status: 400, headers: { "Content-Type": "application/json" } }
+			);
+		}
+
 		// Fetch account data to get the puuid.
-		const platform = regionToPlatform[region];
 		const accountData = await fetchAccountData(gameName, tagLine, platform);
 
 		if (!accountData?.puuid) {
@@ -81,16 +92,13 @@ export async function GET(req) {
 						insertError.code === "23505" &&
 						insertError.message.includes("puuid")
 					) {
-						console.log(
-							"Race condition detected, fetching existing record instead"
-						);
+						// Race condition detected, fetching existing record instead
 					} else {
 						// For other errors, we should still throw
 						throw insertError;
 					}
 				}
 			} catch (error) {
-				console.error("Error in insertion process:", error);
 				// We'll continue to fetch the account even if insertion failed due to duplication
 			}
 
@@ -190,7 +198,7 @@ export async function GET(req) {
 			headers: { "Content-Type": "application/json" },
 		});
 	} catch (error) {
-		console.error("Error fetching profile data:", error);
+		// Error fetching profile data
 		return new Response(JSON.stringify({ error: error.message }), {
 			status: 500,
 			headers: { "Content-Type": "application/json" },
@@ -217,7 +225,7 @@ export async function POST(req) {
 			new Request(url.toString(), { method: "GET", headers: req.headers })
 		);
 	} catch (error) {
-		console.error("Error updating profile:", error);
+		// Error updating profile
 		return new Response(JSON.stringify({ error: error.message }), {
 			status: 500,
 			headers: { "Content-Type": "application/json" },

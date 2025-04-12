@@ -26,11 +26,6 @@ const Leaderboard = () => {
 			);
 
 			if (!response.ok) {
-				console.warn(
-					"Non-OK HTTP status:",
-					response.status,
-					response.statusText
-				);
 				setLeaderboardData([]);
 				throw new Error(
 					`HTTP error: ${response.status} - ${response.statusText}`
@@ -41,7 +36,6 @@ const Leaderboard = () => {
 			try {
 				data = await response.json();
 			} catch (jsonError) {
-				console.warn("Failed to parse JSON:", jsonError);
 				data = [];
 			}
 
@@ -50,7 +44,6 @@ const Leaderboard = () => {
 			}
 
 			if (!Array.isArray(data)) {
-				console.warn("API returned non-array, setting to []");
 				setLeaderboardData([]);
 			} else {
 				setLeaderboardData(data);
@@ -58,7 +51,6 @@ const Leaderboard = () => {
 
 			setError(null);
 		} catch (error) {
-			console.error("Error fetching leaderboard data:", error);
 			setError(error.message);
 			setRetryCountdown(10);
 		} finally {
@@ -86,24 +78,37 @@ const Leaderboard = () => {
 	// Get background class based on tier
 	const getTierBackgroundClass = () => {
 		switch (tier.toLowerCase()) {
-			case 'challenger': return 'from-[--challenger]/10 to-transparent';
-			case 'grandmaster': return 'from-[--grandmaster]/10 to-transparent';
-			case 'master': return 'from-[--master]/10 to-transparent';
-			case 'diamond': return 'from-[--diamond]/10 to-transparent';
-			case 'emerald': return 'from-[--emerald]/10 to-transparent';
-			case 'platinum': return 'from-[--platinum]/10 to-transparent';
-			case 'gold': return 'from-[--gold]/10 to-transparent';
-			case 'silver': return 'from-[--silver]/10 to-transparent';
-			case 'bronze': return 'from-[--bronze]/10 to-transparent';
-			case 'iron': return 'from-[--iron]/10 to-transparent';
-			default: return 'from-blue-500/10 to-transparent';
+			case "challenger":
+				return "from-[--challenger]/10 to-transparent";
+			case "grandmaster":
+				return "from-[--grandmaster]/10 to-transparent";
+			case "master":
+				return "from-[--master]/10 to-transparent";
+			case "diamond":
+				return "from-[--diamond]/10 to-transparent";
+			case "emerald":
+				return "from-[--emerald]/10 to-transparent";
+			case "platinum":
+				return "from-[--platinum]/10 to-transparent";
+			case "gold":
+				return "from-[--gold]/10 to-transparent";
+			case "silver":
+				return "from-[--silver]/10 to-transparent";
+			case "bronze":
+				return "from-[--bronze]/10 to-transparent";
+			case "iron":
+				return "from-[--iron]/10 to-transparent";
+			default:
+				return "from-blue-500/10 to-transparent";
 		}
 	};
 
 	return (
 		<div className="min-h-screen flex flex-col">
 			{/* Header Section */}
-			<div className={`w-full py-16 bg-gradient-to-b ${getTierBackgroundClass()}`}>
+			<div
+				className={`w-full py-16 bg-gradient-to-b ${getTierBackgroundClass()}`}
+			>
 				<div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
 					<div className="flex justify-center mb-4">
 						<div className="p-3 rounded-full bg-[--card-bg] shadow-xl">
@@ -114,7 +119,8 @@ const Leaderboard = () => {
 						{tier.charAt(0) + tier.slice(1).toLowerCase()} Leaderboard
 					</h1>
 					<p className="text-[--text-secondary] max-w-2xl mx-auto">
-						Track the top performers in League of Legends and see where they rank
+						Track the top performers in League of Legends and see where they
+						rank
 					</p>
 				</div>
 			</div>
@@ -142,17 +148,22 @@ const Leaderboard = () => {
 					{loading ? (
 						<div className="flex flex-col items-center justify-center py-12">
 							<Loading />
-							<p className="mt-4 text-[--text-secondary]">Loading leaderboard data...</p>
+							<p className="mt-4 text-[--text-secondary]">
+								Loading leaderboard data...
+							</p>
 						</div>
 					) : error ? (
 						<div className="card-highlight py-8 text-center">
 							<FaExclamationTriangle className="text-[--error] text-4xl mx-auto mb-4" />
-							<h3 className="text-xl font-semibold mb-2">Error Loading Leaderboard</h3>
+							<h3 className="text-xl font-semibold mb-2">
+								Error Loading Leaderboard
+							</h3>
 							<p className="text-[--text-secondary] mb-6">{error}</p>
 
 							{retryCountdown > 0 ? (
 								<p className="text-[--warning]">
-									Retrying in {retryCountdown} second{retryCountdown > 1 ? 's' : ''}...
+									Retrying in {retryCountdown} second
+									{retryCountdown > 1 ? "s" : ""}...
 								</p>
 							) : (
 								<button
@@ -171,7 +182,11 @@ const Leaderboard = () => {
 							</p>
 						</div>
 					) : (
-						<LeaderboardTable leaderboardData={leaderboardData} region={region} tier={tier} />
+						<LeaderboardTable
+							leaderboardData={leaderboardData}
+							region={region}
+							tier={tier}
+						/>
 					)}
 				</div>
 			</div>

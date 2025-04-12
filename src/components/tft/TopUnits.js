@@ -46,25 +46,10 @@ export default function TopUnits({ matchDetails, summonerData }) {
 	const [isLoading, setIsLoading] = useState(true);
 	const [currentSetNumber, setCurrentSetNumber] = useState(null);
 
-	// Debug logging
-	useEffect(() => {
-		if (matchDetails) {
-			console.log(`TopUnits: Received ${matchDetails.length} matches`);
-			console.log(
-				`TopUnits: Looking for player PUUID: ${summonerData?.puuid?.slice(
-					0,
-					10
-				)}...`
-			);
-		}
-	}, [matchDetails, summonerData]);
-
 	// Fetch units data from Community Dragon and Data Dragon
 	useEffect(() => {
 		async function fetchUnitsData() {
 			try {
-				console.log("TopUnits: Fetching units data");
-
 				// Fetch units data from Community Dragon
 				const unitsResponse = await fetch(
 					"https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/tftchampions.json"
@@ -103,13 +88,12 @@ export default function TopUnits({ matchDetails, summonerData }) {
 					const ddJson = await dataDragonResponse.json();
 					setDataDragonChampions(ddJson.data || {});
 				} catch (error) {
-					console.error("Error fetching Data Dragon champions:", error);
+					// Error handling silently
 				}
 
 				setUnitsData(unitsMap);
-				console.log(`TopUnits: Loaded ${Object.keys(unitsMap).length} units`);
 			} catch (error) {
-				console.error("Error fetching units data:", error);
+				// Error handling silently
 			}
 		}
 
@@ -144,13 +128,9 @@ export default function TopUnits({ matchDetails, summonerData }) {
 		}
 
 		try {
-			console.log("TopUnits: Processing match history");
 			// Determine current set number from the first match
 			if (matchDetails[0]?.info?.tft_set_number) {
 				setCurrentSetNumber(matchDetails[0].info.tft_set_number);
-				console.log(
-					`TopUnits: Current set is ${matchDetails[0].info.tft_set_number}`
-				);
 			}
 
 			// Process match details to extract unit statistics
@@ -166,10 +146,6 @@ export default function TopUnits({ matchDetails, summonerData }) {
 				);
 			});
 
-			console.log(
-				`TopUnits: Found ${currentSetRankedMatches.length} ranked matches from the current set`
-			);
-
 			// If no ranked matches, try using all matches from current set
 			const matchesToProcess =
 				currentSetRankedMatches.length > 0
@@ -180,12 +156,9 @@ export default function TopUnits({ matchDetails, summonerData }) {
 								matchDetails[0]?.info?.tft_set_number
 					  );
 
-			console.log(`TopUnits: Processing ${matchesToProcess.length} matches`);
-
 			// Process each match
 			matchesToProcess.forEach((match) => {
 				if (!match.info) {
-					console.log("TopUnits: Match missing info data");
 					return;
 				}
 
@@ -195,19 +168,12 @@ export default function TopUnits({ matchDetails, summonerData }) {
 				);
 
 				if (!participant) {
-					console.log(
-						`TopUnits: Player with PUUID ${summonerData.puuid.slice(
-							0,
-							8
-						)}... not found in participants`
-					);
 					return;
 				}
 
 				// Check for units array
 				const units = participant.units;
 				if (!Array.isArray(units) || units.length === 0) {
-					console.log("TopUnits: No units found for participant");
 					return;
 				}
 
@@ -254,13 +220,6 @@ export default function TopUnits({ matchDetails, summonerData }) {
 					}
 				});
 			});
-
-			console.log(
-				`TopUnits: Processed ${processedMatches} matches with valid data`
-			);
-			console.log(
-				`TopUnits: Found ${Object.keys(unitStats).length} unique units`
-			);
 
 			// Calculate statistics and prepare data for display
 			const unitsArray = Object.values(unitStats)
@@ -311,12 +270,11 @@ export default function TopUnits({ matchDetails, summonerData }) {
 
 			// Take top 6 units
 			const top = unitsArray.slice(0, 6);
-			console.log(`TopUnits: Selected ${top.length} top units`);
 
 			setTopUnits(top);
 			setIsLoading(false);
 		} catch (error) {
-			console.error("Error processing unit statistics:", error);
+			// Error handling silently
 			setIsLoading(false);
 		}
 	}, [matchDetails, summonerData]);

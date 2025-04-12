@@ -121,14 +121,12 @@ const ProfilePageContent = () => {
 			});
 			const data = await response.json();
 			if (!response.ok) {
-				console.error("API update error:", data);
 				throw new Error(
 					data.error || `Failed to trigger update: ${response.status}`
 				);
 			}
 			fetchProfileData();
 		} catch (error) {
-			console.error("Error triggering update:", error.message);
 			dispatch({ type: "FETCH_FAILURE", payload: error.message });
 		} finally {
 			dispatch({ type: "UPDATE_END" });
@@ -230,7 +228,9 @@ const ProfilePageContent = () => {
 
 						{/* Champion Mastery section */}
 						{state.championMasteryData ? (
-							<ChampionMastery championMasteryData={state.championMasteryData} />
+							<ChampionMastery
+								championMasteryData={state.championMasteryData}
+							/>
 						) : (
 							<div className="card animate-pulse-custom h-48"></div>
 						)}

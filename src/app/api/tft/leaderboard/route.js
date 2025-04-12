@@ -38,9 +38,6 @@ export async function GET(req) {
 		});
 
 		if (!response.ok) {
-			console.error(
-				`TFT API returned non-OK status: ${response.status} ${response.statusText}`
-			);
 			return NextResponse.json([], { status: 200 });
 		}
 
@@ -110,7 +107,6 @@ export async function GET(req) {
 			headers: { "Cache-Control": "s-maxage=60, stale-while-revalidate" },
 		});
 	} catch (error) {
-		console.error("Error in TFT leaderboard API route:", error);
 		return NextResponse.json([], { status: 200 });
 	}
 }

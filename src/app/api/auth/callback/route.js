@@ -1,0 +1,149 @@
+import { NextResponse } from "next/server";
+import { supabase } from "@/lib/supabase";
+import { authConfig } from "@/lib/auth/config";
+
+export async function GET(req) {
+	try {
+		// Get authorization code from URL
+		const { searchParams } = new URL(req.url);
+		const code = searchParams.get("code");
+
+		if (!code) {
+			return NextResponse.redirect("/api/auth/error?error=no_code");
+		}
+
+		// Exchange the code for an access token
+		const RIOT_CLIENT_ID = authConfig.clientId;
+		const RIOT_CLIENT_SECRET = authConfig.clientSecret;
+		const REDIRECT_URI = authConfig.redirectUri;
+
+		// Create the Basic Auth header
+		const basicAuth = Buffer.from(
+			`${RIOT_CLIENT_ID}:${RIOT_CLIENT_SECRET}`
+		).toString("base64");
+
+		// Request body parameters
+		const tokenParams = new URLSearchParams({
+			grant_type: "authorization_code",
+			code: code,
+			redirect_uri: REDIRECT_URI,
+		});
+
+		// Exchange code for token
+		const tokenResponse = await fetch("https://auth.riotgames.com/token", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/x-www-form-urlencoded",
+				Authorization: `Basic ${basicAuth}`,
+			},
+			body: tokenParams.toString(),
+		});
+
+		if (!tokenResponse.ok) {
+			const errorData = await tokenResponse.json();
+			console.error("Token exchange error:", errorData);
+			return NextResponse.redirect(
+				`/api/auth/error?error=token_exchange_failed`
+			);
+		}
+
+		const tokenData = await tokenResponse.json();
+		const { access_token, id_token } = tokenData;
+
+		// Use the access token to fetch user account data from Riot Account API
+		const accountResponse = await fetch(
+			"https://europe.api.riotgames.com/riot/account/v1/accounts/me",
+			{
+				headers: {
+					Authorization: `Bearer ${access_token}`,
+				},
+			}
+		);
+
+		if (!accountResponse.ok) {
+			console.error(
+				"Error fetching account data:",
+				await accountResponse.text()
+			);
+			return NextResponse.redirect(
+				`/api/auth/error?error=account_fetch_failed`
+			);
+		}
+
+		const accountData = await accountResponse.json();
+		const { puuid, gameName, tagLine } = accountData;
+
+		// Prepare the user object
+		const user = {
+			puuid,
+			gameName,
+			tagLine,
+			region: "euw1", // Default to euw1, can be updated from user preferences
+			access_token,
+			id_token,
+		};
+
+		// Store the user data in Supabase
+		try {
+			// Check if user exists
+			const { data: existingUser, error: selectError } = await supabase
+				.from("riot_accounts")
+				.select("*")
+				.eq("puuid", puuid)
+				.maybeSingle();
+
+			if (selectError) throw selectError;
+
+			// Insert or update the user
+			if (!existingUser) {
+				const { error: insertError } = await supabase
+					.from("riot_accounts")
+					.insert([
+						{
+							gamename: gameName,
+							tagline: tagLine,
+							region: "euw1", // Default region
+							puuid: puuid,
+						},
+					]);
+
+				if (insertError) throw insertError;
+			}
+		} catch (dbError) {
+			console.error("Database error:", dbError);
+			// Continue anyway since we have the user data
+		}
+
+		// Redirect to the home page with a script to set the user in localStorage
+		// This approach avoids exposing sensitive data in URL parameters
+		const responseHtml = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Authentication Successful</title>
+          <meta http-equiv="refresh" content="0;url=/">
+        </head>
+        <body>
+          <script>
+            // Store the user data in localStorage
+            localStorage.setItem("rso_user", '${JSON.stringify(user)}');
+            // Redirect to home page
+            window.location.href = "/";
+          </script>
+          <p>Authentication successful. Redirecting...</p>
+        </body>
+      </html>
+    `;
+
+		return new NextResponse(responseHtml, {
+			headers: {
+				"Content-Type": "text/html",
+			},
+		});
+	} catch (error) {
+		console.error("Auth callback error:", error);
+		return NextResponse.redirect(
+			`/api/auth/error?error=${encodeURIComponent(error.message)}`
+		);
+	}
+}

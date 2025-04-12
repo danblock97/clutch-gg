@@ -71,9 +71,7 @@ export const upsertTFTMatchDetail = async (matchId, puuid, matchDetail) => {
 		},
 		{ onConflict: ["matchid"] }
 	);
-	if (insertMatchError) {
-		console.error("Error inserting TFT match:", insertMatchError);
-	}
+	// Silent error handling
 };
 
 /**

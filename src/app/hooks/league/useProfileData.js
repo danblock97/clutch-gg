@@ -34,7 +34,6 @@ const useProfileData = (gameName, tagLine, region) => {
 			setMatchDetails(data.matchdetails);
 			setLiveGameData(data.livegamedata);
 		} catch (error) {
-			console.error("Error fetching profile data:", error);
 			setError(error.message);
 		} finally {
 			setIsLoading(false);
