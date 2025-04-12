@@ -180,6 +180,10 @@
 	.custom-scrollbar::-webkit-scrollbar-thumb:hover {
 		@apply bg-[--primary];
 	}
+
+	.animate-fadeIn {
+		animation: fadeIn 0.3s ease-in-out;
+	}
 }
 
 @keyframes pulse {
@@ -203,6 +207,17 @@
 	100% {
 		left: 100%;
 		opacity: 0;
+	}
+}
+
+@keyframes fadeIn {
+	0% {
+		opacity: 0;
+		transform: translateY(-10px);
+	}
+	100% {
+		opacity: 1;
+		transform: translateY(0);
 	}
 }
 
