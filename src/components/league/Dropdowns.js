@@ -43,19 +43,32 @@ const divisionMappings = {
 };
 
 const Dropdowns = ({
-					   region,
-					   tier,
-					   division,
-					   setRegion,
-					   setTier,
-					   setDivision,
-				   }) => {
+	region,
+	tier,
+	division,
+	setRegion,
+	setTier,
+	setDivision,
+}) => {
 	// Custom select component to have more styling control
-	const CustomSelect = ({ label, icon, value, options, onChange, disabled = false }) => {
+	const CustomSelect = ({
+		label,
+		icon,
+		value,
+		options,
+		onChange,
+		disabled = false,
+	}) => {
 		return (
 			<div className="relative">
-				<label className="text-xs text-[--text-secondary] mb-1 block">{label}</label>
-				<div className={`relative bg-[--card-bg] rounded-lg overflow-hidden border border-[--card-border] ${disabled ? 'opacity-60' : 'hover:border-[--primary]'} transition-colors`}>
+				<label className="text-xs text-[--text-secondary] mb-1 block">
+					{label}
+				</label>
+				<div
+					className={`relative bg-[--card-bg] rounded-lg overflow-hidden border border-[--card-border] ${
+						disabled ? "opacity-60" : "hover:border-[--primary]"
+					} transition-colors`}
+				>
 					{/* Custom select header */}
 					<div className="flex items-center gap-2 pr-10 pl-3 py-2">
 						{icon}
@@ -64,15 +77,26 @@ const Dropdowns = ({
 							onChange={onChange}
 							disabled={disabled}
 							className="appearance-none bg-transparent w-full focus:outline-none text-sm cursor-pointer disabled:cursor-not-allowed"
+							style={{
+								colorScheme: "dark",
+								backgroundColor: "var(--card-bg)",
+								color: "var(--text-primary)",
+							}}
 						>
 							{Object.entries(options).map(([key, option]) => {
 								// Handle both simple and complex options
 								const optionValue = key;
-								const optionLabel = typeof option === 'object' ? option.name : option;
-								const optionColor = typeof option === 'object' ? option.color : '';
+								const optionLabel =
+									typeof option === "object" ? option.name : option;
+								const optionColor =
+									typeof option === "object" ? option.color : "";
 
 								return (
-									<option key={optionValue} value={optionValue} className={optionColor}>
+									<option
+										key={optionValue}
+										value={optionValue}
+										className={optionColor}
+									>
 										{optionLabel}
 									</option>
 								);
@@ -103,7 +127,11 @@ const Dropdowns = ({
 			{/* Tier Dropdown */}
 			<CustomSelect
 				label="Tier"
-				icon={<FaTrophy className={tierMappings[tier]?.color || "text-[--text-secondary]"} />}
+				icon={
+					<FaTrophy
+						className={tierMappings[tier]?.color || "text-[--text-secondary]"}
+					/>
+				}
 				value={tier}
 				options={tierMappings}
 				onChange={(e) => setTier(e.target.value)}
@@ -112,7 +140,11 @@ const Dropdowns = ({
 			{/* Division Dropdown */}
 			<CustomSelect
 				label="Division"
-				icon={<span className="text-[--text-secondary] font-semibold text-xs w-4 text-center">{division}</span>}
+				icon={
+					<span className="text-[--text-secondary] font-semibold text-xs w-4 text-center">
+						{division}
+					</span>
+				}
 				value={division}
 				options={divisionMappings}
 				onChange={(e) => setDivision(e.target.value)}

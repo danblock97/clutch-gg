@@ -82,6 +82,11 @@ const Dropdowns = ({
 							onChange={onChange}
 							disabled={disabled}
 							className="appearance-none bg-transparent w-full focus:outline-none text-sm cursor-pointer disabled:cursor-not-allowed"
+							style={{
+								colorScheme: "dark",
+								backgroundColor: "var(--card-bg)",
+								color: "var(--text-primary)",
+							}}
 						>
 							{Object.entries(options).map(([key, option]) => {
 								// Handle both simple and complex options
