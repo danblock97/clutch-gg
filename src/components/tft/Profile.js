@@ -3,6 +3,7 @@ import Image from "next/image";
 import useTFTProfileData from "@/app/hooks/tft/useProfileData";
 import TFTRankedInfo from "./RankedInfo";
 import TFTMatchHistory from "./MatchHistory";
+import TopTraits from "./TopTraits";
 import Loading from "@/components/Loading";
 import NoProfileFound from "@/components/league/NoProfileFound";
 import DiscordBotBanner from "@/components/DiscordBotBanner.js";
@@ -204,52 +205,17 @@ export default function Profile({ profileData }) {
 					<div className="w-full lg:w-1/3">
 						<TFTRankedInfo rankedData={rankedData} />
 
-						{/* TFT Resources Card */}
-						<div className="card-highlight mt-4">
-							<h2 className="text-lg font-bold mb-4">TFT Resources</h2>
-							<div className="space-y-2">
-								<a
-									href="https://tftactics.gg/tierlist/team-comps"
-									target="_blank"
-									rel="noopener noreferrer"
-									className="text-[--primary] hover:text-[--primary-hover] flex items-center"
-								>
-									<span className="mr-2">→</span> Meta Team Comps
-								</a>
-								<a
-									href="https://tftactics.gg/item-builder"
-									target="_blank"
-									rel="noopener noreferrer"
-									className="text-[--primary] hover:text-[--primary-hover] flex items-center"
-								>
-									<span className="mr-2">→</span> TFT Item Builder
-								</a>
-								<a
-									href="https://lolchess.gg/guide/tft"
-									target="_blank"
-									rel="noopener noreferrer"
-									className="text-[--primary] hover:text-[--primary-hover] flex items-center"
-								>
-									<span className="mr-2">→</span> TFT Guides & Resources
-								</a>
-							</div>
-						</div>
+						{/* Top Traits Component */}
+						<TopTraits
+							matchDetails={matchDetails}
+							summonerData={summonerData}
+						/>
 					</div>
 
 					{/* Right Column */}
 					<div className="w-full lg:w-2/3">
-						{/* Tab Navigation */}
-						<div className="tabs">
-							<div
-								className={`tab ${tab === "matches" ? "tab-active" : ""}`}
-								onClick={() => setTab("matches")}
-							>
-								Match History
-							</div>
-						</div>
-
 						{/* Tab Content */}
-						<div className="card-highlight mt-2">
+						<div className="card-highlight">
 							{tab === "matches" && (
 								<TFTMatchHistory
 									matchDetails={matchDetails}
