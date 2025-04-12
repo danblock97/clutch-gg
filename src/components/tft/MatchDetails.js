@@ -26,7 +26,7 @@ function mapCDragonAssetPath(jsonPath) {
 	}`;
 }
 
-// Get Champion Image URL (Your Original Logic - RESTORED)
+// Get Champion Image URL with Set 13 fallback for Set 14
 function getTFTChampionImageUrl(characterId, championName) {
 	if (!characterId) return null;
 	let setNumber = null;
@@ -37,13 +37,19 @@ function getTFTChampionImageUrl(characterId, championName) {
 	let championBaseName = characterId.split("_")[1];
 	if (!championBaseName) return null;
 	championBaseName = championBaseName.toLowerCase();
-	// NOTE: The original logic determined the extension based on set number AFTER constructing the base URL.
-	const baseUrl = `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft${setNumber}_${championBaseName}/hud/tft${setNumber}_${championBaseName}_square.tft_set${setNumber}`;
-	if (setNumber === 14) return `${baseUrl}.jpg`; // Your original logic for Set 14
-	if (setNumber === 13) return `${baseUrl}.png`; // Your original logic for Set 13
-	// Add specific logic for other sets IF your original function had it.
-	// Fallback to png as per your original code.
-	return `${baseUrl}.png`;
+
+	// Dynamic image URLs for different sets with correct paths
+	if (setNumber === 14) {
+		return {
+			primary: `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft${setNumber}_${championBaseName}/hud/tft${setNumber}_${championBaseName}_square.tft_set${setNumber}.jpg`,
+			fallback: `https://raw.communitydragon.org/latest/game/assets/characters/tft13_${championBaseName}/hud/tft13_${championBaseName}_square.tft_set13.png`,
+		};
+	}
+	if (setNumber === 13) {
+		return `https://raw.communitydragon.org/latest/game/assets/characters/tft13_${championBaseName}/hud/tft13_${championBaseName}_square.tft_set13.png`;
+	}
+	// Default fallback for other sets
+	return `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft${setNumber}_${championBaseName}/hud/tft${setNumber}_${championBaseName}_square.tft_set${setNumber}.png`;
 }
 
 // Get Border Color by Cost (UI Styling)
@@ -520,7 +526,7 @@ function ParticipantRow({
 							>
 								{cdnUrl ? (
 									<Image
-										src={cdnUrl}
+										src={cdnUrl.primary}
 										alt=""
 										width={32}
 										height={32}

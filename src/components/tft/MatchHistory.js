@@ -17,9 +17,8 @@ function mapCDragonAssetPath(jsonPath) {
 	return `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default${lower}`;
 }
 
-// Function to generate TFT champion URL based on character ID
+// Function to generate TFT champion URL based on character ID with Set 13 fallback
 function getTFTChampionImageUrl(characterId, championName) {
-	// --- NO CHANGES to this function ---
 	if (!characterId) return null;
 	let setNumber = null;
 	const match = characterId.match(/TFT(\d+)/i);
@@ -29,10 +28,19 @@ function getTFTChampionImageUrl(characterId, championName) {
 	let championBaseName = characterId.split("_")[1];
 	if (!championBaseName) return null;
 	championBaseName = championBaseName.toLowerCase();
-	const baseUrl = `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft${setNumber}_${championBaseName}/hud/tft${setNumber}_${championBaseName}_square.tft_set${setNumber}`;
-	if (setNumber === 14) return `${baseUrl}.jpg`;
-	if (setNumber === 13) return `${baseUrl}.png`;
-	return `${baseUrl}.png`;
+
+	// Dynamic image URLs for different sets with correct paths
+	if (setNumber === 14) {
+		return {
+			primary: `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft${setNumber}_${championBaseName}/hud/tft${setNumber}_${championBaseName}_square.tft_set${setNumber}.jpg`,
+			fallback: `https://raw.communitydragon.org/latest/game/assets/characters/tft13_${championBaseName}/hud/tft13_${championBaseName}_square.tft_set13.png`,
+		};
+	}
+	if (setNumber === 13) {
+		return `https://raw.communitydragon.org/latest/game/assets/characters/tft13_${championBaseName}/hud/tft13_${championBaseName}_square.tft_set13.png`;
+	}
+	// Default fallback for other sets
+	return `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft${setNumber}_${championBaseName}/hud/tft${setNumber}_${championBaseName}_square.tft_set${setNumber}.png`;
 }
 
 // --- Helper function to get border color based on champion COST ---
@@ -93,6 +101,9 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 	const [isDataLoaded, setIsDataLoaded] = useState(false);
 	// Add state for expanded match
 	const [expandedMatchId, setExpandedMatchId] = useState(null);
+	// Add pagination state
+	const [currentPage, setCurrentPage] = useState(1);
+	const matchesPerPage = 10;
 
 	// Fetch TFT data (traits, items, champions)
 	useEffect(() => {
@@ -203,6 +214,38 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 		return championsData[characterId.toUpperCase()]?.cost || 0;
 	};
 
+	// Pagination logic
+	const totalMatches = matchDetails.length;
+	const totalPages = Math.ceil(totalMatches / matchesPerPage);
+	const indexOfLastMatch = currentPage * matchesPerPage;
+	const indexOfFirstMatch = indexOfLastMatch - matchesPerPage;
+	const currentMatches = matchDetails.slice(
+		indexOfFirstMatch,
+		indexOfLastMatch
+	);
+
+	// Group matches by date like in League match history
+	const matchesByDay = currentMatches.reduce((acc, match) => {
+		const matchDate = new Date(match.info.game_datetime);
+		const formattedDate = matchDate.toLocaleDateString("en-GB", {
+			day: "2-digit",
+			month: "short",
+		});
+		if (!acc[formattedDate]) {
+			acc[formattedDate] = [];
+		}
+		acc[formattedDate].push(match);
+		return acc;
+	}, {});
+
+	// Handle page change function
+	const handlePageChange = (pageNumber) => {
+		if (pageNumber < 1 || pageNumber > totalPages) return;
+		setCurrentPage(pageNumber);
+		// Reset expanded match when changing pages
+		setExpandedMatchId(null);
+	};
+
 	// --- Loading and Empty States (No Changes) ---
 	if (!isDataLoaded) {
 		return (
@@ -244,355 +287,420 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 
 	return (
 		<div className="space-y-2">
-			{matchDetails.map((match, index) => {
-				// --- Participant and basic match data setup (unchanged) ---
-				const participant = match.info?.participants?.find(
-					(p) => p.puuid === summonerData.puuid
-				);
-				if (!participant) return null;
-				const matchId = match.metadata.match_id || `match-${index}`;
-				const matchDate = new Date(match.info.game_datetime);
-				const now = new Date();
-				const diffTime = Math.abs(now - matchDate);
-				const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-				const diffHours = Math.floor(
-					(diffTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
-				);
-				let timeAgo =
-					diffHours < 1
-						? `${Math.floor(diffTime / (1000 * 60))}m ago`
-						: diffDays > 0
-						? `${diffDays}d ago`
-						: `${diffHours}h ago`;
-				if (diffTime < 60000) timeAgo = "Just now";
-				const placement = participant.placement;
-				let placementSuffix = "th";
-				if (placement === 1) placementSuffix = "st";
-				else if (placement === 2) placementSuffix = "nd";
-				else if (placement === 3) placementSuffix = "rd";
-				let placementClass = "border-l-4 border-gray-600";
-				if (placement === 1) placementClass = "border-l-4 border-yellow-500";
-				else if (placement <= 4) placementClass = "border-l-4 border-blue-500";
-				else placementClass = "border-l-4 border-red-600";
-				const gameDurationMinutes = Math.floor(match.info.game_length / 60);
-				const gameDurationSeconds = Math.round(match.info.game_length % 60);
-				const formattedDuration = `${gameDurationMinutes}m ${gameDurationSeconds}s`;
-				const gameStage = formatStage(participant.last_round);
-				const gameType =
-					match.info.tft_game_type?.replace(/_/g, " ") || "Normal";
-				const queueId = match.info.queue_id;
-				let formattedGameType = "Normal";
-				if (queueId === 1100) formattedGameType = "Ranked";
-				else if (queueId === 1130) formattedGameType = "Hyper Roll";
-				else if (queueId === 1160) formattedGameType = "Double Up";
-				else if (gameType.toLowerCase().includes("ranked"))
-					formattedGameType = "Ranked";
-				const activeTraits =
-					participant.traits?.filter((trait) => trait.style > 0) || [];
-				activeTraits.sort(
-					(a, b) => b.style - a.style || b.num_units - a.num_units
-				);
-				// Sort units - Changed to prioritize LOWER cost units first (ascending order)
-				const units =
-					participant.units?.sort((a, b) => {
-						// Get cost from Data Dragon first, fallback to Community Dragon
-						const costA = getChampionCostFromDD(a.character_id);
-						const costB = getChampionCostFromDD(b.character_id);
+			{Object.entries(matchesByDay).map(([day, matches]) => (
+				<div key={day} className="mb-4">
+					<h2 className="text-xl font-semibold text-[--text-primary] my-4">
+						{day}
+					</h2>
+					{matches.map((match, index) => {
+						// --- Participant and basic match data setup (unchanged) ---
+						const participant = match.info?.participants?.find(
+							(p) => p.puuid === summonerData.puuid
+						);
+						if (!participant) return null;
+						const matchId = match.metadata.match_id || `match-${index}`;
+						const matchDate = new Date(match.info.game_datetime);
+						const now = new Date();
+						const diffTime = Math.abs(now - matchDate);
+						const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+						const diffHours = Math.floor(
+							(diffTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+						);
+						let timeAgo =
+							diffHours < 1
+								? `${Math.floor(diffTime / (1000 * 60))}m ago`
+								: diffDays > 0
+								? `${diffDays}d ago`
+								: `${diffHours}h ago`;
+						if (diffTime < 60000) timeAgo = "Just now";
+						const placement = participant.placement;
+						let placementSuffix = "th";
+						if (placement === 1) placementSuffix = "st";
+						else if (placement === 2) placementSuffix = "nd";
+						else if (placement === 3) placementSuffix = "rd";
+						let placementClass = "border-l-4 border-gray-600";
+						if (placement === 1)
+							placementClass = "border-l-4 border-yellow-500";
+						else if (placement <= 4)
+							placementClass = "border-l-4 border-blue-500";
+						else placementClass = "border-l-4 border-red-600";
+						const gameDurationMinutes = Math.floor(match.info.game_length / 60);
+						const gameDurationSeconds = Math.round(match.info.game_length % 60);
+						const formattedDuration = `${gameDurationMinutes}m ${gameDurationSeconds}s`;
+						const gameStage = formatStage(participant.last_round);
+						const gameType =
+							match.info.tft_game_type?.replace(/_/g, " ") || "Normal";
+						const queueId = match.info.queue_id;
+						let formattedGameType = "Normal";
+						if (queueId === 1100) formattedGameType = "Ranked";
+						else if (queueId === 1130) formattedGameType = "Hyper Roll";
+						else if (queueId === 1160) formattedGameType = "Double Up";
+						else if (gameType.toLowerCase().includes("ranked"))
+							formattedGameType = "Ranked";
+						const activeTraits =
+							participant.traits?.filter((trait) => trait.style > 0) || [];
+						activeTraits.sort(
+							(a, b) => b.style - a.style || b.num_units - a.num_units
+						);
+						// Sort units - Changed to prioritize LOWER cost units first (ascending order)
+						const units =
+							participant.units?.sort((a, b) => {
+								// Get cost from Data Dragon first, fallback to Community Dragon
+								const costA = getChampionCostFromDD(a.character_id);
+								const costB = getChampionCostFromDD(b.character_id);
 
-						// Reversed sorting - lower cost first (ascending)
-						if (costA !== costB) return costA - costB;
-						return b.tier - a.tier; // Still sort by tier as secondary criteria
-					}) || [];
-				const augments = participant.augments || [];
+								// Reversed sorting - lower cost first (ascending)
+								if (costA !== costB) return costA - costB;
+								return b.tier - a.tier; // Still sort by tier as secondary criteria
+							}) || [];
+						const augments = participant.augments || [];
 
-				return (
-					<div key={matchId}>
-						<div
-							onClick={() =>
-								setExpandedMatchId(expandedMatchId === matchId ? null : matchId)
-							}
-							className={`tft-match-card bg-[--background-alt] p-3 rounded-md flex gap-4 ${placementClass} shadow-sm cursor-pointer hover:bg-[--card-bg-secondary]/50 transition-colors duration-150`}
-						>
-							{/* Left Column: Placement & Match Info */}
-							<div className="flex flex-col justify-between text-xs w-20 flex-shrink-0">
-								{/* ... (content unchanged) ... */}
-								<div>
-									<div
-										className={`font-bold text-lg ${
-											placement === 1
-												? "text-yellow-400"
-												: placement <= 4
-												? "text-blue-400"
-												: "text-gray-400"
-										}`}
-									>
-										{placement}
-										<sup>{placementSuffix}</sup>
-									</div>
-									<div className="font-semibold text-[--text-primary] capitalize">
-										{formattedGameType}
-									</div>
-								</div>
-								<div className="text-[--text-secondary] space-y-0.5">
-									<div>{timeAgo}</div>
-									<div>{gameStage}</div>
-									<div>{formattedDuration}</div>
-								</div>
-							</div>
-
-							{/* Right Column: Traits & Units */}
-							<div className="flex-grow">
-								{/* Traits Row */}
-								<div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2">
-									{/* ... (trait rendering unchanged) ... */}
-									{activeTraits.map((trait) => {
-										const traitInfo = traitsData[trait.name.toUpperCase()];
-										if (!traitInfo) return null;
-										const cdnUrl = mapCDragonAssetPath(traitInfo.iconPath);
-										const chipStyle = getTraitChipStyle();
-										return (
+						return (
+							<div key={matchId}>
+								<div
+									onClick={() =>
+										setExpandedMatchId(
+											expandedMatchId === matchId ? null : matchId
+										)
+									}
+									className={`tft-match-card bg-[--background-alt] p-3 rounded-md flex gap-4 ${placementClass} shadow-sm cursor-pointer hover:bg-[--card-bg-secondary]/50 transition-colors duration-150`}
+								>
+									{/* Left Column: Placement & Match Info */}
+									<div className="flex flex-col justify-between text-xs w-20 flex-shrink-0">
+										<div>
 											<div
-												key={trait.name}
-												className={`trait-chip ${chipStyle} px-1.5 py-0.5 rounded-sm flex items-center text-xs`}
-												title={traitInfo.name}
+												className={`font-bold text-lg ${
+													placement === 1
+														? "text-yellow-400"
+														: placement <= 4
+														? "text-blue-400"
+														: "text-gray-400"
+												}`}
 											>
-												{cdnUrl && (
-													<div className="w-3.5 h-3.5 mr-1 relative">
-														<Image
-															src={cdnUrl}
-															alt=""
-															width={14}
-															height={14}
-															className="object-contain"
-															unoptimized
-														/>
-													</div>
-												)}
-												<span className="font-medium mr-1">
-													{traitInfo.name}
-												</span>
-												<span>{trait.num_units}</span>
+												{placement}
+												<sup>{placementSuffix}</sup>
 											</div>
-										);
-									})}
-								</div>
-
-								{/* Units Row */}
-								<div className="flex items-end gap-1.5">
-									{units.map((unit, unitIdx) => {
-										const champion = championsData[
-											unit.character_id.toUpperCase()
-										] || {
-											name: unit.character_id.split("_")[1] || "Unknown",
-											cost: 0,
-										};
-										const stars = unit.tier;
-										const cdnUrl = getTFTChampionImageUrl(
-											unit.character_id,
-											champion.name
-										);
-
-										// Get cost from Data Dragon first, fallback to Community Dragon
-										const championCost = getChampionCostFromDD(
-											unit.character_id
-										);
-
-										// --- Get border color based on COST ---
-										const borderColor = getBorderColorForCost(championCost);
-										// --- Get star color based on CHAMPION COST ---
-										const starColor = getStarColorForCost(championCost);
-
-										return (
-											// Champion component with fixed-height item container
-											<div
-												key={`${unit.character_id}-${unitIdx}`}
-												className="flex flex-col items-center"
-											>
-												{/* Star Rating - Fixed height container */}
-												<div className="flex mb-0.5 h-2.5">
-													{Array.from({ length: stars }).map((_, i) => (
-														<FaStar
-															key={i}
-															className={`w-2.5 h-2.5 ${starColor}`}
-														/>
-													))}
-												</div>
-
-												{/* Champion Icon */}
-												<div
-													className={`relative bg-gray-800 rounded w-11 h-11 flex items-center justify-center overflow-hidden border-2 ${borderColor}`}
-												>
-													{cdnUrl ? (
-														<Image
-															src={cdnUrl}
-															alt={champion.name}
-															width={44}
-															height={44}
-															className="object-cover"
-															unoptimized
-															title={champion.name}
-															onError={(e) => {
-																e.currentTarget.style.display = "none";
-																const fallback =
-																	e.currentTarget.nextElementSibling;
-																if (fallback) fallback.style.display = "flex";
-															}}
-														/>
-													) : (
-														<div className="absolute inset-0 flex items-center justify-center text-xs text-gray-400">
-															?
-														</div>
-													)}
-													<div className="fallback-text hidden absolute inset-0 items-center justify-center text-xs text-gray-400 bg-gray-700">
-														{champion.name?.substring(0, 3) || "?"}
-													</div>
-												</div>
-
-												{/* Items - Fixed height container */}
-												<div className="flex justify-center mt-1 h-3.5 space-x-0.5">
-													{/* Check for itemNames array first */}
-													{unit.itemNames
-														?.slice(0, 3)
-														.map((itemName, itemIdx) => {
-															const item = itemsData[itemName];
-															const itemCdnUrl = item
-																? mapCDragonAssetPath(item.iconPath)
-																: null;
-															return (
-																<div
-																	key={`${itemName}-${itemIdx}`}
-																	className="w-3.5 h-3.5 bg-gray-900 rounded-sm overflow-hidden relative border border-black/50"
-																	title={item?.name || itemName}
-																>
-																	{itemCdnUrl ? (
-																		<Image
-																			src={itemCdnUrl}
-																			alt=""
-																			width={14}
-																			height={14}
-																			className="object-contain"
-																			unoptimized
-																		/>
-																	) : (
-																		<div className="w-full h-full flex items-center justify-center text-[8px] text-gray-500">
-																			?
-																		</div>
-																	)}
-																</div>
-															);
-														})}
-
-													{/* Fallback to numeric items array */}
-													{!unit.itemNames &&
-														unit.items?.slice(0, 3).map((itemId, itemIdx) => {
-															const item = itemsData[itemId];
-															const itemCdnUrl = item
-																? mapCDragonAssetPath(item.iconPath)
-																: null;
-															return (
-																<div
-																	key={`${itemId}-${itemIdx}`}
-																	className="w-3.5 h-3.5 bg-gray-900 rounded-sm overflow-hidden relative border border-black/50"
-																	title={item?.name || "Unknown Item"}
-																>
-																	{itemCdnUrl ? (
-																		<Image
-																			src={itemCdnUrl}
-																			alt=""
-																			width={14}
-																			height={14}
-																			className="object-contain"
-																			unoptimized
-																		/>
-																	) : (
-																		<div className="w-full h-full flex items-center justify-center text-[8px] text-gray-500">
-																			?
-																		</div>
-																	)}
-																</div>
-															);
-														})}
-												</div>
+											<div className="font-semibold text-[--text-primary] capitalize">
+												{formattedGameType}
 											</div>
-										);
-									})}
-									{/* Placeholder units - Fixed height containers */}
-									{Array.from({ length: Math.max(0, 9 - units.length) }).map(
-										(_, i) => {
-											// --- Get default border (cost 0) ---
-											const defaultBorderColor = getBorderColorForCost(0);
-											return (
-												<div
-													key={`placeholder-${i}`}
-													className="flex flex-col items-center opacity-50"
-												>
-													{/* Fixed height star container */}
-													<div className="flex mb-0.5 h-2.5">
-														{/* Empty star space to maintain alignment */}
-													</div>
-													{/* --- Apply default cost border --- */}
-													<div
-														className={`relative bg-gray-800/50 rounded w-11 h-11 border-2 ${defaultBorderColor}`}
-													></div>
-													{/* Fixed height item container */}
-													<div className="flex justify-center mt-1 h-3.5">
-														{/* Empty item space to maintain alignment */}
-													</div>
-												</div>
-											);
-										}
-									)}
-								</div>
+										</div>
+										<div className="text-[--text-secondary] space-y-0.5">
+											<div>{timeAgo}</div>
+											<div>{gameStage}</div>
+											<div>{formattedDuration}</div>
+										</div>
+									</div>
 
-								{/* Augments Row */}
-								{augments.length > 0 && (
-									<div className="mt-3 pt-2 border-t border-[--card-border]/50">
-										{/* ... (augment rendering unchanged) ... */}
-										<div className="flex flex-wrap items-center gap-2">
-											{augments.map((augmentId, idx) => {
-												const augmentName = augmentId
-													.replace(/^TFT\d+_Augment_/, "")
-													.replace(/([A-Z])/g, " $1")
-													.trim();
+									{/* Right Column: Traits & Units */}
+									<div className="flex-grow">
+										{/* Traits Row */}
+										<div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2">
+											{activeTraits.map((trait) => {
+												const traitInfo = traitsData[trait.name.toUpperCase()];
+												if (!traitInfo) return null;
+												const cdnUrl = mapCDragonAssetPath(traitInfo.iconPath);
+												const chipStyle = getTraitChipStyle();
 												return (
 													<div
-														key={`${augmentId}-${idx}`}
-														className="flex items-center bg-gradient-to-br from-purple-800/50 to-indigo-800/50 p-1 rounded text-xs text-purple-200 shadow-sm"
-														title={augmentId}
+														key={trait.name}
+														className={`trait-chip ${chipStyle} px-1.5 py-0.5 rounded-sm flex items-center text-xs`}
+														title={traitInfo.name}
 													>
-														<div className="w-4 h-4 rounded bg-black/30 mr-1.5 flex items-center justify-center text-[10px]"></div>
-														{augmentName || "Unknown Augment"}
+														{cdnUrl && (
+															<div className="w-3.5 h-3.5 mr-1 relative">
+																<Image
+																	src={cdnUrl}
+																	alt=""
+																	width={14}
+																	height={14}
+																	className="object-contain"
+																	unoptimized
+																/>
+															</div>
+														)}
+														<span className="font-medium mr-1">
+															{traitInfo.name}
+														</span>
+														<span>{trait.num_units}</span>
 													</div>
 												);
 											})}
 										</div>
+
+										{/* Units Row */}
+										<div className="flex items-end gap-1.5">
+											{units.map((unit, unitIdx) => {
+												const champion = championsData[
+													unit.character_id.toUpperCase()
+												] || {
+													name: unit.character_id.split("_")[1] || "Unknown",
+													cost: 0,
+												};
+												const stars = unit.tier;
+												const cdnUrl = getTFTChampionImageUrl(
+													unit.character_id,
+													champion.name
+												);
+
+												// Get cost from Data Dragon first, fallback to Community Dragon
+												const championCost = getChampionCostFromDD(
+													unit.character_id
+												);
+
+												// --- Get border color based on COST ---
+												const borderColor = getBorderColorForCost(championCost);
+												// --- Get star color based on CHAMPION COST ---
+												const starColor = getStarColorForCost(championCost);
+
+												return (
+													// Champion component with fixed-height item container
+													<div
+														key={`${unit.character_id}-${unitIdx}`}
+														className="flex flex-col items-center"
+													>
+														{/* Star Rating - Fixed height container */}
+														<div className="flex mb-0.5 h-2.5">
+															{Array.from({ length: stars }).map((_, i) => (
+																<FaStar
+																	key={i}
+																	className={`w-2.5 h-2.5 ${starColor}`}
+																/>
+															))}
+														</div>
+
+														{/* Champion Icon */}
+														<div
+															className={`relative bg-gray-800 rounded w-11 h-11 flex items-center justify-center overflow-hidden border-2 ${borderColor}`}
+														>
+															{cdnUrl ? (
+																<Image
+																	src={
+																		typeof cdnUrl === "object"
+																			? cdnUrl.primary
+																			: cdnUrl
+																	}
+																	alt={champion.name}
+																	width={44}
+																	height={44}
+																	className="object-cover"
+																	unoptimized
+																	title={champion.name}
+																	onError={(e) => {
+																		// Try fallback URL if available
+																		if (
+																			typeof cdnUrl === "object" &&
+																			cdnUrl.fallback
+																		) {
+																			e.currentTarget.src = cdnUrl.fallback;
+																		} else {
+																			// If no fallback or fallback also failed, show text fallback
+																			e.currentTarget.style.display = "none";
+																			const fallback =
+																				e.currentTarget.nextElementSibling;
+																			if (fallback)
+																				fallback.style.display = "flex";
+																		}
+																	}}
+																/>
+															) : (
+																<div className="absolute inset-0 flex items-center justify-center text-xs text-gray-400">
+																	?
+																</div>
+															)}
+															<div className="fallback-text hidden absolute inset-0 items-center justify-center text-xs text-gray-400 bg-gray-700">
+																{champion.name?.substring(0, 3) || "?"}
+															</div>
+														</div>
+
+														{/* Items - Fixed height container */}
+														<div className="flex justify-center mt-1 h-3.5 space-x-0.5">
+															{/* Check for itemNames array first */}
+															{unit.itemNames
+																?.slice(0, 3)
+																.map((itemName, itemIdx) => {
+																	const item = itemsData[itemName];
+																	const itemCdnUrl = item
+																		? mapCDragonAssetPath(item.iconPath)
+																		: null;
+																	return (
+																		<div
+																			key={`${itemName}-${itemIdx}`}
+																			className="w-3.5 h-3.5 bg-gray-900 rounded-sm overflow-hidden relative border border-black/50"
+																			title={item?.name || itemName}
+																		>
+																			{itemCdnUrl ? (
+																				<Image
+																					src={itemCdnUrl}
+																					alt=""
+																					width={14}
+																					height={14}
+																					className="object-contain"
+																					unoptimized
+																				/>
+																			) : (
+																				<div className="w-full h-full flex items-center justify-center text-[8px] text-gray-500">
+																					?
+																				</div>
+																			)}
+																		</div>
+																	);
+																})}
+
+															{/* Fallback to numeric items array */}
+															{!unit.itemNames &&
+																unit.items
+																	?.slice(0, 3)
+																	.map((itemId, itemIdx) => {
+																		const item = itemsData[itemId];
+																		const itemCdnUrl = item
+																			? mapCDragonAssetPath(item.iconPath)
+																			: null;
+																		return (
+																			<div
+																				key={`${itemId}-${itemIdx}`}
+																				className="w-3.5 h-3.5 bg-gray-900 rounded-sm overflow-hidden relative border border-black/50"
+																				title={item?.name || "Unknown Item"}
+																			>
+																				{itemCdnUrl ? (
+																					<Image
+																						src={itemCdnUrl}
+																						alt=""
+																						width={14}
+																						height={14}
+																						className="object-contain"
+																						unoptimized
+																					/>
+																				) : (
+																					<div className="w-full h-full flex items-center justify-center text-[8px] text-gray-500">
+																						?
+																					</div>
+																				)}
+																			</div>
+																		);
+																	})}
+														</div>
+													</div>
+												);
+											})}
+											{/* Placeholder units - Fixed height containers */}
+											{Array.from({
+												length: Math.max(0, 9 - units.length),
+											}).map((_, i) => {
+												// --- Get default border (cost 0) ---
+												const defaultBorderColor = getBorderColorForCost(0);
+												return (
+													<div
+														key={`placeholder-${i}`}
+														className="flex flex-col items-center opacity-50"
+													>
+														{/* Fixed height star container */}
+														<div className="flex mb-0.5 h-2.5">
+															{/* Empty star space to maintain alignment */}
+														</div>
+														{/* --- Apply default cost border --- */}
+														<div
+															className={`relative bg-gray-800/50 rounded w-11 h-11 border-2 ${defaultBorderColor}`}
+														></div>
+														{/* Fixed height item container */}
+														<div className="flex justify-center mt-1 h-3.5">
+															{/* Empty item space to maintain alignment */}
+														</div>
+													</div>
+												);
+											})}
+										</div>
+
+										{/* Augments Row */}
+										{augments.length > 0 && (
+											<div className="mt-3 pt-2 border-t border-[--card-border]/50">
+												<div className="flex flex-wrap items-center gap-2">
+													{augments.map((augmentId, idx) => {
+														const augmentName = augmentId
+															.replace(/^TFT\d+_Augment_/, "")
+															.replace(/([A-Z])/g, " $1")
+															.trim();
+														return (
+															<div
+																key={`${augmentId}-${idx}`}
+																className="flex items-center bg-gradient-to-br from-purple-800/50 to-indigo-800/50 p-1 rounded text-xs text-purple-200 shadow-sm"
+																title={augmentId}
+															>
+																<div className="w-4 h-4 rounded bg-black/30 mr-1.5 flex items-center justify-center text-[10px]"></div>
+																{augmentName || "Unknown Augment"}
+															</div>
+														);
+													})}
+												</div>
+											</div>
+										)}
+									</div>
+
+									{/* Add expand/collapse indicator */}
+									<div className="flex items-center text-gray-400">
+										{expandedMatchId === matchId ? (
+											<FaChevronUp className="w-4 h-4" />
+										) : (
+											<FaChevronDown className="w-4 h-4" />
+										)}
+									</div>
+								</div>
+
+								{/* Expanded Match Details */}
+								{expandedMatchId === matchId && (
+									<div className="mb-4 animate-fadeIn">
+										<TFTMatchDetails
+											matchDetails={matchDetails}
+											matchId={matchId}
+											summonerData={summonerData}
+										/>
 									</div>
 								)}
 							</div>
+						);
+					})}
+				</div>
+			))}
 
-							{/* Add expand/collapse indicator */}
-							<div className="flex items-center text-gray-400">
-								{expandedMatchId === matchId ? (
-									<FaChevronUp className="w-4 h-4" />
-								) : (
-									<FaChevronDown className="w-4 h-4" />
-								)}
-							</div>
-						</div>
-
-						{/* Expanded Match Details */}
-						{expandedMatchId === matchId && (
-							<div className="mb-4 animate-fadeIn">
-								<TFTMatchDetails
-									matchDetails={matchDetails}
-									matchId={matchId}
-									summonerData={summonerData}
-								/>
-							</div>
-						)}
-					</div>
-				);
-			})}
+			{/* Pagination Controls */}
+			{totalPages > 1 && (
+				<div className="flex justify-center items-center mt-6 space-x-1 text-sm">
+					<button
+						onClick={() => handlePageChange(currentPage - 1)}
+						disabled={currentPage === 1}
+						className={`px-3 py-1 rounded ${
+							currentPage === 1
+								? "bg-gray-700 cursor-not-allowed text-gray-500"
+								: "bg-gray-800 hover:bg-gray-700 text-gray-200"
+						}`}
+					>
+						Previous
+					</button>
+					{Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+						<button
+							key={page}
+							onClick={() => handlePageChange(page)}
+							className={`px-3 py-1 rounded ${
+								currentPage === page
+									? "bg-gray-700 text-white"
+									: "bg-gray-800 hover:bg-gray-700 text-gray-200"
+							}`}
+						>
+							{page}
+						</button>
+					))}
+					<button
+						onClick={() => handlePageChange(currentPage + 1)}
+						disabled={currentPage === totalPages}
+						className={`px-3 py-1 rounded ${
+							currentPage === totalPages
+								? "bg-gray-700 cursor-not-allowed text-gray-500"
+								: "bg-gray-800 hover:bg-gray-700 text-gray-200"
+						}`}
+					>
+						Next
+					</button>
+				</div>
+			)}
 		</div>
 	);
 }

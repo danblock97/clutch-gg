@@ -10,7 +10,7 @@ function mapCDragonAssetPath(jsonPath) {
 	return `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default${lower}`;
 }
 
-// Function to generate TFT champion URL based on character ID (same as in MatchHistory)
+// Function to generate TFT champion URL based on character ID with Set 13 fallback
 function getTFTChampionImageUrl(characterId, championName) {
 	if (!characterId) return null;
 	let setNumber = null;
@@ -21,10 +21,19 @@ function getTFTChampionImageUrl(characterId, championName) {
 	let championBaseName = characterId.split("_")[1];
 	if (!championBaseName) return null;
 	championBaseName = championBaseName.toLowerCase();
-	const baseUrl = `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft${setNumber}_${championBaseName}/hud/tft${setNumber}_${championBaseName}_square.tft_set${setNumber}`;
-	if (setNumber === 14) return `${baseUrl}.jpg`;
-	if (setNumber === 13) return `${baseUrl}.png`;
-	return `${baseUrl}.png`;
+
+	// Dynamic image URLs for different sets with correct paths
+	if (setNumber === 14) {
+		return {
+			primary: `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft${setNumber}_${championBaseName}/hud/tft${setNumber}_${championBaseName}_square.tft_set${setNumber}.jpg`,
+			fallback: `https://raw.communitydragon.org/latest/game/assets/characters/tft13_${championBaseName}/hud/tft13_${championBaseName}_square.tft_set13.png`,
+		};
+	}
+	if (setNumber === 13) {
+		return `https://raw.communitydragon.org/latest/game/assets/characters/tft13_${championBaseName}/hud/tft13_${championBaseName}_square.tft_set13.png`;
+	}
+	// Default fallback for other sets
+	return `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft${setNumber}_${championBaseName}/hud/tft${setNumber}_${championBaseName}_square.tft_set${setNumber}.png`;
 }
 
 // Cost-based color mapping for unit borders
@@ -386,16 +395,22 @@ export default function TopUnits({ matchDetails, summonerData }) {
 								>
 									{cdnUrl ? (
 										<Image
-											src={cdnUrl}
+											src={typeof cdnUrl === "object" ? cdnUrl.primary : cdnUrl}
 											alt={displayName}
 											width={48}
 											height={48}
 											className="object-cover"
 											unoptimized
 											onError={(e) => {
-												e.currentTarget.style.display = "none";
-												const fallback = e.currentTarget.nextElementSibling;
-												if (fallback) fallback.style.display = "flex";
+												// Try fallback URL if available
+												if (typeof cdnUrl === "object" && cdnUrl.fallback) {
+													e.currentTarget.src = cdnUrl.fallback;
+												} else {
+													// If no fallback or fallback also failed, show text fallback
+													e.currentTarget.style.display = "none";
+													const fallback = e.currentTarget.nextElementSibling;
+													if (fallback) fallback.style.display = "flex";
+												}
 											}}
 										/>
 									) : (
