@@ -11,9 +11,11 @@ export default function DiscordBotBanner() {
 			target="_blank"
 			rel="noopener noreferrer"
 		>
-			<div className="w-full max-w-md rounded-xl overflow-hidden transition-all duration-300 group-hover:shadow-xl
+			<div
+				className="w-full max-w-md rounded-xl overflow-hidden transition-all duration-300 group-hover:shadow-xl
                     bg-gradient-to-r from-[#5865F2]/20 via-[#5865F2]/10 to-transparent
-                    hover:from-[#5865F2]/30 border border-[#5865F2]/30 group-hover:border-[#5865F2]/50">
+                    hover:from-[#5865F2]/30 border border-[#5865F2]/30 group-hover:border-[#5865F2]/50"
+			>
 				<div className="flex items-center p-3">
 					{/* Logo */}
 					<div className="relative w-14 h-14 mr-3 flex-shrink-0">
@@ -47,7 +49,7 @@ export default function DiscordBotBanner() {
 
 				{/* Footer */}
 				<div className="bg-[#5865F2]/10 px-3 py-1 text-xs text-[--text-secondary] flex justify-between">
-					<span>370+ Servers</span>
+					<span>420+ Servers</span>
 					<span className="text-[#5865F2]">Free</span>
 				</div>
 			</div>
