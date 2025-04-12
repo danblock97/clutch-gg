@@ -150,3 +150,91 @@ export const fetchTFTSummonerPUUID = async (summonerId, region) => {
 	const data = await response.json();
 	return { puuid: data.puuid, profileIconId: data.profileIconId };
 };
+
+/**
+ * Fetch TFT live game data.
+ */
+export const fetchTFTLiveGameData = async (puuid, region, platform) => {
+	const liveGameResponse = await fetch(
+		`https://${region}.api.riotgames.com/lol/spectator/tft/v5/active-games/by-puuid/${puuid}`,
+		{ headers: { "X-Riot-Token": TFT_API_KEY } }
+	);
+	if (!liveGameResponse.ok) return null;
+
+	const liveGameData = await liveGameResponse.json();
+	// Enrich each participant with additional TFT-specific data concurrently.
+	liveGameData.participants = await Promise.all(
+		liveGameData.participants.map(async (participant) => {
+			const additionalData = await fetchTFTAdditionalGameData(
+				participant.summonerId,
+				participant.puuid,
+				region
+			);
+			return { ...participant, ...additionalData };
+		})
+	);
+	return liveGameData;
+};
+
+/**
+ * Fetch additional data for TFT live game enrichment.
+ * Similar to fetchTFTAdditionalData but specific for live game context
+ */
+export const fetchTFTAdditionalGameData = async (summonerId, puuid, region) => {
+	try {
+		const [rankedResponse, accountResponse, summonerResponse] =
+			await Promise.all([
+				fetch(
+					`https://${region}.api.riotgames.com/tft/league/v1/entries/by-summoner/${summonerId}`,
+					{ headers: { "X-Riot-Token": TFT_API_KEY } }
+				),
+				fetch(
+					`https://europe.api.riotgames.com/riot/account/v1/accounts/by-puuid/${puuid}`,
+					{ headers: { "X-Riot-Token": TFT_API_KEY } }
+				),
+				fetch(
+					`https://${region}.api.riotgames.com/tft/summoner/v1/summoners/by-puuid/${puuid}`,
+					{ headers: { "X-Riot-Token": TFT_API_KEY } }
+				),
+			]);
+
+		if (!rankedResponse.ok || !accountResponse.ok || !summonerResponse.ok) {
+			throw new Error("Failed to fetch additional TFT data");
+		}
+
+		const [rankedData, accountData, summonerData] = await Promise.all([
+			rankedResponse.json(),
+			accountResponse.json(),
+			summonerResponse.json(),
+		]);
+
+		// TFT ranked data structure is different from League
+		const rankedTftData = rankedData.find(
+			(queue) => queue.queueType === "RANKED_TFT"
+		);
+
+		return {
+			rank: rankedTftData
+				? `${rankedTftData.tier} ${rankedTftData.rank}`
+				: "Unranked",
+			lp: rankedTftData ? rankedTftData.leaguePoints : 0,
+			wins: rankedTftData ? rankedTftData.wins : 0,
+			losses: rankedTftData ? rankedTftData.losses : 0,
+			gameName: accountData.gameName,
+			tagLine: accountData.tagLine,
+			summonerLevel: summonerData.summonerLevel,
+			profileIconId: summonerData.profileIconId,
+		};
+	} catch (error) {
+		return {
+			rank: "Unranked",
+			lp: 0,
+			wins: 0,
+			losses: 0,
+			gameName: "",
+			tagLine: "",
+			summonerLevel: 0,
+			profileIconId: null,
+		};
+	}
+};
