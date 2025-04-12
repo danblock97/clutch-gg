@@ -7,6 +7,12 @@
 	--primary-dark: #2667cc;
 	--secondary: #8338ec;
 	--accent: #ff006e;
+	/* TFT Theme colors */
+	--tft-primary: #ff9a3c;
+	--tft-primary-dark: #e07b28;
+	--tft-secondary: #ff5722;
+	--tft-accent: #ffcc80;
+	/* Common colors */
 	--background: #0e1015;
 	--card-bg: #1a1d26;
 	--card-bg-secondary: #232337;
@@ -56,12 +62,24 @@
 		@apply bg-[--primary] hover:bg-[--primary-dark] text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200;
 	}
 
+	.btn-primary-tft {
+		@apply bg-[--tft-primary] hover:bg-[--tft-primary-dark] text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200;
+	}
+
 	.btn-secondary {
 		@apply bg-[--secondary] hover:opacity-90 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200;
 	}
 
+	.btn-secondary-tft {
+		@apply bg-[--tft-secondary] hover:opacity-90 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200;
+	}
+
 	.btn-outline {
 		@apply border border-[--primary] text-[--primary] hover:bg-[--primary] hover:text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200;
+	}
+
+	.btn-outline-tft {
+		@apply border border-[--tft-primary] text-[--tft-primary] hover:bg-[--tft-primary] hover:text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200;
 	}
 
 	.btn-success {
@@ -159,6 +177,16 @@
 		animation: shine 2s ease-in-out;
 	}
 
+	.stat-card-tft::before {
+		@apply content-[''] absolute -inset-1 z-0 bg-gradient-to-r from-transparent via-[--tft-primary] to-transparent opacity-0 transition-opacity duration-1000;
+		transform: rotate(45deg);
+	}
+
+	.stat-card-tft:hover::before {
+		@apply opacity-20;
+		animation: shine 2s ease-in-out;
+	}
+
 	/* Glass effect */
 	.glass {
 		@apply bg-white/10 backdrop-blur-lg border border-white/20 shadow-lg;
@@ -183,6 +211,24 @@
 
 	.animate-fadeIn {
 		animation: fadeIn 0.3s ease-in-out;
+	}
+
+	/* TFT-specific styling */
+	.tft-gradient-text {
+		@apply bg-clip-text text-transparent bg-gradient-to-r from-[--tft-primary] to-[--tft-secondary];
+	}
+
+	.tft-active {
+		@apply text-[--tft-primary];
+	}
+
+	/* League-specific styling */
+	.league-gradient-text {
+		@apply bg-clip-text text-transparent bg-gradient-to-r from-[--primary] to-[--secondary];
+	}
+
+	.league-active {
+		@apply text-[--primary];
 	}
 }
 

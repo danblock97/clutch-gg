@@ -1,120 +1,162 @@
+import React from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { FaCrown, FaMedal } from "react-icons/fa";
 
-export default function TFTLeaderboardTable({ data, region }) {
+export default function TFTLeaderboardTable({
+	data,
+	region,
+	tier = "CHALLENGER",
+}) {
+	// Function to get row highlight class based on player rank
+	const getRowHighlightClass = (index) => {
+		if (index === 0)
+			return "bg-gradient-to-r from-yellow-500/20 to-yellow-500/5"; // First place
+		if (index === 1) return "bg-gradient-to-r from-gray-400/20 to-gray-400/5"; // Second place
+		if (index === 2) return "bg-gradient-to-r from-amber-700/20 to-amber-700/5"; // Third place
+		return index % 2 === 0 ? "bg-[--card-bg]" : "bg-[--card-bg-secondary]"; // Alternating rows
+	};
+
+	// Function to render rank indicator
+	const getRankIndicator = (index) => {
+		if (index === 0)
+			return <FaCrown className="text-yellow-500 mr-2" title="1st Place" />;
+		if (index === 1)
+			return <FaMedal className="text-gray-300 mr-2" title="2nd Place" />;
+		if (index === 2)
+			return <FaMedal className="text-amber-700 mr-2" title="3rd Place" />;
+		return null;
+	};
+
+	// Function to calculate winrate percent and color
+	const getWinrateDisplay = (wins, losses) => {
+		const total = wins + losses;
+		if (total === 0) return { percent: "0.0", colorClass: "text-gray-400" };
+
+		const winrate = (wins / total) * 100;
+		let colorClass = "text-gray-400";
+
+		if (winrate >= 65) colorClass = "text-green-500";
+		else if (winrate >= 55) colorClass = "text-green-400";
+		else if (winrate >= 50) colorClass = "text-blue-400";
+		else if (winrate >= 45) colorClass = "text-yellow-400";
+		else colorClass = "text-red-400";
+
+		return {
+			percent: winrate.toFixed(1),
+			colorClass,
+		};
+	};
+
 	return (
-		<div className="overflow-x-auto">
-			<table className="min-w-full bg-gray-800 text-white border border-gray-700 shadow-lg rounded-lg overflow-hidden">
-				<thead className="bg-gray-700">
-					<tr>
-						<th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-							Rank
-						</th>
-						<th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-							Summoner
-						</th>
-						<th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-							Tier
-						</th>
-						<th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-							LP
-						</th>
-						<th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-							Wins
-						</th>
-						<th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-							Losses
-						</th>
-						<th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-							Win Rate
-						</th>
-					</tr>
-				</thead>
-				<tbody className="divide-y divide-gray-700">
-					{data.map((player, index) => {
-						const gameName = player.profileData?.gameName || "Unknown";
-						const tagLine = player.profileData?.tagLine || "Unknown";
-						const wins = player.wins || 0;
-						const losses = player.losses || 0;
-						const winRate =
-							wins + losses > 0
-								? Math.round((wins / (wins + losses)) * 100)
-								: 0;
+		<div className="w-full overflow-hidden rounded-lg border border-[--card-border] shadow-xl">
+			{/* Table Header */}
+			<div className="w-full bg-[--card-bg-secondary] border-b border-[--card-border] text-xs sm:text-sm text-[--text-secondary] sticky top-0 z-10">
+				<div className="grid grid-cols-12 py-3 px-4">
+					<div className="col-span-1 font-semibold">Rank</div>
+					<div className="col-span-5 font-semibold">Summoner</div>
+					<div className="col-span-2 text-center font-semibold">LP</div>
+					<div className="col-span-4 text-center font-semibold">Win Rate</div>
+				</div>
+			</div>
 
-						return (
-							<tr
-								key={player.summonerId || index}
-								className="hover:bg-gray-700"
-							>
-								<td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-white">
-									{index + 1}
-								</td>
-								<td className="px-4 py-3 whitespace-nowrap text-sm">
-									<Link
-										href={`/tft/profile?gameName=${encodeURIComponent(
-											gameName
-										)}&tagLine=${encodeURIComponent(tagLine)}&region=${region}`}
-										className="flex items-center space-x-3 hover:text-blue-400"
-									>
-										<div className="relative h-8 w-8 rounded-full overflow-hidden">
+			{/* Table Body */}
+			<div className="max-h-[600px] overflow-y-auto custom-scrollbar">
+				{data.map((entry, index) => {
+					const winrateInfo = getWinrateDisplay(
+						entry.wins || 0,
+						entry.losses || 0
+					);
+					const gameName = entry.profileData?.gameName || "Unknown";
+					const tagLine = entry.profileData?.tagLine || "Unknown";
+
+					return (
+						<div
+							key={entry.summonerId || index}
+							className={`grid grid-cols-12 py-3 px-4 items-center border-b border-[--card-border] hover:bg-[--tft-primary]/5 transition-colors duration-150 ${getRowHighlightClass(
+								index
+							)}`}
+						>
+							{/* Rank Column */}
+							<div className="col-span-1 font-bold flex items-center">
+								{getRankIndicator(index)}
+								{index + 1}
+							</div>
+
+							{/* Summoner Column */}
+							<div className="col-span-5">
+								<Link
+									href={`/tft/profile?gameName=${encodeURIComponent(
+										gameName
+									)}&tagLine=${encodeURIComponent(
+										tagLine
+									)}&region=${encodeURIComponent(region)}`}
+									className="flex items-center group"
+								>
+									{/* Profile Icon */}
+									{entry.profileData?.profileIconId ? (
+										<div className="relative w-10 h-10 mr-3 rounded-full overflow-hidden border-2 border-[--card-border] group-hover:border-[--tft-primary] transition-colors">
 											<Image
-												src={`https://ddragon.leagueoflegends.com/cdn/14.7.1/img/profileicon/${
-													player.profileData?.profileIconId || 1
-												}.png`}
+												src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/${entry.profileData.profileIconId}.jpg`}
 												alt="Profile Icon"
-												width={32}
-												height={32}
-												className="rounded-full"
+												fill
+												className="object-cover"
 											/>
 										</div>
-										<span>
-											{gameName}{" "}
-											<span className="text-gray-400">#{tagLine}</span>
-										</span>
-									</Link>
-								</td>
-								<td className="px-4 py-3 whitespace-nowrap text-sm">
-									<div className="flex items-center">
-										<div className="relative w-8 h-8 mr-2">
-											<Image
-												src={`/images/league/rankedEmblems/${
-													player.tier?.toLowerCase() || "unranked"
-												}.webp`}
-												alt={player.tier || "Unranked"}
-												width={32}
-												height={32}
-											/>
+									) : (
+										<div className="w-10 h-10 mr-3 rounded-full bg-[--card-border] flex items-center justify-center">
+											<span className="text-[--text-secondary] text-xs">?</span>
 										</div>
-										<span>
-											{player.tier} {player.rank}
-										</span>
-									</div>
-								</td>
-								<td className="px-4 py-3 whitespace-nowrap text-sm">
-									{player.leaguePoints}
-								</td>
-								<td className="px-4 py-3 whitespace-nowrap text-sm text-green-400">
-									{wins}
-								</td>
-								<td className="px-4 py-3 whitespace-nowrap text-sm text-red-400">
-									{losses}
-								</td>
-								<td className="px-4 py-3 whitespace-nowrap text-sm">
-									<div className="flex items-center">
-										<div className="w-16 bg-gray-600 rounded-full h-2.5 mr-2">
-											<div
-												className="bg-blue-500 h-2.5 rounded-full"
-												style={{ width: `${winRate}%` }}
-											></div>
+									)}
+
+									{/* Summoner Name */}
+									<div className="overflow-hidden">
+										<div className="font-medium text-[--text-primary] truncate group-hover:text-[--tft-primary] transition-colors">
+											{gameName}
 										</div>
-										<span>{winRate}%</span>
+										<div className="text-xs text-[--text-secondary]">
+											#{tagLine}
+										</div>
 									</div>
-								</td>
-							</tr>
-						);
-					})}
-				</tbody>
-			</table>
+								</Link>
+							</div>
+
+							{/* LP Column */}
+							<div className="col-span-2 text-center">
+								<span className={`font-bold text-[--${tier.toLowerCase()}]`}>
+									{entry.leaguePoints}
+								</span>
+								<span className="text-[--text-secondary] ml-1 text-sm">LP</span>
+							</div>
+
+							{/* Win Rate Column */}
+							<div className="col-span-4">
+								<div className="flex flex-col sm:flex-row items-center justify-center gap-2">
+									{/* Win/Loss */}
+									<div className="text-sm whitespace-nowrap">
+										<span className="text-[--success]">{entry.wins || 0}W</span>
+										<span className="text-[--text-secondary] mx-1">/</span>
+										<span className="text-[--error]">{entry.losses || 0}L</span>
+									</div>
+
+									{/* Win Rate Bar */}
+									<div className="w-full max-w-[100px] h-5 bg-[--card-bg] rounded-full overflow-hidden relative">
+										<div
+											className={`h-full ${winrateInfo.colorClass} bg-current opacity-20`}
+											style={{ width: `${winrateInfo.percent}%` }}
+										></div>
+										<div className="absolute inset-0 flex items-center justify-center text-xs font-medium">
+											<span className={winrateInfo.colorClass}>
+												{winrateInfo.percent}%
+											</span>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					);
+				})}
+			</div>
 		</div>
 	);
 }

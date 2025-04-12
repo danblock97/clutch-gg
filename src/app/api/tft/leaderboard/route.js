@@ -21,7 +21,16 @@ export async function GET(req) {
 	const tier = searchParams.get("tier") || "CHALLENGER";
 	const division = searchParams.get("division") || "I";
 	const region = searchParams.get("region") || "euw1";
-	const apiUrl = `https://${region}.api.riotgames.com/tft/league/v1/entries/${tier}/${division}?page=1`;
+
+	// Construct API URL based on tier
+	let apiUrl;
+	if (["MASTER", "GRANDMASTER", "CHALLENGER"].includes(tier.toUpperCase())) {
+		// For higher tiers, use the specific endpoints
+		apiUrl = `https://${region}.api.riotgames.com/tft/league/v1/${tier.toLowerCase()}`;
+	} else {
+		// For lower tiers (IRON to DIAMOND), use the entries endpoint
+		apiUrl = `https://${region}.api.riotgames.com/tft/league/v1/entries/${tier}/${division}?page=1`;
+	}
 
 	try {
 		const response = await fetch(apiUrl, {
@@ -35,17 +44,27 @@ export async function GET(req) {
 			return NextResponse.json([], { status: 200 });
 		}
 
+		let rawData = await response.json();
 		let leaderboardData = [];
-		try {
-			leaderboardData = await response.json();
-		} catch (parseErr) {
-			console.error("Failed to parse TFT API JSON:", parseErr);
-			return NextResponse.json([], { status: 200 });
+
+		// Handle the different response formats based on tier
+		if (["MASTER", "GRANDMASTER", "CHALLENGER"].includes(tier.toUpperCase())) {
+			// Higher tiers return an object with entries array
+			leaderboardData = rawData.entries || [];
+		} else {
+			// Lower tiers return array directly
+			leaderboardData = Array.isArray(rawData) ? rawData : [];
 		}
 
-		if (!Array.isArray(leaderboardData) || leaderboardData.length === 0) {
+		if (leaderboardData.length === 0) {
 			return NextResponse.json([]);
 		}
+
+		// Sort by leaguePoints in descending order
+		leaderboardData.sort((a, b) => b.leaguePoints - a.leaguePoints);
+
+		// Take only top 100 entries
+		leaderboardData = leaderboardData.slice(0, 100);
 
 		const detailedResults = await Promise.allSettled(
 			leaderboardData.map(async (entry) => {

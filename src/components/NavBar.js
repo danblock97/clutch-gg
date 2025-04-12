@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import SearchBar from "@/components/SearchBar";
+import { useGameType } from "@/context/GameTypeContext";
 import {
 	FaCoffee,
 	FaSearch,
@@ -17,6 +18,8 @@ import {
 	FaChevronDown,
 	FaChevronUp,
 	FaHome,
+	FaGamepad,
+	FaChessKnight,
 } from "react-icons/fa";
 
 const NavBar = ({ isBannerVisible }) => {
@@ -24,12 +27,29 @@ const NavBar = ({ isBannerVisible }) => {
 	const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 	const [scrolled, setScrolled] = useState(false);
 	const [navbarHeight, setNavbarHeight] = useState(0);
+	const [mounted, setMounted] = useState(false);
+	const { gameType, setGameType } = useGameType();
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
+	const router = useRouter();
+
+	// Mark component as mounted to prevent hydration mismatch
+	useEffect(() => {
+		setMounted(true);
+	}, []);
+
+	// Detect the current game type based on URL
+	useEffect(() => {
+		if (pathname?.startsWith("/tft")) {
+			setGameType("tft");
+		} else {
+			setGameType("league");
+		}
+	}, [pathname, setGameType]);
 
 	const isProfileOrMatch =
-		pathname === "/league/profile" || pathname === "/match";
-	const region = isProfileOrMatch ? searchParams.get("region") : null;
+		pathname?.includes("/profile") || pathname?.includes("/match");
+	const region = isProfileOrMatch ? searchParams?.get("region") : null;
 
 	// Handle scroll events to change navbar appearance
 	useEffect(() => {
@@ -54,6 +74,48 @@ const NavBar = ({ isBannerVisible }) => {
 	const handleLinkClick = () => {
 		setIsMenuOpen(false);
 	};
+
+	// Toggle between game types
+	const handleGameTypeChange = (type) => {
+		setGameType(type);
+		// Navigate to corresponding section when game type changes
+		if (type === "tft") {
+			// If currently on leaderboard page, navigate to the corresponding leaderboard
+			if (pathname?.includes("/leaderboard")) {
+				router.push("/tft/leaderboard");
+			}
+		} else {
+			// If currently on leaderboard page, navigate to the corresponding leaderboard
+			if (pathname?.includes("/leaderboard")) {
+				router.push("/league/leaderboard");
+			}
+		}
+	};
+
+	// Determine if current path is for TFT (needed for server-side rendering)
+	const isTftPath = pathname?.startsWith("/tft");
+
+	// Get active gradient text class based on path for initial render, then gameType after mounted
+	const getGradientTextClass = () => {
+		if (!mounted)
+			return isTftPath ? "tft-gradient-text" : "league-gradient-text";
+		return gameType === "tft" ? "tft-gradient-text" : "league-gradient-text";
+	};
+
+	// Get active color class based on path for initial render, then gameType after mounted
+	const getActiveColorClass = () => {
+		if (!mounted) return isTftPath ? "tft-active" : "league-active";
+		return gameType === "tft" ? "tft-active" : "league-active";
+	};
+
+	// Get leaderboard link based on path for initial render, then gameType after mounted
+	const getLeaderboardLink = () => {
+		if (!mounted) return isTftPath ? "/tft/leaderboard" : "/league/leaderboard";
+		return gameType === "tft" ? "/tft/leaderboard" : "/league/leaderboard";
+	};
+
+	// If we're dealing with server-side logic for initial render
+	const initialGameType = isTftPath ? "tft" : "league";
 
 	return (
 		<header
@@ -86,26 +148,57 @@ const NavBar = ({ isBannerVisible }) => {
 										className="object-contain"
 									/>
 								</div>
-								<span className="font-bold text-lg hidden sm:inline-block bg-clip-text text-transparent bg-gradient-to-r from-[--primary] to-[--secondary]">
+								<span
+									className={`font-bold text-lg hidden sm:inline-block ${getGradientTextClass()}`}
+								>
 									ClutchGG.LOL
 								</span>
 							</Link>
+
+							{/* Game Type Selector (Desktop) */}
+							<div className="hidden md:flex items-center space-x-4 pr-2 border-r border-[--card-border]">
+								<button
+									onClick={() => handleGameTypeChange("league")}
+									className={`nav-link flex items-center space-x-1 ${
+										(!mounted && !isTftPath) ||
+										(mounted && gameType === "league")
+											? "league-active"
+											: ""
+									}`}
+								>
+									<FaGamepad className="text-sm" />
+									<span>League</span>
+								</button>
+								<button
+									onClick={() => handleGameTypeChange("tft")}
+									className={`nav-link flex items-center space-x-1 ${
+										(!mounted && isTftPath) || (mounted && gameType === "tft")
+											? "tft-active"
+											: ""
+									}`}
+								>
+									<FaChessKnight className="text-sm" />
+									<span>TFT</span>
+								</button>
+							</div>
 
 							{/* Desktop Navigation Links */}
 							<div className="hidden md:flex items-center space-x-6">
 								<Link
 									href="/"
 									className={`nav-link flex items-center space-x-1 ${
-										pathname === "/" ? "text-[--primary]" : ""
+										pathname === "/" ? getActiveColorClass() : ""
 									}`}
 								>
 									<FaHome className="text-sm" />
 									<span>Home</span>
 								</Link>
 								<Link
-									href="/league/leaderboard"
+									href={getLeaderboardLink()}
 									className={`nav-link flex items-center space-x-1 ${
-										pathname === "/league/leaderboard" ? "text-[--primary]" : ""
+										pathname === getLeaderboardLink()
+											? getActiveColorClass()
+											: ""
 									}`}
 								>
 									<FaTrophy className="text-sm" />
@@ -120,7 +213,11 @@ const NavBar = ({ isBannerVisible }) => {
 							{isProfileOrMatch && (
 								<button
 									onClick={() => setIsSearchModalOpen(true)}
-									className="btn-outline py-1 px-3 hidden md:flex items-center space-x-1"
+									className={`${
+										(!mounted && isTftPath) || (mounted && gameType === "tft")
+											? "btn-outline-tft"
+											: "btn-outline"
+									} py-1 px-3 hidden md:flex items-center space-x-1`}
 								>
 									<FaSearch className="text-sm" />
 									<span>Search</span>
@@ -161,7 +258,11 @@ const NavBar = ({ isBannerVisible }) => {
 									href="https://buymeacoffee.com/danblock97"
 									target="_blank"
 									rel="noopener noreferrer"
-									className="btn-primary py-1 px-3 flex items-center space-x-1"
+									className={
+										(!mounted && isTftPath) || (mounted && gameType === "tft")
+											? "btn-primary-tft py-1 px-3 flex items-center space-x-1"
+											: "btn-primary py-1 px-3 flex items-center space-x-1"
+									}
 								>
 									<FaCoffee className="text-sm" />
 									<span>Support</span>
@@ -194,6 +295,33 @@ const NavBar = ({ isBannerVisible }) => {
 					}`}
 				>
 					<div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-[--card-bg] border-t border-[--card-border] shadow-lg">
+						{/* Game Type Selector (Mobile) */}
+						<div className="flex justify-center mb-2 pt-2">
+							<div className="inline-flex rounded-md border border-[--card-border] overflow-hidden">
+								<button
+									className={`px-3 py-2 text-sm flex items-center ${
+										(!mounted && !isTftPath) ||
+										(mounted && gameType === "league")
+											? "bg-[--primary] text-white"
+											: "bg-[--card-bg] text-[--text-secondary] hover:bg-[--card-bg-secondary]"
+									}`}
+									onClick={() => handleGameTypeChange("league")}
+								>
+									<FaGamepad className="mr-2" /> League
+								</button>
+								<button
+									className={`px-3 py-2 text-sm flex items-center ${
+										(!mounted && isTftPath) || (mounted && gameType === "tft")
+											? "bg-[--tft-primary] text-white"
+											: "bg-[--card-bg] text-[--text-secondary] hover:bg-[--card-bg-secondary]"
+									}`}
+									onClick={() => handleGameTypeChange("tft")}
+								>
+									<FaChessKnight className="mr-2" /> TFT
+								</button>
+							</div>
+						</div>
+
 						<Link
 							href="/"
 							className="nav-link block px-3 py-2 rounded-md hover:bg-[--card-bg-secondary]"
@@ -206,7 +334,7 @@ const NavBar = ({ isBannerVisible }) => {
 						</Link>
 
 						<Link
-							href="/league/leaderboard"
+							href={getLeaderboardLink()}
 							className="nav-link block px-3 py-2 rounded-md hover:bg-[--card-bg-secondary]"
 							onClick={handleLinkClick}
 						>
@@ -271,7 +399,11 @@ const NavBar = ({ isBannerVisible }) => {
 							href="https://buymeacoffee.com/danblock97"
 							target="_blank"
 							rel="noopener noreferrer"
-							className="block px-3 py-2 rounded-md bg-[--primary] text-white hover:bg-[--primary-dark]"
+							className={`block px-3 py-2 rounded-md text-white hover:opacity-90 ${
+								(!mounted && isTftPath) || (mounted && gameType === "tft")
+									? "bg-[--tft-primary]"
+									: "bg-[--primary]"
+							}`}
 							onClick={handleLinkClick}
 						>
 							<div className="flex items-center space-x-3">
@@ -290,6 +422,7 @@ const NavBar = ({ isBannerVisible }) => {
 			{isSearchModalOpen && (
 				<SearchBar
 					initialRegion={region}
+					initialGameType={gameType}
 					isModal
 					onModalClose={() => {
 						setIsSearchModalOpen(false);
