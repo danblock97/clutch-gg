@@ -4,6 +4,7 @@ import useTFTProfileData from "@/app/hooks/tft/useProfileData";
 import TFTRankedInfo from "./RankedInfo";
 import TFTMatchHistory from "./MatchHistory";
 import TopTraits from "./TopTraits";
+import TopUnits from "./TopUnits";
 import Loading from "@/components/Loading";
 import NoProfileFound from "@/components/league/NoProfileFound";
 import DiscordBotBanner from "@/components/DiscordBotBanner.js";
@@ -210,6 +211,9 @@ export default function Profile({ profileData }) {
 							matchDetails={matchDetails}
 							summonerData={summonerData}
 						/>
+
+						{/* Top Units Component */}
+						<TopUnits matchDetails={matchDetails} summonerData={summonerData} />
 					</div>
 
 					{/* Right Column */}
