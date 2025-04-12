@@ -69,11 +69,32 @@ export async function GET(req) {
 				region,
 				puuid: accountData.puuid,
 			};
-			const { error: insertError } = await supabase
-				.from("riot_accounts")
-				.insert([insertPayload], { returning: "representation" });
-			if (insertError) throw insertError;
+			try {
+				const { error: insertError } = await supabase
+					.from("riot_accounts")
+					.insert([insertPayload], { returning: "representation" });
 
+				if (insertError) {
+					// If the error is a duplicate key violation, it means someone else inserted the record
+					// in the time between our check and insert. So we should just fetch the existing record.
+					if (
+						insertError.code === "23505" &&
+						insertError.message.includes("puuid")
+					) {
+						console.log(
+							"Race condition detected, fetching existing record instead"
+						);
+					} else {
+						// For other errors, we should still throw
+						throw insertError;
+					}
+				}
+			} catch (error) {
+				console.error("Error in insertion process:", error);
+				// We'll continue to fetch the account even if insertion failed due to duplication
+			}
+
+			// In either case (successful insert or duplicate key), fetch the account
 			const { data: fetchedAccount, error: fetchError } = await supabase
 				.from("riot_accounts")
 				.select("*")

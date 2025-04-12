@@ -401,6 +401,12 @@ const MatchHistory = ({
 			: "/images/placeholder.png";
 	};
 
+	// Helper function to calculate kill participation for a player
+	const calculateKillParticipation = (player, team) => {
+		const teamKills = team.reduce((sum, p) => sum + p.kills, 0);
+		return teamKills > 0 ? (player.kills + player.assists) / teamKills : 0;
+	};
+
 	if (!matchDetails || matchDetails.length === 0) {
 		return (
 			<div className="bg-gray-800 text-gray-400 p-4 rounded-lg shadow-lg">
@@ -482,34 +488,32 @@ const MatchHistory = ({
 	};
 
 	return (
-		<div className="text-gray-400 w-full max-w-screen-xl mx-auto">
+		<div className="text-gray-400 w-full max-w-screen-xl mx-auto px-4">
 			{/* Filters */}
-			<div className="flex flex-col md:flex-row justify-between items-center mt-2 space-y-4 md:space-y-0 bg-[--card-bg] rounded-lg p-3 shadow-md mb-4">
+			<div className="flex flex-col md:flex-row justify-between items-center mt-2 space-y-4 md:space-y-0">
 				{/* Lane Filter */}
 				<div className="flex items-center space-x-2">
 					{lanes.map((lane) => (
 						<button
 							key={lane.id}
 							onClick={() => handleLaneSelect(lane.id)}
-							className={`p-2 rounded-lg transition-colors duration-200 ${
-								selectedLane === lane.id
-									? "bg-blue-600 text-white"
-									: "bg-[--card-bg-secondary] hover:bg-blue-600/30 text-gray-300"
-							}`}
+							className={`p-2 rounded-lg ${
+								selectedLane === lane.id ? "bg-blue-500" : "bg-gray-800"
+							} hover:bg-blue-600 transition-colors duration-200`}
 							title={lane.id}
 						>
-							<Image src={lane.icon} alt={lane.id} width={22} height={22} />
+							<Image src={lane.icon} alt={lane.id} width={24} height={24} />
 						</button>
 					))}
 				</div>
 				<div className="flex items-center space-x-2">
 					<select
 						id="queue-filter"
-						className="p-2 bg-[--card-bg-secondary] text-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-700"
+						className="p-2 bg-gray-800 text-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
 						value={selectedQueue || ""}
 						onChange={handleQueueSelect}
 					>
-						<option value="">All Queues</option>
+						<option value="">All</option>
 						{queues.map((queue) => (
 							<option key={queue.id} value={queue.id}>
 								{queue.name}
@@ -518,14 +522,10 @@ const MatchHistory = ({
 					</select>
 				</div>
 			</div>
-
 			<div className="mt-2">
 				{Object.entries(matchesByDay).map(([day, matches]) => (
-					<div key={day} className="mb-6">
-						<h2 className="text-sm font-medium text-gray-400 mb-2 flex items-center">
-							<FaCalendarAlt className="mr-2 text-gray-500" />
-							{day}
-						</h2>
+					<div key={day} className="mb-2">
+						<h2 className="text-xl font-semibold text-gray-200 my-4">{day}</h2>
 						{matches.map((match, index) => {
 							const participants = match.info.participants;
 							let maxCsPerMin = 0;
@@ -682,96 +682,49 @@ const MatchHistory = ({
 														)
 												: undefined
 										}
-										className={`rounded-md shadow-md mb-2 min-w-[768px] ${
+										className={`card-highlight rounded-lg shadow-lg p-6 ${
 											breakpoint !== "mobile" ? "cursor-pointer" : ""
-										} ${getGradientBackground(
+										} flex flex-col relative mb-2 min-w-[768px] text-xs sm:text-sm ${getGradientBackground(
 											match,
 											currentPlayer,
 											isRemake,
 											isMVP
 										)}`}
 									>
-										<div className="flex p-0 relative overflow-hidden">
-											{/* Win/Loss Indicator */}
-											<div
-												className={`w-1 h-full absolute left-0 top-0 ${
-													match.info.queueId === 1700 ||
-													match.info.queueId === 1710
-														? "bg-blue-500" // Arena
-														: isRemake
-														? "bg-yellow-500" // Remake
-														: currentPlayer.win
-														? "bg-blue-500" // Win
-														: "bg-red-500" // Loss
-												}`}
-											/>
-
-											{/* Champion & Spells */}
-											<div className="py-3 px-3 flex items-center w-24">
-												<div className="flex flex-col items-center">
-													<div
-														className={`relative w-14 h-14 rounded-full overflow-hidden border-2 ${
-															match.info.queueId === 1700 ||
-															match.info.queueId === 1710
-																? "" // Arena
-																: isRemake
-																? "border-yellow-500" // Remake
-																: currentPlayer.win
-																? "border-blue-500" // Win
-																: "border-red-500" // Loss
-														}`}
-													>
-														<Image
-															src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${currentPlayer.championId}.png`}
-															alt="Champion Icon"
-															width={56}
-															height={56}
-															className="object-cover"
-														/>
-														<div className="absolute bottom-0 right-0 bg-black/60 text-xs px-1 text-white rounded-tl-md">
-															{currentPlayer.champLevel}
-														</div>
-													</div>
-													<div className="mt-1 flex flex-col space-y-1">
-														{[
-															currentPlayer.summoner1Id,
-															currentPlayer.summoner2Id,
-														].map((spellId, idx) => (
-															<div
-																key={idx}
-																className="w-6 h-6 rounded bg-[--card-bg-secondary] overflow-hidden"
-															>
-																<Image
-																	src={`/images/league/summonerSpells/${spellId}.png`}
-																	alt={`Spell ${spellId}`}
-																	width={24}
-																	height={24}
-																	className="w-full h-full"
-																/>
-															</div>
-														))}
-													</div>
+										<div className="absolute top-4 left-2 flex items-start">
+											<div className="flex items-center mr-4">
+												<div
+													className={`sm:w-12 sm:h-12 w-16 h-16 rounded-full border-2 ${getOutcomeClass(
+														currentPlayer.win,
+														isRemake,
+														isMVP
+													)} overflow-hidden`}
+												>
+													<Image
+														src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${currentPlayer.championId}.png`}
+														alt="Champion Icon"
+														width={64}
+														height={64}
+														className="object-cover transform scale-110"
+													/>
 												</div>
 											</div>
-
-											{/* Game Info */}
-											<div className="py-3 px-1 flex flex-col justify-between w-32">
-												<div>
+											<div className="flex flex-col">
+												<div className="flex items-center mb-2">
 													{(() => {
 														let outcomeText = "";
 														let outcomeColorClass = "";
-
 														if (
 															match.info.queueId === 1700 ||
 															match.info.queueId === 1710
 														) {
-															// Arena logic
-															let sortedParticipants = [
-																...match.info.participants,
-															].map((p) => ({
-																...p,
-																playerScore0: p.missions?.playerScore0 || 0,
-															}));
+															// For Arena, sort participants by missions.playerScore0
+															let sortedParticipants = [...participants].map(
+																(p) => ({
+																	...p,
+																	playerScore0: p.missions?.playerScore0 || 0,
+																})
+															);
 															sortedParticipants.sort(
 																(a, b) => a.playerScore0 - b.playerScore0
 															);
@@ -780,15 +733,12 @@ const MatchHistory = ({
 															);
 															const placement =
 																Math.floor(currentIndex / 2) + 1;
-
 															const getOrdinal = (n) => {
 																const s = ["th", "st", "nd", "rd"];
 																const v = n % 100;
 																return n + (s[(v - 20) % 10] || s[v] || s[0]);
 															};
-
 															outcomeText = `${getOrdinal(placement)} Place`;
-
 															const getPlacementColor = (plc) => {
 																switch (plc) {
 																	case 1:
@@ -799,11 +749,18 @@ const MatchHistory = ({
 																		return "text-orange-500";
 																	case 4:
 																		return "text-blue-500";
+																	case 5:
+																		return "text-red-500";
+																	case 6:
+																		return "text-green-500";
+																	case 7:
+																		return "text-purple-500";
+																	case 8:
+																		return "text-indigo-500";
 																	default:
-																		return "text-gray-400";
+																		return "text-white";
 																}
 															};
-
 															outcomeColorClass = getPlacementColor(placement);
 														} else {
 															outcomeText = isRemake
@@ -811,253 +768,180 @@ const MatchHistory = ({
 																: currentPlayer.win
 																? "Victory"
 																: "Defeat";
-
-															outcomeColorClass = isRemake
-																? "text-yellow-500"
-																: currentPlayer.win
-																? "text-blue-500"
-																: "text-red-500";
+															outcomeColorClass = getOutcomeClass(
+																currentPlayer.win,
+																isRemake,
+																isMVP
+															);
 														}
-
 														return (
 															<p
-																className={`font-semibold text-sm ${outcomeColorClass}`}
+																className={`font-semibold mr-2 sm:text-sm md:text-base lg:text-lg ${outcomeColorClass}`}
 															>
 																{outcomeText}
 															</p>
 														);
 													})()}
-													<p className="text-xs text-gray-500 mt-1">
-														{getQueueName(match.info.queueId)}
+													<p className="text-sm mr-2">
+														• {getQueueName(match.info.queueId)}
+													</p>
+													<p className="text-sm mr-2">
+														•{" "}
+														{`${Math.floor(
+															match.info.gameDuration / 60
+														)}:${String(match.info.gameDuration % 60).padStart(
+															2,
+															"0"
+														)}`}
+													</p>
+													<p className="text-sm flex items-center">
+														• {timeAgo} •{" "}
+														{match.info.queueId !== 1700 &&
+															match.info.queueId !== 1710 &&
+															currentPlayer.teamPosition && (
+																<Image
+																	src={`https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-champ-select/global/default/svg/position-${currentPlayer.teamPosition.toLowerCase()}.svg`}
+																	alt={`${currentPlayer.teamPosition} Position Icon`}
+																	width={16}
+																	height={16}
+																	className="ml-1"
+																/>
+															)}
 													</p>
 												</div>
-												<div className="text-xs text-gray-500">{timeAgo}</div>
-											</div>
-
-											{/* KDA & Stats */}
-											<div className="py-3 px-3 flex flex-col justify-between flex-grow">
-												<div className="flex items-center justify-between">
-													<div>
-														<div className="flex items-center">
-															<p className="font-medium text-base">
-																{kda} <span className="text-gray-500">KDA</span>
-															</p>
-															{match.info.queueId !== 1700 &&
-																match.info.queueId !== 1710 && (
-																	<span className="text-xs ml-2 px-1.5 py-0.5 bg-gray-700 rounded text-gray-300">
-																		{killParticipation
-																			? `${Math.round(
-																					killParticipation * 100
-																			  )}% P/Kill`
-																			: ""}
-																	</span>
-																)}
-														</div>
-														<p className="text-sm mt-0.5">
-															<span
-																className={
-																	currentPlayer.kills > 3 ? "text-red-400" : ""
-																}
-															>
-																{currentPlayer.kills}
-															</span>{" "}
-															/
-															<span
-																className={
-																	currentPlayer.deaths > 7 ? "text-red-400" : ""
-																}
-															>
-																{currentPlayer.deaths}
-															</span>{" "}
-															/{currentPlayer.assists}
+												<div className="flex">
+													<div className="flex flex-col justify-center mr-8">
+														<p className="sm:text-sm md:text-base lg:text-lg font-bold">
+															{kda} KDA
+														</p>
+														<p className="text-md">
+															{currentPlayer.kills}/{currentPlayer.deaths}/
+															{currentPlayer.assists}
 														</p>
 													</div>
-
-													<div className="flex flex-col items-end">
-														<div className="flex items-center">
-															<p className="text-sm">
-																CS {cs}{" "}
-																<span className="text-gray-500">
-																	({csPerMinCalc})
-																</span>
+													{match.info.queueId === 1700 ||
+													match.info.queueId === 1710 ? (
+														<div className="flex flex-col justify-center">
+															<p className="sm:text-sm md:text-base lg:text-lg font-bold">
+																{dpm} DPM
 															</p>
+															<p className="text-md">{goldEarned} Gold</p>
 														</div>
-														<div className="text-sm mt-0.5">
-															<span className="text-gray-500">LVL</span>{" "}
-															{currentPlayer.champLevel}
-														</div>
-													</div>
-												</div>
-
-												{/* Tags */}
-												{match.info.queueId !== 1700 &&
-													match.info.queueId !== 1710 && (
-														<div className="flex flex-wrap mt-2 gap-1.5">
-															{tags.slice(0, maxTagsToShow).map((tag) => (
-																<div key={tag.key} className="inline-block">
-																	{tag}
-																</div>
-															))}
-														</div>
-													)}
-											</div>
-
-											{/* Items */}
-											<div className="py-3 px-3 w-56 flex items-center justify-center">
-												<div className="grid grid-cols-4 gap-1">
-													{/* First row: 0-2 */}
-													<div className="col-span-3 grid grid-cols-3 gap-1">
-														{items.slice(0, 3).map((itemId, idx) => (
-															<div
-																key={idx}
-																className="w-8 h-8 bg-[--card-bg-secondary] rounded overflow-hidden"
-															>
-																{itemId > 0 ? (
-																	<Image
-																		src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/item/${itemId}.png`}
-																		alt={`Item ${itemId}`}
-																		width={32}
-																		height={32}
-																		className="w-full h-full"
-																	/>
-																) : null}
-															</div>
-														))}
-													</div>
-
-													{/* Trinket */}
-													<div className="col-span-1">
-														<div className="w-8 h-8 bg-[--card-bg-secondary] rounded overflow-hidden">
-															{items[6] > 0 ? (
-																<Image
-																	src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/item/${items[6]}.png`}
-																	alt={`Trinket`}
-																	width={32}
-																	height={32}
-																	className="w-full h-full"
-																/>
-															) : null}
-														</div>
-													</div>
-
-													{/* Second row: 3-5 */}
-													<div className="col-span-3 grid grid-cols-3 gap-1">
-														{items.slice(3, 6).map((itemId, idx) => (
-															<div
-																key={idx}
-																className="w-8 h-8 bg-[--card-bg-secondary] rounded overflow-hidden"
-															>
-																{itemId > 0 ? (
-																	<Image
-																		src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/item/${itemId}.png`}
-																		alt={`Item ${itemId}`}
-																		width={32}
-																		height={32}
-																		className="w-full h-full"
-																	/>
-																) : null}
-															</div>
-														))}
-													</div>
-
-													{/* Empty cell for balance */}
-													<div className="col-span-1"></div>
-												</div>
-											</div>
-
-											{/* Players */}
-											<div className="py-3 pr-3 pl-1 md:block hidden">
-												<div className="flex text-xs">
-													<div className="mr-1">
-														<div className="grid grid-rows-5 gap-0.5">
-															{match.info.participants
-																.filter((p) => p.teamId === 100)
-																.map((participant, idx) => (
-																	<div
-																		key={idx}
-																		className="flex items-center h-4 overflow-hidden"
-																	>
-																		<div className="w-3 h-3 mr-1">
-																			<Image
-																				src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${participant.championId}.png`}
-																				alt="Champion"
-																				width={12}
-																				height={12}
-																				className="rounded-full"
-																			/>
-																		</div>
-																		<span
-																			className={`truncate max-w-[50px] ${
-																				participant.puuid ===
-																				selectedSummonerPUUID
-																					? "text-blue-400 font-medium"
-																					: "text-gray-500"
-																			}`}
-																		>
-																			{truncateName(
-																				participant.riotIdGameName,
-																				6
-																			)}
-																		</span>
-																	</div>
-																))}
-														</div>
-													</div>
-													<div>
-														<div className="grid grid-rows-5 gap-0.5">
-															{match.info.participants
-																.filter((p) => p.teamId === 200)
-																.map((participant, idx) => (
-																	<div
-																		key={idx}
-																		className="flex items-center h-4 overflow-hidden"
-																	>
-																		<div className="w-3 h-3 mr-1">
-																			<Image
-																				src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${participant.championId}.png`}
-																				alt="Champion"
-																				width={12}
-																				height={12}
-																				className="rounded-full"
-																			/>
-																		</div>
-																		<span
-																			className={`truncate max-w-[50px] ${
-																				participant.puuid ===
-																				selectedSummonerPUUID
-																					? "text-blue-400 font-medium"
-																					: "text-gray-500"
-																			}`}
-																		>
-																			{truncateName(
-																				participant.riotIdGameName,
-																				6
-																			)}
-																		</span>
-																	</div>
-																))}
-														</div>
-													</div>
-												</div>
-											</div>
-
-											{/* Expand Arrow */}
-											{breakpoint !== "mobile" && (
-												<div className="py-3 px-3 flex items-center text-gray-400">
-													{expandedMatchId === match.metadata.matchId ? (
-														<FaChevronUp className="w-4 h-4" />
 													) : (
-														<FaChevronDown className="w-4 h-4" />
+														<div className="flex items-center space-x-2">
+															<div className="flex flex-col justify-center">
+																<p className="sm:text-sm md:text-base lg:text-lg font-bold">
+																	{csPerMinCalc} CS/Min
+																</p>
+																<p className="text-md">{cs} CS</p>
+															</div>
+															{[420, 440, 490, 400].includes(
+																match.info.queueId
+															) && (
+																<DonutGraph
+																	score={calculateClutchScore(
+																		match,
+																		currentPlayer
+																	)}
+																/>
+															)}
+														</div>
 													)}
+												</div>
+											</div>
+										</div>
+										<div className="h-24"></div>
+										<div className="absolute top-16 right-[270px] flex items-center justify-center">
+											<div className="flex flex-col items-center mr-2 gap-2">
+												{[
+													currentPlayer.summoner1Id,
+													currentPlayer.summoner2Id,
+												].map((spellId, idx) => (
+													<Image
+														key={idx}
+														src={`/images/league/summonerSpells/${spellId}.png`}
+														alt={`Summoner Spell ${idx + 1}`}
+														width={28}
+														height={28}
+														className="sm:w-6 sm:h-6 w-8 h-8 rounded-full border border-gray-700"
+													/>
+												))}
+											</div>
+											<div className="grid grid-cols-4 gap-2">
+												{items.slice(0, 3).map((itemId, idx) => (
+													<div key={idx} className="flex items-center">
+														{itemId > 0 ? (
+															<Image
+																src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/item/${itemId}.png`}
+																alt="Item"
+																width={28}
+																height={28}
+																className="sm:w-6 sm:h-6 w-8 h-8 rounded-lg border border-gray-700"
+															/>
+														) : (
+															<Image
+																src="/images/placeholder.png"
+																alt="No item"
+																width={28}
+																height={28}
+																className="sm:w-6 sm:h-6 w-8 h-8 rounded-lg border border-gray-700"
+															/>
+														)}
+													</div>
+												))}
+												{items[6] > 0 ? (
+													<div className="flex items-center">
+														<Image
+															src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/item/${items[6]}.png`}
+															alt="Ward"
+															width={28}
+															height={28}
+															className="sm:w-6 sm:h-6 w-8 h-8 rounded-lg border border-gray-700"
+														/>
+													</div>
+												) : (
+													<Image
+														src="/images/placeholder.png"
+														alt="No ward"
+														width={28}
+														height={28}
+														className="sm:w-6 sm:h-6 w-8 h-8 rounded-lg border border-gray-700"
+													/>
+												)}
+												{items.slice(3, 6).map((itemId, idx) => (
+													<div key={idx} className="flex items-center">
+														{itemId > 0 ? (
+															<Image
+																src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/item/${itemId}.png`}
+																alt="Item"
+																width={28}
+																height={28}
+																className="sm:w-6 sm:h-6 w-8 h-8 rounded-lg border border-gray-700"
+															/>
+														) : (
+															<Image
+																src="/images/placeholder.png"
+																alt="No item"
+																width={28}
+																height={28}
+																className="sm:w-6 sm:h-6 w-8 h-8 rounded-lg border border-gray-700"
+															/>
+														)}
+													</div>
+												))}
+											</div>
+										</div>
+										{/* Display tags for all match types EXCEPT Arena mode */}
+										{match.info.queueId !== 1700 &&
+											match.info.queueId !== 1710 && (
+												<div className="flex flex-wrap justify-start space-x-2">
+													{tags.slice(0, maxTagsToShow)}
 												</div>
 											)}
-										</div>
-
-										{/* Arena Augments */}
-										{(match.info.queueId === 1700 ||
-											match.info.queueId === 1710) && (
-											<div className="flex px-4 py-2 bg-[--card-bg-secondary]/30 border-t border-[--card-border]/30">
-												<div className="grid grid-cols-4 gap-2">
+										{match.info.queueId === 1700 ||
+										match.info.queueId === 1710 ? (
+											<div className="absolute top-6 right-16 flex">
+												<div className="grid grid-cols-2 gap-2">
 													{augmentsSelected
 														.filter(Boolean)
 														.map((augmentId, idx) => (
@@ -1065,20 +949,89 @@ const MatchHistory = ({
 																<Image
 																	src={getAugmentIcon(augmentId)}
 																	alt={`Augment ${idx + 1}`}
-																	className="w-8 h-8 rounded overflow-hidden border border-[--card-border]"
-																	width={32}
-																	height={32}
+																	className="w-12 h-12 rounded-lg border border-gray-700"
+																	width={48}
+																	height={48}
 																/>
 															</div>
 														))}
 												</div>
 											</div>
+										) : (
+											<div className="absolute top-4 right-0.5 flex">
+												<div className="flex flex-col items-start">
+													{winningTeam.map((participant, idx) => (
+														<div key={idx} className="flex items-center">
+															<div className="sm:w-6 sm:h-6 w-6 h-6 rounded-full border border-gray-700 ml-1 overflow-hidden">
+																<Image
+																	src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${participant.championId}.png`}
+																	alt="Participant Champion"
+																	width={24}
+																	height={24}
+																	className="object-cover transform scale-110"
+																/>
+															</div>
+															<p
+																className="text-sm truncate"
+																style={{ width: "100px" }}
+															>
+																<span
+																	className={`${
+																		participant.puuid === selectedSummonerPUUID
+																			? "font-semibold text-gray-100"
+																			: ""
+																	}`}
+																>
+																	{truncateName(participant.riotIdGameName, 7)}
+																</span>
+															</p>
+														</div>
+													))}
+												</div>
+												<div className="flex flex-col items-start">
+													{losingTeam.map((participant, idx) => (
+														<div key={idx} className="flex items-center">
+															<div className="sm:w-6 sm:h-6 w-6 h-6 rounded-full border border-gray-700 mr-1 overflow-hidden">
+																<Image
+																	src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${participant.championId}.png`}
+																	alt="Participant Champion"
+																	width={24}
+																	height={24}
+																	className="object-cover transform scale-110"
+																/>
+															</div>
+															<p
+																className="text-sm truncate"
+																style={{ width: "100px" }}
+															>
+																<span
+																	className={`${
+																		participant.puuid === selectedSummonerPUUID
+																			? "font-semibold text-gray-100"
+																			: ""
+																	}`}
+																>
+																	{truncateName(participant.riotIdGameName, 7)}
+																</span>
+															</p>
+														</div>
+													))}
+												</div>
+											</div>
+										)}
+										{/* Only show the expand/collapse arrow on non-mobile devices */}
+										{breakpoint !== "mobile" && (
+											<div className="absolute bottom-2 right-2">
+												{expandedMatchId === match.metadata.matchId ? (
+													<FaChevronUp className="text-gray-200" />
+												) : (
+													<FaChevronDown className="text-gray-200" />
+												)}
+											</div>
 										)}
 									</div>
-
-									{/* Expanded Match Details */}
 									{expandedMatchId === match.metadata.matchId && (
-										<div className="mb-4 animate-fadeIn">
+										<div>
 											<MatchDetails
 												matchDetails={matchDetails}
 												matchId={match.metadata.matchId}
@@ -1092,17 +1045,15 @@ const MatchHistory = ({
 						})}
 					</div>
 				))}
-
-				{/* Pagination */}
 				{totalPages > 1 && (
-					<div className="flex justify-center items-center mt-6 space-x-1">
+					<div className="flex justify-center items-center mt-6 space-x-1 text-sm">
 						<button
 							onClick={() => handlePageChange(currentPage - 1)}
 							disabled={currentPage === 1}
 							className={`px-3 py-1 rounded ${
 								currentPage === 1
-									? "bg-[--card-bg-secondary] cursor-not-allowed text-gray-600"
-									: "bg-[--card-bg-secondary] hover:bg-blue-600/30 text-gray-300"
+									? "bg-gray-700 cursor-not-allowed text-gray-500"
+									: "bg-gray-800 hover:bg-gray-700 text-gray-200"
 							}`}
 						>
 							Previous
@@ -1113,8 +1064,8 @@ const MatchHistory = ({
 								onClick={() => handlePageChange(page)}
 								className={`px-3 py-1 rounded ${
 									currentPage === page
-										? "bg-blue-600 text-white"
-										: "bg-[--card-bg-secondary] hover:bg-blue-600/30 text-gray-300"
+										? "bg-gray-700 text-white"
+										: "bg-gray-800 hover:bg-gray-700 text-gray-200"
 								}`}
 							>
 								{page}
@@ -1125,8 +1076,8 @@ const MatchHistory = ({
 							disabled={currentPage === totalPages}
 							className={`px-3 py-1 rounded ${
 								currentPage === totalPages
-									? "bg-[--card-bg-secondary] cursor-not-allowed text-gray-600"
-									: "bg-[--card-bg-secondary] hover:bg-blue-600/30 text-gray-300"
+									? "bg-gray-700 cursor-not-allowed text-gray-500"
+									: "bg-gray-800 hover:bg-gray-700 text-gray-200"
 							}`}
 						>
 							Next
