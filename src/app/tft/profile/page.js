@@ -1,5 +1,6 @@
 import React, { Suspense } from "react";
 import ProfilePageContent from "./ProfilePageContent";
+import Loading from "@/components/Loading";
 
 // Static metadata
 export const metadata = {
@@ -11,20 +12,9 @@ export const metadata = {
 export default function TFTProfilePage() {
 	return (
 		<div className="min-h-screen">
-			<Suspense fallback={<ProfileSkeleton />}>
+			<Suspense fallback={<Loading />}>
 				<ProfilePageContent />
 			</Suspense>
-		</div>
-	);
-}
-
-// Skeleton loader for when the content is still loading
-function ProfileSkeleton() {
-	return (
-		<div className="p-4 max-w-screen-xl mx-auto animate-pulse">
-			<div className="h-12 bg-gray-700 rounded-lg w-1/3 mb-4"></div>
-			<div className="h-64 bg-gray-700 rounded-lg mb-4"></div>
-			<div className="h-96 bg-gray-700 rounded-lg"></div>
 		</div>
 	);
 }

@@ -13,7 +13,7 @@ const NoProfileFound = () => {
 			<div className="relative mb-8">
 				<div className="absolute inset-0 bg-yellow-500/20 blur-2xl rounded-full"></div>
 				<Image
-					src="/Images/bee-sad.png"
+					src="/images/bee-sad.png"
 					alt="Sad Bee"
 					height={150}
 					width={150}
@@ -28,14 +28,14 @@ const NoProfileFound = () => {
 
 			{/* Error Description */}
 			<p className="text-[--text-secondary] mb-8 leading-relaxed">
-				We couldn't find this summoner profile. Please ensure you're using the correct
-				region and Riot ID format (Name#Tag).
+				We couldn't find this summoner profile. Please ensure you're using the
+				correct region and Riot ID format (Name#Tag).
 			</p>
 
 			{/* Action Buttons */}
 			<div className="flex flex-col sm:flex-row gap-4 w-full max-w-md">
 				<button
-					onClick={() => router.push('/')}
+					onClick={() => router.push("/")}
 					className="btn-outline flex-1 py-3 flex items-center justify-center"
 				>
 					<FaHome className="mr-2" />
@@ -43,7 +43,7 @@ const NoProfileFound = () => {
 				</button>
 
 				<button
-					onClick={() => router.push('/')}
+					onClick={() => router.push("/")}
 					className="btn-primary flex-1 py-3 flex items-center justify-center"
 				>
 					<FaSearch className="mr-2" />

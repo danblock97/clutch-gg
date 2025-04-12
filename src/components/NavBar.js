@@ -105,15 +105,32 @@ const NavBar = ({ isBannerVisible }) => {
 	const handleGameTypeChange = (type) => {
 		setGameType(type);
 		setIsGameTypeDropdownOpen(false);
-		// Navigate to corresponding section when game type changes
-		if (type === "tft") {
-			// If currently on leaderboard page, navigate to the corresponding leaderboard
-			if (pathname?.includes("/leaderboard")) {
-				router.push("/tft/leaderboard");
+
+		// Check if we're on a profile page
+		if (pathname?.includes("/profile")) {
+			// Get the current query params
+			const gameName = searchParams.get("gameName");
+			const tagLine = searchParams.get("tagLine");
+			const region = searchParams.get("region");
+
+			// Only redirect if we have all the necessary params
+			if (gameName && tagLine && region) {
+				// Construct the new path based on game type
+				const basePath = type === "tft" ? "/tft" : "/league";
+				router.push(
+					`${basePath}/profile?gameName=${encodeURIComponent(
+						gameName
+					)}&tagLine=${encodeURIComponent(tagLine)}&region=${encodeURIComponent(
+						region
+					)}`
+				);
 			}
-		} else {
-			// If currently on leaderboard page, navigate to the corresponding leaderboard
-			if (pathname?.includes("/leaderboard")) {
+		}
+		// Handle leaderboard redirect (existing logic)
+		else if (pathname?.includes("/leaderboard")) {
+			if (type === "tft") {
+				router.push("/tft/leaderboard");
+			} else {
 				router.push("/league/leaderboard");
 			}
 		}
@@ -336,9 +353,17 @@ const NavBar = ({ isBannerVisible }) => {
 							) : (
 								<button
 									onClick={loginWithRiot}
-									className="hidden md:flex border border-[--card-border] bg-[--card-bg-secondary] hover:bg-[--card-bg] text-[--text-primary] py-1 px-3 items-center space-x-1 rounded-md transition-colors duration-200"
+									className="hidden md:flex border border-[--card-border] bg-[--card-bg-secondary] hover:bg-[--card-bg] text-[--text-primary] py-1 px-3 items-center space-x-2 rounded-md transition-colors duration-200"
 								>
-									<FaSignOutAlt className="text-sm" />
+									<div className="relative w-5 h-5">
+										<Image
+											src="/images/riot-logo.png"
+											alt="Riot Logo"
+											width={20}
+											height={20}
+											className="object-contain"
+										/>
+									</div>
 									<span>Log In With Riot</span>
 								</button>
 							)}
@@ -479,6 +504,15 @@ const NavBar = ({ isBannerVisible }) => {
 								className="w-full text-left nav-link block px-3 py-2 rounded-md hover:bg-[--card-bg-secondary]"
 							>
 								<div className="flex items-center space-x-3">
+									<div className="relative w-5 h-5">
+										<Image
+											src="/images/riot-logo.png"
+											alt="Riot Logo"
+											width={20}
+											height={20}
+											className="object-contain"
+										/>
+									</div>
 									<span>Log In With Riot</span>
 								</div>
 							</button>
