@@ -73,11 +73,35 @@ export async function GET(req) {
 		const accountData = await accountResponse.json();
 		const { puuid, gameName, tagLine } = accountData;
 
+		// Fetch additional summoner data to get the profile icon ID
+		let profileIconId = null;
+		try {
+			// Default to EUW1 for fetching the summoner data
+			const region = "euw1";
+			const summonerResponse = await fetch(
+				`https://${region}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}`,
+				{
+					headers: {
+						"X-Riot-Token": process.env.RIOT_API_KEY,
+					},
+				}
+			);
+
+			if (summonerResponse.ok) {
+				const summonerData = await summonerResponse.json();
+				profileIconId = summonerData.profileIconId;
+			}
+		} catch (summonerError) {
+			console.error("Error fetching summoner data:", summonerError);
+			// Continue without profileIconId if there's an error
+		}
+
 		// Prepare the user object
 		const user = {
 			puuid,
 			gameName,
 			tagLine,
+			profileIconId,
 			region: "euw1", // Default to euw1, can be updated from user preferences
 			access_token,
 			id_token,

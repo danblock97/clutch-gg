@@ -280,8 +280,24 @@ const NavBar = ({ isBannerVisible }) => {
 										onClick={() => setIsDropdownOpen(!isDropdownOpen)}
 										className="border border-[--card-border] bg-[--card-bg-secondary] hover:bg-[--card-bg] text-[--text-primary] py-1 px-3 flex items-center space-x-1 rounded-md transition-colors duration-200"
 									>
-										<FaUser className="text-sm" />
+										{user.profileIconId ? (
+											<div className="relative w-6 h-6 mr-2 rounded-full overflow-hidden">
+												<Image
+													src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/${user.profileIconId}.jpg`}
+													alt="Profile Icon"
+													width={24}
+													height={24}
+													className="object-cover"
+													fill
+												/>
+											</div>
+										) : (
+											<FaUser className="text-sm mr-2" />
+										)}
 										<span>{user.gameName}</span>
+										<span className="text-[--text-secondary] text-xs ml-1">
+											#{user.tagLine}
+										</span>
 										{isDropdownOpen ? (
 											<FaChevronUp className="ml-1 text-xs" />
 										) : (
@@ -418,8 +434,27 @@ const NavBar = ({ isBannerVisible }) => {
 									className="w-full text-left nav-link block px-3 py-2 rounded-md hover:bg-[--card-bg-secondary]"
 								>
 									<div className="flex items-center space-x-3">
-										<FaUser />
-										<span>My Profile ({user.gameName})</span>
+										{user.profileIconId ? (
+											<div className="relative w-6 h-6 rounded-full overflow-hidden">
+												<Image
+													src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/${user.profileIconId}.jpg`}
+													alt="Profile Icon"
+													width={24}
+													height={24}
+													className="object-cover"
+													fill
+												/>
+											</div>
+										) : (
+											<FaUser />
+										)}
+										<span>
+											My Profile ({user.gameName}
+											<span className="text-[--text-secondary] text-xs">
+												#{user.tagLine}
+											</span>
+											)
+										</span>
 									</div>
 								</button>
 								<button
