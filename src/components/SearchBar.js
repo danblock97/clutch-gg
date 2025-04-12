@@ -30,14 +30,20 @@ const regions = [
 	{ code: "VN2", name: "VN" },
 ];
 
-const SearchBar = ({ onSearch, initialRegion, isModal, onModalClose }) => {
+const SearchBar = ({
+	onSearch,
+	initialRegion,
+	initialGameType,
+	isModal,
+	onModalClose,
+}) => {
 	const [combinedInput, setCombinedInput] = useState("");
 	const [selectedRegion, setSelectedRegion] = useState(initialRegion || "EUW1");
 	const [suggestions, setSuggestions] = useState([]);
 	const [isDropdownVisible, setIsDropdownVisible] = useState(false);
 	const [recentlySearched, setRecentlySearched] = useState([]);
 	const [isInputFocused, setIsInputFocused] = useState(false);
-	const [gameType, setGameType] = useState("league"); // "league" or "tft"
+	const [gameType, setGameType] = useState(initialGameType || "league"); // "league" or "tft"
 	const router = useRouter();
 	const dropdownRef = useRef(null);
 	const inputRef = useRef(null);
@@ -56,6 +62,13 @@ const SearchBar = ({ onSearch, initialRegion, isModal, onModalClose }) => {
 			setSelectedRegion(initialRegion);
 		}
 	}, [initialRegion]);
+
+	// Update gameType when initialGameType changes
+	useEffect(() => {
+		if (initialGameType) {
+			setGameType(initialGameType);
+		}
+	}, [initialGameType]);
 
 	const fetchSuggestions = async (input) => {
 		if (!input) {
@@ -219,37 +232,13 @@ const SearchBar = ({ onSearch, initialRegion, isModal, onModalClose }) => {
 			className="relative w-full max-w-xs sm:max-w-sm md:max-w-md mx-auto lg:mx-0"
 			ref={dropdownRef}
 		>
-			{/* Game Type Toggle */}
-			<div className="flex justify-center mb-2">
-				<div className="inline-flex rounded-md border border-[--card-border] overflow-hidden">
-					<button
-						className={`px-3 py-1 text-xs sm:text-sm flex items-center ${
-							gameType === "league"
-								? "bg-[--primary] text-white"
-								: "bg-[--card-bg] text-[--text-secondary] hover:bg-[--card-bg-secondary]"
-						}`}
-						onClick={() => handleGameTypeChange("league")}
-					>
-						<FaGamepad className="mr-1" /> League
-					</button>
-					<button
-						className={`px-3 py-1 text-xs sm:text-sm flex items-center ${
-							gameType === "tft"
-								? "bg-[--primary] text-white"
-								: "bg-[--card-bg] text-[--text-secondary] hover:bg-[--card-bg-secondary]"
-						}`}
-						onClick={() => handleGameTypeChange("tft")}
-					>
-						<FaChessKnight className="mr-1" /> TFT
-					</button>
-				</div>
-			</div>
-
 			<div
 				className={`flex w-full h-12 glass rounded-lg overflow-hidden border transition-all duration-200 
         ${
 					isInputFocused
-						? "border-[--primary] shadow-lg shadow-[--primary]/20"
+						? gameType === "tft"
+							? "border-[--tft-primary] shadow-lg shadow-[--tft-primary]/20"
+							: "border-[--primary] shadow-lg shadow-[--primary]/20"
 						: "border-[--card-border]"
 				}
         ${
@@ -299,7 +288,11 @@ const SearchBar = ({ onSearch, initialRegion, isModal, onModalClose }) => {
 				</div>
 
 				<button
-					className="flex items-center justify-center px-3 sm:px-4 text-[--text-primary] hover:bg-[--primary] transition-colors duration-200"
+					className={`flex items-center justify-center px-3 sm:px-4 text-[--text-primary] transition-colors duration-200 ${
+						gameType === "tft"
+							? "hover:bg-[--tft-primary]"
+							: "hover:bg-[--primary]"
+					}`}
 					onClick={() => handleSearch()}
 					aria-label="Search"
 				>

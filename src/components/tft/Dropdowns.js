@@ -1,75 +1,157 @@
-import { useState, useRef, useEffect } from "react";
+import React from "react";
+import {
+	FaGlobeAmericas,
+	FaTrophy,
+	FaChevronDown,
+	FaChessKnight,
+} from "react-icons/fa";
 
-export function Dropdown({ label, options, value, onChange }) {
-	const [isOpen, setIsOpen] = useState(false);
-	const dropdownRef = useRef(null);
+// Region mappings
+const regionMappings = {
+	BR1: "Brazil",
+	EUN1: "Europe Nordic & East",
+	EUW1: "Europe West",
+	JP1: "Japan",
+	KR: "Korea",
+	LA1: "Latin America North",
+	LA2: "Latin America South",
+	ME1: "Middle East and North Africa",
+	NA1: "North America",
+	OC1: "Oceania",
+	RU: "Russia",
+	SG2: "Singapore",
+	TR1: "Turkey",
+	TW2: "Taiwan",
+	VN2: "Vietnam",
+};
 
-	// Find the selected option label
-	const selectedOption = options.find((option) => option.value === value);
-	const displayText = selectedOption ? selectedOption.label : "Select...";
+// Tier mappings with colors
+const tierMappings = {
+	CHALLENGER: { name: "Challenger", color: "text-[--challenger]" },
+	GRANDMASTER: { name: "Grandmaster", color: "text-[--grandmaster]" },
+	MASTER: { name: "Master", color: "text-[--master]" },
+	DIAMOND: { name: "Diamond", color: "text-[--diamond]" },
+	EMERALD: { name: "Emerald", color: "text-[--emerald]" },
+	PLATINUM: { name: "Platinum", color: "text-[--platinum]" },
+	GOLD: { name: "Gold", color: "text-[--gold]" },
+	SILVER: { name: "Silver", color: "text-[--silver]" },
+	BRONZE: { name: "Bronze", color: "text-[--bronze]" },
+	IRON: { name: "Iron", color: "text-[--iron]" },
+};
 
-	useEffect(() => {
-		function handleClickOutside(event) {
-			if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-				setIsOpen(false);
-			}
-		}
+// Division mappings
+const divisionMappings = {
+	I: "I",
+	II: "II",
+	III: "III",
+	IV: "IV",
+};
 
-		document.addEventListener("mousedown", handleClickOutside);
-		return () => {
-			document.removeEventListener("mousedown", handleClickOutside);
-		};
-	}, []);
+const Dropdowns = ({
+	region,
+	tier,
+	division,
+	setRegion,
+	setTier,
+	setDivision,
+}) => {
+	// Custom select component to have more styling control
+	const CustomSelect = ({
+		label,
+		icon,
+		value,
+		options,
+		onChange,
+		disabled = false,
+	}) => {
+		return (
+			<div className="relative">
+				<label className="text-xs text-[--text-secondary] mb-1 block">
+					{label}
+				</label>
+				<div
+					className={`relative bg-[--card-bg] rounded-lg overflow-hidden border border-[--card-border] ${
+						disabled ? "opacity-60" : "hover:border-[--tft-primary]"
+					} transition-colors`}
+				>
+					{/* Custom select header */}
+					<div className="flex items-center gap-2 pr-10 pl-3 py-2">
+						{icon}
+						<select
+							value={value}
+							onChange={onChange}
+							disabled={disabled}
+							className="appearance-none bg-transparent w-full focus:outline-none text-sm cursor-pointer disabled:cursor-not-allowed"
+						>
+							{Object.entries(options).map(([key, option]) => {
+								// Handle both simple and complex options
+								const optionValue = key;
+								const optionLabel =
+									typeof option === "object" ? option.name : option;
+								const optionColor =
+									typeof option === "object" ? option.color : "";
+
+								return (
+									<option
+										key={optionValue}
+										value={optionValue}
+										className={optionColor}
+									>
+										{optionLabel}
+									</option>
+								);
+							})}
+						</select>
+
+						{/* Dropdown arrow */}
+						<div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+							<FaChevronDown className="text-[--text-secondary]" />
+						</div>
+					</div>
+				</div>
+			</div>
+		);
+	};
 
 	return (
-		<div className="relative" ref={dropdownRef}>
-			<label className="block text-sm font-medium mb-1">{label}</label>
-			<button
-				type="button"
-				className="flex justify-between items-center w-full px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-md focus:outline-none"
-				onClick={() => setIsOpen(!isOpen)}
-			>
-				<span>{displayText}</span>
-				<svg
-					className={`w-4 h-4 transition-transform duration-200 ${
-						isOpen ? "transform rotate-180" : ""
-					}`}
-					fill="none"
-					stroke="currentColor"
-					viewBox="0 0 24 24"
-					xmlns="http://www.w3.org/2000/svg"
-				>
-					<path
-						strokeLinecap="round"
-						strokeLinejoin="round"
-						strokeWidth="2"
-						d="M19 9l-7 7-7-7"
-					></path>
-				</svg>
-			</button>
+		<div className="flex flex-col sm:flex-row gap-4">
+			{/* Region Dropdown */}
+			<CustomSelect
+				label="Region"
+				icon={<FaGlobeAmericas className="text-[--text-secondary]" />}
+				value={region}
+				options={regionMappings}
+				onChange={(e) => setRegion(e.target.value)}
+			/>
 
-			{isOpen && (
-				<div className="absolute z-10 w-full mt-1 bg-gray-800 border border-gray-700 rounded-md shadow-lg">
-					<ul className="py-1 max-h-60 overflow-auto">
-						{options.map((option) => (
-							<li key={option.value}>
-								<button
-									type="button"
-									className={`block w-full text-left px-4 py-2 text-sm hover:bg-gray-700 ${
-										value === option.value ? "bg-blue-600" : ""
-									}`}
-									onClick={() => {
-										onChange(option.value);
-										setIsOpen(false);
-									}}
-								>
-									{option.label}
-								</button>
-							</li>
-						))}
-					</ul>
-				</div>
-			)}
+			{/* Tier Dropdown */}
+			<CustomSelect
+				label="Tier"
+				icon={
+					<FaChessKnight
+						className={tierMappings[tier]?.color || "text-[--text-secondary]"}
+					/>
+				}
+				value={tier}
+				options={tierMappings}
+				onChange={(e) => setTier(e.target.value)}
+			/>
+
+			{/* Division Dropdown */}
+			<CustomSelect
+				label="Division"
+				icon={
+					<span className="text-[--text-secondary] font-semibold text-xs w-4 text-center">
+						{division}
+					</span>
+				}
+				value={division}
+				options={divisionMappings}
+				onChange={(e) => setDivision(e.target.value)}
+				disabled={["CHALLENGER", "GRANDMASTER", "MASTER"].includes(tier)}
+			/>
 		</div>
 	);
-}
+};
+
+export default Dropdowns;

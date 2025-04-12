@@ -10,6 +10,7 @@ import OutageBanner from "@/components/OutageBanner";
 import JiraCollectors from "@/components/JiraCollectors";
 import { useState, Suspense } from "react";
 import { metadata } from "./metadata";
+import { GameTypeProvider } from "@/context/GameTypeContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -32,17 +33,19 @@ export default function RootLayout({ children }) {
 				<link rel="icon" href={metadata.icons.icon} />
 			</head>
 			<body className={inter.className}>
-				<JiraCollectors />
-				{isBannerVisible && (
-					<OutageBanner message={outageMessage} onClose={handleBannerClose} />
-				)}
-				<Suspense fallback={<div>Loading...</div>}>
-					<NavBar isBannerVisible={isBannerVisible} />
-				</Suspense>
-				<div>{children}</div>
-				<SpeedInsights />
-				<Analytics />
-				<Footer />
+				<GameTypeProvider>
+					<JiraCollectors />
+					{isBannerVisible && (
+						<OutageBanner message={outageMessage} onClose={handleBannerClose} />
+					)}
+					<Suspense fallback={<div>Loading...</div>}>
+						<NavBar isBannerVisible={isBannerVisible} />
+					</Suspense>
+					<div>{children}</div>
+					<SpeedInsights />
+					<Analytics />
+					<Footer />
+				</GameTypeProvider>
 			</body>
 		</html>
 	);
