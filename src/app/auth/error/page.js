@@ -1,11 +1,11 @@
 "use client";
 
-import React from "react";
+import React, { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { FaArrowLeft } from "react-icons/fa";
 
-export default function AuthError() {
+function ErrorContent() {
 	const searchParams = useSearchParams();
 	const error = searchParams.get("error") || "Unknown authentication error";
 
@@ -40,5 +40,19 @@ export default function AuthError() {
 				</Link>
 			</div>
 		</div>
+	);
+}
+
+export default function AuthError() {
+	return (
+		<Suspense
+			fallback={
+				<div className="min-h-screen flex items-center justify-center bg-[#0e1015] text-white">
+					Loading...
+				</div>
+			}
+		>
+			<ErrorContent />
+		</Suspense>
 	);
 }
