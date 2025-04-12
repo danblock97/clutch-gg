@@ -45,6 +45,51 @@ ClutchGG.LOL is a powerful, user-friendly web application designed to provide co
 - **Discord Integration**: Connect with our community and access stats through our companion Discord bot "AstroStats"
 - **Performance Tags**: Earn recognition for exceptional performance in matches (MVP, Team Ace, etc.)
 
+## Teamfight Tactics (TFT) Features
+
+The Clutch.gg platform now supports Teamfight Tactics with the following features:
+
+### Profile Analysis
+
+- Summoner profile overview with rank information across all TFT queues (Ranked, Hyperroll, Double Up)
+- Win rates, LP, and competitive statistics visualization
+- Profile icon and level display
+- Live game tracking for currently active matches
+
+### Match History
+
+- Detailed match records with placement, game mode, and duration
+- Unit composition analysis with proper tier/cost visualization
+- Trait (synergy) tracking with activation thresholds
+- Item builds for each unit
+- Augment selection history
+- Time-based filtering and organization
+
+### Detailed Match Breakdowns
+
+- Complete lobby analysis with all 8 participants
+- Stage elimination data and player progression
+- Trait synergy visualization with proper styling based on activation tier
+- Champion cost-based coloring and organization
+- Item combination details
+- Player stats including damage dealt, gold remaining, and players eliminated
+
+### Statistical Analysis
+
+- Top traits analysis with placement averages and usage statistics
+- Top units tracking with star level and performance metrics
+- Win rate calculation and visualization
+- Meta composition identification
+
+### Leaderboards
+
+- Region-specific TFT leaderboards
+- Tier/Division filtering
+- Player ranking with LP and win rate display
+- Profile linking for easy access to top player profiles
+
+The TFT implementation uses the Riot Games API and Community Dragon data to provide comprehensive information for all TFT sets, with adaptive support for new champions, traits, and game mechanics as they are released.
+
 ## How to Use
 
 1. **Search for Players**: Enter a Riot ID (Name#Tag) and region in the search bar
@@ -73,4 +118,4 @@ ClutchGG.LOL is built with a focus on performance, accuracy, and user experience
 
 ---
 
-*ClutchGG.LOL is not endorsed by Riot Games and does not reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games and all associated properties are trademarks or registered trademarks of Riot Games, Inc.*
+_ClutchGG.LOL is not endorsed by Riot Games and does not reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games and all associated properties are trademarks or registered trademarks of Riot Games, Inc._
