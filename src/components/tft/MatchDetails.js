@@ -526,7 +526,7 @@ function ParticipantRow({
 							>
 								{cdnUrl ? (
 									<Image
-										src={cdnUrl.primary}
+										src={typeof cdnUrl === "object" ? cdnUrl.primary : cdnUrl}
 										alt=""
 										width={32}
 										height={32}
@@ -534,11 +534,16 @@ function ParticipantRow({
 										unoptimized
 										title={champName}
 										onError={(e) => {
-											e.currentTarget.style.display = "none";
-											const fallback = e.currentTarget
-												.closest("div")
-												.querySelector(".fallback-text");
-											if (fallback) fallback.style.display = "flex";
+											// Try fallback URL if available
+											if (typeof cdnUrl === "object" && cdnUrl.fallback) {
+												e.currentTarget.src = cdnUrl.fallback;
+											} else {
+												e.currentTarget.style.display = "none";
+												const fallback = e.currentTarget
+													.closest("div")
+													.querySelector(".fallback-text");
+												if (fallback) fallback.style.display = "flex";
+											}
 										}}
 									/>
 								) : (
