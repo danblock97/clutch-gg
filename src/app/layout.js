@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/react";
 import OutageBanner from "@/components/OutageBanner";
+import FeatureAnnouncementBanner from "@/components/FeatureAnnouncementBanner";
 import JiraCollectors from "@/components/JiraCollectors";
 import { useState, Suspense } from "react";
 import { metadata } from "./metadata";
@@ -16,15 +17,28 @@ import { AuthProvider } from "@/context/AuthContext";
 const inter = Inter({ subsets: ["latin"] });
 
 export default function RootLayout({ children }) {
-	// Only show banner if there's an actual message
+	// Only show banners if there's an actual message
 	const outageMessage = process.env.NEXT_PUBLIC_OUTAGE_MESSAGE || "";
-	const [isBannerVisible, setIsBannerVisible] = useState(
+	const featureMessage = process.env.NEXT_PUBLIC_FEATURE_ANNOUNCEMENT || "";
+
+	const [isOutageBannerVisible, setIsOutageBannerVisible] = useState(
 		outageMessage.trim() !== ""
 	);
+	const [isFeatureBannerVisible, setIsFeatureBannerVisible] = useState(
+		featureMessage.trim() !== ""
+	);
 
-	const handleBannerClose = () => {
-		setIsBannerVisible(false);
+	const handleOutageBannerClose = () => {
+		setIsOutageBannerVisible(false);
 	};
+
+	const handleFeatureBannerClose = () => {
+		setIsFeatureBannerVisible(false);
+	};
+
+	// Calculate banners visible for navbar positioning
+	const bannersVisible =
+		(isOutageBannerVisible ? 1 : 0) + (isFeatureBannerVisible ? 1 : 0);
 
 	return (
 		<html lang="en">
@@ -37,14 +51,20 @@ export default function RootLayout({ children }) {
 				<GameTypeProvider>
 					<AuthProvider>
 						<JiraCollectors />
-						{isBannerVisible && (
+						{isOutageBannerVisible && (
 							<OutageBanner
 								message={outageMessage}
-								onClose={handleBannerClose}
+								onClose={handleOutageBannerClose}
+							/>
+						)}
+						{isFeatureBannerVisible && (
+							<FeatureAnnouncementBanner
+								message={featureMessage}
+								onClose={handleFeatureBannerClose}
 							/>
 						)}
 						<Suspense fallback={<div>Loading...</div>}>
-							<NavBar isBannerVisible={isBannerVisible} />
+							<NavBar bannersVisible={bannersVisible} />
 						</Suspense>
 						<div>{children}</div>
 						<SpeedInsights />

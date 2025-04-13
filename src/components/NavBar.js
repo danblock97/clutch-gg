@@ -25,7 +25,7 @@ import {
 	FaSignOutAlt,
 } from "react-icons/fa";
 
-const NavBar = ({ isBannerVisible }) => {
+const NavBar = ({ bannersVisible = 0 }) => {
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 	const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 	const [scrolled, setScrolled] = useState(false);
@@ -176,10 +176,17 @@ const NavBar = ({ isBannerVisible }) => {
 		);
 	};
 
+	// Calculate top padding based on number of banners visible
+	const getNavbarTopPadding = () => {
+		if (bannersVisible === 0) return "0";
+		if (bannersVisible === 1) return "2.5rem";
+		return `${2.5 * bannersVisible}rem`;
+	};
+
 	return (
 		<header
 			style={{
-				paddingTop: isBannerVisible ? "2.5rem" : "0",
+				paddingTop: getNavbarTopPadding(),
 			}}
 		>
 			<nav
@@ -188,7 +195,7 @@ const NavBar = ({ isBannerVisible }) => {
 					scrolled
 						? "bg-[--background]/90 backdrop-blur-md shadow-lg"
 						: "bg-transparent"
-				} ${isBannerVisible ? "mt-10" : ""}`}
+				} ${bannersVisible > 0 ? `mt-${bannersVisible * 10}` : ""}`}
 			>
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 					<div className="flex items-center justify-between h-16">
