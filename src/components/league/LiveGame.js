@@ -450,7 +450,9 @@ export default function LiveGame({ liveGameData, region }) {
 							/>
 						</div>
 						<div className="absolute -bottom-1 -right-1 bg-[--card-bg] rounded-full w-6 h-6 flex items-center justify-center border border-[--card-border]">
-							<span className="text-xs font-bold">{p.level || 1}</span>
+							<span className="text-xs font-bold">
+								{p.summonerLevel || p.level || 1}
+							</span>
 						</div>
 					</div>
 
