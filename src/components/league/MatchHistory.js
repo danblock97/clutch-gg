@@ -92,6 +92,8 @@ const getQueueName = (queueId) => {
 			return "Ranked Flex";
 		case 450:
 			return "ARAM";
+		case 480:
+			return "Swiftplay";
 		case 490:
 			return "Normal (Quickplay)";
 		case 720:
