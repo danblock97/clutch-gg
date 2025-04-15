@@ -5,11 +5,16 @@ import TFTRankedInfo from "./RankedInfo";
 import TFTMatchHistory from "./MatchHistory";
 import TopTraits from "./TopTraits";
 import TopUnits from "./TopUnits";
+import Last20GamesPerformance from "./Last20GamesPerformance";
 import LiveGame from "./LiveGame";
 import Loading from "@/components/Loading";
 import NoProfileFound from "@/components/league/NoProfileFound";
 import DiscordBotBanner from "@/components/DiscordBotBanner.js";
 import { FaChevronDown, FaGamepad } from "react-icons/fa";
+import {
+	fetchTFTCompanions,
+	getCompanionIconUrl,
+} from "@/lib/tft/companionsApi";
 
 export default function Profile({ profileData, triggerUpdate, isUpdating }) {
 	const { summonerData, rankedData, matchDetails, liveGameData, isLoading } =
@@ -23,6 +28,15 @@ export default function Profile({ profileData, triggerUpdate, isUpdating }) {
 	const [countdown, setCountdown] = useState(0);
 	const [updateTriggered, setUpdateTriggered] = useState(false);
 	const intervalRef = useRef(null);
+
+	// Add states for unit and trait selection
+	const [selectedUnitId, setSelectedUnitId] = useState(null);
+	const [selectedTraitId, setSelectedTraitId] = useState(null);
+
+	// Lift state up for sharing TFT data between components
+	const [traitsData, setTraitsData] = useState({});
+	const [championsData, setChampionsData] = useState({});
+	const [isDataLoaded, setIsDataLoaded] = useState(false);
 
 	// Initialize state from localStorage on mount
 	useEffect(() => {
@@ -41,6 +55,58 @@ export default function Profile({ profileData, triggerUpdate, isUpdating }) {
 				localStorage.removeItem("tft_lastUpdated");
 			}
 		}
+	}, []);
+
+	// Fetch TFT data (traits and champions)
+	useEffect(() => {
+		async function fetchTFTData() {
+			try {
+				// Fetch traits from Community Dragon
+				const traitsResponse = await fetch(
+					"https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/tfttraits.json"
+				);
+				const traitsJson = await traitsResponse.json();
+				const traitsMap = {};
+				traitsJson.forEach((trait) => {
+					if (trait && trait.trait_id) {
+						const traitData = {
+							name: trait.name,
+							description: trait.desc,
+							iconPath: trait.icon_path,
+						};
+						traitsMap[trait.trait_id] = traitData;
+						traitsMap[trait.trait_id.toUpperCase()] = traitData;
+					}
+				});
+
+				// Fetch champions from Community Dragon for basic info
+				const championsResponse = await fetch(
+					"https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/tftchampions.json"
+				);
+				const championsJson = await championsResponse.json();
+				const championsMap = {};
+				championsJson.forEach((champion) => {
+					if (champion && champion.character_id) {
+						const champData = {
+							name: champion.name,
+							cost: champion.cost,
+							traits: champion.traits || [],
+							iconPath: champion.squareIconPath,
+						};
+						championsMap[champion.character_id] = champData;
+						championsMap[champion.character_id.toUpperCase()] = champData;
+					}
+				});
+
+				setTraitsData(traitsMap);
+				setChampionsData(championsMap);
+				setIsDataLoaded(true);
+			} catch (error) {
+				console.error("Error fetching TFT data:", error);
+				setIsDataLoaded(true);
+			}
+		}
+		fetchTFTData();
 	}, []);
 
 	useEffect(() => {
@@ -78,7 +144,17 @@ export default function Profile({ profileData, triggerUpdate, isUpdating }) {
 		}
 	}, [isUpdating, updateTriggered]);
 
-	if (isLoading) {
+	// Handler for unit selection
+	const handleUnitClick = (unitId) => {
+		setSelectedUnitId(unitId === selectedUnitId ? null : unitId);
+	};
+
+	// Handler for trait selection
+	const handleTraitClick = (traitId) => {
+		setSelectedTraitId(traitId === selectedTraitId ? null : traitId);
+	};
+
+	if (isLoading || !isDataLoaded) {
 		return <Loading />;
 	}
 
@@ -269,20 +345,35 @@ export default function Profile({ profileData, triggerUpdate, isUpdating }) {
 						<TopTraits
 							matchDetails={matchDetails}
 							summonerData={summonerData}
+							traitsData={traitsData}
 						/>
 
 						{/* Top Units Component */}
-						<TopUnits matchDetails={matchDetails} summonerData={summonerData} />
+						<TopUnits
+							matchDetails={matchDetails}
+							summonerData={summonerData}
+							championsData={championsData}
+						/>
 					</div>
 
 					{/* Right Column */}
 					<div className="w-full lg:w-2/3">
+						{/* Last 20 Games Performance Component */}
+						<div className="mb-6">
+							<Last20GamesPerformance
+								matchDetails={matchDetails}
+								summonerData={summonerData}
+							/>
+						</div>
+
 						{/* Tab Content */}
 						<div className="card-highlight">
 							{tab === "matches" && (
 								<TFTMatchHistory
 									matchDetails={matchDetails}
 									summonerData={summonerData}
+									sharedTraitsData={traitsData}
+									sharedChampionsData={championsData}
 								/>
 							)}
 						</div>
