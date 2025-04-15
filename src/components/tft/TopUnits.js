@@ -13,6 +13,12 @@ function mapCDragonAssetPath(jsonPath) {
 // Function to generate TFT champion URL based on character ID with Set 13 fallback
 function getTFTChampionImageUrl(characterId, championName) {
 	if (!characterId) return null;
+
+	// Skip loading images for special units like "summon" to prevent infinite loops
+	if (characterId.toLowerCase().includes("_summon")) {
+		return null;
+	}
+
 	let setNumber = null;
 	const match = characterId.match(/TFT(\d+)/i);
 	if (match && match[1]) {
