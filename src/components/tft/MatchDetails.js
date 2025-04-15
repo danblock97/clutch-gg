@@ -2,28 +2,25 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
-	// FaUsers, // No longer needed for tabs
-	// FaChartBar, // No longer needed for tabs
 	FaStar,
 	FaCoins,
 	FaBolt,
 	FaCrown,
-	// FaTrophy, // Not explicitly used in final design
-	FaSkull, // For eliminations stat
-	FaQuestionCircle, // Placeholder for Augment icons
+	FaSkull,
+	FaQuestionCircle,
 } from "react-icons/fa";
+import {
+	fetchTFTCompanions,
+	getCompanionIconUrl,
+} from "@/lib/tft/companionsApi";
 
 // --- Helper Functions ---
 
-// Map Community Dragon paths (Your Original Logic)
+// Map Community Dragon paths to CDN URLs
 function mapCDragonAssetPath(jsonPath) {
 	if (!jsonPath) return null;
-	// Ensure path starts correctly, remove potential double slashes
-	const cleanPath = jsonPath.replace(/^\/+/, "");
-	const lower = cleanPath.toLowerCase().replace("lol-game-data/assets", ""); // Handle potential leading slash
-	return `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/${
-		lower.startsWith("/") ? lower.substring(1) : lower
-	}`;
+	const lower = jsonPath.toLowerCase().replace("/lol-game-data/assets", "");
+	return `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default${lower}`;
 }
 
 // Get Champion Image URL with Set 13 fallback for Set 14
@@ -52,7 +49,7 @@ function getTFTChampionImageUrl(characterId, championName) {
 	return `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft${setNumber}_${championBaseName}/hud/tft${setNumber}_${championBaseName}_square.tft_set${setNumber}.png`;
 }
 
-// Get Border Color by Cost (UI Styling)
+// Get border color based on champion cost
 function getBorderColorForCost(cost) {
 	switch (cost) {
 		case 1:
@@ -70,23 +67,21 @@ function getBorderColorForCost(cost) {
 	}
 }
 
-// Get Star Color (UI Styling - Matched to Image)
+// Get star color for UI styling
 function getStarColorForCost(cost) {
 	return "text-yellow-400"; // Always gold stars like image
 }
 
-// Format Stage String (UI Formatting)
+// Format stage string for display
 function formatStage(round) {
 	if (!round || round <= 0) return "-";
-	// Simple stage calculation (adjust if specific set logic is needed)
-	const stage = Math.max(1, Math.floor(round / 7) + 1); // Ensure stage is at least 1
-	const subStage = Math.max(1, (round % 7) + 1); // Ensure substage is at least 1
-	// Skip rendering for very early rounds if desired (e.g., before 2-1)
+	const stage = Math.max(1, Math.floor(round / 7) + 1);
+	const subStage = Math.max(1, (round % 7) + 1);
 	if (stage < 2) return "-";
 	return `${stage}-${subStage}`;
 }
 
-// Get Trait Chip Style (UI Styling)
+// Get trait chip style based on trait tier
 function getTraitChipStyle(style) {
 	switch (style) {
 		case 4:
@@ -102,26 +97,57 @@ function getTraitChipStyle(style) {
 	}
 }
 
-// Get Placement Text Class (UI Styling)
+// Get placement text styling
 function getPlacementClass(placement) {
 	if (placement === 1) return "text-yellow-400 font-bold";
 	if (placement <= 4) return "text-sky-300";
 	return "text-gray-400";
 }
 
-// Get Ordinal Suffix (Unchanged Logic)
+// Get ordinal suffix (1st, 2nd, 3rd, etc)
 function getOrdinal(n) {
 	const s = ["th", "st", "nd", "rd"];
 	const v = n % 100;
 	return n + (s[(v - 20) % 10] || s[v] || s[0]);
 }
 
-// Format Game Duration (UI Formatting)
+// Format placement with ordinal suffix
+function formatPlacement(placement) {
+	if (placement === 1) return "1st";
+	if (placement === 2) return "2nd";
+	if (placement === 3) return "3rd";
+	return `${placement}th`;
+}
+
+// Format game duration
 function formatGameDuration(seconds) {
 	if (seconds === null || seconds === undefined) return "-";
 	const minutes = Math.floor(seconds / 60);
 	const remainingSeconds = Math.floor(seconds % 60);
 	return `${minutes}m ${String(remainingSeconds).padStart(2, "0")}s`;
+}
+
+// Get text description for trait tiers
+function getTierText(style) {
+	switch (style) {
+		case 4:
+			return "Prismatic Tier";
+		case 3:
+			return "Gold Tier";
+		case 2:
+			return "Silver Tier";
+		case 1:
+			return "Bronze Tier";
+		default:
+			return "";
+	}
+}
+
+// Handle item image URL with proper path handling
+function getItemImageUrl(item) {
+	if (!item || !item.iconPath) return null;
+	if (item.iconPath.startsWith("http")) return item.iconPath;
+	return mapCDragonAssetPath(item.iconPath);
 }
 
 // --- Main Component ---
@@ -130,6 +156,7 @@ export default function TFTMatchDetails({
 	matchDetails,
 	matchId,
 	summonerData, // Contains puuid of the viewing player
+	companionsData: propCompanionsData, // Accept companions data as a prop
 }) {
 	// State
 	const [traitsData, setTraitsData] = useState({});
@@ -139,6 +166,9 @@ export default function TFTMatchDetails({
 	const [dataDragonChampions, setDataDragonChampions] = useState({}); // Data Dragon data (for cost)
 	const [isDataLoaded, setIsDataLoaded] = useState(false);
 	const [playersData, setPlayersData] = useState({}); // Summoner names/tags
+	const [companionsData, setCompanionsData] = useState(
+		propCompanionsData || {}
+	); // Use prop data or initialize empty
 
 	// Effect to Fetch Core TFT Data (Traits, Items, Champions, Augments)
 	useEffect(() => {
@@ -170,20 +200,23 @@ export default function TFTMatchDetails({
 				const itemsJson = await itemsResponse.json();
 				const itemsMap = {};
 				itemsJson.forEach((item) => {
-					// Use iconData (more reliable path from CDragon JSON) or loadoutsIcon as fallback
-					const icon = item.iconData || item.loadoutsIcon || item.iconPath; // Prioritize iconData
-					if (item.id !== undefined)
+					// Store by numeric ID - use squareIconPath for consistency with MatchHistory
+					if (item.id !== undefined) {
 						itemsMap[item.id] = {
 							name: item.name,
 							description: item.desc,
-							iconPath: icon,
+							iconPath: item.squareIconPath,
 						};
-					if (item.nameId)
+					}
+
+					// Also store by nameId (for TFT_Item_X format)
+					if (item.nameId) {
 						itemsMap[item.nameId.toLowerCase()] = {
 							name: item.name,
 							description: item.desc,
-							iconPath: icon,
+							iconPath: item.squareIconPath,
 						};
+					}
 				});
 				setItemsData(itemsMap);
 
@@ -238,7 +271,15 @@ export default function TFTMatchDetails({
 					setAugmentsData(augMap);
 				} catch (error) {
 					console.error("Error fetching Data Dragon data:", error);
-					// Handle error - potentially rely only on CDragon data
+				}
+
+				// Fetch companions data if not provided as prop
+				if (
+					!propCompanionsData ||
+					Object.keys(propCompanionsData).length === 0
+				) {
+					const companions = await fetchTFTCompanions();
+					setCompanionsData(companions);
 				}
 
 				setIsDataLoaded(true);
@@ -248,9 +289,16 @@ export default function TFTMatchDetails({
 			}
 		}
 		fetchTFTData();
-	}, []);
+	}, [propCompanionsData]);
 
-	// Effect to Fetch Player Names/Tags (Simulated - Adapt if you fetch this elsewhere)
+	// Update companionsData if prop changes
+	useEffect(() => {
+		if (propCompanionsData && Object.keys(propCompanionsData).length > 0) {
+			setCompanionsData(propCompanionsData);
+		}
+	}, [propCompanionsData]);
+
+	// Effect to Fetch Player Names/Tags
 	useEffect(() => {
 		if (!matchDetails || !matchId) return;
 		const match = matchDetails.find((m) => m.metadata.match_id === matchId);
@@ -286,14 +334,13 @@ export default function TFTMatchDetails({
 		if (championKeyPart) {
 			for (const key in dataDragonChampions) {
 				// Check if DDragon key (e.g., "TFT11_Ahri") ends with the extracted name part
-				// Case-insensitive comparison recommended
 				if (key.toLowerCase().endsWith(championKeyPart)) {
 					return dataDragonChampions[key].tier || 0;
 				}
 			}
 		}
 
-		// Final fallback to Community Dragon data (may be less accurate)
+		// Final fallback to Community Dragon data
 		return championsData[lowerCaseId]?.cost || 0;
 	};
 
@@ -322,31 +369,23 @@ export default function TFTMatchDetails({
 
 	return (
 		<div className="card-highlight overflow-hidden shadow-xl">
-			{/* Optional Header */}
-			<div className="p-2 border-b border-gray-700/50 bg-black/20 flex justify-between items-center text-xs">
-				<div>
-					<span className="font-semibold mr-2">
-						{match.info.tft_game_type?.replace(/_/g, " ") || "Normal"}
-					</span>
-					<span className="text-gray-400">
-						{new Date(match.info.game_datetime).toLocaleDateString()}
-					</span>
-				</div>
-				<div className="text-gray-400">
-					Duration: {formatGameDuration(match.info.game_length)} • Set:{" "}
-					{match.info.tft_set_core_name ||
-						match.info.tft_set_number ||
-						"Unknown"}
-				</div>
-			</div>
 			{/* Table Header Row */}
 			<div className="flex items-center px-3 py-1.5 bg-black/30 text-xs font-semibold text-gray-400 border-b border-gray-700/50 sticky top-0 z-20">
 				<div className="w-[4%] text-center">#</div>
-				<div className="w-[16%] pl-1">Summoner</div>
-				<div className="w-[10%] pl-10">Stage</div>
-				<div className="w-[20%] pl-8">Synergies</div>
-				<div className="w-[40%] pl-40">Champions</div>
-				<div className="w-[10%] text-right pr-1">Stats</div>
+				<div className="w-[18%] pl-1">Summoner</div>
+				<div className="w-[25%] pl-8 text-center">Synergies</div>
+				<div className="w-[40%] pl-44">Units</div>
+				<div className="w-[13%] flex justify-end gap-4 pr-1">
+					<div className="flex flex-col items-center">
+						<FaBolt className="text-purple-400 w-3 h-3 mb-0.5" />
+					</div>
+					<div className="flex flex-col items-center">
+						<FaCoins className="text-yellow-400 w-3 h-3 mb-0.5" />
+					</div>
+					<div className="flex flex-col items-center">
+						<FaSkull className="text-gray-400 w-3 h-3 mb-0.5" />
+					</div>
+				</div>
 			</div>
 			{/* Participant Rows */}
 			<div className="divide-y divide-gray-700/30">
@@ -357,11 +396,14 @@ export default function TFTMatchDetails({
 						traitsData={traitsData}
 						itemsData={itemsData}
 						championsData={championsData}
+						augmentsData={augmentsData}
 						getChampionCostFromDD={getChampionCostFromDD}
 						isCurrentPlayer={p.puuid === summonerData?.puuid}
 						playerData={playersData[p.puuid]}
 						getTFTChampionImageUrl={getTFTChampionImageUrl}
 						mapCDragonAssetPath={mapCDragonAssetPath}
+						companionsData={companionsData}
+						getCompanionIconUrl={getCompanionIconUrl}
 					/>
 				))}
 			</div>
@@ -375,14 +417,24 @@ function ParticipantRow({
 	participant,
 	traitsData,
 	itemsData,
-	championsData, // CDragon data (names/fallback)
+	championsData,
 	augmentsData,
 	getChampionCostFromDD,
 	isCurrentPlayer,
 	playerData,
-	getTFTChampionImageUrl, // Use the passed original function
+	getTFTChampionImageUrl,
 	mapCDragonAssetPath,
+	companionsData,
+	getCompanionIconUrl,
 }) {
+	// Get companion data for the participant
+	const companion = participant.companion
+		? companionsData[participant.companion.content_ID]
+		: null;
+	const companionIconUrl = companion
+		? getCompanionIconUrl(companion.iconPath)
+		: null;
+
 	// Sort units by cost (desc) then tier (desc)
 	const sortedUnits = [...(participant.units || [])].sort((a, b) => {
 		const costA = getChampionCostFromDD(a.character_id);
@@ -403,9 +455,6 @@ function ParticipantRow({
 	// Get augment IDs
 	const participantAugments = participant.augments || [];
 
-	// Get item IDs (preferring `items` array which usually holds numerical IDs)
-	const unitItemsSource = participant.items || []; // Use participant.items as the primary source
-
 	return (
 		<div
 			className={`flex items-stretch px-3 py-2 gap-2 text-sm ${
@@ -414,14 +463,34 @@ function ParticipantRow({
 		>
 			{/* Placement */}
 			<div className="w-[4%] flex items-center justify-center text-center shrink-0">
-				<span className={`${getPlacementClass(participant.placement)} text-sm`}>
-					{participant.placement}
+				<span
+					className={`${getPlacementClass(participant.placement)} text-base`}
+				>
+					{formatPlacement(participant.placement)}
 				</span>
 			</div>
 
-			{/* Summoner */}
-			<div className="w-[16%] flex flex-col justify-center pl-1 shrink-0">
-				{/* Check if playerData exists before creating link */}
+			{/* Summoner with companion image */}
+			<div className="w-[18%] flex items-center pl-1 shrink-0">
+				{companionIconUrl ? (
+					<div className="relative w-9 h-9 mr-2 flex-shrink-0 overflow-hidden rounded-md border border-gray-700/50">
+						<Image
+							src={companionIconUrl}
+							alt={companion?.name || "Companion"}
+							width={36}
+							height={36}
+							className="object-cover w-full h-full"
+							title={`${companion?.name || "Companion"}${
+								companion?.speciesName ? ` (${companion.speciesName})` : ""
+							}`}
+							unoptimized
+						/>
+					</div>
+				) : (
+					<div className="relative w-9 h-9 mr-2 flex-shrink-0 bg-gray-800/50 rounded-md border border-gray-700/50"></div>
+				)}
+
+				{/* Summoner name and tag */}
 				{playerData?.name ? (
 					<Link
 						href={`/profile/${encodeURIComponent(playerData.name)}/${
@@ -434,6 +503,9 @@ function ParticipantRow({
 							title={`${playerData.name}#${playerData.tagLine}`}
 						>
 							{playerData.name}
+							<span className="text-[--text-secondary] text-xs ml-1">
+								#{playerData.tagLine}
+							</span>
 						</a>
 					</Link>
 				) : (
@@ -441,18 +513,8 @@ function ParticipantRow({
 				)}
 			</div>
 
-			{/* Stage */}
-			<div className="w-[10%] flex flex-col items-center justify-center text-center text-xs shrink-0">
-				<span className="font-medium text-gray-300">
-					{formatStage(participant.last_round)}
-				</span>
-				<span className="text-gray-400 text-[10px]">
-					{formatGameDuration(participant.time_eliminated)}
-				</span>
-			</div>
-
 			{/* Synergies (Traits) */}
-			<div className="w-[20%] flex flex-wrap items-center gap-0.5 pl-1 shrink-0">
+			<div className="w-[25%] flex flex-wrap items-center justify-center gap-1 pl-1 shrink-0">
 				{activeTraits.map((trait) => {
 					const traitInfo = traitsData[trait.name?.toLowerCase()];
 					if (!traitInfo) return null;
@@ -460,36 +522,50 @@ function ParticipantRow({
 						? mapCDragonAssetPath(traitInfo.iconPath)
 						: null;
 					const traitStyle = getTraitChipStyle(trait.style);
-					const title = `${traitInfo.name} (${trait.num_units})\nStyle: ${
-						trait.style
-					}\n${traitInfo.description || ""}`;
+
+					// Build tooltip content
+					let tooltipContent = traitInfo.name;
+					if (trait.num_units) {
+						tooltipContent += ` (${trait.num_units})`;
+					}
+
+					// Add active tier information if available
+					const activeTierText = getTierText(trait.style);
+					if (activeTierText) {
+						tooltipContent += `\n${activeTierText}`;
+					}
+
+					// Add description if available
+					if (traitInfo.description) {
+						tooltipContent += `\n\n${traitInfo.description}`;
+					}
+
 					return (
 						<div
 							key={trait.name}
-							className={`relative flex items-center justify-center w-4 h-4 rounded-sm ${traitStyle} p-0.5`}
-							title={title}
+							className={`flex items-center px-1.5 py-0.5 rounded ${traitStyle}`}
+							title={tooltipContent}
 						>
-							{cdnUrl ? (
-								<Image
-									src={cdnUrl}
-									alt=""
-									width={14}
-									height={14}
-									className="object-contain filter brightness-110 contrast-110"
-									unoptimized
-									onError={(e) => {
-										e.currentTarget.style.display = "none";
-									}}
-								/>
-							) : (
-								<span className="text-[7px] font-bold">?</span>
+							{cdnUrl && (
+								<div className="w-4 h-4 mr-1">
+									<Image
+										src={cdnUrl}
+										alt=""
+										width={16}
+										height={16}
+										className="object-contain"
+										unoptimized
+									/>
+								</div>
 							)}
+							<span className="text-xs font-medium mr-1">{traitInfo.name}</span>
+							<span className="text-xs font-bold">{trait.num_units}</span>
 						</div>
 					);
 				})}
 			</div>
 
-			{/* Champions & Items */}
+			{/* Units & Items */}
 			<div className="w-[40%] flex flex-wrap items-start gap-x-1 gap-y-0.5 pl-1 grow">
 				{sortedUnits.map((unit, idx) => {
 					const championCost = getChampionCostFromDD(unit.character_id);
@@ -499,10 +575,7 @@ function ParticipantRow({
 						championsData[unit.character_id?.toLowerCase()]?.name ||
 						unit.character_id?.split("_")[1] ||
 						"Unknown";
-					// Use the passed original function for the champion image URL
 					const cdnUrl = getTFTChampionImageUrl(unit.character_id, champName);
-					// Get item IDs for this unit (ensure it's an array)
-					const unitItems = unit.items || [];
 
 					return (
 						<div
@@ -556,40 +629,27 @@ function ParticipantRow({
 								</div>
 							</div>
 							{/* Items */}
-							<div className="flex justify-center items-center mt-0.5 h-3 space-x-0.5">
-								{unitItems.slice(0, 3).map((itemIdentifier, itemIdx) => {
-									// Assume itemIdentifier is a numerical ID
-									const item = itemsData[itemIdentifier];
-									// Construct URL using the mapped iconPath (which uses iconData/loadoutsIcon)
-									const itemCdnUrl = item?.iconPath
-										? `https://raw.communitydragon.org/latest/game/${item.iconPath
-												?.toLowerCase()
-												.replace(".dds", ".png")}`
-										: null;
-									const itemName = item?.name || `Item ID: ${itemIdentifier}`;
-									const itemDesc = item?.description || "";
-									const itemTitle = `${itemName}\n\n${itemDesc.replace(
-										/<[^>]*>?/gm,
-										""
-									)}`; // Basic HTML strip for tooltip
+							<div className="flex justify-center items-center mt-0.5 space-x-0.5">
+								{/* Check for itemNames array first */}
+								{unit.itemNames?.slice(0, 3).map((itemName, itemIdx) => {
+									const item =
+										itemsData[itemName] || itemsData[itemName?.toLowerCase()];
+									const itemCdnUrl = getItemImageUrl(item);
 
 									return (
 										<div
-											key={`${itemIdentifier}-${itemIdx}`}
-											className="w-3 h-3 bg-black/50 rounded-sm overflow-hidden relative border border-black/50"
-											title={itemTitle}
+											key={`${itemName}-${itemIdx}`}
+											className="w-3.5 h-3.5 bg-black/50 rounded-sm overflow-hidden relative border border-black/50"
+											title={item?.name || itemName}
 										>
 											{itemCdnUrl ? (
 												<Image
 													src={itemCdnUrl}
 													alt=""
-													width={12}
-													height={12}
+													width={14}
+													height={14}
 													className="object-contain"
 													unoptimized
-													onError={(e) => {
-														e.currentTarget.style.opacity = "0.3";
-													}}
 												/>
 											) : (
 												<div className="w-full h-full flex items-center justify-center text-[7px] text-gray-500">
@@ -599,13 +659,47 @@ function ParticipantRow({
 										</div>
 									);
 								})}
-								{/* Render empty slots */}
-								{Array.from({ length: 3 - unitItems.length }).map((_, i) => (
-									<div
-										key={`empty-${i}`}
-										className="w-3 h-3 bg-black/20 rounded-sm border border-black/30"
-									></div>
-								))}
+
+								{/* Fallback to numeric items array */}
+								{!unit.itemNames &&
+									unit.items?.slice(0, 3).map((itemId, itemIdx) => {
+										const item = itemsData[itemId];
+
+										// Use our helper function for consistent URLs
+										const itemCdnUrl = getItemImageUrl(item);
+										const itemName = item?.name || `Item ID: ${itemId}`;
+										const itemDesc = item?.description || "";
+										const itemTitle = `${itemName}\n\n${itemDesc.replace(
+											/<[^>]*>?/gm,
+											""
+										)}`; // Basic HTML strip for tooltip
+
+										return (
+											<div
+												key={`${itemId}-${itemIdx}`}
+												className="w-3.5 h-3.5 bg-black/50 rounded-sm overflow-hidden relative border border-black/50"
+												title={itemTitle}
+											>
+												{itemCdnUrl ? (
+													<Image
+														src={itemCdnUrl}
+														alt=""
+														width={14}
+														height={14}
+														className="object-contain"
+														unoptimized
+														onError={(e) => {
+															e.currentTarget.style.opacity = "0.3";
+														}}
+													/>
+												) : (
+													<div className="w-full h-full flex items-center justify-center text-[7px] text-gray-500">
+														?
+													</div>
+												)}
+											</div>
+										);
+									})}
 							</div>
 						</div>
 					);
@@ -613,23 +707,28 @@ function ParticipantRow({
 			</div>
 
 			{/* Stats */}
-			<div className="w-[10%] flex flex-col items-end justify-center text-right pr-1 text-xs space-y-0.5 shrink-0">
+			<div className="w-[13%] flex items-center justify-end gap-4 pr-1 text-xs shrink-0">
+				{/* Damage */}
 				<div
-					className="flex items-center gap-1"
+					className="flex flex-col items-center"
 					title="Damage Dealt to Players"
 				>
-					<FaBolt className="text-purple-400 w-2.5 h-2.5" />
-					<span className="text-[10px]">
+					<FaBolt className="text-purple-400 w-3 h-3 mb-0.5" />
+					<span className="text-[11px]">
 						{participant.total_damage_to_players || 0}
 					</span>
 				</div>
-				<div className="flex items-center gap-1" title="Gold Left">
-					<FaCoins className="text-yellow-400 w-2.5 h-2.5" />
-					<span className="text-[10px]">{participant.gold_left || 0}</span>
+
+				{/* Gold */}
+				<div className="flex flex-col items-center" title="Gold Left">
+					<FaCoins className="text-yellow-400 w-3 h-3 mb-0.5" />
+					<span className="text-[11px]">{participant.gold_left || 0}</span>
 				</div>
-				<div className="flex items-center gap-1" title="Players Eliminated">
-					<FaSkull className="text-gray-400 w-2.5 h-2.5" />
-					<span className="text-[10px]">
+
+				{/* Eliminations */}
+				<div className="flex flex-col items-center" title="Players Eliminated">
+					<FaSkull className="text-gray-400 w-3 h-3 mb-0.5" />
+					<span className="text-[11px]">
 						{participant.players_eliminated || 0}
 					</span>
 				</div>
