@@ -332,7 +332,11 @@ export default function Profile({ profileData, triggerUpdate, isUpdating }) {
 				{/* Live Game Section (Conditionally Rendered) */}
 				{liveGameData && isLiveGameOpen && (
 					<div className="max-w-screen-xl w-full mx-auto mb-8">
-						<LiveGame liveGameData={liveGameData} region={profileData.region} />
+						<LiveGame
+							liveGameData={liveGameData}
+							region={profileData.region}
+							matchHistory={matchDetails}
+						/>
 					</div>
 				)}
 
