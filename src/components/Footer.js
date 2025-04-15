@@ -159,22 +159,22 @@ const Footer = () => {
 								</Link>
 							</li>
 							<li>
-								<button
-									id="bugReportTrigger"
-									className="text-sm hover:text-[--primary] transition-colors text-left inline-flex items-center w-full"
+								<Link
+									href="mailto:danblock1997@hotmail.co.uk?subject=ClutchGG%20Bug%20Report"
+									className="text-sm hover:text-[--primary] transition-colors inline-flex items-center"
 								>
 									<FaBug className="mr-2 text-xs" />
 									Report Bug
-								</button>
+								</Link>
 							</li>
 							<li>
-								<button
-									id="featureRequestTrigger"
-									className="text-sm hover:text-[--primary] transition-colors text-left inline-flex items-center w-full"
+								<Link
+									href="mailto:danblock1997@hotmail.co.uk?subject=ClutchGG%20Feature%20Request"
+									className="text-sm hover:text-[--primary] transition-colors inline-flex items-center"
 								>
 									<FaLightbulb className="mr-2 text-xs" />
 									Request Feature
-								</button>
+								</Link>
 							</li>
 						</ul>
 					</div>
