@@ -16,7 +16,7 @@ import {
 
 // --- Helper Functions ---
 
-// Map Community Dragon paths (Your Original Logic)
+// Map Community Dragon paths to CDN URLs
 function mapCDragonAssetPath(jsonPath) {
 	if (!jsonPath) return null;
 	const lower = jsonPath.toLowerCase().replace("/lol-game-data/assets", "");
@@ -49,7 +49,7 @@ function getTFTChampionImageUrl(characterId, championName) {
 	return `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft${setNumber}_${championBaseName}/hud/tft${setNumber}_${championBaseName}_square.tft_set${setNumber}.png`;
 }
 
-// Get Border Color by Cost (UI Styling)
+// Get border color based on champion cost
 function getBorderColorForCost(cost) {
 	switch (cost) {
 		case 1:
@@ -67,23 +67,21 @@ function getBorderColorForCost(cost) {
 	}
 }
 
-// Get Star Color (UI Styling - Matched to Image)
+// Get star color for UI styling
 function getStarColorForCost(cost) {
 	return "text-yellow-400"; // Always gold stars like image
 }
 
-// Format Stage String (UI Formatting)
+// Format stage string for display
 function formatStage(round) {
 	if (!round || round <= 0) return "-";
-	// Simple stage calculation (adjust if specific set logic is needed)
-	const stage = Math.max(1, Math.floor(round / 7) + 1); // Ensure stage is at least 1
-	const subStage = Math.max(1, (round % 7) + 1); // Ensure substage is at least 1
-	// Skip rendering for very early rounds if desired (e.g., before 2-1)
+	const stage = Math.max(1, Math.floor(round / 7) + 1);
+	const subStage = Math.max(1, (round % 7) + 1);
 	if (stage < 2) return "-";
 	return `${stage}-${subStage}`;
 }
 
-// Get Trait Chip Style (UI Styling)
+// Get trait chip style based on trait tier
 function getTraitChipStyle(style) {
 	switch (style) {
 		case 4:
@@ -99,21 +97,21 @@ function getTraitChipStyle(style) {
 	}
 }
 
-// Get Placement Text Class (UI Styling)
+// Get placement text styling
 function getPlacementClass(placement) {
 	if (placement === 1) return "text-yellow-400 font-bold";
 	if (placement <= 4) return "text-sky-300";
 	return "text-gray-400";
 }
 
-// Get Ordinal Suffix (Unchanged Logic)
+// Get ordinal suffix (1st, 2nd, 3rd, etc)
 function getOrdinal(n) {
 	const s = ["th", "st", "nd", "rd"];
 	const v = n % 100;
 	return n + (s[(v - 20) % 10] || s[v] || s[0]);
 }
 
-// Format Ordinal Placement (e.g., 1st, 2nd, 3rd)
+// Format placement with ordinal suffix
 function formatPlacement(placement) {
 	if (placement === 1) return "1st";
 	if (placement === 2) return "2nd";
@@ -121,7 +119,7 @@ function formatPlacement(placement) {
 	return `${placement}th`;
 }
 
-// Format Game Duration (UI Formatting)
+// Format game duration
 function formatGameDuration(seconds) {
 	if (seconds === null || seconds === undefined) return "-";
 	const minutes = Math.floor(seconds / 60);
@@ -145,14 +143,10 @@ function getTierText(style) {
 	}
 }
 
-// More robust item path handling - ensuring proper paths are used
+// Handle item image URL with proper path handling
 function getItemImageUrl(item) {
 	if (!item || !item.iconPath) return null;
-
-	// If it's already a full URL (unlikely but possible)
 	if (item.iconPath.startsWith("http")) return item.iconPath;
-
-	// If it's a CDragon path
 	return mapCDragonAssetPath(item.iconPath);
 }
 
@@ -277,7 +271,6 @@ export default function TFTMatchDetails({
 					setAugmentsData(augMap);
 				} catch (error) {
 					console.error("Error fetching Data Dragon data:", error);
-					// Handle error - potentially rely only on CDragon data
 				}
 
 				// Fetch companions data if not provided as prop
@@ -305,7 +298,7 @@ export default function TFTMatchDetails({
 		}
 	}, [propCompanionsData]);
 
-	// Effect to Fetch Player Names/Tags (Simulated - Adapt if you fetch this elsewhere)
+	// Effect to Fetch Player Names/Tags
 	useEffect(() => {
 		if (!matchDetails || !matchId) return;
 		const match = matchDetails.find((m) => m.metadata.match_id === matchId);
@@ -341,14 +334,13 @@ export default function TFTMatchDetails({
 		if (championKeyPart) {
 			for (const key in dataDragonChampions) {
 				// Check if DDragon key (e.g., "TFT11_Ahri") ends with the extracted name part
-				// Case-insensitive comparison recommended
 				if (key.toLowerCase().endsWith(championKeyPart)) {
 					return dataDragonChampions[key].tier || 0;
 				}
 			}
 		}
 
-		// Final fallback to Community Dragon data (may be less accurate)
+		// Final fallback to Community Dragon data
 		return championsData[lowerCaseId]?.cost || 0;
 	};
 
@@ -425,12 +417,12 @@ function ParticipantRow({
 	participant,
 	traitsData,
 	itemsData,
-	championsData, // CDragon data (names/fallback)
+	championsData,
 	augmentsData,
 	getChampionCostFromDD,
 	isCurrentPlayer,
 	playerData,
-	getTFTChampionImageUrl, // Use the passed original function
+	getTFTChampionImageUrl,
 	mapCDragonAssetPath,
 	companionsData,
 	getCompanionIconUrl,
@@ -478,9 +470,8 @@ function ParticipantRow({
 				</span>
 			</div>
 
-			{/* Summoner with bigger companion image */}
+			{/* Summoner with companion image */}
 			<div className="w-[18%] flex items-center pl-1 shrink-0">
-				{/* Companion icon - larger and not cut off */}
 				{companionIconUrl ? (
 					<div className="relative w-9 h-9 mr-2 flex-shrink-0 overflow-hidden rounded-md border border-gray-700/50">
 						<Image
@@ -532,7 +523,7 @@ function ParticipantRow({
 						: null;
 					const traitStyle = getTraitChipStyle(trait.style);
 
-					// Build a more informative tooltip without undefined values
+					// Build tooltip content
 					let tooltipContent = traitInfo.name;
 					if (trait.num_units) {
 						tooltipContent += ` (${trait.num_units})`;
@@ -584,7 +575,6 @@ function ParticipantRow({
 						championsData[unit.character_id?.toLowerCase()]?.name ||
 						unit.character_id?.split("_")[1] ||
 						"Unknown";
-					// Use the passed original function for the champion image URL
 					const cdnUrl = getTFTChampionImageUrl(unit.character_id, champName);
 
 					return (
@@ -638,7 +628,7 @@ function ParticipantRow({
 									{champName?.substring(0, 3) || "?"}
 								</div>
 							</div>
-							{/* Items - Updated to remove placeholders and improve centering */}
+							{/* Items */}
 							<div className="flex justify-center items-center mt-0.5 space-x-0.5">
 								{/* Check for itemNames array first */}
 								{unit.itemNames?.slice(0, 3).map((itemName, itemIdx) => {
@@ -710,14 +700,13 @@ function ParticipantRow({
 											</div>
 										);
 									})}
-								{/* Removed the placeholder slots for empty item slots */}
 							</div>
 						</div>
 					);
 				})}
 			</div>
 
-			{/* Stats - Individual Columns */}
+			{/* Stats */}
 			<div className="w-[13%] flex items-center justify-end gap-4 pr-1 text-xs shrink-0">
 				{/* Damage */}
 				<div

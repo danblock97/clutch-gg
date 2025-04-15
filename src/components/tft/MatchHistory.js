@@ -47,43 +47,43 @@ function getTFTChampionImageUrl(characterId, championName) {
 	return `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft${setNumber}_${championBaseName}/hud/tft${setNumber}_${championBaseName}_square.tft_set${setNumber}.png`;
 }
 
-// --- Helper function to get border color based on champion COST ---
+// Helper function to get border color based on champion cost
 function getBorderColorForCost(cost) {
 	switch (cost) {
 		case 1:
-			return "border-gray-400"; // Grey for 1-cost
+			return "border-gray-400";
 		case 2:
-			return "border-green-500"; // Green for 2-cost
+			return "border-green-500";
 		case 3:
-			return "border-blue-500"; // Blue for 3-cost
+			return "border-blue-500";
 		case 4:
-			return "border-purple-500"; // Purple for 4-cost
+			return "border-purple-500";
 		case 5:
-			return "border-yellow-500"; // Yellow/gold for 5-cost
+			return "border-yellow-500";
 		default:
-			return "border-gray-700"; // Default for unknown/0 cost
+			return "border-gray-700";
 	}
 }
 
-// --- Helper function to get star color based on CHAMPION COST (not tier) ---
+// Helper function to get star color based on champion cost
 function getStarColorForCost(cost) {
 	switch (cost) {
 		case 1:
-			return "text-gray-400"; // Grey stars for 1-cost
+			return "text-gray-400";
 		case 2:
-			return "text-green-400"; // Green stars for 2-cost
+			return "text-green-400";
 		case 3:
-			return "text-blue-400"; // Blue stars for 3-cost
+			return "text-blue-400";
 		case 4:
-			return "text-purple-400"; // Purple stars for 4-cost
+			return "text-purple-400";
 		case 5:
-			return "text-yellow-400"; // Gold stars for 5-cost
+			return "text-yellow-400";
 		default:
-			return "text-gray-600"; // Fallback
+			return "text-gray-600";
 	}
 }
 
-// Helper function for trait styling
+// Helper function for trait styling based on tier
 function getTraitChipStyle(style) {
 	switch (style) {
 		case 4:
@@ -114,18 +114,16 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 	const [championsData, setChampionsData] = useState({});
 	const [dataDragonChampions, setDataDragonChampions] = useState({});
 	const [isDataLoaded, setIsDataLoaded] = useState(false);
-	// Add state for expanded match
 	const [expandedMatchId, setExpandedMatchId] = useState(null);
-	// Add pagination state
 	const [currentPage, setCurrentPage] = useState(1);
-	const [companionsData, setCompanionsData] = useState({}); // Add companions state
+	const [companionsData, setCompanionsData] = useState({});
 	const matchesPerPage = 10;
 
-	// Fetch TFT data (traits, items, champions)
+	// Fetch TFT data (traits, items, champions, companions)
 	useEffect(() => {
 		async function fetchTFTData() {
 			try {
-				// Fetch traits and items from Community Dragon (unchanged)
+				// Fetch traits from Community Dragon
 				const traitsResponse = await fetch(
 					"https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/tfttraits.json"
 				);
@@ -143,6 +141,7 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 					}
 				});
 
+				// Fetch items from Community Dragon
 				const itemsResponse = await fetch(
 					"https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/tftitems.json"
 				);
@@ -198,7 +197,7 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 					console.error("Error fetching Data Dragon champions:", error);
 				}
 
-				// Additionally, fetch companions data
+				// Fetch companions data
 				const companions = await fetchTFTCompanions();
 				setCompanionsData(companions);
 
@@ -244,7 +243,7 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 		indexOfLastMatch
 	);
 
-	// Group matches by date like in League match history
+	// Group matches by date
 	const matchesByDay = currentMatches.reduce((acc, match) => {
 		const matchDate = new Date(match.info.game_datetime);
 		const formattedDate = matchDate.toLocaleDateString("en-GB", {
@@ -266,7 +265,7 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 		setExpandedMatchId(null);
 	};
 
-	// --- Loading and Empty States (No Changes) ---
+	// Loading state
 	if (!isDataLoaded) {
 		return (
 			<div className="flex justify-center items-center py-10 bg-[--background-alt] rounded-lg">
@@ -282,6 +281,8 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 			</div>
 		);
 	}
+
+	// Empty state
 	if (!matchDetails || matchDetails.length === 0) {
 		return (
 			<div className="empty-match-history bg-[--background-alt] rounded-lg">
@@ -313,7 +314,7 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 						{day}
 					</h2>
 					{matches.map((match, index) => {
-						// --- Participant and basic match data setup (unchanged) ---
+						// Get participant and basic match data
 						const participant = match.info?.participants?.find(
 							(p) => p.puuid === summonerData.puuid
 						);
@@ -333,6 +334,8 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 								? `${diffDays}d ago`
 								: `${diffHours}h ago`;
 						if (diffTime < 60000) timeAgo = "Just now";
+
+						// Get placement and styling
 						const placement = participant.placement;
 						let placementSuffix = "th";
 						if (placement === 1) placementSuffix = "st";
@@ -345,7 +348,7 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 							placementClass = "border-l-4 border-blue-500";
 						else placementClass = "border-l-4 border-red-600";
 
-						// Removed variables for stage and duration that won't be used
+						// Determine game type
 						const gameType =
 							match.info.tft_game_type?.replace(/_/g, " ") || "Normal";
 						const queueId = match.info.queue_id;
@@ -355,25 +358,26 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 						else if (queueId === 1160) formattedGameType = "Double Up";
 						else if (gameType.toLowerCase().includes("ranked"))
 							formattedGameType = "Ranked";
+
+						// Filter and sort active traits
 						const activeTraits =
 							participant.traits?.filter((trait) => trait.style > 0) || [];
 						activeTraits.sort(
 							(a, b) => b.style - a.style || b.num_units - a.num_units
 						);
-						// Sort units - Changed to prioritize LOWER cost units first (ascending order)
+
+						// Sort units - lower cost first (ascending order)
 						const units =
 							participant.units?.sort((a, b) => {
-								// Get cost from Data Dragon first, fallback to Community Dragon
 								const costA = getChampionCostFromDD(a.character_id);
 								const costB = getChampionCostFromDD(b.character_id);
-
-								// Reversed sorting - lower cost first (ascending)
 								if (costA !== costB) return costA - costB;
-								return b.tier - a.tier; // Still sort by tier as secondary criteria
+								return b.tier - a.tier; // Sort by tier as secondary criteria
 							}) || [];
+
 						const augments = participant.augments || [];
 
-						// Get companion data for the current participant
+						// Get companion data
 						const companion = participant.companion
 							? companionsData[participant.companion.content_ID]
 							: null;
@@ -383,8 +387,6 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 
 						return (
 							<div key={matchId} className="mb-3">
-								{" "}
-								{/* Added margin-bottom for spacing between matches */}
 								<div
 									onClick={() =>
 										setExpandedMatchId(
@@ -393,9 +395,8 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 									}
 									className={`tft-match-card bg-[--background-alt] p-3 rounded-md flex gap-4 ${placementClass} shadow-sm cursor-pointer hover:bg-[--card-bg-secondary]/50 transition-colors duration-150`}
 								>
-									{/* Layout container for companion and placement - align to top left */}
+									{/* Companion and placement section */}
 									<div className="flex flex-col items-start flex-shrink-0">
-										{/* Top row with companion and placement side by side */}
 										<div className="flex items-start space-x-3">
 											{/* Companion Image */}
 											{companionIconUrl ? (
@@ -414,7 +415,7 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 												<div className="w-12 h-12 bg-gray-800/50 rounded-md border border-gray-700/50 flex-shrink-0"></div>
 											)}
 
-											{/* Placement with larger size */}
+											{/* Placement */}
 											<div
 												className={`font-bold text-2xl ${
 													placement === 1
@@ -432,7 +433,7 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 
 									{/* Middle - Units and Traits */}
 									<div className="flex-grow">
-										{/* Traits Row with Time Ago moved to far right */}
+										{/* Traits Row with Time Ago */}
 										<div className="flex flex-wrap items-center justify-between mb-2">
 											{/* Traits */}
 											<div className="flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -443,10 +444,9 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 													const cdnUrl = mapCDragonAssetPath(
 														traitInfo.iconPath
 													);
-													// Use the trait style to get proper color styling
 													const chipStyle = getTraitChipStyle(trait.style);
 
-													// Build a more informative tooltip without undefined values
+													// Build tooltip content
 													let tooltipContent = traitInfo.name;
 													if (trait.num_units) {
 														tooltipContent += ` (${trait.num_units})`;
@@ -484,7 +484,7 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 												})}
 											</div>
 
-											{/* Time ago - moved to far right */}
+											{/* Time ago */}
 											<div className="text-xs text-[--text-secondary] whitespace-nowrap">
 												{timeAgo}
 											</div>
@@ -505,23 +505,20 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 													champion.name
 												);
 
-												// Get cost from Data Dragon first, fallback to Community Dragon
+												// Get champion cost
 												const championCost = getChampionCostFromDD(
 													unit.character_id
 												);
 
-												// --- Get border color based on COST ---
 												const borderColor = getBorderColorForCost(championCost);
-												// --- Get star color based on CHAMPION COST ---
 												const starColor = getStarColorForCost(championCost);
 
 												return (
-													// Champion component with fixed-height item container
 													<div
 														key={`${unit.character_id}-${unitIdx}`}
 														className="flex flex-col items-center"
 													>
-														{/* Star Rating - Fixed height container */}
+														{/* Star Rating */}
 														<div className="flex mb-0.5 h-2.5">
 															{Array.from({ length: stars }).map((_, i) => (
 																<FaStar
@@ -575,7 +572,7 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 															</div>
 														</div>
 
-														{/* Items - Fixed height container */}
+														{/* Items */}
 														<div className="flex justify-center mt-1 h-3.5 space-x-0.5">
 															{/* Check for itemNames array first */}
 															{unit.itemNames
@@ -645,26 +642,23 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 													</div>
 												);
 											})}
-											{/* Placeholder units - Fixed height containers */}
+
+											{/* Placeholder units */}
 											{Array.from({
 												length: Math.max(0, 9 - units.length),
 											}).map((_, i) => {
-												// --- Get default border (cost 0) ---
 												const defaultBorderColor = getBorderColorForCost(0);
 												return (
 													<div
 														key={`placeholder-${i}`}
 														className="flex flex-col items-center opacity-50"
 													>
-														{/* Fixed height star container */}
 														<div className="flex mb-0.5 h-2.5">
 															{/* Empty star space to maintain alignment */}
 														</div>
-														{/* --- Apply default cost border --- */}
 														<div
 															className={`relative bg-gray-800/50 rounded w-11 h-11 border-2 ${defaultBorderColor}`}
 														></div>
-														{/* Fixed height item container */}
 														<div className="flex justify-center mt-1 h-3.5">
 															{/* Empty item space to maintain alignment */}
 														</div>
@@ -715,6 +709,7 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 										</div>
 									</div>
 								</div>
+
 								{/* Expanded Match Details */}
 								{expandedMatchId === matchId && (
 									<div className="mb-4 animate-fadeIn">
