@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { supabase, supabaseAdmin } from "@/lib/supabase";
 
 const TFT_API_KEY = process.env.TFT_API_KEY;
 
@@ -63,14 +63,16 @@ export const fetchTFTMatchDetail = async (matchId, platform) => {
  * Only stores the matchid and playerid as reference for cached matches.
  */
 export const upsertTFTMatchDetail = async (matchId, puuid, matchDetail) => {
-	const { error: insertMatchError } = await supabase.from("tft_matches").upsert(
-		{
-			matchid: matchId,
-			playerid: puuid,
-			// removed match_data as the column doesn't exist in the table
-		},
-		{ onConflict: ["matchid"] }
-	);
+	const { error: insertMatchError } = await supabaseAdmin
+		.from("tft_matches")
+		.upsert(
+			{
+				matchid: matchId,
+				playerid: puuid,
+				// removed match_data as the column doesn't exist in the table
+			},
+			{ onConflict: ["matchid"] }
+		);
 	// Silent error handling
 };
 

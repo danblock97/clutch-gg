@@ -2,7 +2,7 @@
 
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { supabase, supabaseAdmin } from "@/lib/supabase";
 import { useGameType } from "@/context/GameTypeContext";
 
 // Create the auth context
@@ -103,9 +103,9 @@ export const AuthProvider = ({ children }) => {
 
 				if (selectError) throw selectError;
 
-				// If user doesn't exist, insert them
+				// If user doesn't exist, insert them using supabaseAdmin
 				if (!existingUser) {
-					const { error: insertError } = await supabase
+					const { error: insertError } = await supabaseAdmin
 						.from("riot_accounts")
 						.insert([
 							{
