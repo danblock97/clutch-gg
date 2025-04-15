@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { supabase, supabaseAdmin } from "@/lib/supabase";
 import { authConfig } from "@/lib/auth/config";
 
 export async function GET(req) {
@@ -118,9 +118,9 @@ export async function GET(req) {
 
 			if (selectError) throw selectError;
 
-			// Insert or update the user
+			// Insert or update the user - use supabaseAdmin for write operations
 			if (!existingUser) {
-				const { error: insertError } = await supabase
+				const { error: insertError } = await supabaseAdmin
 					.from("riot_accounts")
 					.insert([
 						{

@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { supabase, supabaseAdmin } from "@/lib/supabase";
 
 const RIOT_API_KEY = process.env.RIOT_API_KEY;
 
@@ -89,7 +89,7 @@ export const fetchMatchDetail = async (matchId, platform) => {
  * Upsert match detail into the matches table.
  */
 export const upsertMatchDetail = async (matchId, puuid, matchDetail) => {
-	const { error: insertMatchError } = await supabase
+	const { error: insertMatchError } = await supabaseAdmin
 		.from("league_matches")
 		.upsert(
 			{

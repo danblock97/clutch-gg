@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { supabase, supabaseAdmin } from "@/lib/supabase";
 import { fetchAccountData } from "@/lib/riot/riotAccountApi";
 import {
 	fetchSummonerData,
@@ -81,7 +81,8 @@ export async function GET(req) {
 				puuid: accountData.puuid,
 			};
 			try {
-				const { error: insertError } = await supabase
+				// Use supabaseAdmin for write operations when RLS is enabled
+				const { error: insertError } = await supabaseAdmin
 					.from("riot_accounts")
 					.insert([insertPayload], { returning: "representation" });
 
@@ -171,7 +172,8 @@ export async function GET(req) {
 			updatedat: new Date(),
 		};
 
-		let { data: leagueRecord, error: leagueError } = await supabase
+		// Use supabaseAdmin for write operations
+		let { data: leagueRecord, error: leagueError } = await supabaseAdmin
 			.from("league_data")
 			.upsert(
 				{
