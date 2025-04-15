@@ -9,6 +9,10 @@ import {
 	FaChevronUp,
 } from "react-icons/fa";
 import TFTMatchDetails from "./MatchDetails";
+import {
+	fetchTFTCompanions,
+	getCompanionIconUrl,
+} from "@/lib/tft/companionsApi";
 
 // Helper function to properly map Community Dragon asset paths
 function mapCDragonAssetPath(jsonPath) {
@@ -80,8 +84,19 @@ function getStarColorForCost(cost) {
 }
 
 // Helper function for trait styling
-function getTraitChipStyle() {
-	return "bg-gray-700 text-gray-200";
+function getTraitChipStyle(style) {
+	switch (style) {
+		case 4:
+			return "bg-gradient-to-br from-purple-400 via-pink-500 to-yellow-400 text-white shadow-lg border border-purple-300/50"; // Prismatic
+		case 3:
+			return "bg-yellow-500/40 text-yellow-100 border border-yellow-500"; // Gold
+		case 2:
+			return "bg-gray-400/40 text-gray-100 border border-gray-400"; // Silver
+		case 1:
+			return "bg-[#cd7f32]/40 text-[#ffbf80] border border-[#cd7f32]"; // Bronze
+		default:
+			return "bg-black/30 text-gray-400 border border-gray-700"; // Inactive
+	}
 }
 
 // Helper function to format game stage
@@ -103,6 +118,7 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 	const [expandedMatchId, setExpandedMatchId] = useState(null);
 	// Add pagination state
 	const [currentPage, setCurrentPage] = useState(1);
+	const [companionsData, setCompanionsData] = useState({}); // Add companions state
 	const matchesPerPage = 10;
 
 	// Fetch TFT data (traits, items, champions)
@@ -181,6 +197,10 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 				} catch (error) {
 					console.error("Error fetching Data Dragon champions:", error);
 				}
+
+				// Additionally, fetch companions data
+				const companions = await fetchTFTCompanions();
+				setCompanionsData(companions);
 
 				setTraitsData(traitsMap);
 				setItemsData(itemsMap);
@@ -324,10 +344,8 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 						else if (placement <= 4)
 							placementClass = "border-l-4 border-blue-500";
 						else placementClass = "border-l-4 border-red-600";
-						const gameDurationMinutes = Math.floor(match.info.game_length / 60);
-						const gameDurationSeconds = Math.round(match.info.game_length % 60);
-						const formattedDuration = `${gameDurationMinutes}m ${gameDurationSeconds}s`;
-						const gameStage = formatStage(participant.last_round);
+
+						// Removed variables for stage and duration that won't be used
 						const gameType =
 							match.info.tft_game_type?.replace(/_/g, " ") || "Normal";
 						const queueId = match.info.queue_id;
@@ -355,8 +373,18 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 							}) || [];
 						const augments = participant.augments || [];
 
+						// Get companion data for the current participant
+						const companion = participant.companion
+							? companionsData[participant.companion.content_ID]
+							: null;
+						const companionIconUrl = companion
+							? getCompanionIconUrl(companion.iconPath)
+							: null;
+
 						return (
-							<div key={matchId}>
+							<div key={matchId} className="mb-3">
+								{" "}
+								{/* Added margin-bottom for spacing between matches */}
 								<div
 									onClick={() =>
 										setExpandedMatchId(
@@ -365,11 +393,30 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 									}
 									className={`tft-match-card bg-[--background-alt] p-3 rounded-md flex gap-4 ${placementClass} shadow-sm cursor-pointer hover:bg-[--card-bg-secondary]/50 transition-colors duration-150`}
 								>
-									{/* Left Column: Placement & Match Info */}
-									<div className="flex flex-col justify-between text-xs w-20 flex-shrink-0">
-										<div>
+									{/* Layout container for companion and placement - align to top left */}
+									<div className="flex flex-col items-start flex-shrink-0">
+										{/* Top row with companion and placement side by side */}
+										<div className="flex items-start space-x-3">
+											{/* Companion Image */}
+											{companionIconUrl ? (
+												<div className="relative w-16 h-16 flex-shrink-0 overflow-hidden rounded-md border border-gray-700/50">
+													<Image
+														src={companionIconUrl}
+														alt={companion?.name || "Companion"}
+														width={48}
+														height={48}
+														className="object-cover w-full h-full"
+														title={companion?.name || "Companion"}
+														unoptimized
+													/>
+												</div>
+											) : (
+												<div className="w-12 h-12 bg-gray-800/50 rounded-md border border-gray-700/50 flex-shrink-0"></div>
+											)}
+
+											{/* Placement with larger size */}
 											<div
-												className={`font-bold text-lg ${
+												className={`font-bold text-2xl ${
 													placement === 1
 														? "text-yellow-400"
 														: placement <= 4
@@ -378,53 +425,69 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 												}`}
 											>
 												{placement}
-												<sup>{placementSuffix}</sup>
+												<sup className="text-lg">{placementSuffix}</sup>
 											</div>
-											<div className="font-semibold text-[--text-primary] capitalize">
-												{formattedGameType}
-											</div>
-										</div>
-										<div className="text-[--text-secondary] space-y-0.5">
-											<div>{timeAgo}</div>
-											<div>{gameStage}</div>
-											<div>{formattedDuration}</div>
 										</div>
 									</div>
 
-									{/* Right Column: Traits & Units */}
+									{/* Middle - Units and Traits */}
 									<div className="flex-grow">
-										{/* Traits Row */}
-										<div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2">
-											{activeTraits.map((trait) => {
-												const traitInfo = traitsData[trait.name.toUpperCase()];
-												if (!traitInfo) return null;
-												const cdnUrl = mapCDragonAssetPath(traitInfo.iconPath);
-												const chipStyle = getTraitChipStyle();
-												return (
-													<div
-														key={trait.name}
-														className={`trait-chip ${chipStyle} px-1.5 py-0.5 rounded-sm flex items-center text-xs`}
-														title={traitInfo.name}
-													>
-														{cdnUrl && (
-															<div className="w-3.5 h-3.5 mr-1 relative">
-																<Image
-																	src={cdnUrl}
-																	alt=""
-																	width={14}
-																	height={14}
-																	className="object-contain"
-																	unoptimized
-																/>
-															</div>
-														)}
-														<span className="font-medium mr-1">
-															{traitInfo.name}
-														</span>
-														<span>{trait.num_units}</span>
-													</div>
-												);
-											})}
+										{/* Traits Row with Time Ago moved to far right */}
+										<div className="flex flex-wrap items-center justify-between mb-2">
+											{/* Traits */}
+											<div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+												{activeTraits.map((trait) => {
+													const traitInfo =
+														traitsData[trait.name.toUpperCase()];
+													if (!traitInfo) return null;
+													const cdnUrl = mapCDragonAssetPath(
+														traitInfo.iconPath
+													);
+													// Use the trait style to get proper color styling
+													const chipStyle = getTraitChipStyle(trait.style);
+
+													// Build a more informative tooltip without undefined values
+													let tooltipContent = traitInfo.name;
+													if (trait.num_units) {
+														tooltipContent += ` (${trait.num_units})`;
+													}
+													if (traitInfo.description) {
+														tooltipContent += `\n\n${traitInfo.description}`;
+													}
+
+													return (
+														<div
+															key={trait.name}
+															className={`flex items-center px-1.5 py-0.5 rounded ${chipStyle}`}
+															title={tooltipContent}
+														>
+															{cdnUrl && (
+																<div className="w-3.5 h-3.5 mr-1 relative">
+																	<Image
+																		src={cdnUrl}
+																		alt=""
+																		width={14}
+																		height={14}
+																		className="object-contain"
+																		unoptimized
+																	/>
+																</div>
+															)}
+															<span className="font-medium mr-1">
+																{traitInfo.name}
+															</span>
+															<span className="font-bold">
+																{trait.num_units}
+															</span>
+														</div>
+													);
+												})}
+											</div>
+
+											{/* Time ago - moved to far right */}
+											<div className="text-xs text-[--text-secondary] whitespace-nowrap">
+												{timeAgo}
+											</div>
 										</div>
 
 										{/* Units Row */}
@@ -635,16 +698,23 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 										)}
 									</div>
 
-									{/* Add expand/collapse indicator */}
-									<div className="flex items-center text-gray-400">
-										{expandedMatchId === matchId ? (
-											<FaChevronUp className="w-4 h-4" />
-										) : (
-											<FaChevronDown className="w-4 h-4" />
-										)}
+									{/* Right Column - Game Mode and expand indicator */}
+									<div className="flex flex-col items-end ml-2">
+										{/* Game Mode */}
+										<div className="text-sm font-semibold text-[--text-primary] capitalize whitespace-nowrap mb-auto">
+											{formattedGameType}
+										</div>
+
+										{/* Expand/collapse indicator */}
+										<div className="text-gray-400 mt-auto">
+											{expandedMatchId === matchId ? (
+												<FaChevronUp className="w-4 h-4" />
+											) : (
+												<FaChevronDown className="w-4 h-4" />
+											)}
+										</div>
 									</div>
 								</div>
-
 								{/* Expanded Match Details */}
 								{expandedMatchId === matchId && (
 									<div className="mb-4 animate-fadeIn">
@@ -652,6 +722,7 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 											matchDetails={matchDetails}
 											matchId={matchId}
 											summonerData={summonerData}
+											companionsData={companionsData}
 										/>
 									</div>
 								)}
