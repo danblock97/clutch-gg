@@ -19,12 +19,8 @@ import {
 // Map Community Dragon paths (Your Original Logic)
 function mapCDragonAssetPath(jsonPath) {
 	if (!jsonPath) return null;
-	// Ensure path starts correctly, remove potential double slashes
-	const cleanPath = jsonPath.replace(/^\/+/, "");
-	const lower = cleanPath.toLowerCase().replace("lol-game-data/assets", ""); // Handle potential leading slash
-	return `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/${
-		lower.startsWith("/") ? lower.substring(1) : lower
-	}`;
+	const lower = jsonPath.toLowerCase().replace("/lol-game-data/assets", "");
+	return `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default${lower}`;
 }
 
 // Get Champion Image URL with Set 13 fallback for Set 14
@@ -149,6 +145,17 @@ function getTierText(style) {
 	}
 }
 
+// More robust item path handling - ensuring proper paths are used
+function getItemImageUrl(item) {
+	if (!item || !item.iconPath) return null;
+
+	// If it's already a full URL (unlikely but possible)
+	if (item.iconPath.startsWith("http")) return item.iconPath;
+
+	// If it's a CDragon path
+	return mapCDragonAssetPath(item.iconPath);
+}
+
 // --- Main Component ---
 
 export default function TFTMatchDetails({
@@ -199,20 +206,23 @@ export default function TFTMatchDetails({
 				const itemsJson = await itemsResponse.json();
 				const itemsMap = {};
 				itemsJson.forEach((item) => {
-					// Use iconData (more reliable path from CDragon JSON) or loadoutsIcon as fallback
-					const icon = item.iconData || item.loadoutsIcon || item.iconPath; // Prioritize iconData
-					if (item.id !== undefined)
+					// Store by numeric ID - use squareIconPath for consistency with MatchHistory
+					if (item.id !== undefined) {
 						itemsMap[item.id] = {
 							name: item.name,
 							description: item.desc,
-							iconPath: icon,
+							iconPath: item.squareIconPath,
 						};
-					if (item.nameId)
+					}
+
+					// Also store by nameId (for TFT_Item_X format)
+					if (item.nameId) {
 						itemsMap[item.nameId.toLowerCase()] = {
 							name: item.name,
 							description: item.desc,
-							iconPath: icon,
+							iconPath: item.squareIconPath,
 						};
+					}
 				});
 				setItemsData(itemsMap);
 
@@ -453,9 +463,6 @@ function ParticipantRow({
 	// Get augment IDs
 	const participantAugments = participant.augments || [];
 
-	// Get item IDs (preferring `items` array which usually holds numerical IDs)
-	const unitItemsSource = participant.items || []; // Use participant.items as the primary source
-
 	return (
 		<div
 			className={`flex items-stretch px-3 py-2 gap-2 text-sm ${
@@ -579,8 +586,6 @@ function ParticipantRow({
 						"Unknown";
 					// Use the passed original function for the champion image URL
 					const cdnUrl = getTFTChampionImageUrl(unit.character_id, champName);
-					// Get item IDs for this unit (ensure it's an array)
-					const unitItems = unit.items || [];
 
 					return (
 						<div
@@ -633,41 +638,28 @@ function ParticipantRow({
 									{champName?.substring(0, 3) || "?"}
 								</div>
 							</div>
-							{/* Items */}
-							<div className="flex justify-center items-center mt-0.5 h-3 space-x-0.5">
-								{unitItems.slice(0, 3).map((itemIdentifier, itemIdx) => {
-									// Assume itemIdentifier is a numerical ID
-									const item = itemsData[itemIdentifier];
-									// Construct URL using the mapped iconPath (which uses iconData/loadoutsIcon)
-									const itemCdnUrl = item?.iconPath
-										? `https://raw.communitydragon.org/latest/game/${item.iconPath
-												?.toLowerCase()
-												.replace(".dds", ".png")}`
-										: null;
-									const itemName = item?.name || `Item ID: ${itemIdentifier}`;
-									const itemDesc = item?.description || "";
-									const itemTitle = `${itemName}\n\n${itemDesc.replace(
-										/<[^>]*>?/gm,
-										""
-									)}`; // Basic HTML strip for tooltip
+							{/* Items - Updated to remove placeholders and improve centering */}
+							<div className="flex justify-center items-center mt-0.5 space-x-0.5">
+								{/* Check for itemNames array first */}
+								{unit.itemNames?.slice(0, 3).map((itemName, itemIdx) => {
+									const item =
+										itemsData[itemName] || itemsData[itemName?.toLowerCase()];
+									const itemCdnUrl = getItemImageUrl(item);
 
 									return (
 										<div
-											key={`${itemIdentifier}-${itemIdx}`}
-											className="w-3 h-3 bg-black/50 rounded-sm overflow-hidden relative border border-black/50"
-											title={itemTitle}
+											key={`${itemName}-${itemIdx}`}
+											className="w-3.5 h-3.5 bg-black/50 rounded-sm overflow-hidden relative border border-black/50"
+											title={item?.name || itemName}
 										>
 											{itemCdnUrl ? (
 												<Image
 													src={itemCdnUrl}
 													alt=""
-													width={12}
-													height={12}
+													width={14}
+													height={14}
 													className="object-contain"
 													unoptimized
-													onError={(e) => {
-														e.currentTarget.style.opacity = "0.3";
-													}}
 												/>
 											) : (
 												<div className="w-full h-full flex items-center justify-center text-[7px] text-gray-500">
@@ -677,13 +669,48 @@ function ParticipantRow({
 										</div>
 									);
 								})}
-								{/* Render empty slots */}
-								{Array.from({ length: 3 - unitItems.length }).map((_, i) => (
-									<div
-										key={`empty-${i}`}
-										className="w-3 h-3 bg-black/20 rounded-sm border border-black/30"
-									></div>
-								))}
+
+								{/* Fallback to numeric items array */}
+								{!unit.itemNames &&
+									unit.items?.slice(0, 3).map((itemId, itemIdx) => {
+										const item = itemsData[itemId];
+
+										// Use our helper function for consistent URLs
+										const itemCdnUrl = getItemImageUrl(item);
+										const itemName = item?.name || `Item ID: ${itemId}`;
+										const itemDesc = item?.description || "";
+										const itemTitle = `${itemName}\n\n${itemDesc.replace(
+											/<[^>]*>?/gm,
+											""
+										)}`; // Basic HTML strip for tooltip
+
+										return (
+											<div
+												key={`${itemId}-${itemIdx}`}
+												className="w-3.5 h-3.5 bg-black/50 rounded-sm overflow-hidden relative border border-black/50"
+												title={itemTitle}
+											>
+												{itemCdnUrl ? (
+													<Image
+														src={itemCdnUrl}
+														alt=""
+														width={14}
+														height={14}
+														className="object-contain"
+														unoptimized
+														onError={(e) => {
+															e.currentTarget.style.opacity = "0.3";
+														}}
+													/>
+												) : (
+													<div className="w-full h-full flex items-center justify-center text-[7px] text-gray-500">
+														?
+													</div>
+												)}
+											</div>
+										);
+									})}
+								{/* Removed the placeholder slots for empty item slots */}
 							</div>
 						</div>
 					);
