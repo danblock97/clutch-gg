@@ -2,7 +2,14 @@
 import Image from "next/image";
 import { FaHistory, FaChevronUp, FaChevronDown } from "react-icons/fa";
 
-const SeasonRanks = ({ gameName, tagLine, region, forceUpdate }) => {
+const SeasonRanks = ({
+	gameName,
+	tagLine,
+	region,
+	forceUpdate,
+	onLoadComplete,
+}) => {
+	// Add onLoadComplete prop
 	const [rankHistory, setRankHistory] = useState([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState(null);
@@ -29,6 +36,7 @@ const SeasonRanks = ({ gameName, tagLine, region, forceUpdate }) => {
 			setIsExpanded(false);
 			setIsLoading(false);
 			setError(null);
+			onLoadComplete && onLoadComplete(); // Call onLoadComplete if no fetch needed
 			return;
 		}
 
@@ -121,6 +129,7 @@ const SeasonRanks = ({ gameName, tagLine, region, forceUpdate }) => {
 			}
 		} finally {
 			setIsLoading(false);
+			onLoadComplete && onLoadComplete(); // Call onLoadComplete in finally block
 		}
 	};
 
