@@ -45,7 +45,7 @@ const SeasonRanks = ({
 
 		const storageKey = `rankHistory_${gameName}_${tagLine}_${region}`;
 		const now = Date.now();
-		let loadedFromCache = false;
+		let isCacheLoaded = false;
 
 		try {
 			if (!shouldRefresh) {
@@ -57,7 +57,7 @@ const SeasonRanks = ({
 						setRankHistory(historyData);
 						setIsExpanded(historyData.length > 0);
 						setIsLoading(false);
-						loadedFromCache = true;
+						isCacheLoaded = true;
 						return;
 					} else {
 						localStorage.removeItem(storageKey);
@@ -109,7 +109,7 @@ const SeasonRanks = ({
 			console.error("Error fetching rank history:", err);
 			setError(err.message);
 
-			if (!loadedFromCache) {
+			if (!isCacheLoaded) {
 				try {
 					const cachedData = localStorage.getItem(storageKey);
 					if (cachedData) {
