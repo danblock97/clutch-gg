@@ -2,124 +2,145 @@
 import Image from "next/image";
 import { FaHistory, FaChevronUp, FaChevronDown } from "react-icons/fa";
 
-const SeasonRanks = ({ gameName, tagLine, region, forceUpdate }) => {
+const SeasonRanks = ({
+	gameName,
+	tagLine,
+	region,
+	forceUpdate,
+	onLoadComplete,
+}) => {
+	// Add onLoadComplete prop
 	const [rankHistory, setRankHistory] = useState([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState(null);
+
 	const [isExpanded, setIsExpanded] = useState(false);
 
-	// Fixed function to get the correct rank emblem path
+	// Get the correct rank emblem path
 	const getRankEmblemPath = (tier) => {
 		if (!tier) return "/images/league/rankedEmblems/unranked.webp";
-
-		// Extract just the tier name (before any space or number)
-		// For example, "DIAMOND 1" becomes just "diamond"
 		const baseTier = tier.split(" ")[0].toLowerCase();
-
-		// Return just the tier name without division number
-		// This assumes image files are named "diamond.webp", "platinum.webp", etc.
 		return `/images/league/rankedEmblems/${baseTier}.webp`;
 	};
 
-	// Helper to get rank color class
+	// Get rank color class
 	const getRankColorClass = (tier) => {
 		if (!tier) return "text-gray-400";
-
-		// Extract just the tier name (before any space or number)
-		// For example, "DIAMOND 1" becomes just "diamond"
 		const baseTier = tier.split(" ")[0].toLowerCase();
 		return `text-[--${baseTier}]`;
 	};
 
 	const fetchRankHistory = async (shouldRefresh = false) => {
-		if (!gameName || !tagLine || !region) return;
+		if (!gameName || !tagLine || !region) {
+			setRankHistory([]);
+			setIsExpanded(false);
+			setIsLoading(false);
+			setError(null);
+			onLoadComplete && onLoadComplete(); // Call onLoadComplete if no fetch needed
+			return;
+		}
 
 		setIsLoading(true);
+		setError(null);
 
-		// Check local storage for cached data
 		const storageKey = `rankHistory_${gameName}_${tagLine}_${region}`;
 		const now = Date.now();
+		let isCacheLoaded = false;
 
 		try {
-			// If not forcing refresh, try to use cached data
 			if (!shouldRefresh) {
 				const cachedData = localStorage.getItem(storageKey);
 				if (cachedData) {
 					const parsedCache = JSON.parse(cachedData);
-					// Check if the cache is still valid (24 hours)
 					if (parsedCache.expiresAt && parsedCache.expiresAt > now) {
-						setRankHistory(parsedCache.data);
+						const historyData = parsedCache.data || [];
+						setRankHistory(historyData);
+						setIsExpanded(historyData.length > 0);
 						setIsLoading(false);
+						isCacheLoaded = true;
 						return;
+					} else {
+						localStorage.removeItem(storageKey);
 					}
 				}
 			}
 
-			// Cache not found, expired, or forcing refresh
 			const refreshParam = shouldRefresh ? "&refresh=true" : "";
-			const response = await fetch(
-				`/api/league/rankHistory?gameName=${encodeURIComponent(
-					gameName
-				)}&tagLine=${encodeURIComponent(tagLine)}&region=${encodeURIComponent(
-					region
-				)}${refreshParam}`
-			);
+			const apiUrl = `/api/league/rankHistory?gameName=${encodeURIComponent(
+				gameName
+			)}&tagLine=${encodeURIComponent(tagLine)}&region=${encodeURIComponent(
+				region
+			)}${refreshParam}`;
+			const response = await fetch(apiUrl);
 
 			if (!response.ok) {
-				throw new Error("Failed to fetch rank history");
+				let errorMsg = `Failed to fetch rank history (${response.status})`;
+				try {
+					const errorData = await response.json();
+					errorMsg = errorData.message || errorMsg;
+				} catch (e) {}
+				throw new Error(errorMsg);
 			}
 
 			const data = await response.json();
+			const historyData = data && Array.isArray(data) ? data : [];
 
-			// Only update state if we have actual data
-			if (data && Array.isArray(data) && data.length > 0) {
-				setRankHistory(data);
+			setRankHistory(historyData);
+			setIsExpanded(historyData.length > 0);
 
-				// Get cache expiration from header or default to 24 hours
+			if (historyData.length > 0) {
 				const expiresHeader = response.headers.get("X-Cache-Expires");
 				const expiresAt = expiresHeader
 					? new Date(expiresHeader).getTime()
 					: now + 24 * 60 * 60 * 1000;
 
-				// Cache the data in localStorage with expiration
 				localStorage.setItem(
 					storageKey,
 					JSON.stringify({
-						data: data,
+						data: historyData,
 						timestamp: now,
 						expiresAt: expiresAt,
 					})
 				);
-			} else if (data && Array.isArray(data) && data.length === 0) {
-				// No rank history found for this player
-				setRankHistory([]);
+			} else {
+				localStorage.removeItem(storageKey);
 			}
-		} catch (error) {
-			setError(error.message);
+		} catch (err) {
+			console.error("Error fetching rank history:", err);
+			setError(err.message);
 
-			// Try to load from localStorage as fallback even if expired
-			try {
-				const cachedData = localStorage.getItem(storageKey);
-				if (cachedData) {
-					const parsedCache = JSON.parse(cachedData);
-					if (parsedCache.data && parsedCache.data.length > 0) {
-						setRankHistory(parsedCache.data);
+			if (!isCacheLoaded) {
+				try {
+					const cachedData = localStorage.getItem(storageKey);
+					if (cachedData) {
+						const parsedCache = JSON.parse(cachedData);
+						const cacheContent = parsedCache.data || [];
+						setRankHistory(cacheContent);
+						setIsExpanded(cacheContent.length > 0);
+					} else {
+						setRankHistory([]);
+						setIsExpanded(false);
 					}
+				} catch (cacheError) {
+					console.error("Error reading cache during fallback:", cacheError);
+					setRankHistory([]);
+					setIsExpanded(false);
 				}
-			} catch (cacheError) {
-				// Silent error handling for cache errors
 			}
 		} finally {
 			setIsLoading(false);
+			onLoadComplete && onLoadComplete(); // Call onLoadComplete in finally block
 		}
 	};
 
-	// Initial data fetch
 	useEffect(() => {
-		fetchRankHistory();
+		setRankHistory([]);
+		setIsExpanded(false);
+		setIsLoading(true);
+		setError(null);
+		fetchRankHistory(false);
 	}, [gameName, tagLine, region]);
 
-	// When forceUpdate changes, refresh the data
 	useEffect(() => {
 		if (forceUpdate) {
 			fetchRankHistory(true);
@@ -139,14 +160,17 @@ const SeasonRanks = ({ gameName, tagLine, region, forceUpdate }) => {
 		return (
 			<div className="card-highlight p-4">
 				<div className="flex items-center justify-between">
-					<h3 className="text-base font-semibold">Season History</h3>
+					<h3 className="text-base font-semibold flex items-center">
+						<FaHistory className="mr-2" />
+						Season History
+					</h3>
 				</div>
-				<p className="text-[--error] text-sm mt-2">{error}</p>
+				<p className="text-[--error] text-sm mt-2">Error: {error}</p>
 			</div>
 		);
 	}
 
-	if (rankHistory.length === 0) {
+	if (!isLoading && !error && rankHistory.length === 0) {
 		return (
 			<div className="card-highlight p-4">
 				<div className="flex items-center justify-between">
@@ -156,12 +180,11 @@ const SeasonRanks = ({ gameName, tagLine, region, forceUpdate }) => {
 					</h3>
 				</div>
 				<p className="text-[--text-secondary] text-sm mt-2">
-					No ranked history available
+					No ranked history available for this player.
 				</p>
 			</div>
 		);
 	}
-
 	return (
 		<div className="card-highlight">
 			<div
@@ -182,8 +205,19 @@ const SeasonRanks = ({ gameName, tagLine, region, forceUpdate }) => {
 			</div>
 
 			{isExpanded && (
-				<div className="p-4 pt-0 border-t border-[--card-border] mt-2">
-					{/* More compact layout without scrollbar */}
+				<div className="p-4 pt-0 border-t border-[--card-border]">
+					{error && (
+						<p className="text-[--error] text-xs mb-2">
+							Error refreshing: {error} (showing previous data)
+						</p>
+					)}
+
+					{isLoading && (
+						<div className="flex items-center text-xs text-[--text-secondary] mb-2">
+							<div className="loading-spinner-xs mr-2"></div>
+							Refreshing...
+						</div>
+					)}
 					<div>
 						{rankHistory.map((rank, index) => (
 							<div
@@ -191,14 +225,13 @@ const SeasonRanks = ({ gameName, tagLine, region, forceUpdate }) => {
 								className="flex items-center py-1.5 border-b border-[--card-border] last:border-b-0"
 							>
 								<div className="flex items-center gap-2 flex-1">
-									{/* Season - Made more compact */}
+									{/* Season */}
 									<div className="bg-[--card-bg] text-[--text-secondary] text-xs font-semibold py-0.5 px-2 rounded-md min-w-[50px] text-center">
 										{rank.season}
 									</div>
 
-									{/* Rank Icon & Text - Made more compact */}
+									{/* Rank */}
 									<div className="flex items-center gap-1">
-										{/* Smaller rank icon */}
 										{rank.tier ? (
 											<div className="relative w-6 h-6">
 												<Image
@@ -214,7 +247,6 @@ const SeasonRanks = ({ gameName, tagLine, region, forceUpdate }) => {
 												<span className="text-gray-600 text-xs">-</span>
 											</div>
 										)}
-
 										<span
 											className={`font-bold text-sm ${getRankColorClass(
 												rank.tier
@@ -225,8 +257,7 @@ const SeasonRanks = ({ gameName, tagLine, region, forceUpdate }) => {
 									</div>
 								</div>
 
-								{/* LP - Made more compact */}
-								{rank.lp !== undefined && (
+								{rank.lp !== undefined && rank.lp !== null && (
 									<div className="text-right">
 										<span className="text-xs text-[--text-secondary]">
 											{rank.lp} LP
