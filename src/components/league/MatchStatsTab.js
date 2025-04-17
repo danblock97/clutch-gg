@@ -80,7 +80,7 @@ export default function MatchStatsTab({
 					const itemId = p[`item${i}`];
 					if (itemId && itemId > 0) {
 						toPrefetch.push(
-							`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/item/${itemId}.png`
+							`https://ddragon.leagueoflegends.com/cdn/15.8.1/img/item/${itemId}.png`
 						);
 					}
 				}
@@ -583,7 +583,7 @@ function Participant({ p, puuid, r, getA, getPerk, arena = false }) {
 									>
 										{itemId > 0 ? (
 											<NextImage
-												src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/item/${itemId}.png`}
+												src={`https://ddragon.leagueoflegends.com/cdn/15.8.1/img/item/${itemId}.png`}
 												alt={`Item ${itemId}`}
 												width={24}
 												height={24}
@@ -600,7 +600,7 @@ function Participant({ p, puuid, r, getA, getPerk, arena = false }) {
 							<div className="w-6 h-6 bg-[--card-bg] rounded overflow-hidden">
 								{p.item6 > 0 ? (
 									<NextImage
-										src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/item/${p.item6}.png`}
+										src={`https://ddragon.leagueoflegends.com/cdn/15.8.1/img/item/${p.item6}.png`}
 										alt={`Item ${p.item6}`}
 										width={24}
 										height={24}
@@ -621,7 +621,7 @@ function Participant({ p, puuid, r, getA, getPerk, arena = false }) {
 									>
 										{itemId > 0 ? (
 											<NextImage
-												src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/item/${itemId}.png`}
+												src={`https://ddragon.leagueoflegends.com/cdn/15.8.1/img/item/${itemId}.png`}
 												alt={`Item ${itemId}`}
 												width={24}
 												height={24}

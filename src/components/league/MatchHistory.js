@@ -874,7 +874,7 @@ const MatchHistory = ({
 													<div key={idx} className="flex items-center">
 														{itemId > 0 ? (
 															<Image
-																src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/item/${itemId}.png`}
+																src={`https://ddragon.leagueoflegends.com/cdn/15.8.1/img/item/${itemId}.png`}
 																alt="Item"
 																width={28}
 																height={28}
@@ -894,7 +894,7 @@ const MatchHistory = ({
 												{items[6] > 0 ? (
 													<div className="flex items-center">
 														<Image
-															src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/item/${items[6]}.png`}
+															src={`https://ddragon.leagueoflegends.com/cdn/15.8.1/img/item/${items[6]}.png`}
 															alt="Ward"
 															width={28}
 															height={28}
@@ -914,7 +914,7 @@ const MatchHistory = ({
 													<div key={idx} className="flex items-center">
 														{itemId > 0 ? (
 															<Image
-																src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/item/${itemId}.png`}
+																src={`https://ddragon.leagueoflegends.com/cdn/15.8.1/img/item/${itemId}.png`}
 																alt="Item"
 																width={28}
 																height={28}
