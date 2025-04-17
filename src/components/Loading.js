@@ -1,91 +1,41 @@
 "use client";
 
-import React, { useRef, useEffect } from "react";
-import Image from "next/image";
+import React from "react";
 
 const Loading = ({ message = "Loading data, please wait..." }) => {
-    const spinnerRef = useRef(null);
+	return (
+		<div className="flex flex-col items-center justify-center py-16">
+			{/* App Name */}
+			<h2 className="text-2xl font-bold text-[--text-primary] mb-4">
+				ClutchGG
+			</h2>
 
-    useEffect(() => {
-        if (spinnerRef.current) {
-            // Start animation
-            spinnerRef.current.classList.add('animate-spin-slow');
+			{/* Indeterminate Progress Bar */}
+			<div className="w-full max-w-xs bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 overflow-hidden mb-6">
+				<div className="bg-gradient-to-r from-[--primary] to-[--secondary] h-2.5 rounded-full animate-progress-indeterminate"></div>
+			</div>
 
-            // Apply random starting rotation
-            const randomDeg = Math.floor(Math.random() * 360);
-            spinnerRef.current.style.transform = `rotate(${randomDeg}deg)`;
-        }
-    }, []);
+			{/* Loading message */}
+			<p className="text-[--text-secondary] text-lg font-medium">{message}</p>
 
-    return (
-        <div className="flex flex-col items-center justify-center py-16">
-            {/* Logo spinner with glow effect */}
-            <div className="relative mb-8">
-                {/* Glow effect */}
-                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[--primary] to-[--secondary] opacity-30 blur-xl"></div>
+			{/* CSS for custom animations */}
+			<style jsx global>{`
+				@keyframes progress-indeterminate {
+					0% {
+						transform: translateX(-100%);
+					}
+					100% {
+						transform: translateX(100%);
+					}
+				}
 
-                {/* Main spinner with logo */}
-                <div
-                    ref={spinnerRef}
-                    className="relative w-28 h-28 rounded-full bg-[--card-bg] p-2 shadow-xl border border-[--card-border] overflow-hidden z-10"
-                >
-                    <Image
-                        src="/images/logo.png"
-                        alt="ClutchGG Logo"
-                        fill
-                        className="object-contain p-4"
-                    />
-                </div>
-
-                {/* Circular track */}
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full border-4 border-[--card-border] opacity-30"></div>
-
-                {/* Animated spinning dot */}
-                <div className="absolute top-1/2 left-1/2 w-4 h-4 rounded-full bg-gradient-to-r from-[--primary] to-[--secondary] transform -translate-x-1/2 -translate-y-1/2 animate-orbit"></div>
-            </div>
-
-            {/* Loading message */}
-            <p className="text-[--text-secondary] text-lg font-medium animate-pulse">
-                {message}
-            </p>
-
-            {/* Loading animation dots */}
-            <div className="flex space-x-2 mt-2">
-                <div className="w-2 h-2 rounded-full bg-[--primary] animate-bounce" style={{ animationDelay: '0s' }}></div>
-                <div className="w-2 h-2 rounded-full bg-[--primary] animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                <div className="w-2 h-2 rounded-full bg-[--primary] animate-bounce" style={{ animationDelay: '0.4s' }}></div>
-            </div>
-
-            {/* CSS for custom animations */}
-            <style jsx global>{`
-                @keyframes orbit {
-                    from {
-                        transform: translate(-50%, -50%) rotate(0deg) translateX(16px) rotate(0deg);
-                    }
-                    to {
-                        transform: translate(-50%, -50%) rotate(360deg) translateX(16px) rotate(-360deg);
-                    }
-                }
-                
-                .animate-orbit {
-                    animation: orbit 2s linear infinite;
-                }
-                
-                .animate-spin-slow {
-                    animation: spin 12s linear infinite;
-                }
-                
-                @keyframes spin {
-                    from {
-                        transform: rotate(0deg);
-                    }
-                    to {
-                        transform: rotate(360deg);
-                    }
-                }
-            `}</style>
-        </div>
-    );
+				.animate-progress-indeterminate {
+					animation: progress-indeterminate 1.5s ease-in-out infinite;
+					width: 50%; /* Adjust width as needed for the visual effect */
+				}
+			`}</style>
+		</div>
+	);
 };
 
 export default Loading;
