@@ -10,11 +10,11 @@ function mapCDragonAssetPath(jsonPath) {
 	return `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default${lower}`;
 }
 
-// Function to generate TFT champion URL based on character ID with Set 13 fallback
+// Function to generate TFT champion URL based on character ID using the /game/ path
 function getTFTChampionImageUrl(characterId, championName) {
 	if (!characterId) return null;
 
-	// Skip loading images for special units like "summon" to prevent infinite loops
+	// Skip loading images for special units like "summon"
 	if (characterId.toLowerCase().includes("_summon")) {
 		return null;
 	}
@@ -23,23 +23,23 @@ function getTFTChampionImageUrl(characterId, championName) {
 	const match = characterId.match(/TFT(\d+)/i);
 	if (match && match[1]) {
 		setNumber = parseInt(match[1]);
+	} else {
+		// Cannot determine set number from characterId, return null or a placeholder
+		return null;
 	}
+
 	let championBaseName = characterId.split("_")[1];
-	if (!championBaseName) return null;
+	if (!championBaseName) return null; // Cannot determine base name
 	championBaseName = championBaseName.toLowerCase();
 
-	// Dynamic image URLs for different sets with correct paths
-	if (setNumber === 14) {
-		return {
-			primary: `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft${setNumber}_${championBaseName}/hud/tft${setNumber}_${championBaseName}_square.tft_set${setNumber}.jpg`,
-			fallback: `https://raw.communitydragon.org/latest/game/assets/characters/tft13_${championBaseName}/hud/tft13_${championBaseName}_square.tft_set13.png`,
-		};
-	}
-	if (setNumber === 13) {
-		return `https://raw.communitydragon.org/latest/game/assets/characters/tft13_${championBaseName}/hud/tft13_${championBaseName}_square.tft_set13.png`;
-	}
-	// Default fallback for other sets
-	return `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft${setNumber}_${championBaseName}/hud/tft${setNumber}_${championBaseName}_square.tft_set${setNumber}.png`;
+	// Use the consistent /game/ path
+	const basePath = `https://raw.communitydragon.org/latest/game/assets/characters/tft${setNumber}_${championBaseName}/hud/tft${setNumber}_${championBaseName}_square`;
+
+	// Return primary (.tft_setX.png) and fallback (.png) URLs
+	return {
+		primary: `${basePath}.tft_set${setNumber}.png`,
+		fallback: `${basePath}.png`,
+	};
 }
 
 // Cost-based color mapping for unit borders
@@ -408,14 +408,32 @@ export default function TopUnits({ matchDetails, summonerData }) {
 											className="object-cover"
 											unoptimized
 											onError={(e) => {
-												// Try fallback URL if available
-												if (typeof cdnUrl === "object" && cdnUrl.fallback) {
-													e.currentTarget.src = cdnUrl.fallback;
+												const imageElement = e.currentTarget;
+												// Check if the source is already the fallback URL
+												if (
+													typeof cdnUrl === "object" &&
+													cdnUrl.fallback &&
+													imageElement.src === cdnUrl.fallback
+												) {
+													// Fallback has already been tried and failed
+													imageElement.style.display = "none"; // Hide the broken image
+													const fallbackText = imageElement
+														.closest("div")
+														.querySelector(".fallback-text");
+													if (fallbackText) fallbackText.style.display = "flex"; // Show text placeholder
+												} else if (
+													typeof cdnUrl === "object" &&
+													cdnUrl.fallback
+												) {
+													// Primary failed, try the fallback URL
+													imageElement.src = cdnUrl.fallback;
 												} else {
-													// If no fallback or fallback also failed, show text fallback
-													e.currentTarget.style.display = "none";
-													const fallback = e.currentTarget.nextElementSibling;
-													if (fallback) fallback.style.display = "flex";
+													// Primary failed and there is no fallback URL (or cdnUrl wasn't an object)
+													imageElement.style.display = "none"; // Hide the broken image
+													const fallbackText = imageElement
+														.closest("div")
+														.querySelector(".fallback-text");
+													if (fallbackText) fallbackText.style.display = "flex"; // Show text placeholder
 												}
 											}}
 										/>
