@@ -4,10 +4,10 @@ import Link from "next/link";
 import { FaUsers, FaChevronDown, FaChevronUp } from "react-icons/fa";
 
 const RecentlyPlayedWith = ({
-								matchDetails,
-								selectedSummonerPUUID,
-								region,
-							}) => {
+	matchDetails,
+	selectedSummonerPUUID,
+	region,
+}) => {
 	const [isLoading, setIsLoading] = useState(false);
 	const [isExpanded, setIsExpanded] = useState(true);
 
@@ -73,9 +73,9 @@ const RecentlyPlayedWith = ({
 	};
 
 	return (
-		<div className="card-highlight">
+		<div className="card-highlight border border-[--card-border] rounded-lg overflow-hidden">
 			<div
-				className="flex items-center justify-between p-4 cursor-pointer"
+				className="flex items-center justify-between p-3 cursor-pointer"
 				onClick={toggleExpand}
 			>
 				<div className="flex items-center">
@@ -83,8 +83,10 @@ const RecentlyPlayedWith = ({
 						<FaUsers className="text-[--primary] text-lg" />
 					</div>
 					<h3 className="text-base font-semibold">
-						Teammates
-						<span className="ml-2 text-xs text-[--text-secondary] font-normal">Last 10 Games</span>
+						Recently Played
+						<span className="ml-2 text-xs text-[--text-secondary] font-normal">
+							From Last 20 Games
+						</span>
 					</h3>
 				</div>
 				<button className="text-[--text-secondary] transition-colors duration-200 hover:text-[--text-primary]">
@@ -93,86 +95,106 @@ const RecentlyPlayedWith = ({
 			</div>
 
 			{isExpanded && (
-				<div className="px-4 pb-4">
-					{teammatesData.length > 0 ? (
-						<div className="space-y-2">
-							{teammatesData.map((teammate, index) => {
-								const winRate = ((teammate.wins / teammate.gamesPlayed) * 100).toFixed(0);
-								const { riotIdGameName, riotIdTagline } = teammate;
-								const profileLink = `/league/profile?gameName=${encodeURIComponent(
-									riotIdGameName
-								)}&tagLine=${encodeURIComponent(
-									riotIdTagline
-								)}&region=${encodeURIComponent(region)}`;
+				<>
+					<hr className="border-t border-[--card-border] mx-4" />
+					<div className="px-4 pb-2 pt-2">
+						{teammatesData.length > 0 ? (
+							<div>
+								{teammatesData.map((teammate, index) => {
+									const winRate = (
+										(teammate.wins / teammate.gamesPlayed) *
+										100
+									).toFixed(0);
+									const { riotIdGameName, riotIdTagline } = teammate;
+									const profileLink = `/league/profile?gameName=${encodeURIComponent(
+										riotIdGameName
+									)}&tagLine=${encodeURIComponent(
+										riotIdTagline
+									)}&region=${encodeURIComponent(region)}`;
 
-								// Determine win rate color
-								const winRateColor =
-									winRate >= 60 ? "text-green-500" :
-										winRate >= 50 ? "text-blue-500" :
-											winRate >= 40 ? "text-yellow-500" : "text-red-500";
+									const winRateColor =
+										winRate >= 60
+											? "text-green-500"
+											: winRate >= 50
+											? "text-blue-500"
+											: winRate >= 40
+											? "text-yellow-500"
+											: "text-red-500";
 
-								return (
-									<Link key={index} href={profileLink}>
-										<div
-											onClick={(e) => handleProfileClick(e, profileLink)}
-											className="glass p-2 mb-2 rounded-lg transition-all duration-200 hover:bg-[--primary]/10 hover:scale-[1.01] cursor-pointer"
-										>
-											<div className="flex items-center justify-between">
-												{/* Left: Champion Icon & Player Info */}
-												<div className="flex items-center">
-													<div className="relative w-8 h-8 mr-2">
+									return (
+										<Link key={index} href={profileLink} legacyBehavior>
+											<a
+												onClick={(e) => handleProfileClick(e, profileLink)}
+												className="flex items-center justify-between py-1.5 border-b border-[--card-border] last:border-b-0 hover:bg-[--card-bg] cursor-pointer transition-colors duration-150 px-1"
+											>
+												<div className="flex items-center min-w-0 gap-2">
+													<div className="relative flex-shrink-0 w-6 h-6">
 														<Image
 															src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${teammate.championId}.png`}
 															alt="Champion Icon"
-															width={32}
-															height={32}
-															className="rounded-full border-2 border-[--card-border]"
+															width={24}
+															height={24}
+															className="rounded-full border border-[--card-border]"
 														/>
-														<div className="absolute -bottom-1 -right-1 bg-[--card-bg] text-[9px] px-1 rounded border border-[--card-border]">
-															{teammate.summonerLevel}
-														</div>
 													</div>
-													<div>
-														<p className="text-sm font-semibold truncate max-w-[120px]">
+													<div className="min-w-0">
+														<p className="text-sm font-medium truncate">
 															{riotIdGameName}
-															<span className="text-[--text-secondary] ml-1 text-xs">
-                                #{riotIdTagline}
-                              </span>
+															<span className="text-[--text-secondary] ml-1 text-xs font-normal">
+																#{riotIdTagline}
+															</span>
 														</p>
 													</div>
 												</div>
 
-												{/* Right: Stats */}
-												<div className="flex items-center space-x-4">
-													<div className="flex flex-col items-center">
-														<p className="text-xs text-[--text-secondary]">Games</p>
-														<p className="text-sm font-medium">{teammate.gamesPlayed}</p>
-													</div>
-													<div className="flex flex-col items-center">
-														<p className="text-xs text-[--text-secondary]">W/L</p>
-														<p className="text-sm font-medium">
-															<span className="text-[--success]">{teammate.wins}</span>
-															<span className="text-[--text-secondary] mx-1">/</span>
-															<span className="text-[--error]">{teammate.losses}</span>
+												<div className="flex items-center gap-3 flex-shrink-0 text-xs">
+													<div className="text-center w-8">
+														<p className="text-[--text-secondary] text-[10px]">
+															Games
+														</p>
+														<p className="font-medium">
+															{teammate.gamesPlayed}
 														</p>
 													</div>
-													<div className="flex flex-col items-center">
-														<p className="text-xs text-[--text-secondary]">Win %</p>
-														<p className={`text-sm font-bold ${winRateColor}`}>{winRate}%</p>
+													<div className="text-center w-12">
+														<p className="text-[--text-secondary] text-[10px]">
+															W/L
+														</p>
+														<p className="font-medium">
+															<span className="text-[--success]">
+																{teammate.wins}
+															</span>
+															<span className="text-[--text-secondary] mx-0.5">
+																/
+															</span>
+															<span className="text-[--error]">
+																{teammate.losses}
+															</span>
+														</p>
+													</div>
+													<div className="text-center w-8">
+														<p className="text-[--text-secondary] text-[10px]">
+															WR
+														</p>
+														<p className={`font-bold ${winRateColor}`}>
+															{winRate}%
+														</p>
 													</div>
 												</div>
-											</div>
-										</div>
-									</Link>
-								);
-							})}
-						</div>
-					) : (
-						<div className="bg-[--card-bg] rounded-lg p-4 text-center">
-							<p className="text-[--text-secondary]">No recurring teammates found.</p>
-						</div>
-					)}
-				</div>
+											</a>
+										</Link>
+									);
+								})}
+							</div>
+						) : (
+							<div className="bg-[--card-bg] rounded-lg p-4 text-center">
+								<p className="text-[--text-secondary]">
+									No recurring teammates found.
+								</p>
+							</div>
+						)}
+					</div>
+				</>
 			)}
 		</div>
 	);
