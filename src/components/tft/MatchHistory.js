@@ -114,6 +114,20 @@ function formatStage(round) {
 	return `Stage ${stage}-${subStage}`;
 }
 
+// Function to get gradient background based on placement
+const getGradientBackground = (placement) => {
+	if (placement === 1) {
+		// 1st place: Gold gradient
+		return "bg-gradient-to-r from-[--card-bg] via-yellow-500/20 to-[--card-bg] border border-[--card-border]";
+	} else if (placement <= 4) {
+		// 2nd-4th place: Blue gradient (Top 4)
+		return "bg-gradient-to-r from-[--card-bg] via-blue-500/20 to-[--card-bg] border border-[--card-border]";
+	} else {
+		// 5th-8th place: Red gradient (Bottom 4)
+		return "bg-gradient-to-r from-[--card-bg] via-red-600/20 to-[--card-bg] border border-[--card-border]";
+	}
+};
+
 export default function TFTMatchHistory({ matchDetails, summonerData }) {
 	const [traitsData, setTraitsData] = useState({});
 	const [itemsData, setItemsData] = useState({});
@@ -399,7 +413,9 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 											expandedMatchId === matchId ? null : matchId
 										)
 									}
-									className={`tft-match-card bg-[--background-alt] p-3 rounded-md flex gap-4 ${placementClass} shadow-sm cursor-pointer hover:bg-[--card-bg-secondary]/50 transition-colors duration-150`}
+									className={`tft-match-card bg-[--background-alt] p-3 rounded-md flex gap-4 ${getGradientBackground(
+										placement
+									)} shadow-sm cursor-pointer hover:bg-[--card-bg-secondary]/50 transition-colors duration-150`} // Apply gradient here, remove placementClass
 								>
 									{/* Companion and placement section */}
 									<div className="flex flex-col items-start flex-shrink-0">
