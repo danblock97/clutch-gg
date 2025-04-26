@@ -24,7 +24,7 @@ export default function JiraCollectors() {
 				// Bug report collector
 				const jQueryBug = window.jQuery;
 				jQueryBug.ajax({
-					url: "https://danblock1997.atlassian.net/s/d41d8cd98f00b204e9800998ecf8427e-T/xghl7j/b/9/b0105d975e9e59f24a3230a22972a71a/_/download/batch/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector-embededjs/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector-embededjs.js?locale=en-GB&collectorId=abed092e",
+					url: "https://danblock1997.atlassian.net/s/d41d8cd98f00b204e9800998ecf8427e-T/xghl7j/b/9/b0105d975e9e59f24a3230a22972a71a/_/download/batch/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector-embededjs/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector-embededjs.js?locale=en-GB&collectorId=c64ad065",
 					type: "get",
 					cache: true,
 					dataType: "script",
@@ -33,7 +33,7 @@ export default function JiraCollectors() {
 				// Feature request collector
 				const jQueryFeature = window.jQuery;
 				jQueryFeature.ajax({
-					url: "https://danblock1997.atlassian.net/s/d41d8cd98f00b204e9800998ecf8427e-T/xghl7j/b/9/b0105d975e9e59f24a3230a22972a71a/_/download/batch/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector-embededjs/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector-embededjs.js?locale=en-GB&collectorId=bacdc403",
+					url: "https://danblock1997.atlassian.net/s/d41d8cd98f00b204e9800998ecf8427e-T/xghl7j/b/9/b0105d975e9e59f24a3230a22972a71a/_/download/batch/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector-embededjs/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector-embededjs.js?locale=en-GB&collectorId=58e3f6b1",
 					type: "get",
 					cache: true,
 					dataType: "script",
@@ -50,8 +50,9 @@ export default function JiraCollectors() {
 
 				// Set up the new trigger function
 				window.ATL_JQ_PAGE_PROPS = {
-					// Bug report trigger
-					abed092e: {
+					// Bug report trigger - Use the correct collectorId 'c64ad065'
+					c64ad065: {
+						// Quote the key
 						triggerFunction: function (showCollectorDialog) {
 							// For bug reports
 							window.jQuery("#bugReportTrigger").click(function (e) {
@@ -60,8 +61,9 @@ export default function JiraCollectors() {
 							});
 						},
 					},
-					// Feature request trigger
-					bacdc403: {
+					// Feature request trigger - Use the correct collectorId '58e3f6b1'
+					"58e3f6b1": {
+						// Quote the key
 						triggerFunction: function (showCollectorDialog) {
 							// For feature requests
 							window.jQuery("#featureRequestTrigger").click(function (e) {
