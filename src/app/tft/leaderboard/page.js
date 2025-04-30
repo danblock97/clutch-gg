@@ -1,37 +1,243 @@
-import React, { Suspense } from "react";
-import LeaderboardClient from "@/components/tft/LeaderboardClient";
+"use client";
 
-export const metadata = {
-	title: "TFT Leaderboard | Clutch.gg",
-	description: "View the top ranked TFT players across different regions",
+import React, { useEffect, useState, useCallback, Suspense } from "react";
+import Loading from "@/components/Loading";
+import TFTDropdowns from "@/components/tft/Dropdowns"; // Use TFT Dropdowns
+import TFTLeaderboardTable from "@/components/tft/LeaderboardTable"; // Use TFT Table
+import ErrorPage from "@/components/ErrorPage";
+import { FaTrophy, FaSync, FaExclamationTriangle } from "react-icons/fa";
+
+// Removed metadata export as it's not allowed in client components
+
+const LeaderboardPage = () => {
+	const [leaderboardData, setLeaderboardData] = useState([]);
+	const [loading, setLoading] = useState(true);
+	const [region, setRegion] = useState("EUW1"); // Default region
+	const [tier, setTier] = useState("CHALLENGER"); // Default tier
+	const [division, setDivision] = useState("I"); // Default division
+	const [error, setError] = useState(null);
+	const [retryCountdown, setRetryCountdown] = useState(0);
+
+	const fetchLeaderboardData = useCallback(async () => {
+		setLoading(true);
+		setError(null);
+
+		try {
+			const response = await fetch(
+				// Use the updated API endpoint with all parameters
+				`/api/tft/leaderboard?region=${region}&tier=${tier}&division=${division}`
+			);
+
+			if (!response.ok) {
+				let errorData = { message: `HTTP error: ${response.status}` };
+				try {
+					// Try to parse error message from API response
+					errorData = await response.json();
+				} catch (e) {
+					// Ignore if response is not JSON
+				}
+				setLeaderboardData([]);
+				throw new Error(
+					errorData.error || `Failed to fetch: ${response.statusText}`
+				);
+			}
+
+			let data = [];
+			try {
+				data = await response.json();
+			} catch (jsonError) {
+				console.error("Failed to parse JSON response:", jsonError);
+				data = []; // Set to empty array on JSON parse error
+				throw new Error("Invalid response format from server.");
+			}
+
+			if (data && data.error) {
+				// Handle errors reported within the JSON response
+				throw new Error(data.error);
+			}
+
+			if (!Array.isArray(data)) {
+				console.error("API did not return an array:", data);
+				setLeaderboardData([]);
+				throw new Error("Unexpected data format received.");
+			} else {
+				setLeaderboardData(data);
+			}
+
+			setError(null); // Clear previous errors on success
+		} catch (error) {
+			console.error("Error fetching leaderboard data:", error);
+			setError(error.message);
+			setRetryCountdown(10); // Start countdown for retry
+		} finally {
+			setLoading(false);
+		}
+	}, [region, tier, division]);
+
+	// Fetch data on initial load and when filters change
+	useEffect(() => {
+		fetchLeaderboardData();
+	}, [fetchLeaderboardData]);
+
+	// Retry logic
+	useEffect(() => {
+		if (retryCountdown > 0) {
+			const timer = setTimeout(
+				() => setRetryCountdown(retryCountdown - 1),
+				1000
+			);
+			return () => clearTimeout(timer);
+		} else if (retryCountdown === 0 && error) {
+			// Automatically retry when countdown finishes if there was an error
+			fetchLeaderboardData();
+		}
+	}, [retryCountdown, error, fetchLeaderboardData]);
+
+	// Get background class based on tier (using TFT colors)
+	const getTierBackgroundClass = () => {
+		// Use lowercase tier for CSS variable consistency
+		const lowerTier = tier.toLowerCase();
+		if (
+			[
+				"challenger",
+				"grandmaster",
+				"master",
+				"diamond",
+				"emerald",
+				"platinum",
+				"gold",
+				"silver",
+				"bronze",
+				"iron",
+			].includes(lowerTier)
+		) {
+			return `from-[--${lowerTier}]/10 to-transparent`;
+		}
+		return "from-[--tft-primary]/10 to-transparent"; // Fallback
+	};
+
+	// Get text color class based on tier
+	const getTierColorClass = () => {
+		const lowerTier = tier.toLowerCase();
+		if (
+			[
+				"challenger",
+				"grandmaster",
+				"master",
+				"diamond",
+				"emerald",
+				"platinum",
+				"gold",
+				"silver",
+				"bronze",
+				"iron",
+			].includes(lowerTier)
+		) {
+			return `text-[--${lowerTier}]`;
+		}
+		return "text-[--tft-primary]"; // Fallback
+	};
+
+	return (
+		<div className="min-h-screen flex flex-col">
+			{/* Header Section */}
+			<div
+				className={`w-full py-16 bg-gradient-to-b ${getTierBackgroundClass()}`}
+			>
+				<div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
+					<div className="flex justify-center mb-4">
+						<div className="p-3 rounded-full bg-[--card-bg] shadow-xl">
+							{/* Use TFT color for the trophy */}
+							<FaTrophy className={`${getTierColorClass()} text-3xl`} />
+						</div>
+					</div>
+					<h1 className="text-3xl sm:text-4xl font-bold mb-4">
+						{/* Display selected tier name */}
+						{tier.charAt(0) + tier.slice(1).toLowerCase()} TFT Leaderboard
+					</h1>
+					<p className="text-[--text-secondary] max-w-2xl mx-auto">
+						Track the top Teamfight Tactics players and see where they rank.
+					</p>
+				</div>
+			</div>
+
+			{/* Filters Section */}
+			<div className="bg-[--card-bg]/50 py-6 border-y border-[--card-border]">
+				<div className="max-w-4xl mx-auto px-4 sm:px-6">
+					<div className="flex flex-col md:flex-row justify-between items-center gap-4">
+						<h2 className="text-xl font-semibold">Filter Rankings</h2>
+						{/* Use TFTDropdowns component */}
+						<TFTDropdowns
+							region={region}
+							tier={tier}
+							division={division}
+							setRegion={setRegion}
+							setTier={setTier}
+							setDivision={setDivision}
+						/>
+					</div>
+				</div>
+			</div>
+
+			{/* Content Section */}
+			<div className="flex-1 py-8">
+				<div className="max-w-6xl mx-auto px-4 sm:px-6">
+					{loading ? (
+						<div className="flex flex-col items-center justify-center py-12">
+							<Loading />
+							<p className="mt-4 text-[--text-secondary]">
+								Loading TFT leaderboard data...
+							</p>
+						</div>
+					) : error ? (
+						<div className="card-highlight py-8 text-center">
+							<FaExclamationTriangle className="text-[--error] text-4xl mx-auto mb-4" />
+							<h3 className="text-xl font-semibold mb-2">
+								Error Loading TFT Leaderboard
+							</h3>
+							<p className="text-[--text-secondary] mb-6">{error}</p>
+
+							{retryCountdown > 0 ? (
+								<p className="text-[--warning]">
+									Retrying in {retryCountdown} second
+									{retryCountdown > 1 ? "s" : ""}...
+								</p>
+							) : (
+								<button
+									onClick={fetchLeaderboardData} // Manual retry button
+									className="btn-primary inline-flex items-center"
+								>
+									<FaSync className="mr-2" /> Retry Now
+								</button>
+							)}
+						</div>
+					) : leaderboardData.length === 0 ? (
+						<div className="card-highlight py-8 text-center">
+							<h3 className="text-xl font-semibold mb-2">No Players Found</h3>
+							<p className="text-[--text-secondary]">
+								There are no players matching the selected criteria (Region:
+								{region}, Tier: {tier}, Division: {division}).
+							</p>
+						</div>
+					) : (
+						// Use TFTLeaderboardTable component
+						<TFTLeaderboardTable
+							leaderboardData={leaderboardData}
+							region={region}
+							tier={tier}
+						/>
+					)}
+				</div>
+			</div>
+		</div>
+	);
 };
 
-export default function LeaderboardPage() {
-	return (
-		<div className="min-h-screen pb-16">
-			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-				<h1 className="text-3xl font-bold text-white mb-6">TFT Leaderboard</h1>
-				<Suspense fallback={<LeaderboardSkeleton />}>
-					<LeaderboardClient />
-				</Suspense>
-			</div>
-		</div>
-	);
-}
+// Wrap with Suspense for potential future use if needed, though state handles loading now
+const LeaderboardPageWrapper = () => (
+	<Suspense fallback={<Loading />}>
+		<LeaderboardPage />
+	</Suspense>
+);
 
-function LeaderboardSkeleton() {
-	return (
-		<div className="animate-pulse">
-			<div className="flex justify-between items-center mb-6">
-				<div className="h-10 bg-gray-700 rounded w-48"></div>
-				<div className="h-10 bg-gray-700 rounded w-36"></div>
-			</div>
-			<div className="bg-gray-800 rounded-lg overflow-hidden">
-				<div className="h-12 bg-gray-700 w-full"></div>
-				{[...Array(10)].map((_, i) => (
-					<div key={i} className="border-t border-gray-700 h-16 w-full"></div>
-				))}
-			</div>
-		</div>
-	);
-}
+export default LeaderboardPageWrapper;

@@ -3,12 +3,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { FaCrown, FaMedal } from "react-icons/fa";
 
-export default function TFTLeaderboardTable({
-	data,
-	region,
-	tier = "CHALLENGER",
-}) {
-	// Function to get row highlight class based on player rank
+// Re-using the League table structure and styling
+const TFTLeaderboardTable = ({ leaderboardData, region, tier }) => {
+	// Function to get row highlight class based on player rank (identical to League)
 	const getRowHighlightClass = (index) => {
 		if (index === 0)
 			return "bg-gradient-to-r from-yellow-500/20 to-yellow-500/5"; // First place
@@ -17,7 +14,7 @@ export default function TFTLeaderboardTable({
 		return index % 2 === 0 ? "bg-[--card-bg]" : "bg-[--card-bg-secondary]"; // Alternating rows
 	};
 
-	// Function to render rank indicator
+	// Function to render rank indicator (identical to League)
 	const getRankIndicator = (index) => {
 		if (index === 0)
 			return <FaCrown className="text-yellow-500 mr-2" title="1st Place" />;
@@ -28,7 +25,7 @@ export default function TFTLeaderboardTable({
 		return null;
 	};
 
-	// Function to calculate winrate percent and color
+	// Function to calculate winrate percent and color (identical to League)
 	const getWinrateDisplay = (wins, losses) => {
 		const total = wins + losses;
 		if (total === 0) return { percent: "0.0", colorClass: "text-gray-400" };
@@ -48,9 +45,31 @@ export default function TFTLeaderboardTable({
 		};
 	};
 
+	// Get tier color class (using TFT tier names)
+	const getTierColorClass = () => {
+		const lowerTier = tier.toLowerCase();
+		if (
+			[
+				"challenger",
+				"grandmaster",
+				"master",
+				"diamond",
+				"emerald",
+				"platinum",
+				"gold",
+				"silver",
+				"bronze",
+				"iron",
+			].includes(lowerTier)
+		) {
+			return `text-[--${lowerTier}]`;
+		}
+		return "text-[--tft-primary]"; // Fallback
+	};
+
 	return (
 		<div className="w-full overflow-hidden rounded-lg border border-[--card-border] shadow-xl">
-			{/* Table Header */}
+			{/* Table Header (identical to League) */}
 			<div className="w-full bg-[--card-bg-secondary] border-b border-[--card-border] text-xs sm:text-sm text-[--text-secondary] sticky top-0 z-10">
 				<div className="grid grid-cols-12 py-3 px-4">
 					<div className="col-span-1 font-semibold">Rank</div>
@@ -62,41 +81,38 @@ export default function TFTLeaderboardTable({
 
 			{/* Table Body */}
 			<div className="max-h-[600px] overflow-y-auto custom-scrollbar">
-				{data.map((entry, index) => {
-					const winrateInfo = getWinrateDisplay(
-						entry.wins || 0,
-						entry.losses || 0
-					);
-					const gameName = entry.profileData?.gameName || "Unknown";
-					const tagLine = entry.profileData?.tagLine || "Unknown";
+				{leaderboardData.map((entry, index) => {
+					const winrateInfo = getWinrateDisplay(entry.wins, entry.losses);
+					const tierColor = getTierColorClass();
 
 					return (
 						<div
-							key={entry.summonerId || index}
-							className={`grid grid-cols-12 py-3 px-4 items-center border-b border-[--card-border] hover:bg-[--tft-primary]/5 transition-colors duration-150 ${getRowHighlightClass(
+							key={entry.summonerId} // Use summonerId as key
+							className={`grid grid-cols-12 py-3 px-4 items-center border-b border-[--card-border] hover:bg-[--primary]/5 transition-colors duration-150 ${getRowHighlightClass(
 								index
 							)}`}
 						>
-							{/* Rank Column */}
+							{/* Rank Column (identical to League) */}
 							<div className="col-span-1 font-bold flex items-center">
 								{getRankIndicator(index)}
 								{index + 1}
 							</div>
 
-							{/* Summoner Column */}
+							{/* Summoner Column - Adjusted for TFT profile link */}
 							<div className="col-span-5">
 								<Link
 									href={`/tft/profile?gameName=${encodeURIComponent(
-										gameName
+										entry.profileData?.gameName || "Unknown"
 									)}&tagLine=${encodeURIComponent(
-										tagLine
+										entry.profileData?.tagLine || "Unknown"
 									)}&region=${encodeURIComponent(region)}`}
 									className="flex items-center group"
 								>
-									{/* Profile Icon */}
+									{/* Profile Icon (using TFT profileIconId) */}
 									{entry.profileData?.profileIconId ? (
-										<div className="relative w-10 h-10 mr-3 rounded-full overflow-hidden border-2 border-[--card-border] group-hover:border-[--tft-primary] transition-colors">
+										<div className="relative w-10 h-10 mr-3 rounded-full overflow-hidden border-2 border-[--card-border] group-hover:border-[--primary] transition-colors">
 											<Image
+												// Use the correct base URL for TFT profile icons if different, assuming same for now
 												src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/${entry.profileData.profileIconId}.jpg`}
 												alt="Profile Icon"
 												fill
@@ -109,34 +125,36 @@ export default function TFTLeaderboardTable({
 										</div>
 									)}
 
-									{/* Summoner Name */}
+									{/* Summoner Name (using gameName and tagLine) */}
 									<div className="overflow-hidden">
-										<div className="font-medium text-[--text-primary] truncate group-hover:text-[--tft-primary] transition-colors">
-											{gameName}
+										<div className="font-medium text-[--text-primary] truncate group-hover:text-[--primary] transition-colors">
+											{entry.profileData?.gameName ||
+												entry.summonerName ||
+												"Unknown"}
 										</div>
 										<div className="text-xs text-[--text-secondary]">
-											#{tagLine}
+											#{entry.profileData?.tagLine || "Unknown"}
 										</div>
 									</div>
 								</Link>
 							</div>
 
-							{/* LP Column */}
+							{/* LP Column (using tier color) */}
 							<div className="col-span-2 text-center">
-								<span className={`font-bold text-[--${tier.toLowerCase()}]`}>
+								<span className={`font-bold ${tierColor}`}>
 									{entry.leaguePoints}
 								</span>
 								<span className="text-[--text-secondary] ml-1 text-sm">LP</span>
 							</div>
 
-							{/* Win Rate Column */}
+							{/* Win Rate Column (identical to League) */}
 							<div className="col-span-4">
 								<div className="flex flex-col sm:flex-row items-center justify-center gap-2">
 									{/* Win/Loss */}
 									<div className="text-sm whitespace-nowrap">
-										<span className="text-[--success]">{entry.wins || 0}W</span>
+										<span className="text-[--success]">{entry.wins}W</span>
 										<span className="text-[--text-secondary] mx-1">/</span>
-										<span className="text-[--error]">{entry.losses || 0}L</span>
+										<span className="text-[--error]">{entry.losses}L</span>
 									</div>
 
 									{/* Win Rate Bar */}
@@ -159,4 +177,6 @@ export default function TFTLeaderboardTable({
 			</div>
 		</div>
 	);
-}
+};
+
+export default TFTLeaderboardTable;
