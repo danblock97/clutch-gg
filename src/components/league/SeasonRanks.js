@@ -149,8 +149,9 @@ const SeasonRanks = ({
 
 	if (isLoading && rankHistory.length === 0) {
 		return (
-			<div className="card-highlight text-center py-6">
-				<div className="loading-spinner mx-auto"></div>
+			// Center the loading spinner and text vertically and horizontally
+			<div className="card-highlight flex flex-col items-center justify-center py-6 min-h-[100px]">
+				<div className="loading-spinner"></div>
 				<p className="text-[--text-secondary] mt-4">Loading rank history...</p>
 			</div>
 		);
@@ -222,18 +223,24 @@ const SeasonRanks = ({
 						{rankHistory.map((rank, index) => (
 							<div
 								key={index}
-								className="flex items-center py-1.5 border-b border-[--card-border] last:border-b-0"
+								// Use flexbox to align items and justify-between to push LP to the right
+								className="flex items-center justify-between py-1.5 border-b border-[--card-border] last:border-b-0"
 							>
-								<div className="flex items-center gap-2 flex-1">
-									{/* Season */}
-									<div className="bg-[--card-bg] text-[--text-secondary] text-xs font-semibold py-0.5 px-2 rounded-md min-w-[50px] text-center">
+								{/* Left side: Season and Rank */}
+								<div className="flex items-center gap-2 flex-grow">
+									{/* Season - Fixed width for alignment */}
+									<div className="bg-[--card-bg] text-[--text-secondary] text-xs font-semibold py-0.5 px-2 rounded-md w-[60px] text-center flex-shrink-0">
 										{rank.season}
 									</div>
 
-									{/* Rank */}
-									<div className="flex items-center gap-1">
+									{/* Rank - Allow this to take remaining space */}
+									<div className="flex items-center gap-1 flex-grow min-w-0">
+										{" "}
+										{/* Added min-w-0 for flex shrink */}
 										{rank.tier ? (
-											<div className="relative w-6 h-6">
+											<div className="relative w-6 h-6 flex-shrink-0">
+												{" "}
+												{/* Added flex-shrink-0 */}
 												<Image
 													src={getRankEmblemPath(rank.tier)}
 													alt={`${rank.tier} emblem`}
@@ -243,12 +250,15 @@ const SeasonRanks = ({
 												/>
 											</div>
 										) : (
-											<div className="w-6 h-6 bg-[--card-bg] rounded-full flex items-center justify-center">
+											<div className="w-6 h-6 bg-[--card-bg] rounded-full flex items-center justify-center flex-shrink-0">
+												{" "}
+												{/* Added flex-shrink-0 */}
 												<span className="text-gray-600 text-xs">-</span>
 											</div>
 										)}
 										<span
-											className={`font-bold text-sm ${getRankColorClass(
+											className={`font-bold text-sm truncate ${getRankColorClass(
+												// Added truncate
 												rank.tier
 											)}`}
 										>
@@ -257,12 +267,19 @@ const SeasonRanks = ({
 									</div>
 								</div>
 
+								{/* Right side: LP - Fixed width for alignment */}
 								{rank.lp !== undefined && rank.lp !== null && (
-									<div className="text-right">
+									<div className="text-right w-[60px] flex-shrink-0">
+										{" "}
+										{/* Fixed width and flex-shrink-0 */}
 										<span className="text-xs text-[--text-secondary]">
 											{rank.lp} LP
 										</span>
 									</div>
+								)}
+								{/* Add a placeholder div if LP is not present to maintain alignment */}
+								{(rank.lp === undefined || rank.lp === null) && (
+									<div className="w-[60px] flex-shrink-0"></div>
 								)}
 							</div>
 						))}
