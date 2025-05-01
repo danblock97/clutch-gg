@@ -1,16 +1,7 @@
 // scripts/update-profiles.js
 import { supabaseAdmin } from "../src/lib/supabase.js";
-import {
-	fetchSummonerData,
-	fetchRankedData,
-} from "../src/lib/league/leagueApi.js";
-import {
-	fetchTFTSummonerData,
-	fetchTFTRankedData,
-} from "../src/lib/tft/tftApi.js";
-import { fetchAccountData } from "../src/lib/riot/riotAccountApi.js"; // Needed to get PUUID if missing, though ideally it exists
+import { fetchAccountData } from "../src/lib/riot/riotAccountApi.js";
 
-// TODO: Consider moving regionToPlatform to a shared lib file (e.g., src/lib/utils.js)
 const regionToPlatform = {
 	BR1: "americas",
 	EUN1: "europe",
@@ -29,20 +20,37 @@ const regionToPlatform = {
 	VN2: "sea",
 };
 
-const BATCH_SIZE = 5; // Number of profiles to update per run
-const DELAY_MS = 1500; // Delay between processing each account (in milliseconds) to respect Riot API rate limits
+const BATCH_SIZE = 5;
+const DELAY_MS = 1500;
+const APP_BASE_URL = process.env.APP_BASE_URL || "http://localhost:3000";
+const UPDATE_API_KEY = process.env.UPDATE_API_KEY;
 
+if (!UPDATE_API_KEY) {
+	console.error("Error: UPDATE_API_KEY environment variable is not set.");
+	process.exit(1);
+}
+
+/**
+ * Simple delay function.
+ * @param {number} ms - Milliseconds to delay.
+ * @returns {Promise<void>}
+ */
 async function delay(ms) {
 	return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/**
+ * Fetches missing PUUID if necessary, then triggers internal API endpoints
+ * to update League and TFT profile data for a given account.
+ * @param {object} account - The account object from the database.
+ */
 async function updateAccount(account) {
 	console.log(
 		`Updating: ${account.gamename}#${account.tagline} [${account.region}] (ID: ${account.id})`
 	);
 	const platform = regionToPlatform[account.region?.toUpperCase()];
 
-	// Ensure we have a PUUID and a valid platform
+	// Fetch PUUID if it's missing
 	let puuid = account.puuid;
 	if (!puuid) {
 		console.warn(`Account ${account.id} missing PUUID. Attempting to fetch...`);
@@ -54,7 +62,6 @@ async function updateAccount(account) {
 			);
 			if (fetchedAccountData?.puuid) {
 				puuid = fetchedAccountData.puuid;
-				// Update the account in the DB with the fetched PUUID
 				await supabaseAdmin
 					.from("riot_accounts")
 					.update({ puuid: puuid })
@@ -62,9 +69,8 @@ async function updateAccount(account) {
 				console.log(`  > PUUID fetched and updated for account ${account.id}.`);
 			} else {
 				console.error(
-					`  > Failed to fetch PUUID for account ${account.id}. Skipping.`
+					`  > Failed to fetch PUUID for account ${account.id}. Skipping update for now.`
 				);
-				// Update timestamp to avoid retrying immediately
 				await supabaseAdmin
 					.from("riot_accounts")
 					.update({ updated_at: new Date() })
@@ -76,20 +82,21 @@ async function updateAccount(account) {
 				`  > Error fetching PUUID for account ${account.id}:`,
 				fetchError.message
 			);
-			// Update timestamp to avoid retrying immediately
+
 			await supabaseAdmin
 				.from("riot_accounts")
 				.update({ updated_at: new Date() })
 				.eq("id", account.id);
-			return;
+			return; // Stop processing this account on error
 		}
 	}
 
+	// Skip if the region is invalid or cannot be mapped to a platform
 	if (!platform) {
 		console.warn(
 			`Skipping account ${account.id} due to invalid region: ${account.region}.`
 		);
-		// Update timestamp to avoid retrying immediately
+		// Update timestamp to avoid retrying this account immediately
 		await supabaseAdmin
 			.from("riot_accounts")
 			.update({ updated_at: new Date() })
@@ -98,97 +105,81 @@ async function updateAccount(account) {
 	}
 
 	try {
-		// --- Fetch League Data ---
-		// Note: Fetching match history here might be too heavy/slow and hit rate limits faster.
-		// Consider only updating profile/rank data in the cron.
-		const summonerData = await fetchSummonerData(puuid, account.region);
-		if (!summonerData?.id) {
+		// Trigger League Profile Update via Internal API
+		console.log(`  > Triggering League update via API...`);
+		const leagueResponse = await fetch(`${APP_BASE_URL}/api/league/profile`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				"x-api-key": UPDATE_API_KEY,
+			},
+			body: JSON.stringify({
+				gameName: account.gamename,
+				tagLine: account.tagline,
+				region: account.region,
+			}),
+		});
+
+		if (!leagueResponse.ok) {
+			const errorData = await leagueResponse.text();
 			console.warn(
-				`  > Could not fetch League summoner data for ${puuid}. Skipping League update.`
+				`  > League API update failed for ${account.id} (${leagueResponse.status}): ${errorData}`
 			);
+			// Log failure but continue to TFT update
 		} else {
-			const rankedData = await fetchRankedData(summonerData.id, account.region);
-			// Add other essential League data fetches here if needed (e.g., mastery, but be mindful of API calls)
-
-			const leagueDataObj = {
-				profiledata: summonerData,
-				rankeddata: rankedData,
-				// championmasterydata: ...,
-				// accountdata is redundant if linking via riot_account_id
-				updatedat: new Date(),
-			};
-
-			const { error: leagueError } = await supabaseAdmin
-				.from("league_data")
-				.upsert(
-					{ riot_account_id: account.id, ...leagueDataObj },
-					{ onConflict: "riot_account_id" }
-				);
-			if (leagueError)
-				throw new Error(`League upsert error: ${leagueError.message}`);
-			console.log(`  > League data updated.`);
+			console.log(`  > League API update triggered successfully.`);
 		}
 
-		// --- Fetch TFT Data ---
-		// Note: Fetching match history here might be too heavy/slow.
-		const tftSummonerData = await fetchTFTSummonerData(puuid, account.region);
-		if (!tftSummonerData?.id) {
+		// Trigger TFT Profile Update via Internal API
+		console.log(`  > Triggering TFT update via API...`);
+		const tftResponse = await fetch(`${APP_BASE_URL}/api/tft/profile`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				"x-api-key": UPDATE_API_KEY,
+			},
+			body: JSON.stringify({
+				gameName: account.gamename,
+				tagLine: account.tagline,
+				region: account.region,
+			}),
+		});
+
+		if (!tftResponse.ok) {
+			const errorData = await tftResponse.text();
 			console.warn(
-				`  > Could not fetch TFT summoner data for ${puuid}. Skipping TFT update.`
+				`  > TFT API update failed for ${account.id} (${tftResponse.status}): ${errorData}`
 			);
 		} else {
-			const tftRankedData = await fetchTFTRankedData(
-				tftSummonerData.id,
-				account.region
-			);
-			// Add other essential TFT data fetches here if needed
-
-			const tftDataObj = {
-				profiledata: tftSummonerData,
-				rankeddata: tftRankedData,
-				// accountdata is redundant if linking via riot_account_id
-				updatedat: new Date(),
-			};
-
-			const { error: tftError } = await supabaseAdmin
-				.from("tft_data")
-				.upsert(
-					{ riot_account_id: account.id, ...tftDataObj },
-					{ onConflict: "riot_account_id" }
-				);
-			if (tftError) throw new Error(`TFT upsert error: ${tftError.message}`);
-			console.log(`  > TFT data updated.`);
+			console.log(`  > TFT API update triggered successfully.`);
 		}
 
-		// --- Update Timestamp in riot_accounts ---
-		const { error: updateTsError } = await supabaseAdmin
-			.from("riot_accounts")
-			.update({ updated_at: new Date() })
-			.eq("id", account.id);
-		if (updateTsError)
-			throw new Error(`Timestamp update error: ${updateTsError.message}`);
-
-		console.log(`Successfully updated account ${account.id}`);
+		console.log(
+			`Finished triggering updates for account ${account.id} via API.`
+		);
 	} catch (error) {
 		console.error(
-			`Failed to update account ${account.id} (${account.gamename}#${account.tagline}):`,
+			`Failed to trigger updates for account ${account.id} (${account.gamename}#${account.tagline}):`,
 			error.message
 		);
-		// Handle 429 Rate Limit specifically
+
+		// Re-throw rate limit errors to stop the batch processing
 		if (
 			error.message?.includes("429") ||
 			error.status === 429 ||
 			error.response?.status === 429
 		) {
 			console.warn("Rate limit potentially hit. Re-throwing to stop batch.");
-			throw error; // Stop processing this batch
+			throw error;
 		}
-		// Optional: Update account with error state or slightly later timestamp to avoid immediate retry loop on persistent errors
+
+		// For other errors, update the timestamp to avoid immediate retry
 		try {
 			await supabaseAdmin
 				.from("riot_accounts")
+				// Set timestamp slightly in the future to prevent rapid retries on persistent errors
 				.update({ updated_at: new Date(Date.now() + 5 * 60000) })
-				.eq("id", account.id); // Retry in 5 mins
+				.eq("id", account.id);
 			console.log(
 				`  > Set account ${account.id} to retry in 5 minutes due to error.`
 			);
@@ -201,6 +192,10 @@ async function updateAccount(account) {
 	}
 }
 
+/**
+ * Main function to fetch a batch of the least recently updated accounts
+ * and trigger updates for each.
+ */
 async function run() {
 	console.log(`[${new Date().toISOString()}] Starting profile update job...`);
 
@@ -212,7 +207,7 @@ async function run() {
 
 	if (fetchError) {
 		console.error("Error fetching accounts:", fetchError.message);
-		process.exit(1); // Exit if we can't fetch accounts
+		process.exit(1); // Exit if database connection fails
 	}
 
 	if (!accounts || accounts.length === 0) {
@@ -225,7 +220,7 @@ async function run() {
 	for (const account of accounts) {
 		try {
 			await updateAccount(account);
-			// Only delay if we are continuing to the next account
+			// Delay before processing the next account (if any)
 			if (accounts.indexOf(account) < accounts.length - 1) {
 				console.log(`Waiting ${DELAY_MS}ms before next account...`);
 				await delay(DELAY_MS);
@@ -238,18 +233,15 @@ async function run() {
 				error.response?.status === 429
 			) {
 				console.error(
-					"Rate limit error encountered during batch processing. Stopping current run."
+					"Rate limit error encountered. Stopping current batch run."
 				);
-				// Exit the loop early if rate limited
-				break;
+				break; // Exit the loop early if rate limited
 			} else {
-				// Log other errors from updateAccount (already logged within the function)
-				// Decide if you want to continue the batch or stop on any error
+				// Log other errors (already logged within updateAccount)
+				// Continue processing the rest of the batch for non-rate-limit errors
 				console.error(
 					`Non-rate-limit error processing account ${account.id}. Continuing batch...`
 				);
-				// Add a small delay even on error before the next attempt?
-				// await delay(DELAY_MS / 2);
 			}
 		}
 	}
@@ -257,6 +249,7 @@ async function run() {
 	console.log(`[${new Date().toISOString()}] Profile update job finished.`);
 }
 
+// Execute the main function and handle any top-level unhandled errors
 run().catch((err) => {
 	console.error("Unhandled error during cron job execution:", err);
 	process.exit(1); // Exit with error code
