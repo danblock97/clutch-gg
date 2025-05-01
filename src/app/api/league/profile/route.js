@@ -185,6 +185,21 @@ export async function GET(req) {
 			.single();
 		if (leagueError) throw leagueError;
 
+		// Explicitly update the updated_at timestamp for the riot_account
+		const { error: updateTsError } = await supabaseAdmin
+			.from("riot_accounts")
+			.update({ updated_at: new Date() })
+			.eq("id", riotAccount.id);
+
+		if (updateTsError) {
+			// Log the error but don't necessarily fail the whole request,
+			// as the main profile data was updated.
+			console.error(
+				`Failed to update timestamp for riot_account ${riotAccount.id}:`,
+				updateTsError
+			);
+		}
+
 		if (!leagueRecord) {
 			const { data: selectedLeagueData, error: selectError } = await supabase
 				.from("league_data")
