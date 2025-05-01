@@ -23,7 +23,7 @@ const regionToPlatform = {
 const BATCH_SIZE = 5;
 const DELAY_MS = 1500;
 const APP_BASE_URL = process.env.APP_BASE_URL || "http://localhost:3000";
-const UPDATE_API_KEY = process.env.UPDATE_API_KEY;
+const UPDATE_API_KEY = process.env.NEXT_PUBLIC_UPDATE_API_KEY;
 
 if (!UPDATE_API_KEY) {
 	console.error("Error: UPDATE_API_KEY environment variable is not set.");
