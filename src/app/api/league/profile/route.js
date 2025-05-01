@@ -28,6 +28,25 @@ const regionToPlatform = {
 	VN2: "sea",
 };
 
+// Separate mapping for Match-V5 endpoints as OC1 uses SEA for matches
+const regionToMatchPlatform = {
+	BR1: "americas",
+	EUN1: "europe",
+	EUW1: "europe",
+	JP1: "asia",
+	KR: "asia",
+	LA1: "americas",
+	LA2: "americas",
+	ME1: "europe",
+	NA1: "americas",
+	OC1: "sea", // Match-V5 uses SEA for OC1
+	RU: "europe",
+	SG2: "sea",
+	TR1: "europe",
+	TW2: "sea",
+	VN2: "sea",
+};
+
 export async function GET(req) {
 	const { searchParams } = new URL(req.url);
 	const gameName = searchParams.get("gameName");
@@ -45,17 +64,19 @@ export async function GET(req) {
 	try {
 		// Normalize region to uppercase to ensure API compatibility
 		const normalizedRegion = region.toUpperCase();
-		// Get the corresponding platform for the region
+		// Get the corresponding platform for the region (Account/Spectator APIs)
 		const platform = regionToPlatform[normalizedRegion];
+		// Get the corresponding platform for Match-V5 APIs
+		const matchPlatform = regionToMatchPlatform[normalizedRegion];
 
-		if (!platform) {
+		if (!platform || !matchPlatform) {
 			return new Response(
 				JSON.stringify({ error: `Invalid region: ${region}` }),
 				{ status: 400, headers: { "Content-Type": "application/json" } }
 			);
 		}
 
-		// Fetch account data to get the puuid.
+		// Fetch account data to get the puuid. Uses 'platform'
 		const accountData = await fetchAccountData(gameName, tagLine, platform);
 
 		if (!accountData?.puuid) {
@@ -139,13 +160,13 @@ export async function GET(req) {
 		const summonerData = await fetchSummonerData(puuid, region);
 		const [rankedData, matchIds] = await Promise.all([
 			fetchRankedData(summonerData.id, region),
-			fetchMatchIds(puuid, platform),
+			fetchMatchIds(puuid, matchPlatform), // Use matchPlatform
 		]);
 
 		// Fetch match details concurrently.
 		const matchDetails = await Promise.all(
 			matchIds.map(async (matchId) => {
-				const matchDetail = await fetchMatchDetail(matchId, platform);
+				const matchDetail = await fetchMatchDetail(matchId, matchPlatform); // Use matchPlatform
 				if (matchDetail)
 					await upsertMatchDetail(matchId, summonerData.puuid, matchDetail);
 				return matchDetail;
@@ -155,7 +176,7 @@ export async function GET(req) {
 		// Execute champion mastery and live game data calls concurrently.
 		const [championMasteryData, liveGameData] = await Promise.all([
 			fetchChampionMasteryData(puuid, region),
-			fetchLiveGameData(summonerData.puuid, region, platform),
+			fetchLiveGameData(summonerData.puuid, region, platform), // Use platform
 		]);
 
 		const leagueDataObj = {

@@ -20,7 +20,7 @@ const regionToPlatform = {
 	LA2: "americas",
 	ME1: "europe",
 	NA1: "americas",
-	OC1: "sea",
+	OC1: "americas",
 	RU: "europe",
 	SG2: "sea",
 	TR1: "europe",
