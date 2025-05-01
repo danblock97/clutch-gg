@@ -1,5 +1,11 @@
-import React from "react";
-import { FaGlobeAmericas, FaTrophy, FaChevronDown } from "react-icons/fa";
+import React, { useState, useRef, useEffect } from "react";
+import Image from "next/image";
+import {
+	FaGlobeAmericas,
+	FaTrophy,
+	FaChevronDown,
+	FaChevronUp,
+} from "react-icons/fa";
 
 // Region mappings (TFT specific, ensure these are correct)
 const regionMappings = {
@@ -39,7 +45,7 @@ const divisionMappings = {
 	IV: "IV",
 };
 
-// Re-use the CustomSelect component from League Dropdowns
+// Re-use the CustomSelect component logic from League Dropdowns
 const CustomSelect = ({
 	label,
 	icon,
@@ -48,56 +54,94 @@ const CustomSelect = ({
 	onChange,
 	disabled = false,
 }) => {
-	return (
-		<div className="relative">
-			<label className="text-xs text-[--text-secondary] mb-1 block">
-				{label}
-			</label>
-			<div
-				className={`relative bg-[--card-bg] rounded-lg overflow-hidden border border-[--card-border] ${
-					disabled ? "opacity-60" : "hover:border-[--primary]"
-				} transition-colors`}
+	const [isOpen, setIsOpen] = useState(false);
+	const selectRef = useRef(null);
+	const buttonRef = useRef(null);
+	const [dropdownWidth, setDropdownWidth] = useState(0);
+
+	useEffect(() => {
+		const handleClickOutside = (event) => {
+			if (selectRef.current && !selectRef.current.contains(event.target)) {
+				setIsOpen(false);
+			}
+		};
+		document.addEventListener("mousedown", handleClickOutside);
+		return () => {
+			document.removeEventListener("mousedown", handleClickOutside);
+		};
+	}, []);
+
+	useEffect(() => {
+		if (buttonRef.current) {
+			setDropdownWidth(buttonRef.current.offsetWidth);
+		}
+	}, [value]); // Recalculate width if value changes
+
+	const handleSelect = (optionValue) => {
+		onChange({ target: { value: optionValue } });
+		setIsOpen(false);
+	};
+
+	const getOptionDisplay = (optionKey) => {
+		const option = options[optionKey];
+		const isTier = label === "Tier";
+		const optionName = typeof option === "object" ? option.name : option;
+		const tierKeyLower = optionKey.toLowerCase();
+		// Assuming TFT emblems follow the same naming convention
+		const emblemPath = isTier
+			? `/images/league/rankedEmblems/${tierKeyLower}.webp`
+			: null;
+
+		return (
+			<li
+				key={optionKey}
+				className={`px-3 py-2 cursor-pointer hover:bg-[--primary]/10 flex items-center gap-2 ${
+					isTier ? "text-white" : "text-[--text-primary]" // White text for tiers
+				}`}
+				onClick={() => handleSelect(optionKey)}
 			>
-				{/* Custom select header */}
-				<div className="flex items-center gap-2 pr-10 pl-3 py-2">
+				{isTier && emblemPath && (
+					<Image
+						src={emblemPath}
+						alt={`${optionName} Emblem`}
+						width={20}
+						height={20}
+						className="w-5 h-5"
+					/>
+				)}
+				{/* Add region flag logic here if needed */}
+				<span>{optionName}</span>
+			</li>
+		);
+	};
+
+	const displayValue =
+		typeof options[value] === "object" ? options[value].name : options[value];
+
+	return (
+		<div className="relative w-full sm:w-48" ref={selectRef}>
+			<button
+				ref={buttonRef}
+				onClick={() => setIsOpen(!isOpen)}
+				disabled={disabled}
+				className={`flex items-center justify-between w-full px-3 py-2 text-sm rounded-md border border-[--card-border] bg-[--card-bg] hover:bg-[--card-bg-secondary] focus:outline-none focus:ring-1 focus:ring-[--primary] transition-colors duration-150 ${
+					disabled ? "opacity-50 cursor-not-allowed" : ""
+				}`}
+			>
+				<div className="flex items-center gap-2">
 					{icon}
-					<select
-						value={value}
-						onChange={onChange}
-						disabled={disabled}
-						className="appearance-none bg-transparent w-full focus:outline-none text-sm cursor-pointer disabled:cursor-not-allowed"
-						style={{
-							colorScheme: "dark",
-							backgroundColor: "var(--card-bg)",
-							color: "var(--text-primary)",
-						}}
-					>
-						{Object.entries(options).map(([key, option]) => {
-							// Handle both simple and complex options
-							const optionValue = key;
-							const optionLabel =
-								typeof option === "object" ? option.name : option;
-							const optionColor =
-								typeof option === "object" ? option.color : "";
-
-							return (
-								<option
-									key={optionValue}
-									value={optionValue}
-									className={optionColor} // Apply color class if available
-								>
-									{optionLabel}
-								</option>
-							);
-						})}
-					</select>
-
-					{/* Dropdown arrow */}
-					<div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-						<FaChevronDown className="text-[--text-secondary]" />
-					</div>
+					<span className="font-medium">{displayValue}</span>
 				</div>
-			</div>
+				{isOpen ? <FaChevronUp /> : <FaChevronDown />}
+			</button>
+			{isOpen && !disabled && (
+				<ul
+					className="absolute z-20 mt-1 bg-[--card-bg-secondary] border border-[--card-border] rounded-md shadow-lg overflow-hidden custom-scrollbar max-h-60 overflow-y-auto"
+					style={{ width: `${dropdownWidth}px` }} // Set width dynamically
+				>
+					{Object.keys(options).map(getOptionDisplay)}
+				</ul>
+			)}
 		</div>
 	);
 };
