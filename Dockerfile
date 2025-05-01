@@ -35,6 +35,7 @@ COPY --from=builder /app/public ./public
 # Copy necessary files for scripts
 COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
+COPY --from=builder --chown=nextjs:nodejs /app/src/lib ./src/lib
 
 # Set the correct permission for prerender cache
 RUN mkdir .next
