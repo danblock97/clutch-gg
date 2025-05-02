@@ -6,7 +6,6 @@ import NavBar from "@/components/NavBar";
 import Footer from "@/components/Footer";
 import OutageBanner from "@/components/OutageBanner";
 import FeatureAnnouncementBanner from "@/components/FeatureAnnouncementBanner";
-import JiraCollectors from "@/components/JiraCollectors";
 import { useState, Suspense } from "react";
 import { metadata } from "./metadata";
 import { GameTypeProvider } from "@/context/GameTypeContext";
@@ -48,7 +47,6 @@ export default function RootLayout({ children }) {
 			<body className={inter.className}>
 				<GameTypeProvider>
 					<AuthProvider>
-						<JiraCollectors />
 						{isOutageBannerVisible && (
 							<OutageBanner
 								message={outageMessage}

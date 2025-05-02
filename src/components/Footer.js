@@ -159,22 +159,13 @@ const Footer = () => {
 								</Link>
 							</li>
 							<li>
-								<button
-									id="bugReportTrigger"
-									className="text-sm hover:text-[--primary] transition-colors inline-flex items-center bg-transparent border-none p-0 cursor-pointer"
-								>
-									<FaBug className="mr-2 text-xs" />
-									Report Bug
-								</button>
-							</li>
-							<li>
-								<button
-									id="featureRequestTrigger"
-									className="text-sm hover:text-[--primary] transition-colors inline-flex items-center bg-transparent border-none p-0 cursor-pointer"
+								<Link
+									href="/legal/support"
+									className="text-sm hover:text-[--primary] transition-colors inline-flex items-center"
 								>
 									<FaLightbulb className="mr-2 text-xs" />
-									Request Feature
-								</button>
+									Need help? Contact Us
+								</Link>
 							</li>
 						</ul>
 					</div>
