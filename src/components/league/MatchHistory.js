@@ -94,8 +94,6 @@ const getQueueName = (queueId) => {
 			return "ARAM";
 		case 480:
 			return "Swiftplay";
-		case 490:
-			return "Normal (Quickplay)";
 		case 720:
 			return "ARAM (Clash)";
 		case 830:
@@ -141,11 +139,10 @@ const queues = [
 	{ id: 420, name: "Ranked Solo/Duo" },
 	{ id: 440, name: "Ranked Flex" },
 	{ id: 450, name: "ARAM" },
-	{ id: 490, name: "Normal (Quickplay)" },
+	{ id: 480, name: "Swiftplay" },
 	{ id: 400, name: "Normal (Draft)" },
 	{ id: 900, name: "ARURF" },
 	{ id: 1700, name: "Arena" },
-	{ id: 1710, name: "Arena" },
 ];
 
 const getPerformanceTags = (match, currentPlayer) => {
@@ -434,8 +431,17 @@ const MatchHistory = ({
 		if (selectedLane && playerLane !== selectedLane) {
 			return false;
 		}
-		if (selectedQueue && match.info.queueId !== selectedQueue) {
-			return false;
+		// Updated queue filtering logic
+		if (selectedQueue) {
+			if (selectedQueue === 1700) {
+				// If Arena is selected, filter for both 1700 and 1710
+				if (match.info.queueId !== 1700 && match.info.queueId !== 1710) {
+					return false;
+				}
+			} else if (match.info.queueId !== selectedQueue) {
+				// Standard filtering for other queues
+				return false;
+			}
 		}
 		return true;
 	});
@@ -1092,3 +1098,4 @@ const MatchHistory = ({
 };
 
 export default MatchHistory;
+
