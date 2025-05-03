@@ -2,7 +2,7 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FaSearch, FaDiscord, FaHome } from "react-icons/fa";
+import { FaSearch, FaTicketAlt, FaHome } from "react-icons/fa";
 
 const NoProfileFound = () => {
 	const router = useRouter();
@@ -51,19 +51,17 @@ const NoProfileFound = () => {
 				</button>
 			</div>
 
-			{/* Discord Support Link */}
+			{/* Support Link */}
 			<div className="mt-8 border-t border-[--card-border] pt-6 w-full max-w-md">
 				<p className="text-sm text-[--text-secondary] mb-4">
 					Need help or experiencing an issue?
 				</p>
 				<Link
-					href="https://discord.gg/BeszQxTn9D"
-					target="_blank"
-					rel="noopener noreferrer"
-					className="flex items-center justify-center gap-2 bg-[#5865F2] hover:bg-[#4752C4] text-white rounded-lg px-4 py-2 transition-colors"
+					href="/legal/support"
+					className="btn-secondary flex items-center justify-center gap-2 rounded-lg px-4 py-2 transition-colors"
 				>
-					<FaDiscord />
-					<span>Join Our Discord Support Server</span>
+					<FaTicketAlt />
+					<span>Raise a ticket straight to the developers</span>{" "}
 				</Link>
 			</div>
 		</div>

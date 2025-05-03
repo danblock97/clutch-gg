@@ -14,6 +14,30 @@ import {
 	getCompanionIconUrl,
 } from "@/lib/tft/companionsApi";
 
+function useBreakpoint() {
+	const [breakpoint, setBreakpoint] = useState("mobile");
+
+	useEffect(() => {
+		function handleResize() {
+			const width = window.innerWidth;
+			if (width < 768) {
+				setBreakpoint("mobile");
+			} else if (width < 1024) {
+				setBreakpoint("md");
+			} else {
+				setBreakpoint("lg");
+			}
+		}
+
+		handleResize();
+
+		window.addEventListener("resize", handleResize);
+		return () => window.removeEventListener("resize", handleResize);
+	}, []);
+
+	return breakpoint;
+}
+
 // Helper function to properly map Community Dragon asset paths
 function mapCDragonAssetPath(jsonPath) {
 	if (!jsonPath) return null;
@@ -138,6 +162,7 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 	const [currentPage, setCurrentPage] = useState(1);
 	const [companionsData, setCompanionsData] = useState({});
 	const matchesPerPage = 10;
+	const breakpoint = useBreakpoint();
 
 	// Fetch TFT data (traits, items, champions, companions)
 	useEffect(() => {
@@ -327,7 +352,7 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 	}
 
 	return (
-		<div className="space-y-2">
+		<div className="space-y-2 overflow-x-auto">
 			{Object.entries(matchesByDay).map(([day, matches]) => (
 				<div key={day} className="mb-4">
 					<h2 className="text-xl font-semibold text-[--text-primary] my-4">
@@ -406,16 +431,19 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 							: null;
 
 						return (
-							<div key={matchId} className="mb-3">
+							<div key={matchId} className="mb-3 overflow-x-auto">
 								<div
-									onClick={() =>
-										setExpandedMatchId(
-											expandedMatchId === matchId ? null : matchId
-										)
+									onClick={
+										breakpoint !== "mobile"
+											? () =>
+													setExpandedMatchId(
+														expandedMatchId === matchId ? null : matchId
+													)
+											: undefined
 									}
 									className={`tft-match-card bg-[--background-alt] p-3 rounded-md flex gap-4 ${getGradientBackground(
 										placement
-									)} shadow-sm cursor-pointer hover:bg-[--card-bg-secondary]/50 transition-colors duration-150`} // Apply gradient here, remove placementClass
+									)} shadow-sm ${breakpoint !== "mobile" ? "cursor-pointer" : ""} hover:bg-[--card-bg-secondary]/50 transition-colors duration-150 min-w-[768px]`} // Apply gradient here, remove placementClass
 								>
 									{/* Companion and placement section */}
 									<div className="flex flex-col items-start flex-shrink-0">
@@ -736,20 +764,22 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 											{formattedGameType}
 										</div>
 
-										{/* Expand/collapse indicator */}
-										<div className="text-gray-400 mt-auto">
-											{expandedMatchId === matchId ? (
-												<FaChevronUp className="w-4 h-4" />
-											) : (
-												<FaChevronDown className="w-4 h-4" />
-											)}
-										</div>
+										{/* Expand/collapse indicator - only show on non-mobile devices */}
+										{breakpoint !== "mobile" && (
+											<div className="text-gray-400 mt-auto">
+												{expandedMatchId === matchId ? (
+													<FaChevronUp className="w-4 h-4" />
+												) : (
+													<FaChevronDown className="w-4 h-4" />
+												)}
+											</div>
+										)}
 									</div>
 								</div>
 
 								{/* Expanded Match Details */}
 								{expandedMatchId === matchId && (
-									<div className="mb-4 animate-fadeIn">
+									<div className="mb-4 animate-fadeIn overflow-x-auto">
 										<TFTMatchDetails
 											matchDetails={matchDetails}
 											matchId={matchId}
