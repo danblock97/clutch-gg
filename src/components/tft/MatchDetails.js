@@ -374,7 +374,7 @@ export default function TFTMatchDetails({
 	participants.sort((a, b) => a.placement - b.placement); // Sort by placement
 
 	return (
-		<div className="card-highlight overflow-hidden shadow-xl">
+		<div className="card-highlight overflow-hidden shadow-xl min-w-[768px] overflow-x-auto">
 			{/* Table Header Row */}
 			<div className="flex items-center px-3 py-1.5 bg-black/30 text-xs font-semibold text-gray-400 border-b border-gray-700/50 sticky top-0 z-20">
 				<div className="w-[4%] text-center">#</div>
