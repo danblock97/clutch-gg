@@ -475,7 +475,9 @@ export default function LiveGame({ liveGameData, region }) {
 						{/* Rank Display */}
 						<div className="flex items-center mt-1">
 							{shortRank && shortRank !== "unranked" && (
-								<div className="relative w-5 h-5 mr-1.5">
+								<div className="relative w-4 h-4 mr-1 flex-shrink-0">
+									{" "}
+									{/* Reduced size and margin */}
 									<Image
 										src={`/images/league/rankedEmblems/${shortRank}.webp`}
 										alt=""
@@ -484,18 +486,23 @@ export default function LiveGame({ liveGameData, region }) {
 									/>
 								</div>
 							)}
-							<span className="text-sm font-medium truncate">
+							<div className="text-xs font-medium truncate flex flex-col sm:flex-row sm:items-center">
+								{" "}
+								{/* Adjusted font size and flex for wrapping */}
 								{rankTxt !== "Unranked" ? (
 									<>
-										{rankTxt}{" "}
-										<span className="text-[--primary] font-bold">
+										<span className="truncate">{rankTxt}</span>{" "}
+										{/* Ensure rank text truncates */}
+										<span className="text-[--primary] font-bold ml-0 sm:ml-1">
+											{" "}
+											{/* Adjusted margin for stacking/horizontal */}
 											{p.lp} LP
 										</span>
 									</>
 								) : (
 									"Unranked"
 								)}
-							</span>
+							</div>
 						</div>
 					</div>
 				</div>
