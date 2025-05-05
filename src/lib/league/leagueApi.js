@@ -82,7 +82,33 @@ export const fetchMatchDetail = async (matchId, platform) => {
 	if (!matchDetailResponse.ok) {
 		return null;
 	}
-	return matchDetailResponse.json();
+
+	const matchData = await matchDetailResponse.json();
+
+	// Extract the region from the first participant's puuid
+	// This is needed for fetching rank data
+	if (matchData.metadata && matchData.info && matchData.info.participants && matchData.info.participants.length > 0) {
+		// Get the first participant's puuid to determine the region
+		const firstPuuid = matchData.info.participants[0].puuid;
+		// Extract region code from the matchId (e.g., "NA1_123456789" -> "NA1")
+		const regionCode = matchId.split('_')[0];
+
+		// Enrich participants with rank data
+		matchData.info.participants = await Promise.all(
+			matchData.info.participants.map(async (participant) => {
+				try {
+					// Fetch rank data for this participant
+					const rankData = await fetchParticipantRank(participant.puuid, regionCode);
+					return { ...participant, ...rankData };
+				} catch (error) {
+					console.error(`Error fetching rank for participant ${participant.puuid}:`, error);
+					return participant;
+				}
+			})
+		);
+	}
+
+	return matchData;
 };
 
 /**
@@ -184,6 +210,63 @@ export const fetchAdditionalData = async (summonerId, puuid, region) => {
 			losses: 0,
 			gameName: "",
 			tagLine: "",
+			summonerLevel: 0,
+		};
+	}
+};
+
+/**
+ * Fetch participant rank data for match history enrichment.
+ */
+export const fetchParticipantRank = async (puuid, region) => {
+	try {
+		// Ensure region is uppercase for API compatibility
+		const normalizedRegion = region.toUpperCase();
+
+		// First, get the summoner ID using the puuid
+		const summonerResponse = await fetch(
+			`https://${normalizedRegion}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}`,
+			{ headers: { "X-Riot-Token": RIOT_API_KEY } }
+		);
+
+		if (!summonerResponse.ok) {
+			throw new Error(`Failed to fetch summoner data for puuid: ${puuid}`);
+		}
+
+		const summonerData = await summonerResponse.json();
+		const summonerId = summonerData.id;
+
+		// Then, fetch ranked data using the summoner ID
+		const rankedResponse = await fetch(
+			`https://${normalizedRegion}.api.riotgames.com/lol/league/v4/entries/by-summoner/${summonerId}`,
+			{ headers: { "X-Riot-Token": RIOT_API_KEY } }
+		);
+
+		if (!rankedResponse.ok) {
+			throw new Error(`Failed to fetch ranked data for summonerId: ${summonerId}`);
+		}
+
+		const rankedData = await rankedResponse.json();
+		const soloQueueData = rankedData.find(
+			(queue) => queue.queueType === "RANKED_SOLO_5x5"
+		);
+
+		return {
+			rank: soloQueueData
+				? `${soloQueueData.tier} ${soloQueueData.rank}`
+				: "Unranked",
+			lp: soloQueueData ? soloQueueData.leaguePoints : 0,
+			wins: soloQueueData ? soloQueueData.wins : 0,
+			losses: soloQueueData ? soloQueueData.losses : 0,
+			summonerLevel: summonerData.summonerLevel,
+		};
+	} catch (error) {
+		console.error(`Error in fetchParticipantRank:`, error);
+		return {
+			rank: "Unranked",
+			lp: 0,
+			wins: 0,
+			losses: 0,
 			summonerLevel: 0,
 		};
 	}

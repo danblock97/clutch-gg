@@ -335,7 +335,7 @@ const getGradientBackground = (match, currentPlayer, isRemake, isMVP) => {
 	if (isMVP)
 		return "bg-gradient-to-r from-[--card-bg] via-yellow-600/20 to-[--card-bg] border border-[--card-border]";
 	if (isRemake)
-		return "bg-gradient-to-r from-[--card-bg] via-yellow-600/20 to-[--card-bg] border border-[--card-border]";
+		return "bg-gradient-to-r from-[--card-bg] via-gray-500/20 to-[--card-bg] border border-[--card-border]";
 	return currentPlayer.win
 		? "bg-gradient-to-r from-[--card-bg] via-green-900/20 to-[--card-bg] border border-[--card-border]"
 		: "bg-gradient-to-r from-[--card-bg] via-red-900/20 to-[--card-bg] border border-[--card-border]";
@@ -360,6 +360,89 @@ const normaliseTeamPosition = (position) => {
 		default:
 			return position.toUpperCase();
 	}
+};
+
+// Calculate average rank for a match
+const calculateAverageRank = (participants) => {
+	// Check if participants have rank data
+	const hasRankData = participants.some(p => p.rank);
+	if (!hasRankData) return null;
+
+	// Define rank tiers and their numeric values
+	const rankTiers = {
+		"IRON": 0,
+		"BRONZE": 1,
+		"SILVER": 2,
+		"GOLD": 3,
+		"PLATINUM": 4,
+		"EMERALD": 5,
+		"DIAMOND": 6,
+		"MASTER": 7,
+		"GRANDMASTER": 8,
+		"CHALLENGER": 9
+	};
+
+	// Define rank divisions and their numeric values
+	const rankDivisions = {
+		"IV": 0,
+		"III": 1,
+		"II": 2,
+		"I": 3
+	};
+
+	// Filter out participants without rank data or with "Unranked"
+	const rankedParticipants = participants.filter(p => 
+		p.rank && p.rank.toLowerCase() !== "unranked"
+	);
+
+	if (rankedParticipants.length === 0) return "Unranked";
+
+	// Calculate average numeric rank
+	let totalRankValue = 0;
+
+	rankedParticipants.forEach(p => {
+		const rankParts = p.rank.split(" ");
+		const tier = rankParts[0].toUpperCase();
+		const division = rankParts[1] || "I";
+
+		// Calculate numeric value for this rank
+		const tierValue = rankTiers[tier] || 0;
+		const divisionValue = rankDivisions[division] || 0;
+
+		// Higher tiers (like Diamond) have higher values
+		totalRankValue += (tierValue * 4) + divisionValue;
+	});
+
+	const averageRankValue = totalRankValue / rankedParticipants.length;
+
+	// Convert back to tier and division
+	const averageTierValue = Math.floor(averageRankValue / 4);
+	const averageDivisionValue = Math.round(averageRankValue % 4);
+
+	// Get tier name from value
+	let averageTier = "Unranked";
+	for (const [tier, value] of Object.entries(rankTiers)) {
+		if (value === averageTierValue) {
+			averageTier = tier.charAt(0) + tier.slice(1).toLowerCase();
+			break;
+		}
+	}
+
+	// Get division name from value
+	let averageDivision = "IV";
+	for (const [division, value] of Object.entries(rankDivisions)) {
+		if (value === averageDivisionValue) {
+			averageDivision = division;
+			break;
+		}
+	}
+
+	// For Master+ tiers, don't show division
+	if (averageTierValue >= 7) {
+		return averageTier;
+	}
+
+	return `${averageTier} ${averageDivision}`;
 };
 
 const MatchHistory = ({
@@ -816,6 +899,39 @@ const MatchHistory = ({
 																/>
 															)}
 													</p>
+													<p>•{" "}</p>
+													{/* Average Rank Display */}
+													{match.info.queueId !== 1700 &&
+														match.info.queueId !== 1710 && (
+															<p className="text-sm flex items-center mt-1">
+																{(() => {
+																	const avgRank = calculateAverageRank(participants);
+																	if (!avgRank) return null;
+
+																	const shortRank = avgRank.toLowerCase() !== "unranked" 
+																		? avgRank.split(" ")[0].toLowerCase() 
+																		: null;
+
+																	return (
+																		<>
+																			{shortRank && (
+																				<div className="relative w-4 h-4 mr-1 flex-shrink-0">
+																					<Image
+																						src={`/images/league/rankedEmblems/${shortRank}.webp`}
+																						alt=""
+																						fill
+																						className="object-contain"
+																					/>
+																				</div>
+																			)}
+																			<span className={shortRank ? "text-[--primary]" : "text-[--text-secondary]"}>
+																				{avgRank}
+																			</span>
+																		</>
+																	);
+																})()}
+															</p>
+														)}
 												</div>
 												<div className="flex">
 													<div className="flex flex-col justify-center mr-8">
@@ -939,9 +1055,10 @@ const MatchHistory = ({
 												))}
 											</div>
 										</div>
-										{/* Display tags for all match types EXCEPT Arena mode */}
+										{/* Display tags for all match types EXCEPT Arena mode and remakes */}
 										{match.info.queueId !== 1700 &&
-											match.info.queueId !== 1710 && (
+											match.info.queueId !== 1710 &&
+											!isRemake && (
 												<div className="flex flex-wrap justify-start space-x-2">
 													{tags.slice(0, maxTagsToShow)}
 												</div>
@@ -1098,4 +1215,3 @@ const MatchHistory = ({
 };
 
 export default MatchHistory;
-
