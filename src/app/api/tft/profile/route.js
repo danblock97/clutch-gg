@@ -153,6 +153,29 @@ export async function GET(req) {
 			})
 		);
 
+		// Fetch all stored matches for this player from the database
+		const { data: storedMatches, error: storedMatchesError } = await supabase
+			.from("tft_matches")
+			.select("matchid")
+			.eq("playerid", summonerData.puuid);
+
+		if (storedMatchesError) throw storedMatchesError;
+
+		// Get match IDs that are in the database but not in the current matchIds
+		const storedMatchIds = storedMatches.map(match => match.matchid);
+		const additionalMatchIds = storedMatchIds.filter(id => !matchIds.includes(id));
+
+		// Fetch details for additional matches
+		const additionalMatchDetails = await Promise.all(
+			additionalMatchIds.map(async (matchId) => {
+				const matchDetail = await fetchTFTMatchDetail(matchId, platform);
+				return matchDetail;
+			})
+		);
+
+		// Combine all match details
+		const allMatchDetails = [...matchDetails, ...additionalMatchDetails.filter(Boolean)];
+
 		const tftDataObj = {
 			profiledata: summonerData,
 			accountdata: {
@@ -161,7 +184,7 @@ export async function GET(req) {
 			},
 			rankeddata: rankedData,
 			matchdata: matchIds,
-			matchdetails: matchDetails,
+			matchdetails: allMatchDetails,
 			livegamedata: liveGameData,
 			updatedat: new Date(),
 		};

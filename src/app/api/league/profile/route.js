@@ -173,6 +173,29 @@ export async function GET(req) {
 			})
 		);
 
+		// Fetch all stored matches for this player from the database
+		const { data: storedMatches, error: storedMatchesError } = await supabase
+			.from("league_matches")
+			.select("matchid")
+			.eq("playerid", summonerData.puuid);
+
+		if (storedMatchesError) throw storedMatchesError;
+
+		// Get match IDs that are in the database but not in the current matchIds
+		const storedMatchIds = storedMatches.map(match => match.matchid);
+		const additionalMatchIds = storedMatchIds.filter(id => !matchIds.includes(id));
+
+		// Fetch details for additional matches
+		const additionalMatchDetails = await Promise.all(
+			additionalMatchIds.map(async (matchId) => {
+				const matchDetail = await fetchMatchDetail(matchId, matchPlatform);
+				return matchDetail;
+			})
+		);
+
+		// Combine all match details
+		const allMatchDetails = [...matchDetails, ...additionalMatchDetails.filter(Boolean)];
+
 		// Execute champion mastery and live game data calls concurrently.
 		const [championMasteryData, liveGameData] = await Promise.all([
 			fetchChampionMasteryData(puuid, region),
@@ -188,7 +211,7 @@ export async function GET(req) {
 			rankeddata: rankedData,
 			championmasterydata: championMasteryData,
 			matchdata: matchIds,
-			matchdetails: matchDetails,
+			matchdetails: allMatchDetails,
 			livegamedata: liveGameData,
 			updatedat: new Date(),
 		};
