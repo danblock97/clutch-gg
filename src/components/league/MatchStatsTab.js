@@ -519,6 +519,25 @@ function Participant({ p, puuid, r, getA, getPerk, arena = false }) {
 								)}
 							<span>Level {p.summonerLevel}</span>
 						</div>
+
+						{/* Rank information if available */}
+						{p.rank && (
+							<div className="text-xs flex items-center mt-1">
+								{p.rank.toLowerCase() !== "unranked" && (
+									<div className="relative w-4 h-4 mr-1 flex-shrink-0">
+										<NextImage
+											src={`/images/league/rankedEmblems/${p.rank.split(" ")[0].toLowerCase()}.webp`}
+											alt=""
+											fill
+											className="object-contain"
+										/>
+									</div>
+								)}
+								<span className={`${p.rank.toLowerCase() !== "unranked" ? "text-[--primary]" : "text-[--text-secondary]"}`}>
+ 									{p.rank} {p.rank.toLowerCase() !== "unranked" && p.lp && `${p.lp} LP`}
+								</span>
+							</div>
+						)}
 					</div>
 				</div>
 

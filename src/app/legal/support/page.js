@@ -5,7 +5,10 @@ const Support = () => {
     const formContainerRef = useRef(null);
 
     useEffect(() => {
-        if (formContainerRef.current) {
+        // Store the current value of the ref in a variable
+        const formContainer = formContainerRef.current;
+
+        if (formContainer) {
             // Create script element
             const script = document.createElement('script');
             script.id = '15ab0f33-5e6c-44af-9f58-ec2c5d781fb0';
@@ -15,16 +18,15 @@ const Support = () => {
             script.setAttribute('data-lang', 'en');
 
             // Append script to the container
-            formContainerRef.current.appendChild(script);
+            formContainer.appendChild(script);
         }
 
         // Cleanup function to remove script when component unmounts
         return () => {
-            if (formContainerRef.current) {
-                const script = document.getElementById('15ab0f33-5e6c-44af-9f58-ec2c5d781fb0');
-                if (script) {
-                    script.remove();
-                }
+            // Use the stored variable instead of accessing the ref again
+            const script = document.getElementById('15ab0f33-5e6c-44af-9f58-ec2c5d781fb0');
+            if (script) {
+                script.remove();
             }
         };
     }, []);

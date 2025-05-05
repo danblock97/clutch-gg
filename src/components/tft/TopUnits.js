@@ -1,5 +1,5 @@
 // filepath: d:\clutch-gg\src\components\tft\TopUnits.js
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { FaCrown } from "react-icons/fa";
 
@@ -116,7 +116,7 @@ export default function TopUnits({ matchDetails, summonerData }) {
 	}, []);
 
 	// Helper function to get champion cost from Data Dragon data
-	const getChampionCostFromDD = (characterId) => {
+	const getChampionCostFromDD = useCallback((characterId) => {
 		if (!characterId || !dataDragonChampions) return 0;
 
 		// Extract the champion name from character_id (e.g., "TFT14_Poppy" -> "Poppy")
@@ -133,7 +133,7 @@ export default function TopUnits({ matchDetails, summonerData }) {
 
 		// Fallback to Community Dragon data
 		return unitsData[characterId]?.cost || 0;
-	};
+	}, [dataDragonChampions, unitsData]);
 
 	// Process match data to extract unit statistics
 	useEffect(() => {
@@ -292,7 +292,7 @@ export default function TopUnits({ matchDetails, summonerData }) {
 			// Error handling silently
 			setIsLoading(false);
 		}
-	}, [matchDetails, summonerData]);
+	}, [matchDetails, summonerData, getChampionCostFromDD]);
 
 	// Get color based on placement
 	const getPlacementColor = (avgPlacement) => {

@@ -15,6 +15,7 @@ const ProfilePageContent = () => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState(null);
 	const [isUpdating, setIsUpdating] = useState(false);
+	const [isLoadingLadderRanking, setIsLoadingLadderRanking] = useState(false);
 
 	const fetchProfileData = useCallback(async () => {
 		if (!gameName || !tagLine || !region) {
@@ -54,6 +55,18 @@ const ProfilePageContent = () => {
 	}, [fetchProfileData]);
 
 	// Add the trigger update function - similar to League implementation
+	// Set isLoadingLadderRanking to true when profileData is available
+	useEffect(() => {
+		if (profileData) {
+			setIsLoadingLadderRanking(true);
+		}
+	}, [profileData]);
+
+	// Callback to handle when ladder ranking data is loaded
+	const handleLadderRankingLoaded = () => {
+		setIsLoadingLadderRanking(false);
+	};
+
 	const triggerUpdate = async () => {
 		setIsUpdating(true);
 		try {
@@ -88,13 +101,14 @@ const ProfilePageContent = () => {
 		}
 	};
 
-	if (isLoading) {
-		return (
-			<div className="min-h-screen flex items-center justify-center">
-				<Loading />
-			</div>
-		);
-	}
+ // Show loading only if initial data is loading
+ if (isLoading) {
+ 	return (
+ 		<div className="min-h-screen flex items-center justify-center">
+ 			<Loading />
+ 		</div>
+ 	);
+ }
 
 	if (error || !gameName || !tagLine || !region) {
 		return (
@@ -107,11 +121,13 @@ const ProfilePageContent = () => {
 		);
 	}
 
+
 	return (
 		<Profile
 			profileData={profileData}
 			triggerUpdate={triggerUpdate}
 			isUpdating={isUpdating}
+			onLoadComplete={handleLadderRankingLoaded}
 		/>
 	);
 };

@@ -221,51 +221,30 @@ const NavBar = ({ bannersVisible = 0 }) => {
 								</span>
 							</Link>
 
-							{/* Game Type Dropdown (Desktop) */}
-							<div
-								className="hidden md:block relative"
-								ref={gameTypeDropdownRef}
-							>
+							{/* Game Type Buttons (Desktop) */}
+							<div className="hidden md:flex items-center space-x-2">
 								<button
-									onClick={() =>
-										setIsGameTypeDropdownOpen(!isGameTypeDropdownOpen)
-									}
-									className={`nav-link flex items-center space-x-1 px-2 py-1 border border-transparent rounded-md hover:border-[--card-border] ${
-										isGameTypeDropdownOpen ? "bg-[--card-bg-secondary]" : ""
-									}`}
+									onClick={() => handleGameTypeChange("league")}
+									className={`nav-link flex items-center space-x-1 px-3 py-1 border ${
+										(!mounted && !isTftPath) || (mounted && gameType === "league")
+											? "border-[--primary] bg-[--primary]/10 text-[--primary]"
+											: "border-[--card-border] hover:bg-[--card-bg-secondary] text-[--text-primary]"
+									} rounded-md transition-colors`}
 								>
-									{getCurrentGameTypeDisplay()}
-									<FaChevronDown className="ml-1 text-xs" />
+									<FaGamepad className="text-sm mr-1" />
+									<span>League</span>
 								</button>
-
-								{isGameTypeDropdownOpen && (
-									<div className="absolute mt-2 w-40 bg-[--card-bg] rounded-md shadow-lg py-1 z-50 border border-[--card-border]">
-										<button
-											onClick={() => handleGameTypeChange("league")}
-											className={`w-full text-left px-4 py-2 text-sm flex items-center hover:bg-[--card-bg-secondary] ${
-												(!mounted && !isTftPath) ||
-												(mounted && gameType === "league")
-													? "text-[--primary]"
-													: "text-[--text-primary]"
-											}`}
-										>
-											<FaGamepad className="mr-2" />
-											League
-										</button>
-										<button
-											onClick={() => handleGameTypeChange("tft")}
-											className={`w-full text-left px-4 py-2 text-sm flex items-center hover:bg-[--card-bg-secondary] ${
-												(!mounted && isTftPath) ||
-												(mounted && gameType === "tft")
-													? "text-[--tft-primary]"
-													: "text-[--text-primary]"
-											}`}
-										>
-											<FaChessKnight className="mr-2" />
-											TFT
-										</button>
-									</div>
-								)}
+								<button
+									onClick={() => handleGameTypeChange("tft")}
+									className={`nav-link flex items-center space-x-1 px-3 py-1 border ${
+										(!mounted && isTftPath) || (mounted && gameType === "tft")
+											? "border-[--tft-primary] bg-[--tft-primary]/10 text-[--tft-primary]"
+											: "border-[--card-border] hover:bg-[--card-bg-secondary] text-[--text-primary]"
+									} rounded-md transition-colors`}
+								>
+									<FaChessKnight className="text-sm mr-1" />
+									<span>TFT</span>
+								</button>
 							</div>
 
 							{/* Desktop Navigation Links */}

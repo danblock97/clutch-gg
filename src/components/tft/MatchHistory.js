@@ -368,17 +368,29 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 						const matchDate = new Date(match.info.game_datetime);
 						const now = new Date();
 						const diffTime = Math.abs(now - matchDate);
+						const diffMinutes = Math.floor(diffTime / (1000 * 60));
+						const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
 						const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-						const diffHours = Math.floor(
-							(diffTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
-						);
-						let timeAgo =
-							diffHours < 1
-								? `${Math.floor(diffTime / (1000 * 60))}m ago`
-								: diffDays > 0
-								? `${diffDays}d ago`
-								: `${diffHours}h ago`;
-						if (diffTime < 60000) timeAgo = "Just now";
+						const diffWeeks = Math.floor(diffDays / 7);
+						const diffMonths = Math.floor(diffDays / 30);
+						const diffYears = Math.floor(diffDays / 365);
+
+						let timeAgo;
+						if (diffTime < 60000) {
+							timeAgo = "Just now";
+						} else if (diffMinutes < 60) {
+							timeAgo = `${diffMinutes}m ago`;
+						} else if (diffHours < 24) {
+							timeAgo = `${diffHours}h ago`;
+						} else if (diffDays < 7) {
+							timeAgo = `${diffDays}d ago`;
+						} else if (diffWeeks < 4) {
+							timeAgo = diffWeeks === 1 ? "1 week ago" : `${diffWeeks} weeks ago`;
+						} else if (diffMonths < 12) {
+							timeAgo = diffMonths === 1 ? "1 month ago" : `${diffMonths} months ago`;
+						} else {
+							timeAgo = diffYears === 1 ? "1 year ago" : `${diffYears} years ago`;
+						}
 
 						// Get placement and styling
 						const placement = participant.placement;

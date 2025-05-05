@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { FaHistory, FaChevronUp, FaChevronDown } from "react-icons/fa";
 
@@ -30,7 +30,7 @@ const SeasonRanks = ({
 		return `text-[--${baseTier}]`;
 	};
 
-	const fetchRankHistory = async (shouldRefresh = false) => {
+	const fetchRankHistory = useCallback(async (shouldRefresh = false) => {
 		if (!gameName || !tagLine || !region) {
 			setRankHistory([]);
 			setIsExpanded(false);
@@ -131,7 +131,7 @@ const SeasonRanks = ({
 			setIsLoading(false);
 			onLoadComplete && onLoadComplete(); // Call onLoadComplete in finally block
 		}
-	};
+	}, [gameName, tagLine, region, onLoadComplete]);
 
 	useEffect(() => {
 		setRankHistory([]);
@@ -139,13 +139,13 @@ const SeasonRanks = ({
 		setIsLoading(true);
 		setError(null);
 		fetchRankHistory(false);
-	}, [gameName, tagLine, region]);
+	}, [gameName, tagLine, region, fetchRankHistory]);
 
 	useEffect(() => {
 		if (forceUpdate) {
 			fetchRankHistory(true);
 		}
-	}, [forceUpdate]);
+	}, [forceUpdate, fetchRankHistory]);
 
 	if (isLoading && rankHistory.length === 0) {
 		return (
