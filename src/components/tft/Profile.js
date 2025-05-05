@@ -15,8 +15,9 @@ import {
 	fetchTFTCompanions,
 	getCompanionIconUrl,
 } from "@/lib/tft/companionsApi";
+import { scrapeTFTLadderRanking } from "@/lib/opggApi.js";
 
-export default function Profile({ profileData, triggerUpdate, isUpdating }) {
+export default function Profile({ profileData, triggerUpdate, isUpdating, onLoadComplete }) {
 	const { summonerData, rankedData, matchDetails, liveGameData, isLoading } =
 		useTFTProfileData(profileData);
 	const [tab, setTab] = useState("matches");
@@ -37,6 +38,10 @@ export default function Profile({ profileData, triggerUpdate, isUpdating }) {
 	const [traitsData, setTraitsData] = useState({});
 	const [championsData, setChampionsData] = useState({});
 	const [isDataLoaded, setIsDataLoaded] = useState(false);
+
+	// State for ladder ranking
+	const [ladderRanking, setLadderRanking] = useState(null);
+	const [isLoadingLadder, setIsLoadingLadder] = useState(false);
 
 	// Initialize state from localStorage on mount
 	useEffect(() => {
@@ -144,6 +149,52 @@ export default function Profile({ profileData, triggerUpdate, isUpdating }) {
 		}
 	}, [isUpdating, updateTriggered]);
 
+	// Fetch TFT ladder ranking data from OP.GG
+	useEffect(() => {
+		const fetchLadderRanking = async () => {
+			if (summonerData?.name && summonerData?.tagLine && profileData?.region) {
+				setIsLoadingLadder(true);
+
+				// Create a timeout to prevent infinite loading
+				const timeoutId = setTimeout(() => {
+					console.log("TFT ladder ranking fetch timed out");
+					setIsLoadingLadder(false);
+					if (onLoadComplete) {
+						onLoadComplete();
+					}
+				}, 5000); // 5 second timeout
+
+				try {
+					const ladderData = await scrapeTFTLadderRanking(
+						summonerData.name,
+						summonerData.tagLine,
+						profileData.region.toLowerCase()
+					);
+					setLadderRanking(ladderData);
+					// Clear the timeout since we got a response
+					clearTimeout(timeoutId);
+				} catch (error) {
+					console.error("Error fetching TFT ladder ranking:", error);
+					// Clear the timeout since we got an error
+					clearTimeout(timeoutId);
+				} finally {
+					setIsLoadingLadder(false);
+					// Call onLoadComplete callback if provided
+					if (onLoadComplete) {
+						onLoadComplete();
+					}
+				}
+			}
+		};
+
+		if (summonerData) {
+			fetchLadderRanking();
+		} else if (onLoadComplete) {
+			// If no summoner data, call onLoadComplete immediately
+			onLoadComplete();
+		}
+	}, [summonerData, profileData?.region, updateTriggered, onLoadComplete]);
+
 	// Handler for unit selection
 	const handleUnitClick = (unitId) => {
 		setSelectedUnitId(unitId === selectedUnitId ? null : unitId);
@@ -154,6 +205,7 @@ export default function Profile({ profileData, triggerUpdate, isUpdating }) {
 		setSelectedTraitId(traitId === selectedTraitId ? null : traitId);
 	};
 
+	// Show loading until all data is fetched, but don't wait for ladder ranking
 	if (isLoading || !isDataLoaded) {
 		return <Loading />;
 	}
@@ -236,6 +288,20 @@ export default function Profile({ profileData, triggerUpdate, isUpdating }) {
 											).toFixed(1)}
 											% WR)
 										</p>
+
+										{/* TFT Ladder Ranking */}
+										{ladderRanking && (
+											<p className="text-[--text-secondary] text-sm mt-1">
+												Ladder Rank{" "}
+												<span className="text-[--primary-tft]">{ladderRanking.rank}</span>{" "}
+												({ladderRanking.percentile}% of top)
+											</p>
+										)}
+										{isLoadingLadder && (
+											<p className="text-[--text-secondary] text-sm mt-1">
+												Loading ladder ranking...
+											</p>
+										)}
 									</div>
 								</div>
 							) : (

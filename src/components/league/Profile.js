@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 import DiscordBotBanner from "@/components/DiscordBotBanner.js";
+import { scrapeLeagueLadderRanking } from "@/lib/opggApi.js";
 
 const Profile = ({
 					 accountData,
@@ -25,6 +26,8 @@ const Profile = ({
 	const [countdown, setCountdown] = useState(0);
 	const [updateTriggered, setUpdateTriggered] = useState(false);
 	const [seasonUpdateTrigger, setSeasonUpdateTrigger] = useState(0);
+	const [ladderRanking, setLadderRanking] = useState(null);
+	const [isLoadingLadder, setIsLoadingLadder] = useState(false);
 	const intervalRef = useRef(null);
 
 	// Initialize state from localStorage on mount
@@ -80,6 +83,29 @@ const Profile = ({
 			}
 		};
 	}, [isUpdated, countdown]);
+
+	// Fetch ladder ranking data from OP.GG
+	useEffect(() => {
+		const fetchLadderRanking = async () => {
+			if (accountData?.gameName && accountData?.tagLine && region) {
+				setIsLoadingLadder(true);
+				try {
+					const ladderData = await scrapeLeagueLadderRanking(
+						accountData.gameName,
+						accountData.tagLine,
+						region.toLowerCase()
+					);
+					setLadderRanking(ladderData);
+				} catch (error) {
+					console.error("Error fetching ladder ranking:", error);
+				} finally {
+					setIsLoadingLadder(false);
+				}
+			}
+		};
+
+		fetchLadderRanking();
+	}, [accountData?.gameName, accountData?.tagLine, region, updateTriggered]);
 
 	// Helper function to format "time ago"
 	const timeAgo = (date) => {
@@ -173,6 +199,20 @@ const Profile = ({
 											).toFixed(1)}
 											% WR)
 										</p>
+
+										{/* Ladder Ranking */}
+										{ladderRanking && (
+											<p className="text-[--text-secondary] text-sm mt-1">
+												Ladder Rank{" "}
+												<span className="text-[--primary]">{ladderRanking.rank}</span>{" "}
+												({ladderRanking.percentile}% of top)
+											</p>
+										)}
+										{isLoadingLadder && (
+											<p className="text-[--text-secondary] text-sm mt-1">
+												Loading ladder ranking...
+											</p>
+										)}
 									</div>
 								</div>
 							) : (

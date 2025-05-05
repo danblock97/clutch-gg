@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 const useProfileData = (gameName, tagLine, region) => {
 	const [profileData, setProfileData] = useState(null);
@@ -10,7 +10,7 @@ const useProfileData = (gameName, tagLine, region) => {
 	const [error, setError] = useState(null);
 	const [isLoading, setIsLoading] = useState(true);
 
-	const fetchProfileData = async () => {
+	const fetchProfileData = useCallback(async () => {
 		if (!gameName || !tagLine || !region) {
 			setError("Missing gameName, tagLine, or region");
 			setIsLoading(false);
@@ -38,11 +38,11 @@ const useProfileData = (gameName, tagLine, region) => {
 		} finally {
 			setIsLoading(false);
 		}
-	};
+	}, [gameName, tagLine, region]);
 
 	useEffect(() => {
 		fetchProfileData();
-	}, [gameName, tagLine, region]);
+	}, [fetchProfileData]);
 
 	return {
 		profileData,
