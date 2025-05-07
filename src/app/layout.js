@@ -10,6 +10,7 @@ import { useState, Suspense } from "react";
 import { metadata } from "./metadata";
 import { GameTypeProvider } from "@/context/GameTypeContext";
 import { AuthProvider } from "@/context/AuthContext";
+import Script from "next/script";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -40,6 +41,12 @@ export default function RootLayout({ children }) {
 	return (
 		<html lang="en">
 			<head>
+				<Script
+					src="https://code.jquery.com/jquery-3.7.1.min.js"
+					integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+					crossOrigin="anonymous"
+					strategy="beforeInteractive"
+				/>
 				<title>{metadata.title}</title>
 				<meta name="description" content={metadata.description} />
 				<link rel="icon" href={metadata.icons.icon} />
