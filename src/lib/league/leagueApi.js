@@ -218,58 +218,78 @@ export const fetchAdditionalData = async (summonerId, puuid, region) => {
 /**
  * Fetch participant rank data for match history enrichment.
  */
-export const fetchParticipantRank = async (puuid, region) => {
+// Helper to retry a fetch function with fallback
+async function retryFetch(fn, args, retries = 2, fallback = null, delayMs = 500) {
 	try {
-		// Ensure region is uppercase for API compatibility
-		const normalizedRegion = region.toUpperCase();
-
-		// First, get the summoner ID using the puuid
-		const summonerResponse = await fetch(
-			`https://${normalizedRegion}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}`,
-			{ headers: { "X-Riot-Token": RIOT_API_KEY } }
-		);
-
-		if (!summonerResponse.ok) {
-			throw new Error(`Failed to fetch summoner data for puuid: ${puuid}`);
-		}
-
-		const summonerData = await summonerResponse.json();
-		const summonerId = summonerData.id;
-
-		// Then, fetch ranked data using the summoner ID
-		const rankedResponse = await fetch(
-			`https://${normalizedRegion}.api.riotgames.com/lol/league/v4/entries/by-summoner/${summonerId}`,
-			{ headers: { "X-Riot-Token": RIOT_API_KEY } }
-		);
-
-		if (!rankedResponse.ok) {
-			throw new Error(`Failed to fetch ranked data for summonerId: ${summonerId}`);
-		}
-
-		const rankedData = await rankedResponse.json();
-		const soloQueueData = rankedData.find(
-			(queue) => queue.queueType === "RANKED_SOLO_5x5"
-		);
-
-		return {
-			rank: soloQueueData
-				? `${soloQueueData.tier} ${soloQueueData.rank}`
-				: "Unranked",
-			lp: soloQueueData ? soloQueueData.leaguePoints : 0,
-			wins: soloQueueData ? soloQueueData.wins : 0,
-			losses: soloQueueData ? soloQueueData.losses : 0,
-			summonerLevel: summonerData.summonerLevel,
-		};
+		return await fn(...args);
 	} catch (error) {
-		console.error(`Error in fetchParticipantRank:`, error);
-		return {
-			rank: "Unranked",
-			lp: 0,
-			wins: 0,
-			losses: 0,
-			summonerLevel: 0,
-		};
+		if (retries > 0) {
+			await new Promise((res) => setTimeout(res, delayMs));
+			return retryFetch(fn, args, retries - 1, fallback, delayMs * 2);
+		}
+		if (fallback !== null) {
+			console.error("[fetchParticipantRank] Fallback after retries:", error);
+			return fallback;
+		}
+		throw error;
 	}
+}
+
+export const fetchParticipantRank = async (puuid, region) => {
+	const fallback = {
+		rank: "Unranked",
+		lp: 0,
+		wins: 0,
+		losses: 0,
+		summonerLevel: 0,
+	};
+	return retryFetch(
+		async (_puuid, _region) => {
+			// Ensure region is uppercase for API compatibility
+			const normalizedRegion = _region.toUpperCase();
+
+			// First, get the summoner ID using the puuid
+			const summonerResponse = await fetch(
+				`https://${normalizedRegion}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${_puuid}`,
+				{ headers: { "X-Riot-Token": RIOT_API_KEY } }
+			);
+
+			if (!summonerResponse.ok) {
+				throw new Error(`Failed to fetch summoner data for puuid: ${_puuid}`);
+			}
+
+			const summonerData = await summonerResponse.json();
+			const summonerId = summonerData.id;
+
+			// Then, fetch ranked data using the summoner ID
+			const rankedResponse = await fetch(
+				`https://${normalizedRegion}.api.riotgames.com/lol/league/v4/entries/by-summoner/${summonerId}`,
+				{ headers: { "X-Riot-Token": RIOT_API_KEY } }
+			);
+
+			if (!rankedResponse.ok) {
+				throw new Error(`Failed to fetch ranked data for summonerId: ${summonerId}`);
+			}
+
+			const rankedData = await rankedResponse.json();
+			const soloQueueData = rankedData.find(
+				(queue) => queue.queueType === "RANKED_SOLO_5x5"
+			);
+
+			return {
+				rank: soloQueueData
+					? `${soloQueueData.tier} ${soloQueueData.rank}`
+					: "Unranked",
+				lp: soloQueueData ? soloQueueData.leaguePoints : 0,
+				wins: soloQueueData ? soloQueueData.wins : 0,
+				losses: soloQueueData ? soloQueueData.losses : 0,
+				summonerLevel: summonerData.summonerLevel,
+			};
+		},
+		[puuid, region],
+		2, // 2 retries (3 attempts total)
+		fallback
+	);
 };
 
 /* =====================================================
