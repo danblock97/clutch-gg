@@ -159,60 +159,46 @@ export const fetchLiveGameData = async (puuid, region, platform) => {
  * Fetch additional data for live game enrichment.
  */
 export const fetchAdditionalData = async (summonerId, puuid, region) => {
-	try {
-		// Ensure region is uppercase for API compatibility
-		const normalizedRegion = region.toUpperCase();
+	// Always try to fetch as much as possible, even if some fail
+	const normalizedRegion = region.toUpperCase();
+	let rankedData = [];
+	let accountData = {};
+	let summonerData = {};
+	let soloQueueData = null;
+	let errors = [];
 
-		const [rankedResponse, accountResponse, summonerResponse] =
-			await Promise.all([
-				fetch(
-					`https://${normalizedRegion}.api.riotgames.com/lol/league/v4/entries/by-summoner/${summonerId}`,
-					{ headers: { "X-Riot-Token": RIOT_API_KEY } }
-				),
-				fetch(
-					`https://europe.api.riotgames.com/riot/account/v1/accounts/by-puuid/${puuid}`,
-					{ headers: { "X-Riot-Token": RIOT_API_KEY } }
-				),
-				fetch(
-					`https://${normalizedRegion}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}`,
-					{ headers: { "X-Riot-Token": RIOT_API_KEY } }
-				),
-			]);
+	// Fetch all in parallel, but catch errors individually
+	const rankedPromise = fetch(`https://${normalizedRegion}.api.riotgames.com/lol/league/v4/entries/by-summoner/${summonerId}`,
+		{ headers: { "X-Riot-Token": RIOT_API_KEY } })
+		.then(r => r.ok ? r.json() : Promise.reject("ranked"))
+		.then(data => { rankedData = data; soloQueueData = data.find(q => q.queueType === "RANKED_SOLO_5x5"); })
+		.catch(e => { errors.push("ranked"); });
 
-		if (!rankedResponse.ok || !accountResponse.ok || !summonerResponse.ok) {
-			throw new Error("Failed to fetch additional data");
-		}
+	const accountPromise = fetch(`https://europe.api.riotgames.com/riot/account/v1/accounts/by-puuid/${puuid}`,
+		{ headers: { "X-Riot-Token": RIOT_API_KEY } })
+		.then(r => r.ok ? r.json() : Promise.reject("account"))
+		.then(data => { accountData = data; })
+		.catch(e => { errors.push("account"); });
 
-		const [rankedData, accountData, summonerData] = await Promise.all([
-			rankedResponse.json(),
-			accountResponse.json(),
-			summonerResponse.json(),
-		]);
-		const soloQueueData = rankedData.find(
-			(queue) => queue.queueType === "RANKED_SOLO_5x5"
-		);
-		return {
-			rank: soloQueueData
-				? `${soloQueueData.tier} ${soloQueueData.rank}`
-				: "Unranked",
-			lp: soloQueueData ? soloQueueData.leaguePoints : 0,
-			wins: soloQueueData ? soloQueueData.wins : 0,
-			losses: soloQueueData ? soloQueueData.losses : 0,
-			gameName: accountData.gameName,
-			tagLine: accountData.tagLine,
-			summonerLevel: summonerData.summonerLevel,
-		};
-	} catch (error) {
-		return {
-			rank: "Unranked",
-			lp: 0,
-			wins: 0,
-			losses: 0,
-			gameName: "",
-			tagLine: "",
-			summonerLevel: 0,
-		};
-	}
+	const summonerPromise = fetch(`https://${normalizedRegion}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}`,
+		{ headers: { "X-Riot-Token": RIOT_API_KEY } })
+		.then(r => r.ok ? r.json() : Promise.reject("summoner"))
+		.then(data => { summonerData = data; })
+		.catch(e => { errors.push("summoner"); });
+
+	await Promise.all([rankedPromise, accountPromise, summonerPromise]);
+
+	// Fallbacks for missing data
+	return {
+		rank: soloQueueData ? `${soloQueueData.tier} ${soloQueueData.rank}` : "Unranked",
+		lp: soloQueueData ? soloQueueData.leaguePoints : 0,
+		wins: soloQueueData ? soloQueueData.wins : 0,
+		losses: soloQueueData ? soloQueueData.losses : 0,
+		gameName: accountData.gameName || "",
+		tagLine: accountData.tagLine || "",
+		summonerLevel: summonerData.summonerLevel || 0,
+		_partialError: errors.length > 0 ? errors : undefined,
+	};
 };
 
 /**
