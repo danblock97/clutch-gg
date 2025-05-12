@@ -92,30 +92,7 @@ if (
 	matchData.info.participants &&
 	matchData.info.participants.length > 0
 ) {
-	const regionCodeRaw = matchId.split('_')[0];
-	const regionCode = regionCodeRaw ? regionCodeRaw.toUpperCase() : null;
-
-	// List of valid Riot region codes
-	const validRiotRegions = [
-		"BR1", "EUN1", "EUW1", "JP1", "KR", "LA1", "LA2", "NA1", "OC1", "RU", "TR1", "PH2", "SG2", "TH2", "TW2", "VN2", "ME1"
-	];
-
-	if (regionCode && validRiotRegions.includes(regionCode)) {
-		matchData.info.participants = await Promise.all(
-			matchData.info.participants.map(async (participant) => {
-				try {
-					// Fetch rank data for this participant using the correct Riot region code
-					const rankData = await fetchParticipantRank(participant.puuid, regionCode);
-					return { ...participant, ...rankData };
-				} catch (error) {
-					console.error(`Error fetching rank for participant ${participant.puuid}:`, error);
-					return participant;
-				}
-			})
-		);
-	} else {
-		console.warn(`[fetchMatchDetail] Skipping rank enrichment: invalid region code extracted from matchId: ${regionCode}`);
-	}
+	// No additional processing needed
 }
 
 return matchData;
@@ -209,111 +186,6 @@ export const fetchAdditionalData = async (summonerId, puuid, region) => {
 		summonerLevel: summonerData.summonerLevel || 0,
 		_partialError: errors.length > 0 ? errors : undefined
 	};
-};
-
-/**
- * Fetch participant rank data for match history enrichment.
- */
-// Helper to retry a fetch function with fallback
-async function retryFetch(fn, args, retries = 2, fallback = null, delayMs = 500) {
-	try {
-		return await fn(...args);
-	} catch (error) {
-		const isRateLimitError = error && error.message && error.message.includes("(status: 429)");
-
-		if (retries > 0) {
-			let actualDelayMs = delayMs;
-			const puuidForLog = args && args.length > 0 && typeof args[0] === 'string' ? args[0] : "unknown item";
-
-			if (isRateLimitError) {
-				console.warn(`[retryFetch] Rate limit (429) for ${puuidForLog}. Waiting 10s before retry ${retries}. Error: ${error.message}`);
-				actualDelayMs = 10000; // Override delay to 10 seconds for 429
-			}
-			// Not logging non-429 retries by default to keep console cleaner.
-			// else {
-			//  console.warn(`[retryFetch] Retrying for ${puuidForLog} after error. Delay: ${actualDelayMs}ms. Retries left: ${retries -1}. Error: ${error.message}`);
-			// }
-			
-			await new Promise((res) => setTimeout(res, actualDelayMs));
-			// The next call to retryFetch will use `delayMs * 2` as its `delayMs` argument for the exponential backoff calculation.
-			// If that next call also hits a 429, `actualDelayMs` will again be 10000 for that specific wait.
-			return retryFetch(fn, args, retries - 1, fallback, delayMs * 2); 
-		}
-
-		// If no retries left
-		if (fallback !== null) {
-			const itemIdentifier = args && args.length > 0 && typeof args[0] === 'string' ? args[0] : "unknown item";
-			// The original log message started with "[fetchParticipantRank]". Since this helper is locally scoped to its use by fetchParticipantRank, this is acceptable.
-			console.error(`[fetchParticipantRank] Fallback after retries for ${itemIdentifier}:`, error);
-			return fallback;
-		}
-		throw error;
-	}
-}
-
-export const fetchParticipantRank = async (puuid, region) => {
-	const fallback = {
-		rank: "Unranked",
-		lp: 0,
-		wins: 0,
-		losses: 0,
-		summonerLevel: 0,
-	};
-	return retryFetch(
-		async (_puuid, _region) => {
-			// Ensure region is uppercase for API compatibility
-			const normalizedRegion = _region.toUpperCase();
-
-			// First, get the summoner ID using the puuid
-			const summonerResponse = await fetch(
-				`https://${normalizedRegion}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${_puuid}`,
-				{ headers: { "X-Riot-Token": RIOT_API_KEY } }
-			);
-
-			if (!summonerResponse.ok) {
-				// If 404 (not found) or 403 (forbidden), treat as unranked silently
-				if (summonerResponse.status === 404 || summonerResponse.status === 403) {
-					return fallback;
-				}
-				throw new Error(`Failed to fetch summoner data for puuid: ${_puuid} (status: ${summonerResponse.status})`);
-			}
-
-			const summonerData = await summonerResponse.json();
-			const summonerId = summonerData.id;
-
-			// Then, fetch ranked data using the summoner ID
-			const rankedResponse = await fetch(
-				`https://${normalizedRegion}.api.riotgames.com/lol/league/v4/entries/by-summoner/${summonerId}`,
-				{ headers: { "X-Riot-Token": RIOT_API_KEY } }
-			);
-
-			if (!rankedResponse.ok) {
-				// If 404 (not found) or 403 (forbidden), treat as unranked silently
-				if (rankedResponse.status === 404 || rankedResponse.status === 403) {
-					return fallback;
-				}
-				throw new Error(`Failed to fetch ranked data for summonerId: ${summonerId} (status: ${rankedResponse.status})`);
-			}
-
-			const rankedData = await rankedResponse.json();
-			const soloQueueData = rankedData.find(
-				(queue) => queue.queueType === "RANKED_SOLO_5x5"
-			);
-
-			return {
-				rank: soloQueueData
-					? `${soloQueueData.tier} ${soloQueueData.rank}`
-					: "Unranked",
-				lp: soloQueueData ? soloQueueData.leaguePoints : 0,
-				wins: soloQueueData ? soloQueueData.wins : 0,
-				losses: soloQueueData ? soloQueueData.losses : 0,
-				summonerLevel: summonerData.summonerLevel,
-			};
-		},
-		[puuid, region],
-		2, // 2 retries (3 attempts total)
-		fallback
-	);
 };
 
 /* =====================================================
