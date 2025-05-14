@@ -14,6 +14,7 @@
 		"@vercel/speed-insights": "^1.0.14",
 		"axios": "^1.8.4",
 		"cheerio": "^1.0.0",
+		"dotenv": "^16.5.0",
 		"lodash.debounce": "^4.0.8",
 		"mongodb": "^6.10.0",
 		"nanoid": "^3.3.8",
