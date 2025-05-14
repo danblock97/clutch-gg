@@ -1,10 +1,7 @@
-
 "use client";
 import React from "react";
 
-
 const Support = () => {
-
   return (
     <div className="w-full my-10">
       {/* Hero Section with animated background */}
@@ -20,8 +17,8 @@ const Support = () => {
           </h1>
           <div className="h-1 w-32 bg-gradient-to-r from-purple-500 to-blue-500 rounded mx-auto mb-6"></div>
           <p className="text-xl text-gray-200 max-w-3xl mx-auto">
-            Need assistance? Report a bug, request a new feature, or find answers
-            to common questions below.
+            Need assistance? Report a bug, request a new feature, or find
+            answers to common questions below.
           </p>
         </div>
       </div>
@@ -51,13 +48,13 @@ const Support = () => {
                 <h2 className="text-2xl font-bold text-white">Report a Bug</h2>
               </div>
               <p className="mb-6 text-gray-300 leading-relaxed">
-                Encountered an issue or something not working as expected? Please
-                let us know by reporting a bug. Your detailed feedback helps us
-                improve AstroStats for everyone.
+                Encountered an issue or something not working as expected?
+                Please let us know by reporting a bug. Your detailed feedback
+                helps us improve AstroStats for everyone.
               </p>
             </div>
             <a
-              href="https://danblock97.atlassian.net/jira/software/c/form/efe3bca3-826d-41a5-91e1-ab523c1be4ef"
+              href="https://danblock97.atlassian.net/jira/software/c/form/ebdfca4d-9732-4107-8501-b77f21d0bfc5"
               target="_blank"
               rel="noopener noreferrer"
               className="w-full mt-auto text-center px-6 py-3 bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white font-semibold rounded-md transition-colors duration-300 text-lg block"
@@ -98,7 +95,7 @@ const Support = () => {
               </p>
             </div>
             <a
-              href="https://danblock97.atlassian.net/jira/software/c/form/b728b96d-9ddc-4254-95e1-79478a42e6a8"
+              href="https://danblock97.atlassian.net/jira/software/c/form/8f775bab-146f-4849-8fce-8d39c2a8280f"
               target="_blank"
               rel="noopener noreferrer"
               className="w-full mt-auto text-center px-6 py-3 bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white font-semibold rounded-md transition-colors duration-300 text-lg block"
