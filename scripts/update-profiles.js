@@ -20,8 +20,7 @@ const regionToPlatform = {
   VN2: "sea",
 };
 
-const BATCH_SIZE = 5;
-const DELAY_MS = 1500;
+const DELAY_MS = 5000;
 const APP_BASE_URL = process.env.APP_BASE_URL || "http://localhost:3000";
 const UPDATE_API_KEY = process.env.NEXT_PUBLIC_UPDATE_API_KEY;
 
@@ -59,7 +58,7 @@ async function delay(ms) {
  */
 async function updateAccount(account) {
   console.log(
-    `Updating: ${account.gamename}#${account.tagline} [${account.region}] (ID: ${account.id})`,
+    `Updating: ${account.gamename}#${account.tagline} [${account.region}] (ID: ${account.id})`
   );
   const platform = regionToPlatform[account.region?.toUpperCase()];
 
@@ -71,7 +70,7 @@ async function updateAccount(account) {
       const fetchedAccountData = await fetchAccountData(
         account.gamename,
         account.tagline,
-        platform,
+        platform
       );
       if (fetchedAccountData?.puuid) {
         puuid = fetchedAccountData.puuid;
@@ -82,7 +81,7 @@ async function updateAccount(account) {
         console.log(`  > PUUID fetched and updated for account ${account.id}.`);
       } else {
         console.error(
-          `  > Failed to fetch PUUID for account ${account.id}. Skipping update for now.`,
+          `  > Failed to fetch PUUID for account ${account.id}. Skipping update for now.`
         );
         await supabaseAdmin
           .from("riot_accounts")
@@ -93,7 +92,7 @@ async function updateAccount(account) {
     } catch (fetchError) {
       console.error(
         `  > Error fetching PUUID for account ${account.id}:`,
-        fetchError.message,
+        fetchError.message
       );
 
       await supabaseAdmin
@@ -107,7 +106,7 @@ async function updateAccount(account) {
   // Skip if the region is invalid or cannot be mapped to a platform
   if (!platform) {
     console.warn(
-      `Skipping account ${account.id} due to invalid region: ${account.region}.`,
+      `Skipping account ${account.id} due to invalid region: ${account.region}.`
     );
     // Update timestamp to avoid retrying this account immediately
     await supabaseAdmin
@@ -136,7 +135,7 @@ async function updateAccount(account) {
     if (!leagueResponse.ok) {
       const errorData = await leagueResponse.text();
       console.warn(
-        `  > League API update failed for ${account.id} (${leagueResponse.status}): ${errorData}`,
+        `  > League API update failed for ${account.id} (${leagueResponse.status}): ${errorData}`
       );
       // Log failure but continue to TFT update
     } else {
@@ -148,7 +147,7 @@ async function updateAccount(account) {
         `  > League API update triggered successfully.`,
         leagueData
           ? `Response: ${JSON.stringify(leagueData).substring(0, 100)}...`
-          : "No response data",
+          : "No response data"
       );
     }
 
@@ -170,7 +169,7 @@ async function updateAccount(account) {
     if (!tftResponse.ok) {
       const errorData = await tftResponse.text();
       console.warn(
-        `  > TFT API update failed for ${account.id} (${tftResponse.status}): ${errorData}`,
+        `  > TFT API update failed for ${account.id} (${tftResponse.status}): ${errorData}`
       );
     } else {
       const tftData = await tftResponse.json().catch((e) => {
@@ -181,7 +180,7 @@ async function updateAccount(account) {
         `  > TFT API update triggered successfully.`,
         tftData
           ? `Response: ${JSON.stringify(tftData).substring(0, 100)}...`
-          : "No response data",
+          : "No response data"
       );
     }
 
@@ -194,19 +193,19 @@ async function updateAccount(account) {
     if (updateError) {
       console.error(
         `  > Failed to update timestamp for account ${account.id}:`,
-        updateError.message,
+        updateError.message
       );
     } else {
       console.log(`  > Updated timestamp for account ${account.id}`);
     }
 
     console.log(
-      `Finished triggering updates for account ${account.id} via API.`,
+      `Finished triggering updates for account ${account.id} via API.`
     );
   } catch (error) {
     console.error(
       `Failed to trigger updates for account ${account.id} (${account.gamename}#${account.tagline}):`,
-      error.message,
+      error.message
     );
 
     // Re-throw rate limit errors to stop the batch processing
@@ -227,12 +226,12 @@ async function updateAccount(account) {
         .update({ updated_at: new Date(Date.now() + 5 * 60000) })
         .eq("id", account.id);
       console.log(
-        `  > Set account ${account.id} to retry in 5 minutes due to error.`,
+        `  > Set account ${account.id} to retry in 5 minutes due to error.`
       );
     } catch (updateError) {
       console.error(
         `  > Failed to update timestamp after error for account ${account.id}:`,
-        updateError.message,
+        updateError.message
       );
     }
   }
@@ -252,15 +251,16 @@ async function run() {
   const { data: accounts, error: fetchError } = await supabaseAdmin
     .from("riot_accounts")
     .select("*")
-    .order("updated_at", { ascending: true, nullsFirst: true })
-    .limit(BATCH_SIZE);
+    .order("updated_at", { ascending: true, nullsFirst: true });
 
   // Log the fetched accounts timestamps for debugging
   if (accounts && accounts.length > 0) {
     console.log("Accounts to update with timestamps:");
     accounts.forEach((acc) => {
       console.log(
-        `Account ID ${acc.id}: ${acc.gamename}#${acc.tagline} - Last updated: ${acc.updated_at || "never"}`,
+        `Account ID ${acc.id}: ${acc.gamename}#${acc.tagline} - Last updated: ${
+          acc.updated_at || "never"
+        }`
       );
     });
   }
@@ -293,14 +293,14 @@ async function run() {
         error.response?.status === 429
       ) {
         console.error(
-          "Rate limit error encountered. Stopping current batch run.",
+          "Rate limit error encountered. Stopping current processing run."
         );
         break; // Exit the loop early if rate limited
       } else {
         // Log other errors (already logged within updateAccount)
         // Continue processing the rest of the batch for non-rate-limit errors
         console.error(
-          `Non-rate-limit error processing account ${account.id}. Continuing batch...`,
+          `Non-rate-limit error processing account ${account.id}. Continuing batch...`
         );
       }
     }
