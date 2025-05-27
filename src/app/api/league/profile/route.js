@@ -207,6 +207,9 @@ export async function GET(req) {
 			accountdata: {
 				gameName: riotAccount.gamename,
 				tagLine: riotAccount.tagline,
+				isClaimed: riotAccount.is_claimed || false,
+				twitchUsername: riotAccount.twitch_username || null,
+				twitterUsername: riotAccount.twitter_username || null,
 			},
 			rankeddata: rankedData,
 			championmasterydata: championMasteryData,

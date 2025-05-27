@@ -28,6 +28,11 @@ const Profile = ({
 	const [seasonUpdateTrigger, setSeasonUpdateTrigger] = useState(0);
 	const [ladderRanking, setLadderRanking] = useState(null);
 	const [isLoadingLadder, setIsLoadingLadder] = useState(false);
+	const [showSocialModal, setShowSocialModal] = useState(false);
+	const [twitchUsername, setTwitchUsername] = useState(accountData.twitchUsername || "");
+	const [twitterUsername, setTwitterUsername] = useState(accountData.twitterUsername || "");
+	const [isSaving, setIsSaving] = useState(false);
+	const [saveError, setSaveError] = useState(null);
 	const intervalRef = useRef(null);
 
 	// Initialize state from localStorage on mount
@@ -134,8 +139,141 @@ const Profile = ({
 		return "Just now";
 	};
 
+	// Function to save social account data
+	const saveSocialAccounts = async () => {
+		setIsSaving(true);
+		setSaveError(null);
+
+		try {
+			// Get the user from localStorage
+			const storedUser = localStorage.getItem("rso_user");
+			if (!storedUser) {
+				setSaveError("You must be logged in to update your social accounts");
+				return;
+			}
+
+			const user = JSON.parse(storedUser);
+
+			// Make sure the logged-in user matches the profile being viewed
+			if (user.puuid !== profileData.puuid) {
+				setSaveError("You can only update your own profile");
+				return;
+			}
+
+			const response = await fetch("/api/user/social-accounts", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					puuid: user.puuid,
+					twitchUsername,
+					twitterUsername,
+				}),
+			});
+
+			if (!response.ok) {
+				const data = await response.json();
+				throw new Error(data.error || "Failed to update social accounts");
+			}
+
+			// Update was successful, close the modal and trigger a profile update
+			setShowSocialModal(false);
+			triggerUpdate();
+			setUpdateTriggered(true);
+		} catch (error) {
+			setSaveError(error.message);
+		} finally {
+			setIsSaving(false);
+		}
+	};
+
 	return (
 		<>
+			{/* Social Accounts Modal */}
+			{showSocialModal && (
+				<div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+					<div className="bg-[--card-bg] rounded-lg shadow-xl max-w-md w-full p-6 border border-[--card-border]">
+						<div className="flex justify-between items-center mb-4">
+							<h3 className="text-xl font-bold text-[--text-primary]">Manage Social Accounts</h3>
+							<button 
+								onClick={() => setShowSocialModal(false)}
+								className="text-[--text-secondary] hover:text-[--text-primary]"
+							>
+								<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+									<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+								</svg>
+							</button>
+						</div>
+
+						{saveError && (
+							<div className="mb-4 p-3 bg-red-500 bg-opacity-20 border border-red-500 rounded text-red-500">
+								{saveError}
+							</div>
+						)}
+
+						<div className="space-y-4">
+							<div>
+								<label htmlFor="twitchUsername" className="block text-sm font-medium text-[--text-secondary] mb-1">
+									Twitch Username
+								</label>
+								<input
+									type="text"
+									id="twitchUsername"
+									value={twitchUsername}
+									onChange={(e) => setTwitchUsername(e.target.value)}
+									className="w-full px-3 py-2 bg-[--input-bg] border border-[--card-border] rounded-md text-[--text-primary] focus:outline-none focus:ring-2 focus:ring-[--primary]"
+									placeholder="Enter your Twitch username"
+								/>
+								<p className="mt-1 text-xs text-[--text-secondary]">
+									Adding your Twitch username will display a "STRM" badge next to your name.
+								</p>
+							</div>
+
+							<div>
+								<label htmlFor="twitterUsername" className="block text-sm font-medium text-[--text-secondary] mb-1">
+									X (Twitter) Username
+								</label>
+								<input
+									type="text"
+									id="twitterUsername"
+									value={twitterUsername}
+									onChange={(e) => setTwitterUsername(e.target.value)}
+									className="w-full px-3 py-2 bg-[--input-bg] border border-[--card-border] rounded-md text-[--text-primary] focus:outline-none focus:ring-2 focus:ring-[--primary]"
+									placeholder="Enter your X (Twitter) username"
+								/>
+							</div>
+
+							<div className="flex justify-end pt-2">
+								<button
+									onClick={() => setShowSocialModal(false)}
+									className="px-4 py-2 mr-2 rounded-md text-[--text-secondary] hover:text-[--text-primary] border border-[--card-border]"
+								>
+									Cancel
+								</button>
+								<button
+									onClick={saveSocialAccounts}
+									disabled={isSaving}
+									className="px-4 py-2 rounded-md bg-gradient-to-r from-purple-600 to-indigo-500 hover:from-purple-500 hover:to-indigo-400 text-white"
+								>
+									{isSaving ? (
+										<>
+											<svg className="animate-spin h-4 w-4 mr-2 inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+												<circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+												<path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+											</svg>
+											Saving...
+										</>
+									) : (
+										"Save"
+									)}
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			)}
+
 			<div className="profile-header-bg w-full py-8 shadow-2xl overflow-hidden">
 				<div className="w-full max-w-screen-xl mx-auto px-4 sm:px-6">
 					<div className="relative flex flex-col lg:flex-row items-start lg:items-center gap-6">
@@ -162,6 +300,18 @@ const Profile = ({
 								<span className="text-[--text-secondary] text-base sm:text-lg md:text-xl font-medium">
                   #{accountData.tagLine}
                 </span>
+								{accountData.isClaimed && (
+									<span className="ml-2 text-blue-500" title="Verified">
+										<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 inline-block" viewBox="0 0 20 20" fill="currentColor">
+											<path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+										</svg>
+									</span>
+								)}
+								{accountData.twitchUsername && (
+									<span className="ml-2 text-purple-500" title="Streamer">
+										<span className="bg-purple-500 text-white text-xs px-2 py-1 rounded font-bold">STRM</span>
+									</span>
+								)}
 							</h1>
 
 							{/* Solo Queue Rank */}
@@ -291,6 +441,41 @@ const Profile = ({
 										"Not In Game"
 									)}
 								</button>
+
+								{/* Claim Profile / Manage Social Accounts Button */}
+								{accountData.isClaimed ? (
+									<button
+										onClick={(e) => {
+											e.stopPropagation();
+											// Check if the logged-in user matches the profile
+											const storedUser = localStorage.getItem("rso_user");
+											if (storedUser) {
+												const user = JSON.parse(storedUser);
+												if (user.puuid === profileData.puuid) {
+													setShowSocialModal(true);
+												} else {
+													alert("You can only manage your own profile");
+												}
+											} else {
+												alert("You must be logged in to manage your social accounts");
+											}
+										}}
+										className="relative overflow-hidden rounded-lg text-sm font-medium transition-all duration-300 inline-flex items-center justify-center px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-500 hover:from-purple-500 hover:to-indigo-400 text-white"
+									>
+										Manage Social Accounts
+									</button>
+								) : (
+									<button
+										onClick={(e) => {
+											e.stopPropagation();
+											// Redirect to login
+											window.location.href = "/api/auth/login";
+										}}
+										className="relative overflow-hidden rounded-lg text-sm font-medium transition-all duration-300 inline-flex items-center justify-center px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-500 hover:from-blue-500 hover:to-indigo-400 text-white"
+									>
+										Claim Profile
+									</button>
+								)}
 
 								{/* Timer */}
 								{isUpdated && countdown > 0 && (
