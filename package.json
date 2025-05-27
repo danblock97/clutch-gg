@@ -21,6 +21,7 @@
     "nanoid": "^3.3.8",
     "next": "^15.2.4",
     "node-cron": "^3.0.3",
+    "prop-types": "^15.8.1",
     "react": "^18",
     "react-circular-progressbar": "^2.1.0",
     "react-dom": "^18",
