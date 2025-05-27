@@ -54,7 +54,7 @@ const Support = () => {
               </p>
             </div>
             <a
-              href="https://danblock97.atlassian.net/jira/software/c/form/ebdfca4d-9732-4107-8501-b77f21d0bfc5"
+              href="https://danblock97.youtrack.cloud/dashboard?id=214-1"
               target="_blank"
               rel="noopener noreferrer"
               className="w-full mt-auto text-center px-6 py-3 bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white font-semibold rounded-md transition-colors duration-300 text-lg block"
@@ -95,7 +95,7 @@ const Support = () => {
               </p>
             </div>
             <a
-              href="https://danblock97.atlassian.net/jira/software/c/form/8f775bab-146f-4849-8fce-8d39c2a8280f"
+              href="https://danblock97.youtrack.cloud/dashboard?id=214-1"
               target="_blank"
               rel="noopener noreferrer"
               className="w-full mt-auto text-center px-6 py-3 bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white font-semibold rounded-md transition-colors duration-300 text-lg block"
