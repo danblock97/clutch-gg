@@ -127,20 +127,11 @@ export async function GET(req) {
 							gamename: gameName,
 							tagline: tagLine,
 							region: "euw1", // Default region
-							puuid: puuid,
-							is_claimed: true, // Set is_claimed to true since user authenticated with Riot
+							puuid: puuid
 						},
 					]);
 
 				if (insertError) throw insertError;
-			} else {
-				// Update the existing user to set is_claimed to true
-				const { error: updateError } = await supabaseAdmin
-					.from("riot_accounts")
-					.update({ is_claimed: true })
-					.eq("puuid", puuid);
-
-				if (updateError) throw updateError;
 			}
 		} catch (dbError) {
 			console.error("Database error:", dbError);
