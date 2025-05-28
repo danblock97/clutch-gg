@@ -147,32 +147,51 @@ export async function GET(req) {
 			// Continue anyway since we have the user data
 		}
 
-		// Redirect to the home page with a script to set the user in localStorage
-		// This approach avoids exposing sensitive data in URL parameters
+		// Check if there's a returnUrl cookie
+		const returnUrl = req.cookies.get("returnUrl")?.value;
+
+		// Prepare the redirect URL - either the returnUrl or the home page
+		const redirectUrl = returnUrl || "/";
+
+		// Create a response that will set the user data in localStorage and redirect
 		const responseHtml = `
       <!DOCTYPE html>
       <html>
         <head>
           <title>Authentication Successful</title>
-          <meta http-equiv="refresh" content="0;url=/">
+          <meta http-equiv="refresh" content="0;url=${redirectUrl}">
         </head>
         <body>
           <script>
             // Store the user data in localStorage
             localStorage.setItem("rso_user", '${JSON.stringify(user)}');
-            // Redirect to home page
-            window.location.href = "/";
+            // Redirect to the appropriate page
+            window.location.href = "${redirectUrl}";
           </script>
           <p>Authentication successful. Redirecting...</p>
         </body>
       </html>
     `;
 
-		return new NextResponse(responseHtml, {
+		// Create the response
+		const response = new NextResponse(responseHtml, {
 			headers: {
 				"Content-Type": "text/html",
 			},
 		});
+
+		// Clear the returnUrl cookie
+		if (returnUrl) {
+			response.cookies.set("returnUrl", "", {
+				maxAge: 0,
+				path: "/",
+				httpOnly: true,
+				secure: process.env.NODE_ENV === "production",
+				sameSite: "lax",
+			});
+		}
+
+		return response;
 	} catch (error) {
 		console.error("Auth callback error:", error);
 		return NextResponse.redirect(

@@ -468,8 +468,10 @@ const Profile = ({
 									<button
 										onClick={(e) => {
 											e.stopPropagation();
-											// Redirect to login
-											window.location.href = "/api/auth/login";
+											// Get the current URL to return to after login
+											const currentUrl = window.location.href;
+											// Redirect to login with returnUrl parameter
+											window.location.href = `/api/auth/login?returnUrl=${encodeURIComponent(currentUrl)}`;
 										}}
 										className="relative overflow-hidden rounded-lg text-sm font-medium transition-all duration-300 inline-flex items-center justify-center px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-500 hover:from-blue-500 hover:to-indigo-400 text-white"
 									>
