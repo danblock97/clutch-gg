@@ -6,19 +6,32 @@ export async function GET(req) {
 		const RIOT_CLIENT_ID = authConfig.clientId;
 		const REDIRECT_URI = authConfig.redirectUri;
 
-		// Set the required parameters for the OAuth request
-		const params = new URLSearchParams({
-			client_id: RIOT_CLIENT_ID,
-			redirect_uri: REDIRECT_URI,
-			response_type: "code",
-			scope: "openid",
-		});
+		// Get the returnUrl from the query parameters
+		const { searchParams } = new URL(req.url);
+		const returnUrl = searchParams.get("returnUrl");
 
-		// Construct the Riot authentication URL
-		const riotAuthUrl = `https://auth.riotgames.com/authorize?${params.toString()}`;
+		// Store the returnUrl in a cookie if provided
+		const response = NextResponse.redirect(
+			`https://auth.riotgames.com/authorize?${new URLSearchParams({
+				client_id: RIOT_CLIENT_ID,
+				redirect_uri: REDIRECT_URI,
+				response_type: "code",
+				scope: "openid",
+			}).toString()}`
+		);
 
-		// Redirect to Riot authentication page
-		return NextResponse.redirect(riotAuthUrl);
+		if (returnUrl) {
+			// Set a cookie with the returnUrl that expires in 10 minutes
+			response.cookies.set("returnUrl", returnUrl, {
+				maxAge: 600, // 10 minutes
+				path: "/",
+				httpOnly: true,
+				secure: process.env.NODE_ENV === "production",
+				sameSite: "lax",
+			});
+		}
+
+		return response;
 	} catch (error) {
 		console.error("Error initiating Riot auth:", error);
 		return NextResponse.json(
