@@ -5,7 +5,8 @@ import Loading from "@/components/Loading";
 import TFTDropdowns from "@/components/tft/Dropdowns"; // Use TFT Dropdowns
 import TFTLeaderboardTable from "@/components/tft/LeaderboardTable"; // Use TFT Table
 import ErrorPage from "@/components/ErrorPage";
-import { FaTrophy, FaSync, FaExclamationTriangle } from "react-icons/fa";
+import { FaTrophy } from "react-icons/fa";
+import { fetchWithErrorHandling, extractErrorMessage } from "@/lib/errorUtils";
 
 // Removed metadata export as it's not allowed in client components
 
@@ -17,44 +18,13 @@ const LeaderboardPage = () => {
 	const [division, setDivision] = useState("I"); // Default division
 	const [error, setError] = useState(null);
 	const [retryCountdown, setRetryCountdown] = useState(0);
-
 	const fetchLeaderboardData = useCallback(async () => {
 		setLoading(true);
 		setError(null);
 
 		try {
-			const response = await fetch(
-				// Use the updated API endpoint with all parameters
-				`/api/tft/leaderboard?region=${region}&tier=${tier}&division=${division}`
-			);
-
-			if (!response.ok) {
-				let errorData = { message: `HTTP error: ${response.status}` };
-				try {
-					// Try to parse error message from API response
-					errorData = await response.json();
-				} catch (e) {
-					// Ignore if response is not JSON
-				}
-				setLeaderboardData([]);
-				throw new Error(
-					errorData.error || `Failed to fetch: ${response.statusText}`
-				);
-			}
-
-			let data = [];
-			try {
-				data = await response.json();
-			} catch (jsonError) {
-				console.error("Failed to parse JSON response:", jsonError);
-				data = []; // Set to empty array on JSON parse error
-				throw new Error("Invalid response format from server.");
-			}
-
-			if (data && data.error) {
-				// Handle errors reported within the JSON response
-				throw new Error(data.error);
-			}
+			const url = `/api/tft/leaderboard?region=${region}&tier=${tier}&division=${division}`;
+			const data = await fetchWithErrorHandling(url);
 
 			if (!Array.isArray(data)) {
 				console.error("API did not return an array:", data);
@@ -64,10 +34,10 @@ const LeaderboardPage = () => {
 				setLeaderboardData(data);
 			}
 
-			setError(null); // Clear previous errors on success
-		} catch (error) {
-			console.error("Error fetching leaderboard data:", error);
-			setError(error.message);
+			setError(null); // Clear previous errors on success		} catch (error) {
+			console.error("TFT Leaderboard fetch error:", error);
+			const detailedError = extractErrorMessage(error);
+			setError(detailedError);
 			setRetryCountdown(10); // Start countdown for retry
 		} finally {
 			setLoading(false);
@@ -190,27 +160,11 @@ const LeaderboardPage = () => {
 							</p>
 						</div>
 					) : error ? (
-						<div className="card-highlight py-8 text-center">
-							<FaExclamationTriangle className="text-[--error] text-4xl mx-auto mb-4" />
-							<h3 className="text-xl font-semibold mb-2">
-								Error Loading TFT Leaderboard
-							</h3>
-							<p className="text-[--text-secondary] mb-6">{error}</p>
-
-							{retryCountdown > 0 ? (
-								<p className="text-[--warning]">
-									Retrying in {retryCountdown} second
-									{retryCountdown > 1 ? "s" : ""}...
-								</p>
-							) : (
-								<button
-									onClick={fetchLeaderboardData} // Manual retry button
-									className="btn-primary inline-flex items-center"
-								>
-									<FaSync className="mr-2" /> Retry Now
-								</button>
-							)}
-						</div>
+						<ErrorPage
+							error={error}
+							onRetry={fetchLeaderboardData}
+							retryCountdown={retryCountdown}
+						/>
 					) : leaderboardData.length === 0 ? (
 						<div className="card-highlight py-8 text-center">
 							<h3 className="text-xl font-semibold mb-2">No Players Found</h3>

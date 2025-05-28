@@ -28,7 +28,6 @@ const regionToPlatform = {
 	VN2: "sea",
 };
 
-// Separate mapping for Match-V5 endpoints as OC1 uses SEA for matches
 const regionToMatchPlatform = {
 	BR1: "americas",
 	EUN1: "europe",
@@ -39,7 +38,7 @@ const regionToMatchPlatform = {
 	LA2: "americas",
 	ME1: "europe",
 	NA1: "americas",
-	OC1: "sea", // Match-V5 uses SEA for OC1
+	OC1: "sea",
 	RU: "europe",
 	SG2: "sea",
 	TR1: "europe",
@@ -62,11 +61,8 @@ export async function GET(req) {
 	}
 
 	try {
-		// Normalize region to uppercase to ensure API compatibility
 		const normalizedRegion = region.toUpperCase();
-		// Get the corresponding platform for the region (Account/Spectator APIs)
 		const platform = regionToPlatform[normalizedRegion];
-		// Get the corresponding platform for Match-V5 APIs
 		const matchPlatform = regionToMatchPlatform[normalizedRegion];
 
 		if (!platform || !matchPlatform) {
@@ -108,23 +104,16 @@ export async function GET(req) {
 					.insert([insertPayload], { returning: "representation" });
 
 				if (insertError) {
-					// If the error is a duplicate key violation, it means someone else inserted the record
-					// in the time between our check and insert. So we should just fetch the existing record.
 					if (
 						insertError.code === "23505" &&
 						insertError.message.includes("puuid")
 					) {
-						// Race condition detected, fetching existing record instead
 					} else {
-						// For other errors, we should still throw
 						throw insertError;
 					}
 				}
-			} catch (error) {
-				// We'll continue to fetch the account even if insertion failed due to duplication
-			}
+			} catch (error) {}
 
-			// In either case (successful insert or duplicate key), fetch the account
 			const { data: fetchedAccount, error: fetchError } = await supabase
 				.from("riot_accounts")
 				.select("*")
@@ -138,7 +127,6 @@ export async function GET(req) {
 			throw new Error("Riot account record is missing the puuid.");
 		}
 
-		// Return stored league data if forceUpdate isn't requested.
 		if (!forceUpdate) {
 			let { data: storedLeagueData, error: leagueDataError } = await supabase
 				.from("league_data")
@@ -156,24 +144,21 @@ export async function GET(req) {
 
 		const puuid = riotAccount.puuid;
 
-		// Fetch summoner data once and use it for ranked data.
 		const summonerData = await fetchSummonerData(puuid, region);
 		const [rankedData, matchIds] = await Promise.all([
 			fetchRankedData(summonerData.id, region),
-			fetchMatchIds(puuid, matchPlatform), // Use matchPlatform
+			fetchMatchIds(puuid, matchPlatform),
 		]);
 
-		// Fetch match details concurrently.
 		const matchDetails = await Promise.all(
 			matchIds.map(async (matchId) => {
-				const matchDetail = await fetchMatchDetail(matchId, matchPlatform); // Use matchPlatform
+				const matchDetail = await fetchMatchDetail(matchId, matchPlatform);
 				if (matchDetail)
 					await upsertMatchDetail(matchId, summonerData.puuid, matchDetail);
 				return matchDetail;
 			})
 		);
 
-		// Fetch all stored matches for this player from the database
 		const { data: storedMatches, error: storedMatchesError } = await supabase
 			.from("league_matches")
 			.select("matchid")
@@ -181,11 +166,11 @@ export async function GET(req) {
 
 		if (storedMatchesError) throw storedMatchesError;
 
-		// Get match IDs that are in the database but not in the current matchIds
-		const storedMatchIds = storedMatches.map(match => match.matchid);
-		const additionalMatchIds = storedMatchIds.filter(id => !matchIds.includes(id));
+		const storedMatchIds = storedMatches.map((match) => match.matchid);
+		const additionalMatchIds = storedMatchIds.filter(
+			(id) => !matchIds.includes(id)
+		);
 
-		// Fetch details for additional matches
 		const additionalMatchDetails = await Promise.all(
 			additionalMatchIds.map(async (matchId) => {
 				const matchDetail = await fetchMatchDetail(matchId, matchPlatform);
@@ -193,13 +178,14 @@ export async function GET(req) {
 			})
 		);
 
-		// Combine all match details
-		const allMatchDetails = [...matchDetails, ...additionalMatchDetails.filter(Boolean)];
+		const allMatchDetails = [
+			...matchDetails,
+			...additionalMatchDetails.filter(Boolean),
+		];
 
-		// Execute champion mastery and live game data calls concurrently.
 		const [championMasteryData, liveGameData] = await Promise.all([
 			fetchChampionMasteryData(puuid, region),
-			fetchLiveGameData(summonerData.puuid, region, platform), // Use platform
+			fetchLiveGameData(summonerData.puuid, region, platform),
 		]);
 
 		const leagueDataObj = {
@@ -216,7 +202,6 @@ export async function GET(req) {
 			updatedat: new Date(),
 		};
 
-		// Use supabaseAdmin for write operations
 		let { data: leagueRecord, error: leagueError } = await supabaseAdmin
 			.from("league_data")
 			.upsert(
@@ -229,15 +214,12 @@ export async function GET(req) {
 			.single();
 		if (leagueError) throw leagueError;
 
-		// Explicitly update the updated_at timestamp for the riot_account
 		const { error: updateTsError } = await supabaseAdmin
 			.from("riot_accounts")
 			.update({ updated_at: new Date() })
 			.eq("id", riotAccount.id);
 
 		if (updateTsError) {
-			// Log the error but don't necessarily fail the whole request,
-			// as the main profile data was updated.
 			console.error(
 				`Failed to update timestamp for riot_account ${riotAccount.id}:`,
 				updateTsError
@@ -259,8 +241,26 @@ export async function GET(req) {
 			headers: { "Content-Type": "application/json" },
 		});
 	} catch (error) {
-		// Error fetching profile data
-		return new Response(JSON.stringify({ error: error.message }), {
+		console.error("League Profile API Error:", error);
+
+		let errorMessage = error.message || "Unknown error occurred";
+		let errorDetails = { error: errorMessage };
+
+		if (error.code) {
+			errorDetails.code = error.code;
+		}
+		if (error.details) {
+			errorDetails.details = error.details;
+		}
+		if (error.hint) {
+			errorDetails.hint = error.hint;
+		}
+
+		if (process.env.NODE_ENV === "development") {
+			errorDetails.stack = error.stack;
+		}
+
+		return new Response(JSON.stringify(errorDetails), {
 			status: 500,
 			headers: { "Content-Type": "application/json" },
 		});
@@ -286,8 +286,26 @@ export async function POST(req) {
 			new Request(url.toString(), { method: "GET", headers: req.headers })
 		);
 	} catch (error) {
-		// Error updating profile
-		return new Response(JSON.stringify({ error: error.message }), {
+		console.error("League Profile Update API Error:", error);
+
+		let errorMessage = error.message || "Unknown error occurred";
+		let errorDetails = { error: errorMessage };
+
+		if (error.code) {
+			errorDetails.code = error.code;
+		}
+		if (error.details) {
+			errorDetails.details = error.details;
+		}
+		if (error.hint) {
+			errorDetails.hint = error.hint;
+		}
+
+		if (process.env.NODE_ENV === "development") {
+			errorDetails.stack = error.stack;
+		}
+
+		return new Response(JSON.stringify(errorDetails), {
 			status: 500,
 			headers: { "Content-Type": "application/json" },
 		});

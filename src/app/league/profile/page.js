@@ -12,6 +12,8 @@ import Loading from "@/components/Loading";
 import LiveGame from "@/components/league/LiveGame";
 import RecentlyPlayedWith from "@/components/league/RecentlyPlayedWith";
 import NoProfileFound from "@/components/league/NoProfileFound";
+import ErrorPage from "@/components/ErrorPage";
+import { fetchWithErrorHandling, extractErrorMessage } from "@/lib/errorUtils";
 
 const initialState = {
 	profileData: null,
@@ -68,7 +70,6 @@ const ProfilePageContent = () => {
 	const region = searchParams.get("region");
 
 	const [state, dispatch] = useReducer(reducer, initialState);
-
 	const fetchProfileData = useCallback(() => {
 		const controller = new AbortController();
 		const signal = controller.signal;
@@ -76,22 +77,13 @@ const ProfilePageContent = () => {
 		(async () => {
 			dispatch({ type: "FETCH_START" });
 			try {
-				const response = await fetch(
-					`/api/league/profile?gameName=${gameName}&tagLine=${tagLine}&region=${region}`,
-					{ signal }
-				);
-				if (!response.ok) {
-					dispatch({
-						type: "FETCH_FAILURE",
-						payload: "Failed to fetch profile",
-					});
-					return;
-				}
-				const data = await response.json();
+				const url = `/api/league/profile?gameName=${gameName}&tagLine=${tagLine}&region=${region}`;
+				const data = await fetchWithErrorHandling(url, { signal });
 				dispatch({ type: "FETCH_SUCCESS", payload: data });
 			} catch (error) {
 				if (error.name !== "AbortError") {
-					dispatch({ type: "FETCH_FAILURE", payload: error.message });
+					console.error("League Profile fetch error:", error);
+					dispatch({ type: "FETCH_FAILURE", payload: error });
 				}
 			}
 		})();
@@ -107,7 +99,6 @@ const ProfilePageContent = () => {
 	}, [fetchProfileData]);
 
 	const toggleLiveGame = () => dispatch({ type: "TOGGLE_LIVE_GAME" });
-
 	const triggerUpdate = async () => {
 		dispatch({ type: "UPDATE_START" });
 		try {
@@ -119,15 +110,25 @@ const ProfilePageContent = () => {
 				},
 				body: JSON.stringify({ gameName, tagLine, region }),
 			});
-			const data = await response.json();
+
 			if (!response.ok) {
-				throw new Error(
-					data.error || `Failed to trigger update: ${response.status}`
-				);
+				const errorInfo = await extractErrorMessage(response);
+				const error = new Error(errorInfo.message);
+
+				// Attach additional error details
+				error.status = errorInfo.status;
+				error.statusText = errorInfo.statusText;
+				if (errorInfo.code) error.code = errorInfo.code;
+				if (errorInfo.details) error.details = errorInfo.details;
+				if (errorInfo.hint) error.hint = errorInfo.hint;
+
+				throw error;
 			}
+
 			fetchProfileData();
 		} catch (error) {
-			dispatch({ type: "FETCH_FAILURE", payload: error.message });
+			console.error("League Profile update error:", error);
+			dispatch({ type: "FETCH_FAILURE", payload: error });
 		} finally {
 			dispatch({ type: "UPDATE_END" });
 		}
@@ -144,11 +145,14 @@ const ProfilePageContent = () => {
 			</div>
 		);
 	}
-
 	if (state.error) {
 		return (
 			<div className="min-h-screen flex items-center justify-center">
-				<NoProfileFound />
+				<ErrorPage
+					error={state.error}
+					retryCountdown={0}
+					onRetry={() => window.location.reload()}
+				/>
 			</div>
 		);
 	}

@@ -162,8 +162,10 @@ export async function GET(req) {
 		if (storedMatchesError) throw storedMatchesError;
 
 		// Get match IDs that are in the database but not in the current matchIds
-		const storedMatchIds = storedMatches.map(match => match.matchid);
-		const additionalMatchIds = storedMatchIds.filter(id => !matchIds.includes(id));
+		const storedMatchIds = storedMatches.map((match) => match.matchid);
+		const additionalMatchIds = storedMatchIds.filter(
+			(id) => !matchIds.includes(id)
+		);
 
 		// Fetch details for additional matches
 		const additionalMatchDetails = await Promise.all(
@@ -174,7 +176,10 @@ export async function GET(req) {
 		);
 
 		// Combine all match details
-		const allMatchDetails = [...matchDetails, ...additionalMatchDetails.filter(Boolean)];
+		const allMatchDetails = [
+			...matchDetails,
+			...additionalMatchDetails.filter(Boolean),
+		];
 
 		const tftDataObj = {
 			profiledata: summonerData,
@@ -218,7 +223,29 @@ export async function GET(req) {
 		});
 	} catch (error) {
 		// Error fetching TFT profile data
-		return new Response(JSON.stringify({ error: error.message }), {
+		console.error("TFT Profile API Error:", error);
+
+		// Provide detailed error information
+		let errorMessage = error.message || "Unknown error occurred";
+		let errorDetails = { error: errorMessage };
+
+		// Include additional error details if available (e.g., from Supabase)
+		if (error.code) {
+			errorDetails.code = error.code;
+		}
+		if (error.details) {
+			errorDetails.details = error.details;
+		}
+		if (error.hint) {
+			errorDetails.hint = error.hint;
+		}
+
+		// Include stack trace in development
+		if (process.env.NODE_ENV === "development") {
+			errorDetails.stack = error.stack;
+		}
+
+		return new Response(JSON.stringify(errorDetails), {
 			status: 500,
 			headers: { "Content-Type": "application/json" },
 		});
@@ -258,7 +285,29 @@ export async function POST(req) {
 		);
 	} catch (error) {
 		// Error updating TFT profile
-		return new Response(JSON.stringify({ error: error.message }), {
+		console.error("TFT Profile Update API Error:", error);
+
+		// Provide detailed error information
+		let errorMessage = error.message || "Unknown error occurred";
+		let errorDetails = { error: errorMessage };
+
+		// Include additional error details if available (e.g., from Supabase)
+		if (error.code) {
+			errorDetails.code = error.code;
+		}
+		if (error.details) {
+			errorDetails.details = error.details;
+		}
+		if (error.hint) {
+			errorDetails.hint = error.hint;
+		}
+
+		// Include stack trace in development
+		if (process.env.NODE_ENV === "development") {
+			errorDetails.stack = error.stack;
+		}
+
+		return new Response(JSON.stringify(errorDetails), {
 			status: 500,
 			headers: { "Content-Type": "application/json" },
 		});
