@@ -6,6 +6,7 @@ import Dropdowns from "@/components/league/Dropdowns";
 import LeaderboardTable from "@/components/league/LeaderboardTable";
 import ErrorPage from "@/components/ErrorPage";
 import { FaTrophy, FaSync, FaExclamationTriangle } from "react-icons/fa";
+import { fetchWithErrorHandling } from "@/lib/errorUtils";
 
 const Leaderboard = () => {
 	const [leaderboardData, setLeaderboardData] = useState([]);
@@ -15,33 +16,13 @@ const Leaderboard = () => {
 	const [division, setDivision] = useState("I");
 	const [error, setError] = useState(null);
 	const [retryCountdown, setRetryCountdown] = useState(0);
-
 	const fetchLeaderboardData = useCallback(async () => {
 		setLoading(true);
 		setError(null);
 
 		try {
-			const response = await fetch(
-				`/api/league/leaderboard?region=${region}&tier=${tier}&division=${division}`
-			);
-
-			if (!response.ok) {
-				setLeaderboardData([]);
-				throw new Error(
-					`HTTP error: ${response.status} - ${response.statusText}`
-				);
-			}
-
-			let data = [];
-			try {
-				data = await response.json();
-			} catch (jsonError) {
-				data = [];
-			}
-
-			if (data && data.error) {
-				throw new Error(data.error);
-			}
+			const url = `/api/league/leaderboard?region=${region}&tier=${tier}&division=${division}`;
+			const data = await fetchWithErrorHandling(url);
 
 			if (!Array.isArray(data)) {
 				setLeaderboardData([]);
@@ -51,7 +32,8 @@ const Leaderboard = () => {
 
 			setError(null);
 		} catch (error) {
-			setError(error.message);
+			console.error("League Leaderboard fetch error:", error);
+			setError(error);
 			setRetryCountdown(10);
 		} finally {
 			setLoading(false);
@@ -153,27 +135,11 @@ const Leaderboard = () => {
 							</p>
 						</div>
 					) : error ? (
-						<div className="card-highlight py-8 text-center">
-							<FaExclamationTriangle className="text-[--error] text-4xl mx-auto mb-4" />
-							<h3 className="text-xl font-semibold mb-2">
-								Error Loading Leaderboard
-							</h3>
-							<p className="text-[--text-secondary] mb-6">{error}</p>
-
-							{retryCountdown > 0 ? (
-								<p className="text-[--warning]">
-									Retrying in {retryCountdown} second
-									{retryCountdown > 1 ? "s" : ""}...
-								</p>
-							) : (
-								<button
-									onClick={fetchLeaderboardData}
-									className="btn-primary inline-flex items-center"
-								>
-									<FaSync className="mr-2" /> Retry Now
-								</button>
-							)}
-						</div>
+						<ErrorPage
+							error={error}
+							retryCountdown={retryCountdown}
+							onRetry={fetchLeaderboardData}
+						/>
 					) : leaderboardData.length === 0 ? (
 						<div className="card-highlight py-8 text-center">
 							<h3 className="text-xl font-semibold mb-2">No Players Found</h3>

@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Profile from "@/components/tft/Profile";
 import ErrorPage from "@/components/ErrorPage";
 import Loading from "@/components/Loading";
+import { fetchWithErrorHandling, extractErrorMessage } from "@/lib/errorUtils";
 
 const ProfilePageContent = () => {
 	const searchParams = useSearchParams();
@@ -16,7 +17,6 @@ const ProfilePageContent = () => {
 	const [error, setError] = useState(null);
 	const [isUpdating, setIsUpdating] = useState(false);
 	const [isLoadingLadderRanking, setIsLoadingLadderRanking] = useState(false);
-
 	const fetchProfileData = useCallback(async () => {
 		if (!gameName || !tagLine || !region) {
 			setIsLoading(false);
@@ -27,24 +27,17 @@ const ProfilePageContent = () => {
 		setError(null);
 
 		try {
-			const response = await fetch(
-				`/api/tft/profile?gameName=${encodeURIComponent(
-					gameName
-				)}&tagLine=${encodeURIComponent(tagLine)}&region=${encodeURIComponent(
-					region
-				)}`
-			);
+			const url = `/api/tft/profile?gameName=${encodeURIComponent(
+				gameName
+			)}&tagLine=${encodeURIComponent(tagLine)}&region=${encodeURIComponent(
+				region
+			)}`;
 
-			if (!response.ok) {
-				throw new Error(
-					`Failed to fetch profile data: ${response.status} ${response.statusText}`
-				);
-			}
-
-			const data = await response.json();
+			const data = await fetchWithErrorHandling(url);
 			setProfileData(data);
 		} catch (err) {
-			setError(err.message);
+			console.error("TFT Profile fetch error:", err);
+			setError(err);
 		} finally {
 			setIsLoading(false);
 		}
@@ -66,7 +59,6 @@ const ProfilePageContent = () => {
 	const handleLadderRankingLoaded = () => {
 		setIsLoadingLadderRanking(false);
 	};
-
 	const triggerUpdate = async () => {
 		setIsUpdating(true);
 		try {
@@ -86,41 +78,49 @@ const ProfilePageContent = () => {
 			});
 
 			if (!response.ok) {
-				const data = await response.json();
-				throw new Error(
-					data.error || `Failed to trigger update: ${response.status}`
-				);
+				const errorInfo = await extractErrorMessage(response);
+				const error = new Error(errorInfo.message);
+
+				// Attach additional error details
+				error.status = errorInfo.status;
+				error.statusText = errorInfo.statusText;
+				if (errorInfo.code) error.code = errorInfo.code;
+				if (errorInfo.details) error.details = errorInfo.details;
+				if (errorInfo.hint) error.hint = errorInfo.hint;
+
+				throw error;
 			}
 
 			// Fetch updated profile data
 			await fetchProfileData();
 		} catch (error) {
-			setError(error.message);
+			console.error("TFT Profile update error:", error);
+			setError(error);
 		} finally {
 			setIsUpdating(false);
 		}
 	};
 
- // Show loading only if initial data is loading
- if (isLoading) {
- 	return (
- 		<div className="min-h-screen flex items-center justify-center">
- 			<Loading />
- 		</div>
- 	);
- }
-
+	// Show loading only if initial data is loading
+	if (isLoading) {
+		return (
+			<div className="min-h-screen flex items-center justify-center">
+				<Loading />
+			</div>
+		);
+	}
 	if (error || !gameName || !tagLine || !region) {
 		return (
 			<ErrorPage
-				message={
+				error={
 					error ||
 					"Please provide a valid Riot ID (gameName#tagLine) and region."
 				}
+				retryCountdown={0}
+				onRetry={() => window.location.reload()}
 			/>
 		);
 	}
-
 
 	return (
 		<Profile

@@ -1,21 +1,20 @@
 import { NextResponse } from "next/server";
 import { fetchTFTSummonerPUUID } from "@/lib/tft/tftApi";
-import { fetchAccountDataByPUUID } from "@/lib/league/leagueApi"; // Re-use League's account fetcher
+import { fetchAccountDataByPUUID } from "@/lib/league/leagueApi";
 
 const TFT_API_KEY = process.env.TFT_API_KEY;
 
-// Simple retry helper (1 extra attempt)
 async function fetchWithRetry(fn, args, retries = 1) {
 	try {
 		return await fn(...args);
 	} catch (error) {
 		if (retries > 0) {
 			console.warn(`Retrying ${fn.name} after error: ${error.message}`);
-			await new Promise((resolve) => setTimeout(resolve, 500)); // Wait 500ms before retry
+			await new Promise((resolve) => setTimeout(resolve, 500));
 			return fetchWithRetry(fn, args, retries - 1);
 		}
 		console.error(`Failed ${fn.name} after multiple retries:`, error);
-		throw error; // Re-throw the error after retries are exhausted
+		throw error;
 	}
 }
 
@@ -23,7 +22,7 @@ export async function GET(req) {
 	const { searchParams } = new URL(req.url);
 	const tier = searchParams.get("tier") || "CHALLENGER";
 	const division = searchParams.get("division") || "I";
-	const region = searchParams.get("region") || "euw1"; // Default to EUW1
+	const region = searchParams.get("region") || "euw1";
 
 	if (!TFT_API_KEY) {
 		return NextResponse.json(
@@ -32,31 +31,26 @@ export async function GET(req) {
 		);
 	}
 
-	// Construct API URL based on tier
 	let apiUrl;
 	const upperTier = tier.toUpperCase();
 	if (["MASTER", "GRANDMASTER", "CHALLENGER"].includes(upperTier)) {
-		// For higher tiers, use the specific endpoints (no division needed)
 		apiUrl = `https://${region}.api.riotgames.com/tft/league/v1/${tier.toLowerCase()}`;
 	} else {
-		// For lower tiers (IRON to DIAMOND), use the entries endpoint
-		// Ensure division is valid (I, II, III, IV) - default to I if invalid
 		const validDivision = ["I", "II", "III", "IV"].includes(
 			division.toUpperCase()
 		)
 			? division.toUpperCase()
 			: "I";
-		apiUrl = `https://${region}.api.riotgames.com/tft/league/v1/entries/${upperTier}/${validDivision}?page=1`; // Assuming page 1 is sufficient for top 100
+		apiUrl = `https://${region}.api.riotgames.com/tft/league/v1/entries/${upperTier}/${validDivision}?page=1`;
 	}
 
 	try {
 		const response = await fetch(apiUrl, {
 			headers: { "X-Riot-Token": TFT_API_KEY },
-			next: { revalidate: 300 }, // Cache for 5 minutes
+			next: { revalidate: 300 },
 		});
 
 		if (!response.ok) {
-			// Handle specific rate limit error
 			if (response.status === 429) {
 				console.error("TFT API rate limit exceeded.");
 				return NextResponse.json(
@@ -64,7 +58,6 @@ export async function GET(req) {
 					{ status: 429 }
 				);
 			}
-			// Handle other errors
 			console.error(
 				`TFT API error: ${response.status} - ${response.statusText}`
 			);
@@ -79,54 +72,43 @@ export async function GET(req) {
 		let rawData = await response.json();
 		let leaderboardData = [];
 
-		// Handle the different response formats based on tier
 		if (["MASTER", "GRANDMASTER", "CHALLENGER"].includes(upperTier)) {
-			// Higher tiers return an object with entries array
 			leaderboardData = rawData.entries || [];
 		} else {
-			// Lower tiers return array directly
 			leaderboardData = Array.isArray(rawData) ? rawData : [];
 		}
 
 		if (leaderboardData.length === 0) {
-			return NextResponse.json([]); // Return empty array if no players found
+			return NextResponse.json([]);
 		}
 
-		// Sort by leaguePoints in descending order
 		leaderboardData.sort((a, b) => b.leaguePoints - a.leaguePoints);
 
-		// Take only top 100 entries (Riot API might return more for lower tiers)
 		leaderboardData = leaderboardData.slice(0, 100);
 
-		// Enrich with profile data (gameName, tagLine, profileIconId)
 		const detailedResults = await Promise.allSettled(
 			leaderboardData.map(async (entry) => {
-				// Need summonerId for TFT PUUID fetch
 				if (!entry.summonerId) {
 					console.warn("Skipping entry due to missing summonerId:", entry);
-					return { ...entry, profileData: null }; // Skip if no summonerId
+					return { ...entry, profileData: null };
 				}
 				try {
-					// Fetch PUUID using summonerId (TFT specific)
 					const { puuid, profileIconId } = await fetchWithRetry(
 						fetchTFTSummonerPUUID,
-						[entry.summonerId, region],
-						1 // Retry once
+						[entry.summonerId, region]
 					);
 
 					// Fetch account data using PUUID (Game Agnostic)
-					const accountData = await fetchWithRetry(
-						fetchAccountDataByPUUID,
-						[puuid], // Pass PUUID as an array
-						1 // Retry once
-					);
+					const accountData = await fetchWithRetry(fetchAccountDataByPUUID, [
+						puuid,
+					]);
 
 					return {
 						...entry,
 						profileData: {
 							gameName: accountData.gameName,
 							tagLine: accountData.tagLine,
-							profileIconId: profileIconId, // Use icon from TFT summoner endpoint
+							profileIconId: profileIconId,
 						},
 					};
 				} catch (error) {
@@ -134,11 +116,10 @@ export async function GET(req) {
 						`Error enriching data for summonerId ${entry.summonerId}:`,
 						error.message
 					);
-					// Return entry with fallback profile data on error
 					return {
 						...entry,
 						profileData: {
-							gameName: entry.summonerName || "Unknown", // Fallback to summonerName if available
+							gameName: entry.summonerName || "Unknown",
 							tagLine: "error",
 							profileIconId: null,
 						},
@@ -155,9 +136,28 @@ export async function GET(req) {
 		return NextResponse.json(enrichedData);
 	} catch (error) {
 		console.error("Error fetching or processing TFT leaderboard:", error);
-		return NextResponse.json(
-			{ error: "Internal server error fetching leaderboard data." },
-			{ status: 500 }
-		);
+
+		// Provide detailed error information
+		let errorMessage =
+			error.message || "Internal server error fetching leaderboard data.";
+		let errorDetails = { error: errorMessage };
+
+		// Include additional error details if available
+		if (error.code) {
+			errorDetails.code = error.code;
+		}
+		if (error.details) {
+			errorDetails.details = error.details;
+		}
+		if (error.hint) {
+			errorDetails.hint = error.hint;
+		}
+
+		// Include stack trace in development
+		if (process.env.NODE_ENV === "development") {
+			errorDetails.stack = error.stack;
+		}
+
+		return NextResponse.json(errorDetails, { status: 500 });
 	}
 }
