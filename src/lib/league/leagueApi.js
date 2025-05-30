@@ -75,28 +75,28 @@ export const fetchMatchIds = async (encryptedPUUID, platform) => {
  * Fetch detailed match data.
  */
 export const fetchMatchDetail = async (matchId, platform) => {
-const matchDetailResponse = await fetch(
-	`https://${platform}.api.riotgames.com/lol/match/v5/matches/${matchId}`,
-	{ headers: { "X-Riot-Token": RIOT_API_KEY } }
-);
-if (!matchDetailResponse.ok) {
-	return null;
-}
+	const matchDetailResponse = await fetch(
+		`https://${platform}.api.riotgames.com/lol/match/v5/matches/${matchId}`,
+		{ headers: { "X-Riot-Token": RIOT_API_KEY } }
+	);
+	if (!matchDetailResponse.ok) {
+		return null;
+	}
 
-const matchData = await matchDetailResponse.json();
+	const matchData = await matchDetailResponse.json();
 
-// Extract the region from the matchId (e.g., "NA1_123456789" -> "NA1")
-if (
-	matchData.metadata &&
-	matchData.info &&
-	matchData.info.participants &&
-	matchData.info.participants.length > 0
-) {
-	// No additional processing needed
-}
+	// Extract the region from the matchId (e.g., "NA1_123456789" -> "NA1")
+	if (
+		matchData.metadata &&
+		matchData.info &&
+		matchData.info.participants &&
+		matchData.info.participants.length > 0
+	) {
+		// No additional processing needed
+	}
 
-return matchData;
-}
+	return matchData;
+};
 
 /**
  * Upsert match detail into the matches table.
@@ -104,15 +104,13 @@ return matchData;
 export const upsertMatchDetail = async (matchId, puuid, matchDetail) => {
 	try {
 		// Insert into matches (if not exists)
-		const { error: matchError } = await supabaseAdmin
-			.from("matches")
-			.upsert(
-				{
-					matchid: matchId,
-					game_type: "league",
-				},
-				{ onConflict: ["matchid"], ignoreDuplicates: true }
-			);
+		const { error: matchError } = await supabaseAdmin.from("matches").upsert(
+			{
+				matchid: matchId,
+				game_type: "league",
+			},
+			{ onConflict: ["matchid"], ignoreDuplicates: true }
+		);
 		if (matchError) {
 			console.error("Error upserting into matches:", matchError);
 			throw matchError;
@@ -131,7 +129,6 @@ export const upsertMatchDetail = async (matchId, puuid, matchDetail) => {
 			console.error("Error upserting into match_details:", detailsError);
 			throw detailsError;
 		}
-		console.log(`[LEAGUE] Upserted match_detail for matchId: ${matchId}`);
 	} catch (err) {
 		console.error("upsertMatchDetail failed:", err);
 		throw err;
@@ -179,36 +176,57 @@ export const fetchAdditionalData = async (summonerId, puuid, region) => {
 	let errors = [];
 
 	// Fetch all in parallel, but catch errors individually
-	const rankedPromise = fetch(`https://${normalizedRegion}.api.riotgames.com/lol/league/v4/entries/by-summoner/${summonerId}`,
-		{ headers: { "X-Riot-Token": RIOT_API_KEY } })
-		.then(r => r.ok ? r.json() : Promise.reject("ranked"))
-		.then(data => { rankedData = data; soloQueueData = data.find(q => q.queueType === "RANKED_SOLO_5x5"); })
-		.catch(e => { errors.push("ranked"); });
+	const rankedPromise = fetch(
+		`https://${normalizedRegion}.api.riotgames.com/lol/league/v4/entries/by-summoner/${summonerId}`,
+		{ headers: { "X-Riot-Token": RIOT_API_KEY } }
+	)
+		.then((r) => (r.ok ? r.json() : Promise.reject("ranked")))
+		.then((data) => {
+			rankedData = data;
+			soloQueueData = data.find((q) => q.queueType === "RANKED_SOLO_5x5");
+		})
+		.catch((e) => {
+			errors.push("ranked");
+		});
 
-	const accountPromise = fetch(`https://europe.api.riotgames.com/riot/account/v1/accounts/by-puuid/${puuid}`,
-		{ headers: { "X-Riot-Token": RIOT_API_KEY } })
-		.then(r => r.ok ? r.json() : Promise.reject("account"))
-		.then(data => { accountData = data; })
-		.catch(e => { errors.push("account"); });
+	const accountPromise = fetch(
+		`https://europe.api.riotgames.com/riot/account/v1/accounts/by-puuid/${puuid}`,
+		{ headers: { "X-Riot-Token": RIOT_API_KEY } }
+	)
+		.then((r) => (r.ok ? r.json() : Promise.reject("account")))
+		.then((data) => {
+			accountData = data;
+		})
+		.catch((e) => {
+			errors.push("account");
+		});
 
-	const summonerPromise = fetch(`https://${normalizedRegion}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}`,
-		{ headers: { "X-Riot-Token": RIOT_API_KEY } })
-		.then(r => r.ok ? r.json() : Promise.reject("summoner"))
-		.then(data => { summonerData = data; })
-		.catch(e => { errors.push("summoner"); });
+	const summonerPromise = fetch(
+		`https://${normalizedRegion}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}`,
+		{ headers: { "X-Riot-Token": RIOT_API_KEY } }
+	)
+		.then((r) => (r.ok ? r.json() : Promise.reject("summoner")))
+		.then((data) => {
+			summonerData = data;
+		})
+		.catch((e) => {
+			errors.push("summoner");
+		});
 
 	await Promise.all([rankedPromise, accountPromise, summonerPromise]);
 
 	// Fallbacks for missing data
 	return {
-		rank: soloQueueData ? `${soloQueueData.tier} ${soloQueueData.rank}` : "Unranked",
+		rank: soloQueueData
+			? `${soloQueueData.tier} ${soloQueueData.rank}`
+			: "Unranked",
 		lp: soloQueueData ? soloQueueData.leaguePoints : 0,
 		wins: soloQueueData ? soloQueueData.wins : 0,
 		losses: soloQueueData ? soloQueueData.losses : 0,
 		gameName: accountData.gameName || "",
 		tagLine: accountData.tagLine || "",
 		summonerLevel: summonerData.summonerLevel || 0,
-		_partialError: errors.length > 0 ? errors : undefined
+		_partialError: errors.length > 0 ? errors : undefined,
 	};
 };
 

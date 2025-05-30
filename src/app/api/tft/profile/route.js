@@ -187,8 +187,6 @@ export async function GET(req) {
 				return matchDetail;
 			})
 		);
-		console.log("[TFT] matchIds:", matchIds);
-		console.log("[TFT] matchDetails:", matchDetails);
 		if (!matchDetails || matchDetails.length === 0) {
 			console.warn("[TFT] No match details found for user", riotAccount.id);
 		}

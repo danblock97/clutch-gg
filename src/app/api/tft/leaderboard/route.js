@@ -85,52 +85,50 @@ export async function GET(req) {
 		leaderboardData.sort((a, b) => b.leaguePoints - a.leaguePoints);
 
 		leaderboardData = leaderboardData.slice(0, 100);
-
 		const detailedResults = await Promise.allSettled(
-			leaderboardData.map(async (entry) => {
-				if (!entry.summonerId) {
-					console.warn("Skipping entry due to missing summonerId:", entry);
-					return { ...entry, profileData: null };
-				}
-				try {
-					const { puuid, profileIconId } = await fetchWithRetry(
-						fetchTFTSummonerPUUID,
-						[entry.summonerId, region]
-					);
+			leaderboardData
+				.filter((entry) => entry && entry.summonerId) // Filter out null/undefined entries
+				.map(async (entry) => {
+					try {
+						const { puuid, profileIconId } = await fetchWithRetry(
+							fetchTFTSummonerPUUID,
+							[entry.summonerId, region]
+						);
 
-					// Fetch account data using PUUID (Game Agnostic)
-					const accountData = await fetchWithRetry(fetchAccountDataByPUUID, [
-						puuid,
-					]);
+						// Fetch account data using PUUID (Game Agnostic)
+						const accountData = await fetchWithRetry(fetchAccountDataByPUUID, [
+							puuid,
+						]);
 
-					return {
-						...entry,
-						profileData: {
-							gameName: accountData.gameName,
-							tagLine: accountData.tagLine,
-							profileIconId: profileIconId,
-						},
-					};
-				} catch (error) {
-					console.error(
-						`Error enriching data for summonerId ${entry.summonerId}:`,
-						error.message
-					);
-					return {
-						...entry,
-						profileData: {
-							gameName: entry.summonerName || "Unknown",
-							tagLine: "error",
-							profileIconId: null,
-						},
-					};
-				}
-			})
+						return {
+							...entry,
+							profileData: {
+								gameName: accountData.gameName,
+								tagLine: accountData.tagLine,
+								profileIconId: profileIconId,
+							},
+						};
+					} catch (error) {
+						console.error(
+							`Error enriching data for summonerId ${entry.summonerId}:`,
+							error.message
+						);
+						return {
+							...entry,
+							profileData: {
+								gameName: entry.summonerName || "Unknown",
+								tagLine: "error",
+								profileIconId: null,
+							},
+						};
+					}
+				})
 		);
-
 		// Filter out rejected promises and extract values
 		const enrichedData = detailedResults
-			.filter((result) => result.status === "fulfilled" && result.value)
+			.filter(
+				(result) => result && result.status === "fulfilled" && result.value
+			)
 			.map((result) => result.value);
 
 		return NextResponse.json(enrichedData);

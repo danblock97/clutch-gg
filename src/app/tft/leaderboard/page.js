@@ -25,7 +25,6 @@ const LeaderboardPage = () => {
 		try {
 			const url = `/api/tft/leaderboard?region=${region}&tier=${tier}&division=${division}`;
 			const data = await fetchWithErrorHandling(url);
-
 			if (!Array.isArray(data)) {
 				console.error("API did not return an array:", data);
 				setLeaderboardData([]);
@@ -34,7 +33,8 @@ const LeaderboardPage = () => {
 				setLeaderboardData(data);
 			}
 
-			setError(null); // Clear previous errors on success		} catch (error) {
+			setError(null); // Clear previous errors on success
+		} catch (error) {
 			console.error("TFT Leaderboard fetch error:", error);
 			const detailedError = extractErrorMessage(error);
 			setError(detailedError);

@@ -189,8 +189,6 @@ export async function GET(req) {
 				return matchDetail;
 			})
 		);
-		console.log("[LEAGUE] matchIds:", matchIds);
-		console.log("[LEAGUE] matchDetails:", matchDetails);
 		if (!matchDetails || matchDetails.length === 0) {
 			console.warn("[LEAGUE] No match details found for user", riotAccount.id);
 		}

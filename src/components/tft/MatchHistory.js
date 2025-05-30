@@ -377,6 +377,13 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 						{day}
 					</h2>{" "}
 					{matches.map((match, index) => {
+						// Get participant and basic match data
+						const participant = match.info?.participants?.find(
+							(p) => p.puuid === summonerData.puuid
+						);
+						if (!participant) return null;
+						const matchId = match.metadata.match_id || `match-${index}`;
+
 						// Enhanced defensive date handling with proper timestamp conversion
 						let gameDateRaw =
 							match.info.game_datetime ?? match.info.gameCreation ?? 0;

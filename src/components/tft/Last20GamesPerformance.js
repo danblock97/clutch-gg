@@ -163,13 +163,6 @@ const Last20GamesPerformance = ({ matchDetails, summonerData }) => {
 		);
 	}
 
-	// Debug logging (keep these during development!)
-	// console.log("Last 20 Matches:", last20Matches);
-	// console.log("Placement Stats:", placementStats);
-	// console.log("Max count (for scaling):", maxCount);
-	// console.log("Actual Max count (for labels):", Math.max(...(placementStats.placementDistribution || [0])));
-	// console.log("Y Axis Labels:", yAxisLabels);
-
 	return (
 		<div className="card-highlight rounded-xl p-5">
 			{/* --- Header and Stats Sections (No changes needed) --- */}
