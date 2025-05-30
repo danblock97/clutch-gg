@@ -177,7 +177,12 @@ export async function GET(req) {
 				const matchDetail = await fetchTFTMatchDetail(matchId, platform);
 				if (matchDetail) {
 					try {
-						await upsertTFTMatchDetail(matchId, matchDetail);
+						await upsertTFTMatchDetail(
+							matchId,
+							puuid,
+							matchDetail,
+							riotAccount.id
+						);
 					} catch (upsertErr) {
 						console.error("Error upserting TFT match detail:", {
 							matchId,
