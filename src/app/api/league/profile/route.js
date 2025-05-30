@@ -133,19 +133,26 @@ export async function GET(req) {
 				.eq("riot_account_id", riotAccount.id)
 				.eq("game_type", "league")
 				.maybeSingle();
-			if (gameDataError) throw gameDataError;
-
-			// Fetch recent matches for this user from match_details using JSON filtering
+			if (gameDataError) throw gameDataError; // Fetch recent matches from match_details - we'll filter client-side for now
+			// TODO: Optimize with proper JSON query when we have more matches in DB
 			let { data: matchDetailsRows, error: matchDetailsError } = await supabase
 				.from("match_details")
 				.select("*")
-				.contains("details->metadata->participants", [riotAccount.puuid])
 				.order("matchid", { ascending: false })
-				.limit(50); // Get matches where user participated
+				.limit(200); // Get more matches to ensure we find enough for the user
 			if (matchDetailsError) throw matchDetailsError;
 
-			// Map to match JSON
-			const userMatchDetails = (matchDetailsRows || []).map((md) => md.details);
+			// Filter matches where user participated and limit to 50
+			const userMatchDetails = (matchDetailsRows || [])
+				.map((md) => md.details)
+				.filter(
+					(match) =>
+						match &&
+						match.metadata &&
+						match.metadata.participants &&
+						match.metadata.participants.includes(riotAccount.puuid)
+				)
+				.slice(0, 50); // Limit to 50 matches for the user
 			if (storedGameData) {
 				return new Response(
 					JSON.stringify({ ...storedGameData, matchdetails: userMatchDetails }),
