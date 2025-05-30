@@ -126,7 +126,6 @@ export async function GET(req) {
 		if (!riotAccount?.puuid) {
 			throw new Error("Riot account record is missing the puuid.");
 		}
-
 		if (!forceUpdate) {
 			let { data: storedGameData, error: gameDataError } = await supabase
 				.from("game_data")
@@ -134,15 +133,18 @@ export async function GET(req) {
 				.eq("riot_account_id", riotAccount.id)
 				.eq("game_type", "league")
 				.maybeSingle();
-			if (gameDataError) throw gameDataError; // Fetch recent matches for this user from match_details
+			if (gameDataError) throw gameDataError;
+
+			// Fetch recent matches for this user from match_details using JSON filtering
 			let { data: matchDetailsRows, error: matchDetailsError } = await supabase
 				.from("match_details")
 				.select("*")
-				.eq("puuid", riotAccount.puuid)
+				.contains("details->metadata->participants", [riotAccount.puuid])
 				.order("matchid", { ascending: false })
-				.limit(50); // Get more matches since we're filtering by user
+				.limit(50); // Get matches where user participated
 			if (matchDetailsError) throw matchDetailsError;
-			// Map to match JSON (no filtering needed since we're already filtering by puuid)
+
+			// Map to match JSON
 			const userMatchDetails = (matchDetailsRows || []).map((md) => md.details);
 			if (storedGameData) {
 				return new Response(
