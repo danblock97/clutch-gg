@@ -377,7 +377,7 @@ const MatchHistory = ({
   const [selectedQueue, setSelectedQueue] = useState(null);
 
   const [currentPage, setCurrentPage] = useState(1);
-  const matchesPerPage = 20;
+  const matchesPerPage = 10;
 
   const breakpoint = useBreakpoint();
   let maxTagsToShow = breakpoint === "mobile" ? 1 : breakpoint === "md" ? 2 : 3;
