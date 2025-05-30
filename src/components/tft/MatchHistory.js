@@ -287,10 +287,19 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 		indexOfFirstMatch,
 		indexOfLastMatch
 	);
-
 	// Group matches by date
 	const matchesByDay = currentMatches.reduce((acc, match) => {
-		const matchDate = new Date(match.info.game_datetime);
+		// Handle multiple possible date field formats
+		const gameDateRaw =
+			match.info.game_datetime ?? match.info.gameCreation ?? Date.now();
+		const matchDate = new Date(gameDateRaw);
+
+		// Validate the date
+		if (isNaN(matchDate.getTime())) {
+			// If invalid date, use current date as fallback
+			matchDate = new Date();
+		}
+
 		const formattedDate = matchDate.toLocaleDateString("en-GB", {
 			day: "2-digit",
 			month: "short",
@@ -351,12 +360,13 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 		);
 	}
 
-	const filteredMatches = matchDetails.filter(match =>
-		match &&
-		match.info &&
-		Array.isArray(match.info.participants) &&
-		match.info.participants.length > 0 &&
-		(match.info.game_datetime || match.info.gameCreation)
+	const filteredMatches = matchDetails.filter(
+		(match) =>
+			match &&
+			match.info &&
+			Array.isArray(match.info.participants) &&
+			match.info.participants.length > 0 &&
+			(match.info.game_datetime || match.info.gameCreation)
 	);
 
 	return (
@@ -365,25 +375,28 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 				<div key={day} className="mb-4">
 					<h2 className="text-xl font-semibold text-[--text-primary] my-4">
 						{day}
-					</h2>
+					</h2>{" "}
 					{matches.map((match, index) => {
-						// Defensive date handling
-						const gameDateRaw = match.info.game_datetime ?? match.info.gameCreation ?? 0;
-						const gameDate = new Date(gameDateRaw);
-						const timeAgo =
-							isNaN(gameDate.getTime())
-								? "Unknown"
-								: /* your existing time ago logic here */ "";
-						// Defensive stat handling for all numeric fields
-						// ... rest of your rendering logic ...
+						// Enhanced defensive date handling with proper timestamp conversion
+						let gameDateRaw =
+							match.info.game_datetime ?? match.info.gameCreation ?? 0;
 
-						// Get participant and basic match data
-						const participant = match.info?.participants?.find(
-							(p) => p.puuid === summonerData.puuid
-						);
-						if (!participant) return null;
-						const matchId = match.metadata.match_id || `match-${index}`;
+						// Handle different timestamp formats
+						// game_datetime might be in seconds, gameCreation is typically in milliseconds
+						if (typeof gameDateRaw === "number" && gameDateRaw < 1e12) {
+							// If timestamp is less than 1e12, it's likely in seconds, convert to milliseconds
+							gameDateRaw = gameDateRaw * 1000;
+						}
+
+						const gameDate = new Date(gameDateRaw);
 						const now = new Date();
+
+						// Validate the date and provide fallback
+						if (isNaN(gameDate.getTime()) || gameDate.getTime() === 0) {
+							// Use current time minus a reasonable offset as fallback
+							gameDate.setTime(now.getTime() - index * 3600000); // Subtract hours based on index
+						}
+
 						const diffTime = Math.abs(now - gameDate);
 						const diffMinutes = Math.floor(diffTime / (1000 * 60));
 						const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
@@ -402,11 +415,14 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 						} else if (diffDays < 7) {
 							formattedTimeAgo = `${diffDays}d ago`;
 						} else if (diffWeeks < 4) {
-							formattedTimeAgo = diffWeeks === 1 ? "1 week ago" : `${diffWeeks} weeks ago`;
+							formattedTimeAgo =
+								diffWeeks === 1 ? "1 week ago" : `${diffWeeks} weeks ago`;
 						} else if (diffMonths < 12) {
-							formattedTimeAgo = diffMonths === 1 ? "1 month ago" : `${diffMonths} months ago`;
+							formattedTimeAgo =
+								diffMonths === 1 ? "1 month ago" : `${diffMonths} months ago`;
 						} else {
-							formattedTimeAgo = diffYears === 1 ? "1 year ago" : `${diffYears} years ago`;
+							formattedTimeAgo =
+								diffYears === 1 ? "1 year ago" : `${diffYears} years ago`;
 						}
 
 						// Get placement and styling
@@ -472,7 +488,9 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 									}
 									className={`tft-match-card bg-[--background-alt] p-3 rounded-md flex gap-4 ${getGradientBackground(
 										placement
-									)} shadow-sm ${breakpoint !== "mobile" ? "cursor-pointer" : ""} hover:bg-[--card-bg-secondary]/50 transition-colors duration-150 min-w-[768px]`} // Apply gradient here, remove placementClass
+									)} shadow-sm ${
+										breakpoint !== "mobile" ? "cursor-pointer" : ""
+									} hover:bg-[--card-bg-secondary]/50 transition-colors duration-150 min-w-[768px]`} // Apply gradient here, remove placementClass
 								>
 									{/* Companion and placement section */}
 									<div className="flex flex-col items-start flex-shrink-0">

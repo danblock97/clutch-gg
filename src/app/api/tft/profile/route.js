@@ -125,18 +125,16 @@ export async function GET(req) {
 				.eq("riot_account_id", riotAccount.id)
 				.eq("game_type", "tft")
 				.maybeSingle();
-			if (gameDataError) throw gameDataError;
-			// Fetch recent matches for this user from match_details
+			if (gameDataError) throw gameDataError; // Fetch recent matches for this user from match_details
 			let { data: matchDetailsRows, error: matchDetailsError } = await supabase
 				.from("match_details")
 				.select("*")
+				.eq("puuid", riotAccount.puuid)
 				.order("matchid", { ascending: false })
-				.limit(20); // adjust as needed
+				.limit(50); // Get more matches since we're filtering by user
 			if (matchDetailsError) throw matchDetailsError;
-			// Filter for matches where user's puuid is a participant and map to match JSON
-			const userMatchDetails = (matchDetailsRows || [])
-				.filter(md => md.details && md.details.metadata && md.details.metadata.participants && md.details.metadata.participants.includes(riotAccount.puuid))
-				.map(md => md.details);
+			// Map to match JSON (no filtering needed since we're already filtering by puuid)
+			const userMatchDetails = (matchDetailsRows || []).map((md) => md.details);
 			if (storedGameData) {
 				return new Response(
 					JSON.stringify({ ...storedGameData, matchdetails: userMatchDetails }),
@@ -164,9 +162,16 @@ export async function GET(req) {
 				const matchDetail = await fetchTFTMatchDetail(matchId, platform);
 				if (matchDetail) {
 					try {
-						await upsertTFTMatchDetail(matchId, summonerData.puuid, matchDetail);
+						await upsertTFTMatchDetail(
+							matchId,
+							summonerData.puuid,
+							matchDetail
+						);
 					} catch (upsertErr) {
-						console.error("Error upserting TFT match detail:", { matchId, upsertErr });
+						console.error("Error upserting TFT match detail:", {
+							matchId,
+							upsertErr,
+						});
 					}
 				}
 				return matchDetail;
@@ -179,7 +184,11 @@ export async function GET(req) {
 		}
 		// Filter matchDetails for those where the user's puuid is a participant
 		const allMatchDetails = matchDetails.filter(
-			md => md && md.metadata && md.metadata.participants && md.metadata.participants.includes(summonerData.puuid)
+			(md) =>
+				md &&
+				md.metadata &&
+				md.metadata.participants &&
+				md.metadata.participants.includes(summonerData.puuid)
 		);
 
 		const tftDataObj = {
@@ -202,7 +211,10 @@ export async function GET(req) {
 					riot_account_id: riotAccount.id,
 					...tftDataObj,
 				},
-				{ onConflict: ["riot_account_id", "game_type"], returning: "representation" }
+				{
+					onConflict: ["riot_account_id", "game_type"],
+					returning: "representation",
+				}
 			)
 			.single();
 		if (tftError) throw tftError;
@@ -217,10 +229,13 @@ export async function GET(req) {
 			if (selectError) throw selectError;
 			tftRecord = selectedGameData;
 		}
-		return new Response(JSON.stringify({ ...tftRecord, matchdetails: allMatchDetails }), {
-			status: 200,
-			headers: { "Content-Type": "application/json" },
-		});
+		return new Response(
+			JSON.stringify({ ...tftRecord, matchdetails: allMatchDetails }),
+			{
+				status: 200,
+				headers: { "Content-Type": "application/json" },
+			}
+		);
 	} catch (error) {
 		// Error fetching TFT profile data
 		console.error("TFT Profile API Error:", error);
