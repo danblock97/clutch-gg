@@ -351,6 +351,14 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 		);
 	}
 
+	const filteredMatches = matchDetails.filter(match =>
+		match &&
+		match.info &&
+		Array.isArray(match.info.participants) &&
+		match.info.participants.length > 0 &&
+		(match.info.game_datetime || match.info.gameCreation)
+	);
+
 	return (
 		<div className="space-y-2 overflow-x-auto">
 			{Object.entries(matchesByDay).map(([day, matches]) => (
@@ -359,15 +367,24 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 						{day}
 					</h2>
 					{matches.map((match, index) => {
+						// Defensive date handling
+						const gameDateRaw = match.info.game_datetime ?? match.info.gameCreation ?? 0;
+						const gameDate = new Date(gameDateRaw);
+						const timeAgo =
+							isNaN(gameDate.getTime())
+								? "Unknown"
+								: /* your existing time ago logic here */ "";
+						// Defensive stat handling for all numeric fields
+						// ... rest of your rendering logic ...
+
 						// Get participant and basic match data
 						const participant = match.info?.participants?.find(
 							(p) => p.puuid === summonerData.puuid
 						);
 						if (!participant) return null;
 						const matchId = match.metadata.match_id || `match-${index}`;
-						const matchDate = new Date(match.info.game_datetime);
 						const now = new Date();
-						const diffTime = Math.abs(now - matchDate);
+						const diffTime = Math.abs(now - gameDate);
 						const diffMinutes = Math.floor(diffTime / (1000 * 60));
 						const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
 						const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
@@ -375,21 +392,21 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 						const diffMonths = Math.floor(diffDays / 30);
 						const diffYears = Math.floor(diffDays / 365);
 
-						let timeAgo;
+						let formattedTimeAgo;
 						if (diffTime < 60000) {
-							timeAgo = "Just now";
+							formattedTimeAgo = "Just now";
 						} else if (diffMinutes < 60) {
-							timeAgo = `${diffMinutes}m ago`;
+							formattedTimeAgo = `${diffMinutes}m ago`;
 						} else if (diffHours < 24) {
-							timeAgo = `${diffHours}h ago`;
+							formattedTimeAgo = `${diffHours}h ago`;
 						} else if (diffDays < 7) {
-							timeAgo = `${diffDays}d ago`;
+							formattedTimeAgo = `${diffDays}d ago`;
 						} else if (diffWeeks < 4) {
-							timeAgo = diffWeeks === 1 ? "1 week ago" : `${diffWeeks} weeks ago`;
+							formattedTimeAgo = diffWeeks === 1 ? "1 week ago" : `${diffWeeks} weeks ago`;
 						} else if (diffMonths < 12) {
-							timeAgo = diffMonths === 1 ? "1 month ago" : `${diffMonths} months ago`;
+							formattedTimeAgo = diffMonths === 1 ? "1 month ago" : `${diffMonths} months ago`;
 						} else {
-							timeAgo = diffYears === 1 ? "1 year ago" : `${diffYears} years ago`;
+							formattedTimeAgo = diffYears === 1 ? "1 year ago" : `${diffYears} years ago`;
 						}
 
 						// Get placement and styling
@@ -548,7 +565,7 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 
 											{/* Time ago */}
 											<div className="text-xs text-[--text-secondary] whitespace-nowrap">
-												{timeAgo}
+												{formattedTimeAgo}
 											</div>
 										</div>
 

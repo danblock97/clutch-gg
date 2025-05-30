@@ -117,19 +117,34 @@ export async function GET(req) {
 			throw new Error("Riot account record is missing the puuid.");
 		}
 
-		// Return stored TFT data if forceUpdate isn't requested.
+		// Remove match_participants select and logic in forceUpdate === false block
 		if (!forceUpdate) {
-			let { data: storedTFTData, error: tftDataError } = await supabase
-				.from("tft_data")
+			let { data: storedGameData, error: gameDataError } = await supabase
+				.from("game_data")
 				.select("*")
 				.eq("riot_account_id", riotAccount.id)
+				.eq("game_type", "tft")
 				.maybeSingle();
-			if (tftDataError) throw tftDataError;
-			if (storedTFTData) {
-				return new Response(JSON.stringify(storedTFTData), {
-					status: 200,
-					headers: { "Content-Type": "application/json" },
-				});
+			if (gameDataError) throw gameDataError;
+			// Fetch recent matches for this user from match_details
+			let { data: matchDetailsRows, error: matchDetailsError } = await supabase
+				.from("match_details")
+				.select("*")
+				.order("matchid", { ascending: false })
+				.limit(20); // adjust as needed
+			if (matchDetailsError) throw matchDetailsError;
+			// Filter for matches where user's puuid is a participant and map to match JSON
+			const userMatchDetails = (matchDetailsRows || [])
+				.filter(md => md.details && md.details.metadata && md.details.metadata.participants && md.details.metadata.participants.includes(riotAccount.puuid))
+				.map(md => md.details);
+			if (storedGameData) {
+				return new Response(
+					JSON.stringify({ ...storedGameData, matchdetails: userMatchDetails }),
+					{
+						status: 200,
+						headers: { "Content-Type": "application/json" },
+					}
+				);
 			}
 		}
 
@@ -143,43 +158,29 @@ export async function GET(req) {
 			fetchTFTLiveGameData(puuid, region, platform),
 		]);
 
-		// Fetch match details concurrently.
+		// Fetch match details concurrently and upsert them
 		const matchDetails = await Promise.all(
 			matchIds.map(async (matchId) => {
 				const matchDetail = await fetchTFTMatchDetail(matchId, platform);
-				if (matchDetail)
-					await upsertTFTMatchDetail(matchId, summonerData.puuid, matchDetail);
+				if (matchDetail) {
+					try {
+						await upsertTFTMatchDetail(matchId, summonerData.puuid, matchDetail);
+					} catch (upsertErr) {
+						console.error("Error upserting TFT match detail:", { matchId, upsertErr });
+					}
+				}
 				return matchDetail;
 			})
 		);
-
-		// Fetch all stored matches for this player from the database
-		const { data: storedMatches, error: storedMatchesError } = await supabase
-			.from("tft_matches")
-			.select("matchid")
-			.eq("playerid", summonerData.puuid);
-
-		if (storedMatchesError) throw storedMatchesError;
-
-		// Get match IDs that are in the database but not in the current matchIds
-		const storedMatchIds = storedMatches.map((match) => match.matchid);
-		const additionalMatchIds = storedMatchIds.filter(
-			(id) => !matchIds.includes(id)
+		console.log("[TFT] matchIds:", matchIds);
+		console.log("[TFT] matchDetails:", matchDetails);
+		if (!matchDetails || matchDetails.length === 0) {
+			console.warn("[TFT] No match details found for user", riotAccount.id);
+		}
+		// Filter matchDetails for those where the user's puuid is a participant
+		const allMatchDetails = matchDetails.filter(
+			md => md && md.metadata && md.metadata.participants && md.metadata.participants.includes(summonerData.puuid)
 		);
-
-		// Fetch details for additional matches
-		const additionalMatchDetails = await Promise.all(
-			additionalMatchIds.map(async (matchId) => {
-				const matchDetail = await fetchTFTMatchDetail(matchId, platform);
-				return matchDetail;
-			})
-		);
-
-		// Combine all match details
-		const allMatchDetails = [
-			...matchDetails,
-			...additionalMatchDetails.filter(Boolean),
-		];
 
 		const tftDataObj = {
 			profiledata: summonerData,
@@ -188,36 +189,35 @@ export async function GET(req) {
 				tagLine: riotAccount.tagline,
 			},
 			rankeddata: rankedData,
-			matchdata: matchIds,
-			matchdetails: allMatchDetails,
 			livegamedata: liveGameData,
-			updatedat: new Date(),
+			updated_at: new Date(),
+			game_type: "tft",
 		};
 
 		// Use supabaseAdmin for write operations
 		let { data: tftRecord, error: tftError } = await supabaseAdmin
-			.from("tft_data")
+			.from("game_data")
 			.upsert(
 				{
 					riot_account_id: riotAccount.id,
 					...tftDataObj,
 				},
-				{ onConflict: ["riot_account_id"], returning: "representation" }
+				{ onConflict: ["riot_account_id", "game_type"], returning: "representation" }
 			)
 			.single();
 		if (tftError) throw tftError;
 
 		if (!tftRecord) {
-			const { data: selectedTFTData, error: selectError } = await supabase
-				.from("tft_data")
+			const { data: selectedGameData, error: selectError } = await supabase
+				.from("game_data")
 				.select("*")
 				.eq("riot_account_id", riotAccount.id)
+				.eq("game_type", "tft")
 				.maybeSingle();
 			if (selectError) throw selectError;
-			tftRecord = selectedTFTData;
+			tftRecord = selectedGameData;
 		}
-
-		return new Response(JSON.stringify(tftRecord), {
+		return new Response(JSON.stringify({ ...tftRecord, matchdetails: allMatchDetails }), {
 			status: 200,
 			headers: { "Content-Type": "application/json" },
 		});

@@ -415,37 +415,13 @@ const MatchHistory = ({
     );
   }
 
-  const filteredMatches = matchDetails.filter((match) => {
-    if (!match || !match.info || !match.info.participants) return false;
-    const participants = match.info.participants;
-    const currentPlayer = participants.find(
-      (participant) => participant.puuid === selectedSummonerPUUID,
-    );
-    if (!currentPlayer) return false;
-    if (
-      selectedChampionId &&
-      currentPlayer.championId !== Number(selectedChampionId)
-    ) {
-      return false;
-    }
-    const playerLane = normaliseTeamPosition(currentPlayer.teamPosition);
-    if (selectedLane && playerLane !== selectedLane) {
-      return false;
-    }
-    // Updated queue filtering logic
-    if (selectedQueue) {
-      if (selectedQueue === 1700) {
-        // If Arena is selected, filter for both 1700 and 1710
-        if (match.info.queueId !== 1700 && match.info.queueId !== 1710) {
-          return false;
-        }
-      } else if (match.info.queueId !== selectedQueue) {
-        // Standard filtering for other queues
-        return false;
-      }
-    }
-    return true;
-  });
+  const filteredMatches = matchDetails.filter(match =>
+    match &&
+    match.info &&
+    Array.isArray(match.info.participants) &&
+    match.info.participants.length > 0 &&
+    match.info.participants.some(p => typeof p.championId === 'number')
+  );
 
   const totalMatches = filteredMatches.length;
   const totalPages = Math.ceil(totalMatches / matchesPerPage);
@@ -541,9 +517,9 @@ const MatchHistory = ({
               let maxCsPerMinParticipant = null;
               participants.forEach((participant) => {
                 const csPerMin =
-                  (participant.totalMinionsKilled +
-                    participant.neutralMinionsKilled) /
-                  (match.info.gameDuration / 60);
+                  ((participant.totalMinionsKilled ?? 0) +
+                    (participant.neutralMinionsKilled ?? 0)) /
+                  ((match.info.gameDuration ?? 1) / 60);
                 participant.csPerMin = csPerMin;
                 if (csPerMin > maxCsPerMin) {
                   maxCsPerMin = csPerMin;
@@ -566,18 +542,18 @@ const MatchHistory = ({
                   />,
                 );
               }
-              if (currentPlayer.tripleKills > 0) {
+              if ((currentPlayer.tripleKills ?? 0) > 0) {
                 tags.push(
                   <Tag
                     key="triple-kill"
                     text="Triple Kill"
-                    hoverText={`You got ${currentPlayer.tripleKills} Triple Kills!`}
+                    hoverText={`You got ${(currentPlayer.tripleKills ?? 0)} Triple Kills!`}
                     color="bg-yellow-500 text-white"
                     icon={<FaBolt />}
                   />,
                 );
               }
-              if (currentPlayer.deaths === 0) {
+              if ((currentPlayer.deaths ?? 0) === 0) {
                 tags.push(
                   <Tag
                     key="unkillable"
@@ -595,13 +571,13 @@ const MatchHistory = ({
                   : 900;
               if (match.info.gameMode !== "URF") {
                 if (
-                  currentPlayer.challenges.damagePerMinute > damageThreshold
+                  (currentPlayer.challenges?.damagePerMinute ?? 0) > damageThreshold
                 ) {
                   tags.push(
                     <Tag
                       key="good-damage"
                       text="Good Damage"
-                      hoverText={`Nice Damage Dealt: ${currentPlayer.totalDamageDealtToChampions.toLocaleString()}`}
+                      hoverText={`Nice Damage Dealt: ${(currentPlayer.totalDamageDealtToChampions ?? 0).toLocaleString()}`}
                       color="bg-yellow-500 text-white"
                       icon={<FaFire />}
                     />,
@@ -612,9 +588,7 @@ const MatchHistory = ({
                     <Tag
                       key="cs-star"
                       text="CS Star"
-                      hoverText={`Most CS/min in the game: ${currentPlayer.csPerMin.toFixed(
-                        1,
-                      )}`}
+                      hoverText={`Most CS/min in the game: ${(currentPlayer.csPerMin ?? 0).toFixed(1)}`}
                       color="bg-blue-500 text-white"
                       icon={<FaStar />}
                     />,
@@ -624,46 +598,50 @@ const MatchHistory = ({
 
               const items = Array.from(
                 { length: 7 },
-                (_, i) => currentPlayer[`item${i}`],
+                (_, i) => currentPlayer[`item${i}`]
               );
-              const gameCreation = new Date(match.info.gameCreation);
+              // Defensive date handling
+              const gameCreationRaw = match.info.gameCreation ?? match.info.game_datetime ?? 0;
+              const gameCreation = new Date(gameCreationRaw);
               const now = new Date();
               const timeDifference = Math.abs(now - gameCreation);
               const daysDifference = Math.floor(
-                timeDifference / (1000 * 60 * 60 * 24),
+                timeDifference / (1000 * 60 * 60 * 24)
               );
               const hoursDifference = Math.floor(
-                timeDifference / (1000 * 60 * 60),
+                timeDifference / (1000 * 60 * 60)
               );
               const minutesDifference = Math.floor(
-                timeDifference / (1000 * 60),
+                timeDifference / (1000 * 60)
               );
               const timeAgo =
-                daysDifference > 0
+                isNaN(gameCreation.getTime())
+                  ? "Unknown"
+                  : daysDifference > 0
                   ? `${daysDifference}d ago`
                   : hoursDifference > 0
-                    ? `${hoursDifference}h ago`
-                    : `${minutesDifference}m ago`;
+                  ? `${hoursDifference}h ago`
+                  : `${minutesDifference}m ago`;
 
               const kda = (
-                (currentPlayer.kills + currentPlayer.assists) /
-                Math.max(1, currentPlayer.deaths)
+                ((currentPlayer.kills ?? 0) + (currentPlayer.assists ?? 0)) /
+                Math.max(1, currentPlayer.deaths ?? 0)
               ).toFixed(1);
 
               const csPerMinCalc = (
-                currentPlayer.totalMinionsKilled /
-                (match.info.gameDuration / 60)
+                (currentPlayer.totalMinionsKilled ?? 0) /
+                ((match.info.gameDuration ?? 1) / 60)
               ).toFixed(1);
 
               const cs =
-                currentPlayer.neutralMinionsKilled +
-                currentPlayer.totalMinionsKilled;
+                (currentPlayer.neutralMinionsKilled ?? 0) +
+                (currentPlayer.totalMinionsKilled ?? 0);
               const dpm = (
-                currentPlayer.totalDamageDealtToChampions /
-                (match.info.gameDuration / 60)
+                (currentPlayer.totalDamageDealtToChampions ?? 0) /
+                ((match.info.gameDuration ?? 1) / 60)
               ).toFixed(1);
 
-              const goldEarned = currentPlayer.goldEarned.toLocaleString();
+              const goldEarned = (currentPlayer.goldEarned ?? 0).toLocaleString();
 
               const winningTeam = match.info.participants.filter((p) => p.win);
               const losingTeam = match.info.participants.filter((p) => !p.win);

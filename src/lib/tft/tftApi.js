@@ -63,17 +63,40 @@ export const fetchTFTMatchDetail = async (matchId, platform) => {
  * Only stores the matchid and playerid as reference for cached matches.
  */
 export const upsertTFTMatchDetail = async (matchId, puuid, matchDetail) => {
-  const { error: insertMatchError } = await supabaseAdmin
-    .from("tft_matches")
-    .upsert(
-      {
-        matchid: matchId,
-        playerid: puuid,
-        // removed match_data as the column doesn't exist in the table
-      },
-      { onConflict: ["matchid"] },
-    );
-  // Silent error handling
+  try {
+    // Insert into matches (if not exists)
+    const { error: matchError } = await supabaseAdmin
+      .from("matches")
+      .upsert(
+        {
+          matchid: matchId,
+          game_type: "tft",
+        },
+        { onConflict: ["matchid"], ignoreDuplicates: true }
+      );
+    if (matchError) {
+      console.error("Error upserting into matches:", matchError);
+      throw matchError;
+    }
+    // Insert into match_details (if not exists)
+    const { error: detailsError } = await supabaseAdmin
+      .from("match_details")
+      .upsert(
+        {
+          matchid: matchId,
+          details: matchDetail,
+        },
+        { onConflict: ["matchid"], ignoreDuplicates: true }
+      );
+    if (detailsError) {
+      console.error("Error upserting into match_details:", detailsError);
+      throw detailsError;
+    }
+    console.log(`[TFT] Upserted match_detail for matchId: ${matchId}`);
+  } catch (err) {
+    console.error("upsertTFTMatchDetail failed:", err);
+    throw err;
+  }
 };
 
 /**

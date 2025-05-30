@@ -102,16 +102,40 @@ return matchData;
  * Upsert match detail into the matches table.
  */
 export const upsertMatchDetail = async (matchId, puuid, matchDetail) => {
-	const { error: insertMatchError } = await supabaseAdmin
-		.from("league_matches")
-		.upsert(
-			{
-				matchid: matchId,
-				playerid: puuid,
-			},
-			{ onConflict: ["matchid"] }
-		);
-	// Silent error handling
+	try {
+		// Insert into matches (if not exists)
+		const { error: matchError } = await supabaseAdmin
+			.from("matches")
+			.upsert(
+				{
+					matchid: matchId,
+					game_type: "league",
+				},
+				{ onConflict: ["matchid"], ignoreDuplicates: true }
+			);
+		if (matchError) {
+			console.error("Error upserting into matches:", matchError);
+			throw matchError;
+		}
+		// Insert into match_details (if not exists)
+		const { error: detailsError } = await supabaseAdmin
+			.from("match_details")
+			.upsert(
+				{
+					matchid: matchId,
+					details: matchDetail,
+				},
+				{ onConflict: ["matchid"], ignoreDuplicates: true }
+			);
+		if (detailsError) {
+			console.error("Error upserting into match_details:", detailsError);
+			throw detailsError;
+		}
+		console.log(`[LEAGUE] Upserted match_detail for matchId: ${matchId}`);
+	} catch (err) {
+		console.error("upsertMatchDetail failed:", err);
+		throw err;
+	}
 };
 
 /**

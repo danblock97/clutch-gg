@@ -128,17 +128,32 @@ export async function GET(req) {
 		}
 
 		if (!forceUpdate) {
-			let { data: storedLeagueData, error: leagueDataError } = await supabase
-				.from("league_data")
+			let { data: storedGameData, error: gameDataError } = await supabase
+				.from("game_data")
 				.select("*")
 				.eq("riot_account_id", riotAccount.id)
+				.eq("game_type", "league")
 				.maybeSingle();
-			if (leagueDataError) throw leagueDataError;
-			if (storedLeagueData) {
-				return new Response(JSON.stringify(storedLeagueData), {
-					status: 200,
-					headers: { "Content-Type": "application/json" },
-				});
+			if (gameDataError) throw gameDataError;
+			// Fetch recent matches for this user from match_details
+			let { data: matchDetailsRows, error: matchDetailsError } = await supabase
+				.from("match_details")
+				.select("*")
+				.order("matchid", { ascending: false })
+				.limit(20); // adjust as needed
+			if (matchDetailsError) throw matchDetailsError;
+			// Filter for matches where user's puuid is a participant and map to match JSON
+			const userMatchDetails = (matchDetailsRows || [])
+				.filter(md => md.details && md.details.metadata && md.details.metadata.participants && md.details.metadata.participants.includes(riotAccount.puuid))
+				.map(md => md.details);
+			if (storedGameData) {
+				return new Response(
+					JSON.stringify({ ...storedGameData, matchdetails: userMatchDetails }),
+					{
+						status: 200,
+						headers: { "Content-Type": "application/json" },
+					}
+				);
 			}
 		}
 
@@ -150,38 +165,31 @@ export async function GET(req) {
 			fetchMatchIds(puuid, matchPlatform),
 		]);
 
+		// Fetch match details concurrently and upsert them
 		const matchDetails = await Promise.all(
 			matchIds.map(async (matchId) => {
 				const matchDetail = await fetchMatchDetail(matchId, matchPlatform);
-				if (matchDetail)
-					await upsertMatchDetail(matchId, summonerData.puuid, matchDetail);
+				if (matchDetail) {
+					try {
+						await upsertMatchDetail(matchId, summonerData.puuid, matchDetail);
+					} catch (upsertErr) {
+						console.error("Error upserting League match detail:", { matchId, upsertErr });
+					}
+				}
 				return matchDetail;
 			})
 		);
-
-		const { data: storedMatches, error: storedMatchesError } = await supabase
-			.from("league_matches")
-			.select("matchid")
-			.eq("playerid", summonerData.puuid);
-
-		if (storedMatchesError) throw storedMatchesError;
-
-		const storedMatchIds = storedMatches.map((match) => match.matchid);
-		const additionalMatchIds = storedMatchIds.filter(
-			(id) => !matchIds.includes(id)
+		console.log("[LEAGUE] matchIds:", matchIds);
+		console.log("[LEAGUE] matchDetails:", matchDetails);
+		if (!matchDetails || matchDetails.length === 0) {
+			console.warn("[LEAGUE] No match details found for user", riotAccount.id);
+		}
+		// Filter matchDetails for those where the user's puuid is a participant
+		const userMatchDetails = matchDetails.filter(
+			md => md && md.metadata && md.metadata.participants && md.metadata.participants.includes(summonerData.puuid)
 		);
 
-		const additionalMatchDetails = await Promise.all(
-			additionalMatchIds.map(async (matchId) => {
-				const matchDetail = await fetchMatchDetail(matchId, matchPlatform);
-				return matchDetail;
-			})
-		);
-
-		const allMatchDetails = [
-			...matchDetails,
-			...additionalMatchDetails.filter(Boolean),
-		];
+		const allMatchDetails = userMatchDetails;
 
 		const [championMasteryData, liveGameData] = await Promise.all([
 			fetchChampionMasteryData(puuid, region),
@@ -196,20 +204,18 @@ export async function GET(req) {
 			},
 			rankeddata: rankedData,
 			championmasterydata: championMasteryData,
-			matchdata: matchIds,
-			matchdetails: allMatchDetails,
 			livegamedata: liveGameData,
-			updatedat: new Date(),
+			updated_at: new Date(),
+			game_type: "league",
 		};
-
 		let { data: leagueRecord, error: leagueError } = await supabaseAdmin
-			.from("league_data")
+			.from("game_data")
 			.upsert(
 				{
 					riot_account_id: riotAccount.id,
 					...leagueDataObj,
 				},
-				{ onConflict: ["riot_account_id"], returning: "representation" }
+				{ onConflict: ["riot_account_id", "game_type"], returning: "representation" }
 			)
 			.single();
 		if (leagueError) throw leagueError;
@@ -227,16 +233,17 @@ export async function GET(req) {
 		}
 
 		if (!leagueRecord) {
-			const { data: selectedLeagueData, error: selectError } = await supabase
-				.from("league_data")
+			const { data: selectedGameData, error: selectError } = await supabase
+				.from("game_data")
 				.select("*")
 				.eq("riot_account_id", riotAccount.id)
+				.eq("game_type", "league")
 				.maybeSingle();
 			if (selectError) throw selectError;
-			leagueRecord = selectedLeagueData;
+			leagueRecord = selectedGameData;
 		}
 
-		return new Response(JSON.stringify(leagueRecord), {
+		return new Response(JSON.stringify({ ...leagueRecord, matchdetails: allMatchDetails }), {
 			status: 200,
 			headers: { "Content-Type": "application/json" },
 		});
