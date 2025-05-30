@@ -59,36 +59,45 @@ export const fetchTFTMatchDetail = async (matchId, platform) => {
 };
 
 /**
- * Upsert TFT match detail into the matches table.
- * Only stores the matchid and playerid as reference for cached matches.
+ * Upsert TFT match detail into the simplified TFT table.
+ * Stores the complete match data with all participants in JSONB.
  */
-export const upsertTFTMatchDetail = async (matchId, puuid, matchDetail) => {
+export const upsertTFTMatchDetail = async (
+	matchId,
+	puuid,
+	matchDetail,
+	riotAccountId
+) => {
 	try {
-		// Insert into matches (if not exists)
-		const { error: matchError } = await supabaseAdmin.from("matches").upsert(
-			{
-				matchid: matchId,
-				game_type: "tft",
-			},
-			{ onConflict: ["matchid"], ignoreDuplicates: true }
-		);
-		if (matchError) {
-			console.error("Error upserting into matches:", matchError);
-			throw matchError;
+		if (!matchDetail?.info || !matchDetail?.metadata) {
+			console.error("Invalid TFT match detail structure:", {
+				matchId,
+				hasInfo: !!matchDetail?.info,
+				hasMetadata: !!matchDetail?.metadata,
+			});
+			return;
 		}
-		// Insert into match_details (if not exists)
-		const { error: detailsError } = await supabaseAdmin
-			.from("match_details")
+
+		// Insert into tft_matches with full match data including all participants
+		const matchInfo = matchDetail.info;
+		const { error: matchError } = await supabaseAdmin
+			.from("tft_matches")
 			.upsert(
 				{
 					matchid: matchId,
-					details: matchDetail,
+					tft_set_number: matchInfo.tft_set_number,
+					tft_game_type: matchInfo.tft_game_type,
+					game_datetime: matchInfo.game_datetime,
+					game_length: matchInfo.game_length,
+					queue_id: matchInfo.queue_id,
+					match_data: matchDetail, // Store complete match data including all participants
 				},
 				{ onConflict: ["matchid"], ignoreDuplicates: true }
 			);
-		if (detailsError) {
-			console.error("Error upserting into match_details:", detailsError);
-			throw detailsError;
+
+		if (matchError) {
+			console.error("Error upserting into tft_matches:", matchError);
+			throw matchError;
 		}
 	} catch (err) {
 		console.error("upsertTFTMatchDetail failed:", err);

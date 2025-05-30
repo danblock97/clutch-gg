@@ -115,44 +115,51 @@ export async function GET(req) {
 
 		if (!riotAccount?.puuid) {
 			throw new Error("Riot account record is missing the puuid.");
-		}
-
-		// Remove match_participants select and logic in forceUpdate === false block
+		} // Skip cached data if forceUpdate is true
 		if (!forceUpdate) {
-			let { data: storedGameData, error: gameDataError } = await supabase
-				.from("game_data")
+			let { data: storedTftData, error: tftDataError } = await supabase
+				.from("tft_data")
 				.select("*")
 				.eq("riot_account_id", riotAccount.id)
-				.eq("game_type", "tft")
 				.maybeSingle();
-			if (gameDataError) throw gameDataError; // Fetch recent matches from match_details - we'll filter client-side for now
-			// TODO: Optimize with proper JSON query when we have more matches in DB
-			let { data: matchDetailsRows, error: matchDetailsError } = await supabase
-				.from("match_details")
-				.select("*")
-				.order("matchid", { ascending: false })
-				.limit(200); // Get more matches to ensure we find enough for the user
-			if (matchDetailsError) throw matchDetailsError;
+			if (tftDataError) throw tftDataError;
 
-			// Filter matches where user participated and limit to 50
-			const userMatchDetails = (matchDetailsRows || [])
-				.map((md) => md.details)
-				.filter(
-					(match) =>
-						match &&
-						match.metadata &&
-						match.metadata.participants &&
-						match.metadata.participants.includes(riotAccount.puuid)
-				)
-				.slice(0, 50); // Limit to 50 matches for the user
-			if (storedGameData) {
-				return new Response(
-					JSON.stringify({ ...storedGameData, matchdetails: userMatchDetails }),
-					{
-						status: 200,
-						headers: { "Content-Type": "application/json" },
-					}
-				);
+			// Fetch matches where this user participated from tft_matches table
+			let { data: matchData, error: matchDataError } = await supabase
+				.from("tft_matches")
+				.select("*")
+				.contains("match_data", {
+					metadata: { participants: [riotAccount.puuid] },
+				})
+				.order("game_datetime", { ascending: false })
+				.limit(50);
+			if (matchDataError) throw matchDataError;
+
+			// Extract match details from JSONB data and format for frontend compatibility
+			const userMatchDetails = (matchData || []).map((match) => {
+				// Return the complete match data from JSONB
+				return match.match_data;
+			});
+
+			if (storedTftData) {
+				// Format the response to maintain frontend compatibility using JSONB structure
+				const responseData = {
+					profiledata: storedTftData.profiledata,
+					accountdata: storedTftData.accountdata || {
+						gameName: riotAccount.gamename,
+						tagLine: riotAccount.tagline,
+					},
+					rankeddata: storedTftData.rankeddata,
+					livegamedata: storedTftData.livegamedata,
+					updated_at: storedTftData.updated_at,
+					game_type: "tft",
+					matchdetails: userMatchDetails,
+				};
+
+				return new Response(JSON.stringify(responseData), {
+					status: 200,
+					headers: { "Content-Type": "application/json" },
+				});
 			}
 		}
 
@@ -164,19 +171,13 @@ export async function GET(req) {
 			fetchTFTRankedData(summonerData.id, region),
 			fetchTFTMatchIds(puuid, platform),
 			fetchTFTLiveGameData(puuid, region, platform),
-		]);
-
-		// Fetch match details concurrently and upsert them
+		]); // Fetch match details concurrently and upsert them
 		const matchDetails = await Promise.all(
 			matchIds.map(async (matchId) => {
 				const matchDetail = await fetchTFTMatchDetail(matchId, platform);
 				if (matchDetail) {
 					try {
-						await upsertTFTMatchDetail(
-							matchId,
-							summonerData.puuid,
-							matchDetail
-						);
+						await upsertTFTMatchDetail(matchId, matchDetail);
 					} catch (upsertErr) {
 						console.error("Error upserting TFT match detail:", {
 							matchId,
@@ -199,7 +200,9 @@ export async function GET(req) {
 				md.metadata.participants.includes(summonerData.puuid)
 		);
 
+		// Store data using JSONB structure
 		const tftDataObj = {
+			riot_account_id: riotAccount.id,
 			profiledata: summonerData,
 			accountdata: {
 				gameName: riotAccount.gamename,
@@ -208,42 +211,42 @@ export async function GET(req) {
 			rankeddata: rankedData,
 			livegamedata: liveGameData,
 			updated_at: new Date(),
-			game_type: "tft",
 		};
 
 		// Use supabaseAdmin for write operations
 		let { data: tftRecord, error: tftError } = await supabaseAdmin
-			.from("game_data")
-			.upsert(
-				{
-					riot_account_id: riotAccount.id,
-					...tftDataObj,
-				},
-				{
-					onConflict: ["riot_account_id", "game_type"],
-					returning: "representation",
-				}
-			)
+			.from("tft_data")
+			.upsert(tftDataObj, {
+				onConflict: "riot_account_id",
+				returning: "representation",
+			})
 			.single();
 		if (tftError) throw tftError;
 
 		if (!tftRecord) {
-			const { data: selectedGameData, error: selectError } = await supabase
-				.from("game_data")
+			const { data: selectedTftData, error: selectError } = await supabase
+				.from("tft_data")
 				.select("*")
 				.eq("riot_account_id", riotAccount.id)
-				.eq("game_type", "tft")
 				.maybeSingle();
 			if (selectError) throw selectError;
-			tftRecord = selectedGameData;
+			tftRecord = selectedTftData;
 		}
-		return new Response(
-			JSON.stringify({ ...tftRecord, matchdetails: allMatchDetails }),
-			{
-				status: 200,
-				headers: { "Content-Type": "application/json" },
-			}
-		);
+		// Format the response to maintain frontend compatibility using JSONB structure
+		const responseData = {
+			profiledata: tftRecord.profiledata,
+			accountdata: tftRecord.accountdata,
+			rankeddata: tftRecord.rankeddata,
+			livegamedata: tftRecord.livegamedata,
+			updated_at: tftRecord.updated_at,
+			game_type: "tft",
+			matchdetails: allMatchDetails,
+		};
+
+		return new Response(JSON.stringify(responseData), {
+			status: 200,
+			headers: { "Content-Type": "application/json" },
+		});
 	} catch (error) {
 		// Error fetching TFT profile data
 		console.error("TFT Profile API Error:", error);

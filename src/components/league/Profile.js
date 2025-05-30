@@ -4,18 +4,19 @@ import DiscordBotBanner from "@/components/DiscordBotBanner.js";
 import { scrapeLeagueLadderRanking } from "@/lib/opggApi.js";
 
 const Profile = ({
-					 accountData,
-					 profileData,
-					 rankedData,
-					 toggleLiveGame,
-					 triggerUpdate,
-					 isUpdating,
-					 liveGameData,
-					 region,
-				 }) => {
-	const soloRankedData = rankedData.find(
-		(item) => item.queueType === "RANKED_SOLO_5x5"
-	);
+	accountData,
+	profileData,
+	rankedData,
+	toggleLiveGame,
+	triggerUpdate,
+	isUpdating,
+	liveGameData,
+	region,
+}) => {
+	const soloRankedData =
+		rankedData && rankedData.RANKED_SOLO_5x5
+			? rankedData.RANKED_SOLO_5x5
+			: null;
 
 	const rankedIcon = soloRankedData
 		? `/images/league/rankedEmblems/${soloRankedData.tier.toLowerCase()}.webp`
@@ -56,7 +57,7 @@ const Profile = ({
 			setLastUpdated(now);
 			setCountdown(120);
 			setUpdateTriggered(false);
-			setSeasonUpdateTrigger(prev => prev + 1); // Trigger SeasonRanks update
+			setSeasonUpdateTrigger((prev) => prev + 1); // Trigger SeasonRanks update
 			localStorage.setItem("lastUpdated", now.toISOString());
 		}
 	}, [isUpdating, updateTriggered]);
@@ -134,10 +135,8 @@ const Profile = ({
 		return "Just now";
 	};
 
-
 	return (
 		<>
-
 			<div className="profile-header-bg w-full py-8 shadow-2xl overflow-hidden">
 				<div className="w-full max-w-screen-xl mx-auto px-4 sm:px-6">
 					<div className="relative flex flex-col lg:flex-row items-start lg:items-center gap-6">
@@ -162,8 +161,8 @@ const Profile = ({
 							<h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold mb-1 bg-clip-text text-transparent bg-gradient-to-r from-white via-blue-100 to-white">
 								{`${accountData.gameName}`}
 								<span className="text-[--text-secondary] text-base sm:text-lg md:text-xl font-medium">
-                  #{accountData.tagLine}
-                </span>
+									#{accountData.tagLine}
+								</span>
 							</h1>
 
 							{/* Solo Queue Rank */}
@@ -185,12 +184,14 @@ const Profile = ({
 									)}
 									<div>
 										<p className="font-semibold text-lg">
-                      <span className={`text-[--${soloRankedData.tier.toLowerCase()}]`}>
-                        {soloRankedData.tier}
-                      </span>
+											<span
+												className={`text-[--${soloRankedData.tier.toLowerCase()}]`}
+											>
+												{soloRankedData.tier}
+											</span>
 											<span className="text-[--text-primary] ml-2">
-                        {soloRankedData.leaguePoints} LP
-                      </span>
+												{soloRankedData.leaguePoints} LP
+											</span>
 										</p>
 										<p className="text-[--text-secondary] text-sm">
 											{soloRankedData.wins}W - {soloRankedData.losses}L (
@@ -206,7 +207,9 @@ const Profile = ({
 										{ladderRanking && (
 											<p className="text-[--text-secondary] text-sm mt-1">
 												Ladder Rank{" "}
-												<span className="text-[--primary]">{ladderRanking.rank}</span>{" "}
+												<span className="text-[--primary]">
+													{ladderRanking.rank}
+												</span>{" "}
 												({ladderRanking.percentile}% of top)
 											</p>
 										)}
@@ -218,7 +221,9 @@ const Profile = ({
 									</div>
 								</div>
 							) : (
-								<p className="text-[--text-secondary] font-semibold">Unranked</p>
+								<p className="text-[--text-secondary] font-semibold">
+									Unranked
+								</p>
 							)}
 
 							{/* Action Buttons */}
@@ -231,12 +236,12 @@ const Profile = ({
 									}}
 									className={`relative overflow-hidden rounded-lg text-sm font-medium transition-all duration-300 inline-flex items-center justify-center px-4 py-2
                     ${
-										isUpdating
-											? "bg-gray-600 opacity-50 cursor-not-allowed"
-											: isUpdated
+											isUpdating
+												? "bg-gray-600 opacity-50 cursor-not-allowed"
+												: isUpdated
 												? "btn-success"
 												: "btn-primary"
-									}`}
+										}`}
 									disabled={isUpdating || countdown > 0}
 								>
 									{isUpdating && (
@@ -264,8 +269,8 @@ const Profile = ({
 									{isUpdating
 										? "Updating..."
 										: isUpdated
-											? "Updated"
-											: "Update Profile"}
+										? "Updated"
+										: "Update Profile"}
 								</button>
 
 								<button
@@ -276,24 +281,23 @@ const Profile = ({
 									disabled={!liveGameData}
 									className={`relative overflow-hidden rounded-lg text-sm font-medium transition-all duration-300 inline-flex items-center justify-center px-4 py-2
                     ${
-										liveGameData
-											? "bg-gradient-to-r from-green-600 to-teal-500 hover:from-green-500 hover:to-teal-400 text-white"
-											: "bg-gray-700 text-gray-400 cursor-not-allowed"
-									}`}
+											liveGameData
+												? "bg-gradient-to-r from-green-600 to-teal-500 hover:from-green-500 hover:to-teal-400 text-white"
+												: "bg-gray-700 text-gray-400 cursor-not-allowed"
+										}`}
 								>
 									{liveGameData ? (
 										<>
-                      <span className="relative flex h-2 w-2 mr-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-red-600"></span>
-                      </span>
+											<span className="relative flex h-2 w-2 mr-2">
+												<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
+												<span className="relative inline-flex rounded-full h-2 w-2 bg-red-600"></span>
+											</span>
 											Live Game
 										</>
 									) : (
 										"Not In Game"
 									)}
 								</button>
-
 
 								{/* Timer */}
 								{isUpdated && countdown > 0 && (

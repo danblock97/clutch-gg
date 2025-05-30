@@ -1,12 +1,17 @@
 import React, { useState } from "react";
 import Image from "next/image";
-import { FaChevronDown, FaChevronUp, FaTrophy, FaChartLine } from "react-icons/fa";
+import {
+	FaChevronDown,
+	FaChevronUp,
+	FaTrophy,
+	FaChartLine,
+} from "react-icons/fa";
 
 const RankedInfo = ({ rankedData }) => {
-	// Fetch the Ranked Flex data only
-	const flexRankedData = rankedData.find(
-		(item) => item.queueType === "RANKED_FLEX_SR"
-	);
+	// Fetch the Ranked Flex data only - ensure rankedData is an array
+	const flexRankedData = Array.isArray(rankedData)
+		? rankedData.find((item) => item.queueType === "RANKED_FLEX_SR")
+		: null;
 
 	const [isExpanded, setIsExpanded] = useState(false);
 
@@ -26,7 +31,9 @@ const RankedInfo = ({ rankedData }) => {
 		const winRate = data ? ((wins / (wins + losses)) * 100).toFixed(1) : "0.0";
 
 		// Determine color class based on tier
-		const tierColorClass = data ? `text-[--${tier.toLowerCase()}]` : "text-gray-400";
+		const tierColorClass = data
+			? `text-[--${tier.toLowerCase()}]`
+			: "text-gray-400";
 
 		return (
 			<div
@@ -66,7 +73,9 @@ const RankedInfo = ({ rankedData }) => {
 				{isExpanded && (
 					<div className="mt-4 pt-4 border-t border-[--card-border] grid grid-cols-3 gap-4 text-center">
 						<div className="stat-block">
-							<span className="text-xs text-[--text-secondary] uppercase">Win Rate</span>
+							<span className="text-xs text-[--text-secondary] uppercase">
+								Win Rate
+							</span>
 							<div className="relative my-2">
 								<svg className="w-16 h-16" viewBox="0 0 36 36">
 									<path
@@ -98,7 +107,9 @@ const RankedInfo = ({ rankedData }) => {
 						</div>
 
 						<div className="stat-block">
-							<span className="text-xs text-[--text-secondary] uppercase">W/L</span>
+							<span className="text-xs text-[--text-secondary] uppercase">
+								W/L
+							</span>
 							<div className="flex items-center justify-center gap-1 mt-2">
 								<span className="text-[--success] font-semibold">{wins}W</span>
 								<span className="text-[--text-secondary]">/</span>
@@ -107,7 +118,9 @@ const RankedInfo = ({ rankedData }) => {
 						</div>
 
 						<div className="stat-block">
-							<span className="text-xs text-[--text-secondary] uppercase">LP</span>
+							<span className="text-xs text-[--text-secondary] uppercase">
+								LP
+							</span>
 							<div className="flex items-center justify-center mt-2">
 								<FaChartLine className="text-[--primary] mr-1" />
 								<span className="font-bold text-lg">{leaguePoints}</span>
@@ -119,11 +132,7 @@ const RankedInfo = ({ rankedData }) => {
 		);
 	};
 
-	return (
-		<div className="space-y-4">
-			{renderRankedFlex(flexRankedData)}
-		</div>
-	);
+	return <div className="space-y-4">{renderRankedFlex(flexRankedData)}</div>;
 };
 
 export default RankedInfo;

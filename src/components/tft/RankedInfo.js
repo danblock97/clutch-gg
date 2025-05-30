@@ -8,9 +8,10 @@ import {
 } from "react-icons/fa";
 
 export default function TFTRankedInfo({ rankedData }) {
-	// Find TFT ranked queue
-	const tftRanked =
-		rankedData.find((queue) => queue.queueType === "RANKED_TFT") || null;
+	// Find TFT ranked queue - ensure rankedData is an array
+	const tftRanked = Array.isArray(rankedData)
+		? rankedData.find((queue) => queue.queueType === "RANKED_TFT")
+		: null;
 
 	const [isExpanded, setIsExpanded] = useState(false);
 

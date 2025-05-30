@@ -18,7 +18,18 @@ export default function useTFTProfileData(profileData) {
 				puuid: profileData.profiledata?.puuid || "",
 			});
 
-			setRankedData(profileData.rankeddata || []);
+			// Handle rankeddata - convert to array format if it's an object (new JSONB schema)
+			let processedRankedData = [];
+			if (profileData.rankeddata) {
+				if (Array.isArray(profileData.rankeddata)) {
+					// Old format: already an array
+					processedRankedData = profileData.rankeddata;
+				} else if (typeof profileData.rankeddata === "object") {
+					// New format: JSONB object, convert to array
+					processedRankedData = Object.values(profileData.rankeddata);
+				}
+			}
+			setRankedData(processedRankedData);
 			setMatchData(profileData.matchdata || []);
 			setLiveGameData(profileData.livegamedata);
 			setMatchDetails(

@@ -99,35 +99,51 @@ export const fetchMatchDetail = async (matchId, platform) => {
 };
 
 /**
- * Upsert match detail into the matches table.
+ * Upsert match detail into the simplified League table.
+ * Stores the complete match data with all participants in JSONB.
  */
-export const upsertMatchDetail = async (matchId, puuid, matchDetail) => {
+export const upsertMatchDetail = async (
+	matchId,
+	puuid,
+	matchDetail,
+	riotAccountId
+) => {
 	try {
-		// Insert into matches (if not exists)
-		const { error: matchError } = await supabaseAdmin.from("matches").upsert(
-			{
-				matchid: matchId,
-				game_type: "league",
-			},
-			{ onConflict: ["matchid"], ignoreDuplicates: true }
-		);
-		if (matchError) {
-			console.error("Error upserting into matches:", matchError);
-			throw matchError;
+		if (!matchDetail?.info || !matchDetail?.metadata) {
+			console.error("Invalid match detail structure:", {
+				matchId,
+				hasInfo: !!matchDetail?.info,
+				hasMetadata: !!matchDetail?.metadata,
+			});
+			return;
 		}
-		// Insert into match_details (if not exists)
-		const { error: detailsError } = await supabaseAdmin
-			.from("match_details")
+
+		// Insert into league_matches with full match data including all participants
+		const matchInfo = matchDetail.info;
+		const { error: matchError } = await supabaseAdmin
+			.from("league_matches")
 			.upsert(
 				{
 					matchid: matchId,
-					details: matchDetail,
+					game_mode: matchInfo.gameMode,
+					game_type: matchInfo.gameType,
+					game_duration: matchInfo.gameDuration,
+					game_creation: matchInfo.gameCreation,
+					game_start_timestamp: matchInfo.gameStartTimestamp,
+					game_end_timestamp: matchInfo.gameEndTimestamp,
+					platform_id: matchInfo.platformId,
+					queue_id: matchInfo.queueId,
+					season_id: matchInfo.seasonId,
+					game_version: matchInfo.gameVersion,
+					map_id: matchInfo.mapId,
+					match_data: matchDetail, // Store complete match data including all participants
 				},
 				{ onConflict: ["matchid"], ignoreDuplicates: true }
 			);
-		if (detailsError) {
-			console.error("Error upserting into match_details:", detailsError);
-			throw detailsError;
+
+		if (matchError) {
+			console.error("Error upserting into league_matches:", matchError);
+			throw matchError;
 		}
 	} catch (err) {
 		console.error("upsertMatchDetail failed:", err);

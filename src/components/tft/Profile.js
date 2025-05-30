@@ -17,7 +17,12 @@ import {
 } from "@/lib/tft/companionsApi";
 import { scrapeTFTLadderRanking } from "@/lib/opggApi.js";
 
-export default function Profile({ profileData, triggerUpdate, isUpdating, onLoadComplete }) {
+export default function Profile({
+	profileData,
+	triggerUpdate,
+	isUpdating,
+	onLoadComplete,
+}) {
 	const { summonerData, rankedData, matchDetails, liveGameData, isLoading } =
 		useTFTProfileData(profileData);
 	const [tab, setTab] = useState("matches");
@@ -157,7 +162,6 @@ export default function Profile({ profileData, triggerUpdate, isUpdating, onLoad
 
 				// Create a timeout to prevent infinite loading
 				const timeoutId = setTimeout(() => {
-					console.log("TFT ladder ranking fetch timed out");
 					setIsLoadingLadder(false);
 					if (onLoadComplete) {
 						onLoadComplete();
@@ -212,11 +216,10 @@ export default function Profile({ profileData, triggerUpdate, isUpdating, onLoad
 
 	if (!summonerData) {
 		return <NoProfileFound />;
-	}
-
-	// Find TFT ranked queue
-	const tftRanked =
-		rankedData.find((queue) => queue.queueType === "RANKED_TFT") || null;
+	} // Find TFT ranked queue - ensure rankedData is an array
+	const tftRanked = Array.isArray(rankedData)
+		? rankedData.find((queue) => queue.queueType === "RANKED_TFT")
+		: null;
 	const rankedIcon =
 		tftRanked && tftRanked.tier
 			? `/images/league/rankedEmblems/${tftRanked.tier.toLowerCase()}.webp`
@@ -293,7 +296,9 @@ export default function Profile({ profileData, triggerUpdate, isUpdating, onLoad
 										{ladderRanking && (
 											<p className="text-[--text-secondary] text-sm mt-1">
 												Ladder Rank{" "}
-												<span className="text-[--primary-tft]">{ladderRanking.rank}</span>{" "}
+												<span className="text-[--primary-tft]">
+													{ladderRanking.rank}
+												</span>{" "}
 												({ladderRanking.percentile}% of top)
 											</p>
 										)}

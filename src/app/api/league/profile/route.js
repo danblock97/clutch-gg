@@ -127,40 +127,51 @@ export async function GET(req) {
 			throw new Error("Riot account record is missing the puuid.");
 		}
 		if (!forceUpdate) {
-			let { data: storedGameData, error: gameDataError } = await supabase
-				.from("game_data")
+			let { data: storedLeagueData, error: leagueDataError } = await supabase
+				.from("league_data")
 				.select("*")
 				.eq("riot_account_id", riotAccount.id)
-				.eq("game_type", "league")
 				.maybeSingle();
-			if (gameDataError) throw gameDataError; // Fetch recent matches from match_details - we'll filter client-side for now
-			// TODO: Optimize with proper JSON query when we have more matches in DB
-			let { data: matchDetailsRows, error: matchDetailsError } = await supabase
-				.from("match_details")
-				.select("*")
-				.order("matchid", { ascending: false })
-				.limit(200); // Get more matches to ensure we find enough for the user
-			if (matchDetailsError) throw matchDetailsError;
+			if (leagueDataError) throw leagueDataError;
 
-			// Filter matches where user participated and limit to 50
-			const userMatchDetails = (matchDetailsRows || [])
-				.map((md) => md.details)
-				.filter(
-					(match) =>
-						match &&
-						match.metadata &&
-						match.metadata.participants &&
-						match.metadata.participants.includes(riotAccount.puuid)
-				)
-				.slice(0, 50); // Limit to 50 matches for the user
-			if (storedGameData) {
-				return new Response(
-					JSON.stringify({ ...storedGameData, matchdetails: userMatchDetails }),
-					{
+			// Fetch recent League matches for this user using the simplified schema
+			let { data: recentMatches, error: matchesError } = await supabase
+				.from("league_matches")
+				.select("matchid, match_data, game_creation, created_at")
+				.order("game_creation", { ascending: false })
+				.limit(50);
+			if (matchesError) throw matchesError;
+
+			// Filter matches where the user participated
+			const userMatchDetails = (recentMatches || [])
+				.filter((match) => {
+					const participants = match.match_data?.metadata?.participants;
+					return participants && participants.includes(riotAccount.puuid);
+				})
+				.map((match) => match.match_data);
+
+			if (storedLeagueData && userMatchDetails.length > 0) {
+				// Check if data is still fresh (less than 5 minutes old)
+				const lastUpdated = new Date(storedLeagueData.updated_at);
+				const now = new Date();
+				const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
+
+				if (lastUpdated > fiveMinutesAgo) {
+					// Return cached data with the proper structure
+					const responseData = {
+						profiledata: storedLeagueData.profiledata,
+						accountdata: storedLeagueData.accountdata,
+						rankeddata: storedLeagueData.rankeddata,
+						championmasterydata: storedLeagueData.championmasterydata,
+						livegamedata: storedLeagueData.livegamedata,
+						updated_at: storedLeagueData.updated_at,
+						matchdetails: userMatchDetails,
+					};
+					return new Response(JSON.stringify(responseData), {
 						status: 200,
 						headers: { "Content-Type": "application/json" },
-					}
-				);
+					});
+				}
 			}
 		}
 
@@ -200,7 +211,6 @@ export async function GET(req) {
 				md.metadata.participants &&
 				md.metadata.participants.includes(summonerData.puuid)
 		);
-
 		const allMatchDetails = userMatchDetails;
 
 		const [championMasteryData, liveGameData] = await Promise.all([
@@ -208,30 +218,48 @@ export async function GET(req) {
 			fetchLiveGameData(summonerData.puuid, region, platform),
 		]);
 
+		// Create JSONB data structure for simplified schema
 		const leagueDataObj = {
-			profiledata: summonerData,
+			riot_account_id: riotAccount.id,
+
+			// Profile data as JSONB
+			profiledata: {
+				summonerId: summonerData.id,
+				accountId: summonerData.accountId,
+				puuid: summonerData.puuid,
+				summonerLevel: summonerData.summonerLevel,
+				profileIconId: summonerData.profileIconId,
+			}, // Account data as JSONB
 			accountdata: {
 				gameName: riotAccount.gamename,
 				tagLine: riotAccount.tagline,
+				puuid: riotAccount.puuid,
+				region: riotAccount.region,
 			},
-			rankeddata: rankedData,
-			championmasterydata: championMasteryData,
-			livegamedata: liveGameData,
+
+			// Ranked data as JSONB - organize by queue type
+			rankeddata: {
+				RANKED_SOLO_5x5:
+					rankedData.find((r) => r.queueType === "RANKED_SOLO_5x5") || null,
+				RANKED_FLEX_SR:
+					rankedData.find((r) => r.queueType === "RANKED_FLEX_SR") || null,
+			},
+
+			// Champion mastery as JSONB
+			championmasterydata: championMasteryData || null,
+
+			// Live game data as JSONB
+			livegamedata: liveGameData || null,
+
 			updated_at: new Date(),
-			game_type: "league",
 		};
+
 		let { data: leagueRecord, error: leagueError } = await supabaseAdmin
-			.from("game_data")
-			.upsert(
-				{
-					riot_account_id: riotAccount.id,
-					...leagueDataObj,
-				},
-				{
-					onConflict: ["riot_account_id", "game_type"],
-					returning: "representation",
-				}
-			)
+			.from("league_data")
+			.upsert(leagueDataObj, {
+				onConflict: ["riot_account_id"],
+				returning: "representation",
+			})
 			.single();
 		if (leagueError) throw leagueError;
 
@@ -246,25 +274,29 @@ export async function GET(req) {
 				updateTsError
 			);
 		}
-
 		if (!leagueRecord) {
-			const { data: selectedGameData, error: selectError } = await supabase
-				.from("game_data")
+			const { data: selectedLeagueData, error: selectError } = await supabase
+				.from("league_data")
 				.select("*")
 				.eq("riot_account_id", riotAccount.id)
-				.eq("game_type", "league")
 				.maybeSingle();
 			if (selectError) throw selectError;
-			leagueRecord = selectedGameData;
+			leagueRecord = selectedLeagueData;
 		}
-
-		return new Response(
-			JSON.stringify({ ...leagueRecord, matchdetails: allMatchDetails }),
-			{
-				status: 200,
-				headers: { "Content-Type": "application/json" },
-			}
-		);
+		// Return data in the simplified JSONB format
+		const responseData = {
+			profiledata: leagueRecord.profiledata,
+			accountdata: leagueRecord.accountdata,
+			rankeddata: leagueRecord.rankeddata,
+			championmasterydata: leagueRecord.championmasterydata,
+			livegamedata: leagueRecord.livegamedata,
+			updated_at: leagueRecord.updated_at,
+			matchdetails: allMatchDetails,
+		};
+		return new Response(JSON.stringify(responseData), {
+			status: 200,
+			headers: { "Content-Type": "application/json" },
+		});
 	} catch (error) {
 		console.error("League Profile API Error:", error);
 

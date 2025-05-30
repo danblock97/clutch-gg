@@ -26,10 +26,23 @@ const useProfileData = (gameName, tagLine, region) => {
 			}
 
 			const data = await response.json();
-
 			setProfileData(data.profiledata);
 			setAccountData(data.accountdata);
-			setRankedData(data.rankeddata);
+			// Handle rankeddata - convert to array format if it's an object (new JSONB schema)
+			let processedRankedData = [];
+			if (data.rankeddata) {
+				if (Array.isArray(data.rankeddata)) {
+					// Old format: already an array
+					processedRankedData = data.rankeddata;
+				} else if (typeof data.rankeddata === "object") {
+					// New format: JSONB object, convert to array and filter out null values
+					processedRankedData = Object.values(data.rankeddata).filter(
+						(item) => item !== null
+					);
+				}
+			}
+			setRankedData(processedRankedData);
+
 			setChampionMasteryData(data.championmasterydata);
 			setMatchDetails(data.matchdetails);
 			setLiveGameData(data.livegamedata);
