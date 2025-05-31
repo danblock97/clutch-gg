@@ -112,10 +112,11 @@ export async function GET(req) {
 			if (fetchError) throw fetchError;
 			riotAccount = fetchedAccount;
 		}
-
 		if (!riotAccount?.puuid) {
 			throw new Error("Riot account record is missing the puuid.");
-		} // Skip cached data if forceUpdate is true
+		}
+
+		// Check if we should return cached data first
 		if (!forceUpdate) {
 			let { data: storedTftData, error: tftDataError } = await supabase
 				.from("tft_data")
@@ -123,25 +124,22 @@ export async function GET(req) {
 				.eq("riot_account_id", riotAccount.id)
 				.maybeSingle();
 			if (tftDataError) throw tftDataError;
-
-			// Fetch matches where this user participated from tft_matches table
-			let { data: matchData, error: matchDataError } = await supabase
-				.from("tft_matches")
-				.select("*")
-				.contains("match_data", {
-					metadata: { participants: [riotAccount.puuid] },
-				})
-				.order("game_datetime", { ascending: false })
-				.limit(50);
-			if (matchDataError) throw matchDataError;
-
-			// Extract match details from JSONB data and format for frontend compatibility
-			const userMatchDetails = (matchData || []).map((match) => {
-				// Return the complete match data from JSONB
-				return match.match_data;
-			});
-
 			if (storedTftData) {
+				// Fetch stored match history from database (all matches for this user)
+				let { data: allMatches, error: matchDataError } = await supabase
+					.from("tft_matches")
+					.select("matchid, match_data, game_datetime, created_at")
+					.order("game_datetime", { ascending: false });
+				if (matchDataError) throw matchDataError;
+
+				// Filter matches where the user participated and map to match data
+				const userMatchDetails = (allMatches || [])
+					.filter((match) => {
+						const participants = match.match_data?.metadata?.participants;
+						return participants && participants.includes(riotAccount.puuid);
+					})
+					.map((match) => match.match_data);
+
 				// Format the response to maintain frontend compatibility using JSONB structure
 				const responseData = {
 					profiledata: storedTftData.profiledata,
@@ -196,14 +194,6 @@ export async function GET(req) {
 		if (!matchDetails || matchDetails.length === 0) {
 			console.warn("[TFT] No match details found for user", riotAccount.id);
 		}
-		// Filter matchDetails for those where the user's puuid is a participant
-		const allMatchDetails = matchDetails.filter(
-			(md) =>
-				md &&
-				md.metadata &&
-				md.metadata.participants &&
-				md.metadata.participants.includes(summonerData.puuid)
-		);
 
 		// Store data using JSONB structure
 		const tftDataObj = {
@@ -227,7 +217,6 @@ export async function GET(req) {
 			})
 			.single();
 		if (tftError) throw tftError;
-
 		if (!tftRecord) {
 			const { data: selectedTftData, error: selectError } = await supabase
 				.from("tft_data")
@@ -237,6 +226,21 @@ export async function GET(req) {
 			if (selectError) throw selectError;
 			tftRecord = selectedTftData;
 		}
+		// After storing new matches, fetch ALL stored matches for this user from database
+		const { data: allStoredMatches, error: allMatchesError } = await supabase
+			.from("tft_matches")
+			.select("matchid, match_data, game_datetime, created_at")
+			.order("game_datetime", { ascending: false });
+		if (allMatchesError) throw allMatchesError;
+
+		// Filter matches where the user participated and map to match data
+		const allUserMatchDetails = (allStoredMatches || [])
+			.filter((match) => {
+				const participants = match.match_data?.metadata?.participants;
+				return participants && participants.includes(riotAccount.puuid);
+			})
+			.map((match) => match.match_data);
+
 		// Format the response to maintain frontend compatibility using JSONB structure
 		const responseData = {
 			profiledata: tftRecord.profiledata,
@@ -245,7 +249,7 @@ export async function GET(req) {
 			livegamedata: tftRecord.livegamedata,
 			updated_at: tftRecord.updated_at,
 			game_type: "tft",
-			matchdetails: allMatchDetails,
+			matchdetails: allUserMatchDetails,
 		};
 
 		return new Response(JSON.stringify(responseData), {
