@@ -125,7 +125,7 @@ export async function GET(req) {
 
 		if (!riotAccount?.puuid) {
 			throw new Error("Riot account record is missing the puuid.");
-		}
+		} // Check if we should return cached data first
 		if (!forceUpdate) {
 			let { data: storedLeagueData, error: leagueDataError } = await supabase
 				.from("league_data")
@@ -133,45 +133,37 @@ export async function GET(req) {
 				.eq("riot_account_id", riotAccount.id)
 				.maybeSingle();
 			if (leagueDataError) throw leagueDataError;
+			if (storedLeagueData) {
+				// Fetch stored match history from database (all matches for this user)
+				// Use a more reliable approach to filter matches by participant
+				let { data: allMatches, error: matchesError } = await supabase
+					.from("league_matches")
+					.select("matchid, match_data, game_creation, created_at")
+					.order("game_creation", { ascending: false });
+				if (matchesError) throw matchesError;
 
-			// Fetch recent League matches for this user using the simplified schema
-			let { data: recentMatches, error: matchesError } = await supabase
-				.from("league_matches")
-				.select("matchid, match_data, game_creation, created_at")
-				.order("game_creation", { ascending: false })
-				.limit(50);
-			if (matchesError) throw matchesError;
+				// Filter matches where the user participated
+				const userMatchDetails = (allMatches || [])
+					.filter((match) => {
+						const participants = match.match_data?.metadata?.participants;
+						return participants && participants.includes(riotAccount.puuid);
+					})
+					.map((match) => match.match_data);
 
-			// Filter matches where the user participated
-			const userMatchDetails = (recentMatches || [])
-				.filter((match) => {
-					const participants = match.match_data?.metadata?.participants;
-					return participants && participants.includes(riotAccount.puuid);
-				})
-				.map((match) => match.match_data);
-
-			if (storedLeagueData && userMatchDetails.length > 0) {
-				// Check if data is still fresh (less than 5 minutes old)
-				const lastUpdated = new Date(storedLeagueData.updated_at);
-				const now = new Date();
-				const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
-
-				if (lastUpdated > fiveMinutesAgo) {
-					// Return cached data with the proper structure
-					const responseData = {
-						profiledata: storedLeagueData.profiledata,
-						accountdata: storedLeagueData.accountdata,
-						rankeddata: storedLeagueData.rankeddata,
-						championmasterydata: storedLeagueData.championmasterydata,
-						livegamedata: storedLeagueData.livegamedata,
-						updated_at: storedLeagueData.updated_at,
-						matchdetails: userMatchDetails,
-					};
-					return new Response(JSON.stringify(responseData), {
-						status: 200,
-						headers: { "Content-Type": "application/json" },
-					});
-				}
+				// Return cached data with all stored match history
+				const responseData = {
+					profiledata: storedLeagueData.profiledata,
+					accountdata: storedLeagueData.accountdata,
+					rankeddata: storedLeagueData.rankeddata,
+					championmasterydata: storedLeagueData.championmasterydata,
+					livegamedata: storedLeagueData.livegamedata,
+					updated_at: storedLeagueData.updated_at,
+					matchdetails: userMatchDetails,
+				};
+				return new Response(JSON.stringify(responseData), {
+					status: 200,
+					headers: { "Content-Type": "application/json" },
+				});
 			}
 		}
 
@@ -182,7 +174,6 @@ export async function GET(req) {
 			fetchRankedData(summonerData.id, region),
 			fetchMatchIds(puuid, matchPlatform),
 		]);
-
 		// Fetch match details concurrently and upsert them
 		const matchDetails = await Promise.all(
 			matchIds.map(async (matchId) => {
@@ -203,15 +194,20 @@ export async function GET(req) {
 		if (!matchDetails || matchDetails.length === 0) {
 			console.warn("[LEAGUE] No match details found for user", riotAccount.id);
 		}
-		// Filter matchDetails for those where the user's puuid is a participant
-		const userMatchDetails = matchDetails.filter(
-			(md) =>
-				md &&
-				md.metadata &&
-				md.metadata.participants &&
-				md.metadata.participants.includes(summonerData.puuid)
-		);
-		const allMatchDetails = userMatchDetails;
+		// After storing new matches, fetch ALL stored matches for this user from database
+		let { data: allStoredMatches, error: allMatchesError } = await supabase
+			.from("league_matches")
+			.select("matchid, match_data, game_creation, created_at")
+			.order("game_creation", { ascending: false });
+		if (allMatchesError) throw allMatchesError;
+
+		// Filter matches where the user participated and map to match data
+		const allMatchDetails = (allStoredMatches || [])
+			.filter((match) => {
+				const participants = match.match_data?.metadata?.participants;
+				return participants && participants.includes(riotAccount.puuid);
+			})
+			.map((match) => match.match_data);
 
 		const [championMasteryData, liveGameData] = await Promise.all([
 			fetchChampionMasteryData(puuid, region),

@@ -187,7 +187,7 @@ export const fetchTFTLiveGameData = async (puuid, region, platform) => {
 	const normalizedRegion = region.toUpperCase();
 
 	const liveGameResponse = await fetch(
-		`https://${normalizedRegion}.api.riotgames.com/tft/spectator/v1/active-games/by-puuid/${puuid}`,
+		`https://${normalizedRegion}.api.riotgames.com/lol/spectator/tft/v5/active-games/by-puuid/${puuid}`,
 		{ headers: { "X-Riot-Token": TFT_API_KEY } }
 	);
 	if (!liveGameResponse.ok) return null;
