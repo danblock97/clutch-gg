@@ -421,36 +421,63 @@ const MatchHistory = ({
     Array.isArray(match.info.participants) &&
     match.info.participants.length > 0 &&
     match.info.participants.some(p => typeof p.championId === 'number')
-  );
+  )
+  .filter(match => {
+    if (!selectedLane) return true;
+    const currentPlayer = match.info.participants.find(p => p.puuid === selectedSummonerPUUID);
 
-  const totalMatches = filteredMatches.length;
-  const totalPages = Math.ceil(totalMatches / matchesPerPage);
-  const indexOfLastMatch = currentPage * matchesPerPage;
-  const indexOfFirstMatch = indexOfLastMatch - matchesPerPage;
-  const currentMatches = filteredMatches.slice(
-    indexOfFirstMatch,
-    indexOfLastMatch,
-  );
+    return currentPlayer && currentPlayer.teamPosition && normaliseTeamPosition(currentPlayer.teamPosition) === selectedLane;
+  })
+  .filter(match => {
+    if (selectedQueue === null) return true;
+    return match.info.queueId === selectedQueue;
+  });
 
-  const matchesByDay = currentMatches.reduce((acc, match) => {
-    const matchDate = new Date(match.info.gameCreation);
-    const formattedDate = matchDate.toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "short",
-    });
-    if (!acc[formattedDate]) {
-      acc[formattedDate] = [];
+  // Group matches by day
+  const groupedMatches = filteredMatches.reduce((acc, match) => {
+    const gameCreationRaw = match.info.gameCreation ?? match.info.game_datetime ?? 0;
+    const gameDate = new Date(gameCreationRaw);
+    const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+    const dateString = gameDate.toLocaleDateString(undefined, dateOptions);
+
+    if (!acc[dateString]) {
+      acc[dateString] = [];
     }
-    acc[formattedDate].push(match);
+    acc[dateString].push(match);
     return acc;
   }, {});
+
+  const totalPages = Math.ceil(Object.values(groupedMatches).flat().length / matchesPerPage);
+  const startIndex = (currentPage - 1) * matchesPerPage;
+  const endIndex = startIndex + matchesPerPage;
+
+  // Get current page's matches from the grouped data
+  const paginatedGroupedMatches = {};
+  let matchesCount = 0;
+  for (const day in groupedMatches) {
+    if (groupedMatches.hasOwnProperty(day)) {
+      const matchesForDay = groupedMatches[day];
+      const matchesToAdd = [];
+      for (const match of matchesForDay) {
+        if (matchesCount >= startIndex && matchesCount < endIndex) {
+          matchesToAdd.push(match);
+        }
+        matchesCount++;
+      }
+      if (matchesToAdd.length > 0) {
+        paginatedGroupedMatches[day] = matchesToAdd;
+      }
+    }
+  }
+
 
   const handleLaneSelect = (lane) => {
     setSelectedLane(lane === selectedLane ? null : lane);
   };
 
   const handleQueueSelect = (e) => {
-    setSelectedQueue(Number(e.target.value));
+    const value = e.target.value;
+    setSelectedQueue(value === "" ? null : Number(value));
   };
 
   const handlePageChange = (pageNumber) => {
@@ -508,7 +535,7 @@ const MatchHistory = ({
         </div>
       </div>
       <div className="mt-2">
-        {Object.entries(matchesByDay).map(([day, matches]) => (
+        {Object.entries(paginatedGroupedMatches).map(([day, matches]) => (
           <div key={day} className="mb-2">
             <h2 className="text-xl font-semibold text-gray-200 my-4">{day}</h2>
             {matches.map((match, index) => {
