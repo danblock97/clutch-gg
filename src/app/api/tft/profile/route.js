@@ -126,19 +126,13 @@ export async function GET(req) {
 			if (tftDataError) throw tftDataError;
 			if (storedTftData) {
 				// Fetch stored match history from database (all matches for this user)
-				let { data: allMatches, error: matchDataError } = await supabase
+				let { data: userMatchObjects, error: matchDataError } = await supabase // ensure variable name matches original if used later
 					.from("tft_matches")
 					.select("matchid, match_data, game_datetime, created_at")
+					.filter('match_data->metadata->participants', 'cs', `"${riotAccount.puuid}"`)
 					.order("game_datetime", { ascending: false });
 				if (matchDataError) throw matchDataError;
-
-				// Filter matches where the user participated and map to match data
-				const userMatchDetails = (allMatches || [])
-					.filter((match) => {
-						const participants = match.match_data?.metadata?.participants;
-						return participants && participants.includes(riotAccount.puuid);
-					})
-					.map((match) => match.match_data);
+				const userMatchDetails = (userMatchObjects || []).map(match => match.match_data);
 
 				// Format the response to maintain frontend compatibility using JSONB structure
 				const responseData = {
@@ -209,37 +203,23 @@ export async function GET(req) {
 		};
 
 		// Use supabaseAdmin for write operations
+		// Use supabaseAdmin for write operations
 		let { data: tftRecord, error: tftError } = await supabaseAdmin
 			.from("tft_data")
 			.upsert(tftDataObj, {
-				onConflict: "riot_account_id",
-				returning: "representation",
+				onConflict: "riot_account_id", // Verify this matches the unique constraint column name
 			})
+			.select()
 			.single();
 		if (tftError) throw tftError;
-		if (!tftRecord) {
-			const { data: selectedTftData, error: selectError } = await supabase
-				.from("tft_data")
-				.select("*")
-				.eq("riot_account_id", riotAccount.id)
-				.maybeSingle();
-			if (selectError) throw selectError;
-			tftRecord = selectedTftData;
-		}
 		// After storing new matches, fetch ALL stored matches for this user from database
-		const { data: allStoredMatches, error: allMatchesError } = await supabase
+		const { data: allUserMatchObjects, error: allMatchesError } = await supabase // ensure variable name matches original
 			.from("tft_matches")
 			.select("matchid, match_data, game_datetime, created_at")
+			.filter('match_data->metadata->participants', 'cs', `"${riotAccount.puuid}"`)
 			.order("game_datetime", { ascending: false });
 		if (allMatchesError) throw allMatchesError;
-
-		// Filter matches where the user participated and map to match data
-		const allUserMatchDetails = (allStoredMatches || [])
-			.filter((match) => {
-				const participants = match.match_data?.metadata?.participants;
-				return participants && participants.includes(riotAccount.puuid);
-			})
-			.map((match) => match.match_data);
+		const allUserMatchDetails = (allUserMatchObjects || []).map(match => match.match_data);
 
 		// Format the response to maintain frontend compatibility using JSONB structure
 		const responseData = {

@@ -136,19 +136,13 @@ export async function GET(req) {
 			if (storedLeagueData) {
 				// Fetch stored match history from database (all matches for this user)
 				// Use a more reliable approach to filter matches by participant
-				let { data: allMatches, error: matchesError } = await supabase
+				let { data: userMatchObjects, error: matchesError } = await supabase
 					.from("league_matches")
 					.select("matchid, match_data, game_creation, created_at")
+					.filter('match_data->metadata->participants', 'cs', `"${riotAccount.puuid}"`)
 					.order("game_creation", { ascending: false });
 				if (matchesError) throw matchesError;
-
-				// Filter matches where the user participated
-				const userMatchDetails = (allMatches || [])
-					.filter((match) => {
-						const participants = match.match_data?.metadata?.participants;
-						return participants && participants.includes(riotAccount.puuid);
-					})
-					.map((match) => match.match_data);
+				const userMatchDetails = (userMatchObjects || []).map(match => match.match_data);
 
 				// Return cached data with all stored match history
 				const responseData = {
@@ -195,19 +189,13 @@ export async function GET(req) {
 			console.warn("[LEAGUE] No match details found for user", riotAccount.id);
 		}
 		// After storing new matches, fetch ALL stored matches for this user from database
-		let { data: allStoredMatches, error: allMatchesError } = await supabase
+		let { data: allUserMatchObjects, error: allMatchesError } = await supabase
 			.from("league_matches")
 			.select("matchid, match_data, game_creation, created_at")
+			.filter('match_data->metadata->participants', 'cs', `"${riotAccount.puuid}"`)
 			.order("game_creation", { ascending: false });
 		if (allMatchesError) throw allMatchesError;
-
-		// Filter matches where the user participated and map to match data
-		const allMatchDetails = (allStoredMatches || [])
-			.filter((match) => {
-				const participants = match.match_data?.metadata?.participants;
-				return participants && participants.includes(riotAccount.puuid);
-			})
-			.map((match) => match.match_data);
+		const allMatchDetails = (allUserMatchObjects || []).map(match => match.match_data);
 
 		const [championMasteryData, liveGameData] = await Promise.all([
 			fetchChampionMasteryData(puuid, region),
@@ -253,9 +241,9 @@ export async function GET(req) {
 		let { data: leagueRecord, error: leagueError } = await supabaseAdmin
 			.from("league_data")
 			.upsert(leagueDataObj, {
-				onConflict: ["riot_account_id"],
-				returning: "representation",
+				onConflict: "riot_account_id", // Verify this matches the unique constraint column name
 			})
+			.select()
 			.single();
 		if (leagueError) throw leagueError;
 
@@ -269,15 +257,6 @@ export async function GET(req) {
 				`Failed to update timestamp for riot_account ${riotAccount.id}:`,
 				updateTsError
 			);
-		}
-		if (!leagueRecord) {
-			const { data: selectedLeagueData, error: selectError } = await supabase
-				.from("league_data")
-				.select("*")
-				.eq("riot_account_id", riotAccount.id)
-				.maybeSingle();
-			if (selectError) throw selectError;
-			leagueRecord = selectedLeagueData;
 		}
 		// Return data in the simplified JSONB format
 		const responseData = {
