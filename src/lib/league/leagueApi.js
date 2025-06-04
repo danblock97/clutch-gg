@@ -20,24 +20,61 @@ export const fetchSummonerData = async (encryptedPUUID, region) => {
 };
 
 /**
- * Fetch champion mastery data.
+ * Fetch champion mastery data with retry logic.
  */
-export const fetchChampionMasteryData = async (encryptedPUUID, region) => {
+export const fetchChampionMasteryData = async (encryptedPUUID, region, retries = 3) => {
 	// Ensure region is uppercase for API compatibility
 	const normalizedRegion = region.toUpperCase();
 
 	const url = `https://${normalizedRegion}.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-puuid/${encryptedPUUID}`;
-	const championMasteryResponse = await fetch(url, {
-		headers: { "X-Riot-Token": RIOT_API_KEY },
-	});
-	if (!championMasteryResponse.ok) {
-		const errorText = await championMasteryResponse.text();
-		throw new Error(
-			`Failed to fetch champion mastery data. Status: ${championMasteryResponse.status} - ${errorText}`
-		);
+	
+	for (let attempt = 1; attempt <= retries; attempt++) {
+		try {
+			console.log(`Fetching champion mastery data (attempt ${attempt}/${retries})`);
+			
+			const championMasteryResponse = await fetch(url, {
+				headers: { 
+					"X-Riot-Token": RIOT_API_KEY,
+					"Accept": "application/json"
+				}
+			});
+
+			if (championMasteryResponse.ok) {
+				const masteryData = await championMasteryResponse.json();
+				return masteryData.slice(0, 6);
+			}
+
+			// Handle specific error cases
+			if (championMasteryResponse.status === 429) {
+				const retryAfter = championMasteryResponse.headers.get('Retry-After');
+				const waitTime = (retryAfter ? parseInt(retryAfter) : 2) * 1000;
+				console.log(`Rate limited. Waiting ${waitTime}ms before retry...`);
+				await new Promise(resolve => setTimeout(resolve, waitTime));
+				continue;
+			}
+
+			if (championMasteryResponse.status === 502 || championMasteryResponse.status === 503) {
+				const waitTime = attempt * 1000; // Exponential backoff
+				console.log(`Server error (${championMasteryResponse.status}). Waiting ${waitTime}ms before retry...`);
+				await new Promise(resolve => setTimeout(resolve, waitTime));
+				continue;
+			}
+
+			// For other errors, throw immediately
+			const errorText = await championMasteryResponse.text();
+			throw new Error(
+				`Failed to fetch champion mastery data. Status: ${championMasteryResponse.status} - ${errorText}`
+			);
+		} catch (error) {
+			if (attempt === retries) {
+				console.error('All retry attempts failed:', error);
+				throw error;
+			}
+			console.warn(`Attempt ${attempt} failed:`, error);
+		}
 	}
-	const masteryData = await championMasteryResponse.json();
-	return masteryData.slice(0, 6);
+
+	throw new Error('Failed to fetch champion mastery data after all retry attempts');
 };
 
 /**
