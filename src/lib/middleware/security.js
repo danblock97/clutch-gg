@@ -76,9 +76,29 @@ export async function securityMiddleware(req) {
 
     // 2. Rate Limiting
     const ip = req.headers.get('x-forwarded-for') || '127.0.0.1';
+    const userAgent = req.headers.get('user-agent') || 'unknown';
+    const requestPath = new URL(req.url).pathname;
+    
+    // Log request information
+    console.log('Request Info:', {
+      ip,
+      userAgent,
+      path: requestPath,
+      method: req.method,
+      timestamp: new Date().toISOString()
+    });
+
     const { success, limit, reset, remaining } = await checkRateLimit(ip);
     
     if (!success) {
+      console.log('Rate limit exceeded:', {
+        ip,
+        path: requestPath,
+        limit,
+        remaining,
+        reset: new Date(reset).toISOString()
+      });
+
       return new NextResponse(
         JSON.stringify({
           error: 'Too many requests',
