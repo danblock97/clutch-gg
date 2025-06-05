@@ -10,7 +10,8 @@ import { useState, Suspense } from "react";
 import { metadata } from "./metadata";
 import { GameTypeProvider } from "@/context/GameTypeContext";
 import { AuthProvider } from "@/context/AuthContext";
-import Script from "next/script";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import PropTypes from "prop-types";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -65,6 +66,8 @@ export default function RootLayout({ children }) {
               <NavBar bannersVisible={bannersVisible} />
             </Suspense>
             <div>{children}</div>
+            <Analytics />
+            <SpeedInsights />
             <Footer />
           </AuthProvider>
         </GameTypeProvider>
