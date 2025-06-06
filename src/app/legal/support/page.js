@@ -54,7 +54,7 @@ const Support = () => {
 							</p>
 						</div>
 						<a
-							href="https://danblock97.atlassian.net/jira/software/c/form/c34ba90d-b7d6-42a9-8516-bf222a970551?atlOrigin=eyJpIjoiYTc0MTZjNDJhMmNhNGU5NjllYjkzNzM5ZDRkNGFjNGEiLCJwIjoiaiJ9"
+							href="mailto:bugs@clutchgg.lol"
 							target="_blank"
 							rel="noopener noreferrer"
 							className="w-full mt-auto text-center px-6 py-3 bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white font-semibold rounded-md transition-colors duration-300 text-lg block"
@@ -95,7 +95,7 @@ const Support = () => {
 							</p>
 						</div>
 						<a
-							href="https://danblock97.atlassian.net/jira/software/c/form/50f0e455-ef19-4210-88e3-f9078631a84e?atlOrigin=eyJpIjoiNTZiMWFlMjE5ZjMzNDU4N2I0ODQxNzM0Zjg3YmIwMzIiLCJwIjoiaiJ9"
+							href="mailto:features@clutchgg.lol"
 							target="_blank"
 							rel="noopener noreferrer"
 							className="w-full mt-auto text-center px-6 py-3 bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white font-semibold rounded-md transition-colors duration-300 text-lg block"
