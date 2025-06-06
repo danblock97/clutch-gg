@@ -285,7 +285,6 @@ function getTFTSetNumber(liveGameData) {
  */
 export default function LiveGame({ liveGameData, region, matchHistory }) {
 	const [time, setTime] = useState("");
-	const [viewMode, setViewMode] = useState("card"); // "card" or "table"
 
 	// Ensure region has a valid fallback with proper Riot region format
 	const validRegion = region || "EUW1"; // Using EUW1 as fallback instead of "europe"
@@ -515,127 +514,6 @@ export default function LiveGame({ liveGameData, region, matchHistory }) {
 		);
 	};
 
-	// Table view rendering
-	const renderTableView = () => {
-		return (
-			<div className="overflow-x-auto">
-				<table className="w-full text-sm">
-					<thead>
-						<tr className="bg-gray-800 text-[--text-secondary] border-b border-gray-700">
-							<th className="py-2 px-3 text-left">#</th>
-							<th className="py-2 px-3 text-left">Summoner</th>
-							<th className="py-2 px-3 text-left">Rank</th>
-							<th className="py-2 px-3 text-right">LP</th>
-							<th className="py-2 px-3 text-center">Record</th>
-							<th className="py-2 px-3 text-right">Win Rate</th>
-							<th className="py-2 px-3 text-center">Last 5 Placements</th>
-						</tr>
-					</thead>
-					<tbody className="divide-y divide-gray-700/50">
-						{sortedParticipants.map((p, index) => {
-							const rankTxt = formatRank(p.rank);
-							const shortRank =
-								rankTxt !== "Unranked"
-									? rankTxt.split(" ")[0].toLowerCase()
-									: null;
-							const total = p.wins + p.losses;
-							const wr = total > 0 ? ((p.wins / total) * 100).toFixed(1) : 0;
-							const winrateColor = getWinrateColor(wr);
-							const lastPlacements =
-								getRealPlacements(matchHistory, p.puuid) ||
-								generateFallbackPlacements(p.wins, p.losses);
-
-							return (
-								<tr
-									key={p.summonerId}
-									className={index % 2 === 0 ? "bg-gray-800/30" : "bg-gray-900"}
-								>
-									<td className="py-2 px-3">{index + 1}</td>
-									<td className="py-2 px-3">
-										<Link
-											href={`/tft/profile?gameName=${encodeURIComponent(
-												p.gameName
-											)}&tagLine=${encodeURIComponent(
-												p.tagLine
-											)}&region=${encodeURIComponent(validRegion)}`}
-											className="flex items-center gap-2 hover:underline"
-										>
-											<div className="relative">
-												<div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-gray-700/50">
-													<Image
-														src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/${
-															p.profileIconId || 1
-														}.jpg`}
-														alt=""
-														fill
-														className="object-cover"
-													/>
-												</div>
-												<div className="absolute -bottom-1 -right-1 bg-gradient-to-br from-[--tft-primary] to-[--tft-secondary] text-white text-[9px] flex items-center justify-center w-5 h-5 rounded-full shadow-sm">
-													{p.summonerLevel}
-												</div>
-											</div>
-											<span className="font-medium">
-												{p.gameName}
-												<span className="text-gray-400 text-xs ml-1">
-													#{p.tagLine}
-												</span>
-											</span>
-										</Link>
-									</td>
-									<td className="py-2 px-3">
-										<div className="flex items-center">
-											{shortRank && shortRank !== "unranked" && (
-												<div className="relative w-4 h-4 mr-1.5">
-													<Image
-														src={`/images/league/rankedEmblems/${shortRank}.webp`}
-														alt=""
-														fill
-														className="object-contain"
-													/>
-												</div>
-											)}
-											<span>
-												{rankTxt !== "Unranked" ? rankTxt : "Unranked"}
-											</span>
-										</div>
-									</td>
-									<td className="py-2 px-3 text-right font-semibold text-[--tft-secondary]">
-										{rankTxt !== "Unranked" ? p.lp : "-"}
-									</td>
-									<td className="py-2 px-3 text-center">
-										<span className="text-[--success]">{p.wins}W</span>
-										<span className="text-gray-400 mx-1">/</span>
-										<span className="text-[--error]">{p.losses}L</span>
-									</td>
-									<td
-										className={`py-2 px-3 text-right font-semibold ${winrateColor}`}
-									>
-										{wr}%
-									</td>
-									<td className="py-2 px-3">
-										<div className="flex items-center justify-center gap-1">
-											{lastPlacements.map((placement, idx) => (
-												<div
-													key={idx}
-													className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold text-white ${getPlacementColor(
-														placement
-													)}`}
-												>
-													{placement}
-												</div>
-											))}
-										</div>
-									</td>
-								</tr>
-							);
-						})}
-					</tbody>
-				</table>
-			</div>
-		);
-	};
-
 	return (
 		<div className="bg-[#13151b] text-white rounded-md shadow-lg w-full max-w-7xl mx-auto mt-4">
 			{/* Enhanced Header with Mode, Time, and View Toggle */}
@@ -666,40 +544,21 @@ export default function LiveGame({ liveGameData, region, matchHistory }) {
 						<span className="font-mono">{time}</span>
 					</div>
 
-					{/* View Toggle */}
-					<div className="flex border border-gray-700 rounded overflow-hidden">
-						<button
-							className={`px-2 py-1 text-xs font-medium ${
-								viewMode === "card"
-									? "bg-[--tft-primary] text-white"
-									: "bg-transparent text-gray-400 hover:bg-gray-800"
-							}`}
-							onClick={() => setViewMode("card")}
-						>
-							Cards
-						</button>
-						<button
-							className={`px-2 py-1 text-xs font-medium ${
-								viewMode === "table"
-									? "bg-[--tft-primary] text-white"
-									: "bg-transparent text-gray-400 hover:bg-gray-800"
-							}`}
-							onClick={() => setViewMode("table")}
-						>
-							Table
-						</button>
+					{/* Time Counter */}
+					<div className="flex items-center">
+						<div className="flex h-2 w-2 relative mr-2">
+							<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
+							<span className="relative inline-flex rounded-full h-2 w-2 bg-red-600"></span>
+						</div>
+						<span className="font-mono">{time}</span>
 					</div>
 				</div>
 			</div>
 
 			{/* Content based on view mode */}
-			{viewMode === "card" ? (
-				<div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-					{sortedParticipants.map(renderEnhancedCard)}
-				</div>
-			) : (
-				renderTableView()
-			)}
+			<div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+				{sortedParticipants.map(renderEnhancedCard)}
+			</div>
 
 			{/* Footer with game details */}
 			<div className="py-2 px-4 text-[11px] text-[--text-secondary] border-t border-gray-700/30 flex justify-between">
