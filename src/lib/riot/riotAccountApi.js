@@ -8,7 +8,6 @@ export const fetchAccountData = async (gameName, tagLine, platform) => {
 		}
 
 		const url = `https://${platform}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${gameName}/${tagLine}`;
-		console.log(`Fetching account data from: ${url}`);
 
 		const accountResponse = await fetch(url, {
 			headers: { 

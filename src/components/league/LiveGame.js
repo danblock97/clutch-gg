@@ -359,7 +359,6 @@ function getTeamName(teamId) {
 export default function LiveGame({ liveGameData, region }) {
 	const [perkList, setPerkList] = useState([]);
 	const [time, setTime] = useState("");
-	const [viewMode, setViewMode] = useState("card"); // "card" or "table"
 
 	// Load perks & set game timer
 	useEffect(() => {
@@ -419,146 +418,6 @@ export default function LiveGame({ liveGameData, region }) {
 
 		return (roleOrder[aPosition] || 99) - (roleOrder[bPosition] || 99);
 	});
-
-	/* -------------------- PARTICIPANT CARD -------------------- */
-	const renderEnhancedCard = (p) => {
-		const rankTxt = fmtRank(p.rank);
-		const total = p.wins + p.losses;
-		const wr = total > 0 ? ((p.wins / total) * 100).toFixed(1) : 0;
-		const shortRank =
-			rankTxt !== "Unranked" ? rankTxt.split(" ")[0].toLowerCase() : null;
-		const winrateColor = getWinrateColor(wr);
-		const teamColorClass = getTeamColorClass(p.teamId);
-		const position = p.individualPosition || p.teamPosition || "FILL";
-
-		return (
-			<div
-				key={p.summonerId}
-				className={`card-highlight text-[--text-primary] border-l-4 ${
-					p.teamId === 100 ? "border-blue-500" : "border-red-500"
-				} rounded-md p-4 shadow-lg hover:shadow-xl transition-all bg-gradient-to-br from-gray-800 to-[#13151b]`}
-			>
-				<div className="flex items-center space-x-3 mb-3">
-					{/* Champion Icon with Level Badge */}
-					<div className="relative">
-						<div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-[--card-border]">
-							<Image
-								src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${p.championId}.png`}
-								alt=""
-								fill
-								className="object-cover"
-							/>
-						</div>
-						<div className="absolute -bottom-1 -right-1 bg-[--card-bg] rounded-full w-6 h-6 flex items-center justify-center border border-[--card-border]">
-							<span className="text-xs font-bold">
-								{p.summonerLevel || p.level || 1}
-							</span>
-						</div>
-					</div>
-
-					{/* Name, Rank & Stats */}
-					<div className="flex-grow overflow-hidden">
-						<Link
-							href={`/league/profile?gameName=${encodeURIComponent(
-								p.gameName
-							)}&tagLine=${encodeURIComponent(
-								p.tagLine
-							)}&region=${encodeURIComponent(region)}`}
-							className="font-bold text-white hover:text-[--primary] transition-colors text-sm md:text-base overflow-hidden text-ellipsis"
-						>
-							<div className="truncate">
-								{p.gameName}
-								<span className="text-gray-400 font-normal">#{p.tagLine}</span>
-							</div>
-						</Link>
-
-						{/* Rank Display */}
-						<div className="flex items-center mt-1">
-							{shortRank && shortRank !== "unranked" && (
-								<div className="relative w-4 h-4 mr-1 flex-shrink-0">
-									{" "}
-									{/* Reduced size and margin */}
-									<Image
-										src={`/images/league/rankedEmblems/${shortRank}.webp`}
-										alt=""
-										fill
-										className="object-contain"
-									/>
-								</div>
-							)}
-							<div className="text-xs font-medium truncate flex flex-col sm:flex-row sm:items-center">
-								{" "}
-								{/* Adjusted font size and flex for wrapping */}
-								{rankTxt !== "Unranked" ? (
-									<>
-										<span className="truncate">{rankTxt}</span>{" "}
-										{/* Ensure rank text truncates */}
-										<span className="text-[--primary] font-bold ml-0 sm:ml-1">
-											{" "}
-											{/* Adjusted margin for stacking/horizontal */}
-											{p.lp} LP
-										</span>
-									</>
-								) : (
-									"Unranked"
-								)}
-							</div>
-						</div>
-					</div>
-				</div>
-
-				{/* Spells & Runes */}
-				<div className="flex justify-center space-x-3 mb-3">
-					<div className="flex space-x-1">
-						{[p.spell1Id, p.spell2Id].map((spellId, idx) => (
-							<div key={idx} className="w-7 h-7 rounded overflow-hidden">
-								<Image
-									src={`/images/league/summonerSpells/${spellId}.png`}
-									alt=""
-									width={28}
-									height={28}
-									className="w-full h-full"
-								/>
-							</div>
-						))}
-					</div>
-					<div className="flex items-center">
-						<HoverableRuneIcon perks={p.perks} getPerk={getPerkById} />
-					</div>
-				</div>
-
-				{/* Stats Row */}
-				<div className="grid grid-cols-2 gap-2 text-center border-t border-gray-700/50 pt-3">
-					{/* Win/Loss */}
-					<div className="stat-block">
-						<span className="text-xs text-[--text-secondary] uppercase">
-							Record
-						</span>
-						<div className="flex items-center justify-center gap-1 mt-1">
-							<span className="text-[--success] font-semibold text-sm">
-								{p.wins}W
-							</span>
-							<span className="text-[--text-secondary]">/</span>
-							<span className="text-[--error] font-semibold text-sm">
-								{p.losses}L
-							</span>
-						</div>
-					</div>
-
-					{/* Win Rate */}
-					<div className="stat-block">
-						<span className="text-xs text-[--text-secondary] uppercase">
-							Win Rate
-						</span>
-						<div className="flex items-center justify-center mt-1">
-							<FaChartLine className={`${winrateColor} mr-1 text-xs`} />
-							<span className={`font-bold text-sm ${winrateColor}`}>{wr}%</span>
-						</div>
-					</div>
-				</div>
-			</div>
-		);
-	};
 
 	/* -------------------- TABLE VIEW -------------------- */
 	const renderTableView = () => {
@@ -848,40 +707,19 @@ export default function LiveGame({ liveGameData, region }) {
 							<span className="font-mono">{time}</span>
 						</div>
 
-						{/* View Toggle */}
-						<div className="flex border border-gray-700 rounded overflow-hidden">
-							<button
-								className={`px-2 py-1 text-xs font-medium ${
-									viewMode === "card"
-										? "bg-[--primary] text-white"
-										: "bg-transparent text-gray-400 hover:bg-gray-800"
-								}`}
-								onClick={() => setViewMode("card")}
-							>
-								Cards
-							</button>
-							<button
-								className={`px-2 py-1 text-xs font-medium ${
-									viewMode === "table"
-										? "bg-[--primary] text-white"
-										: "bg-transparent text-gray-400 hover:bg-gray-800"
-								}`}
-								onClick={() => setViewMode("table")}
-							>
-								Table
-							</button>
+						{/* Time Counter */}
+						<div className="flex items-center">
+							<div className="flex h-2 w-2 relative mr-2">
+								<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
+								<span className="relative inline-flex rounded-full h-2 w-2 bg-red-600"></span>
+							</div>
+							<span className="font-mono">{time}</span>
 						</div>
 					</div>
 				</div>
 
 				{/* Content based on view mode */}
-				{viewMode === "card" ? (
-					<div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-						{sortedParticipants.map(renderEnhancedCard)}
-					</div>
-				) : (
-					renderTableView()
-				)}
+				{renderTableView()}
 
 				{/* Footer with game details */}
 				<div className="py-2 px-4 text-[11px] text-[--text-secondary] border-t border-gray-700/30 flex justify-between">
@@ -922,102 +760,19 @@ export default function LiveGame({ liveGameData, region }) {
 						<span className="font-mono">{time}</span>
 					</div>
 
-					{/* View Toggle */}
-					<div className="flex border border-gray-700 rounded overflow-hidden">
-						<button
-							className={`px-2 py-1 text-xs font-medium ${
-								viewMode === "card"
-									? "bg-[--primary] text-white"
-									: "bg-transparent text-gray-400 hover:bg-gray-800"
-							}`}
-							onClick={() => setViewMode("card")}
-						>
-							Cards
-						</button>
-						<button
-							className={`px-2 py-1 text-xs font-medium ${
-								viewMode === "table"
-									? "bg-[--primary] text-white"
-									: "bg-transparent text-gray-400 hover:bg-gray-800"
-							}`}
-							onClick={() => setViewMode("table")}
-						>
-							Table
-						</button>
+					{/* Time Counter */}
+					<div className="flex items-center">
+						<div className="flex h-2 w-2 relative mr-2">
+							<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
+							<span className="relative inline-flex rounded-full h-2 w-2 bg-red-600"></span>
+						</div>
+						<span className="font-mono">{time}</span>
 					</div>
 				</div>
 			</div>
 
 			{/* Content based on view mode */}
-			{viewMode === "card" ? (
-				<>
-					{/* Blue Team */}
-					<div className="p-4 border-b border-gray-700/30">
-						<div className="flex items-center mb-3">
-							<FaShieldAlt className="text-blue-500 mr-2" />
-							<span className="text-base font-semibold text-blue-500">
-								Blue Team
-							</span>
-							<div className="ml-auto flex space-x-1">
-								{liveGameData.bannedChampions
-									?.filter((b) => b.teamId === 100)
-									.map((ban, i) => (
-										<div key={i} className="relative w-6 h-6">
-											<Image
-												src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${ban.championId}.png`}
-												alt=""
-												fill
-												className="rounded-full object-cover opacity-60"
-											/>
-											<div className="absolute inset-0 flex items-center justify-center">
-												<FaSkull className="text-red-500 text-xs" />
-											</div>
-										</div>
-									))}
-							</div>
-						</div>
-						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-							{sortedParticipants
-								.filter((p) => p.teamId === 100)
-								.map(renderEnhancedCard)}
-						</div>
-					</div>
-
-					{/* Red Team */}
-					<div className="p-4">
-						<div className="flex items-center mb-3">
-							<FaShieldAlt className="text-red-500 mr-2" />
-							<span className="text-base font-semibold text-red-500">
-								Red Team
-							</span>
-							<div className="ml-auto flex space-x-1">
-								{liveGameData.bannedChampions
-									?.filter((b) => b.teamId === 200)
-									.map((ban, i) => (
-										<div key={i} className="relative w-6 h-6">
-											<Image
-												src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${ban.championId}.png`}
-												alt=""
-												fill
-												className="rounded-full object-cover opacity-60"
-											/>
-											<div className="absolute inset-0 flex items-center justify-center">
-												<FaSkull className="text-red-500 text-xs" />
-											</div>
-										</div>
-									))}
-							</div>
-						</div>
-						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-							{sortedParticipants
-								.filter((p) => p.teamId === 200)
-								.map(renderEnhancedCard)}
-						</div>
-					</div>
-				</>
-			) : (
-				renderTableView()
-			)}
+			{renderTableView()}
 
 			{/* Footer with game details */}
 			<div className="py-2 px-4 text-[11px] text-[--text-secondary] border-t border-gray-700/30 flex justify-between">
