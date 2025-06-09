@@ -54,7 +54,7 @@ const Support = () => {
 							</p>
 						</div>
 						<a
-							href="mailto:bugs@clutchgg.lol"
+							href="https://roomy-pick-4e2.notion.site/20c05d85e58380a28481cd5f3c50d91b?pvs=105"
 							target="_blank"
 							rel="noopener noreferrer"
 							className="w-full mt-auto text-center px-6 py-3 bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white font-semibold rounded-md transition-colors duration-300 text-lg block"
@@ -95,7 +95,7 @@ const Support = () => {
 							</p>
 						</div>
 						<a
-							href="mailto:features@clutchgg.lol"
+							href="https://roomy-pick-4e2.notion.site/20c05d85e58380a28481cd5f3c50d91b?pvs=105"
 							target="_blank"
 							rel="noopener noreferrer"
 							className="w-full mt-auto text-center px-6 py-3 bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white font-semibold rounded-md transition-colors duration-300 text-lg block"

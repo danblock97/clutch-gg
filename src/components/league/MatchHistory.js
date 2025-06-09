@@ -538,7 +538,7 @@ const MatchHistory = ({
 				<div className="flex items-center space-x-2">
 					<select
 						id="queue-filter"
-						className="p-2 bg-gray-800 text-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+						className="p-2 bg-gray-800 text-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-sans"
 						value={selectedQueue || ""}
 						onChange={handleQueueSelect}
 					>
