@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { fetchTFTSummonerPUUID } from "@/lib/tft/tftApi";
+import { fetchTFTPUUIDFromSummonerId } from "@/lib/tft/tftApi";
 import { fetchAccountDataByPUUID } from "@/lib/league/leagueApi";
 
 const TFT_API_KEY = process.env.TFT_API_KEY;
@@ -91,7 +91,7 @@ export async function GET(req) {
 				.map(async (entry) => {
 					try {
 						const { puuid, profileIconId } = await fetchWithRetry(
-							fetchTFTSummonerPUUID,
+							fetchTFTPUUIDFromSummonerId,
 							[entry.summonerId, region]
 						);
 

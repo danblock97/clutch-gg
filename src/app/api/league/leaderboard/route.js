@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import {
-	fetchSummonerPUUID,
+	fetchPUUIDFromSummonerId,
 	fetchAccountDataByPUUID,
 } from "@/lib/league/leagueApi";
 
@@ -54,7 +54,7 @@ export async function GET(req) {
 			leaderboardData.map(async (entry) => {
 				try {
 					const { puuid, profileIconId } = await fetchWithRetry(
-						fetchSummonerPUUID,
+						fetchPUUIDFromSummonerId,
 						[entry.summonerId, region],
 						1
 					);

@@ -129,10 +129,16 @@ export async function GET(req) {
 				let { data: userMatchObjects, error: matchDataError } = await supabase // ensure variable name matches original if used later
 					.from("tft_matches")
 					.select("matchid, match_data, game_datetime, created_at")
-					.filter('match_data->metadata->participants', 'cs', `"${riotAccount.puuid}"`)
+					.filter(
+						"match_data->metadata->participants",
+						"cs",
+						`"${riotAccount.puuid}"`
+					)
 					.order("game_datetime", { ascending: false });
 				if (matchDataError) throw matchDataError;
-				const userMatchDetails = (userMatchObjects || []).map(match => match.match_data);
+				const userMatchDetails = (userMatchObjects || []).map(
+					(match) => match.match_data
+				);
 
 				// Format the response to maintain frontend compatibility using JSONB structure
 				const responseData = {
@@ -160,7 +166,7 @@ export async function GET(req) {
 		// Fetch summoner data once and use it for ranked data.
 		const summonerData = await fetchTFTSummonerData(puuid, region);
 		const [rankedData, matchIds, liveGameData] = await Promise.all([
-			fetchTFTRankedData(summonerData.id, region),
+			fetchTFTRankedData(puuid, region),
 			fetchTFTMatchIds(puuid, platform),
 			fetchTFTLiveGameData(puuid, region, platform),
 		]); // Fetch match details concurrently and upsert them
@@ -216,10 +222,16 @@ export async function GET(req) {
 		const { data: allUserMatchObjects, error: allMatchesError } = await supabase // ensure variable name matches original
 			.from("tft_matches")
 			.select("matchid, match_data, game_datetime, created_at")
-			.filter('match_data->metadata->participants', 'cs', `"${riotAccount.puuid}"`)
+			.filter(
+				"match_data->metadata->participants",
+				"cs",
+				`"${riotAccount.puuid}"`
+			)
 			.order("game_datetime", { ascending: false });
 		if (allMatchesError) throw allMatchesError;
-		const allUserMatchDetails = (allUserMatchObjects || []).map(match => match.match_data);
+		const allUserMatchDetails = (allUserMatchObjects || []).map(
+			(match) => match.match_data
+		);
 
 		// Format the response to maintain frontend compatibility using JSONB structure
 		const responseData = {

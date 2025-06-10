@@ -22,21 +22,27 @@ export const fetchSummonerData = async (encryptedPUUID, region) => {
 /**
  * Fetch champion mastery data with retry logic.
  */
-export const fetchChampionMasteryData = async (encryptedPUUID, region, retries = 3) => {
+export const fetchChampionMasteryData = async (
+	encryptedPUUID,
+	region,
+	retries = 3
+) => {
 	// Ensure region is uppercase for API compatibility
 	const normalizedRegion = region.toUpperCase();
 
 	const url = `https://${normalizedRegion}.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-puuid/${encryptedPUUID}`;
-	
+
 	for (let attempt = 1; attempt <= retries; attempt++) {
 		try {
-			console.log(`Fetching champion mastery data (attempt ${attempt}/${retries})`);
-			
+			console.log(
+				`Fetching champion mastery data (attempt ${attempt}/${retries})`
+			);
+
 			const championMasteryResponse = await fetch(url, {
-				headers: { 
+				headers: {
 					"X-Riot-Token": RIOT_API_KEY,
-					"Accept": "application/json"
-				}
+					Accept: "application/json",
+				},
 			});
 
 			if (championMasteryResponse.ok) {
@@ -46,17 +52,22 @@ export const fetchChampionMasteryData = async (encryptedPUUID, region, retries =
 
 			// Handle specific error cases
 			if (championMasteryResponse.status === 429) {
-				const retryAfter = championMasteryResponse.headers.get('Retry-After');
+				const retryAfter = championMasteryResponse.headers.get("Retry-After");
 				const waitTime = (retryAfter ? parseInt(retryAfter) : 2) * 1000;
 				console.log(`Rate limited. Waiting ${waitTime}ms before retry...`);
-				await new Promise(resolve => setTimeout(resolve, waitTime));
+				await new Promise((resolve) => setTimeout(resolve, waitTime));
 				continue;
 			}
 
-			if (championMasteryResponse.status === 502 || championMasteryResponse.status === 503) {
+			if (
+				championMasteryResponse.status === 502 ||
+				championMasteryResponse.status === 503
+			) {
 				const waitTime = attempt * 1000; // Exponential backoff
-				console.log(`Server error (${championMasteryResponse.status}). Waiting ${waitTime}ms before retry...`);
-				await new Promise(resolve => setTimeout(resolve, waitTime));
+				console.log(
+					`Server error (${championMasteryResponse.status}). Waiting ${waitTime}ms before retry...`
+				);
+				await new Promise((resolve) => setTimeout(resolve, waitTime));
 				continue;
 			}
 
@@ -67,25 +78,27 @@ export const fetchChampionMasteryData = async (encryptedPUUID, region, retries =
 			);
 		} catch (error) {
 			if (attempt === retries) {
-				console.error('All retry attempts failed:', error);
+				console.error("All retry attempts failed:", error);
 				throw error;
 			}
 			console.warn(`Attempt ${attempt} failed:`, error);
 		}
 	}
 
-	throw new Error('Failed to fetch champion mastery data after all retry attempts');
+	throw new Error(
+		"Failed to fetch champion mastery data after all retry attempts"
+	);
 };
 
 /**
  * Fetch ranked data.
  */
-export const fetchRankedData = async (summonerId, region) => {
+export const fetchRankedData = async (encryptedPUUID, region) => {
 	// Ensure region is uppercase for API compatibility
 	const normalizedRegion = region.toUpperCase();
 
 	const rankedResponse = await fetch(
-		`https://${normalizedRegion}.api.riotgames.com/lol/league/v4/entries/by-summoner/${summonerId}`,
+		`https://${normalizedRegion}.api.riotgames.com/lol/league/v4/entries/by-puuid/${encryptedPUUID}`,
 		{ headers: { "X-Riot-Token": RIOT_API_KEY } }
 	);
 	if (!rankedResponse.ok) {
@@ -206,7 +219,6 @@ export const fetchLiveGameData = async (puuid, region, platform) => {
 	liveGameData.participants = await Promise.all(
 		liveGameData.participants.map(async (participant) => {
 			const additionalData = await fetchAdditionalData(
-				participant.summonerId,
 				participant.puuid,
 				normalizedRegion
 			);
@@ -219,7 +231,7 @@ export const fetchLiveGameData = async (puuid, region, platform) => {
 /**
  * Fetch additional data for live game enrichment.
  */
-export const fetchAdditionalData = async (summonerId, puuid, region) => {
+export const fetchAdditionalData = async (puuid, region) => {
 	// Always try to fetch as much as possible, even if some fail
 	const normalizedRegion = region.toUpperCase();
 	let rankedData = [];
@@ -230,7 +242,7 @@ export const fetchAdditionalData = async (summonerId, puuid, region) => {
 
 	// Fetch all in parallel, but catch errors individually
 	const rankedPromise = fetch(
-		`https://${normalizedRegion}.api.riotgames.com/lol/league/v4/entries/by-summoner/${summonerId}`,
+		`https://${normalizedRegion}.api.riotgames.com/lol/league/v4/entries/by-puuid/${puuid}`,
 		{ headers: { "X-Riot-Token": RIOT_API_KEY } }
 	)
 		.then((r) => (r.ok ? r.json() : Promise.reject("ranked")))
@@ -290,13 +302,31 @@ export const fetchAdditionalData = async (summonerId, puuid, region) => {
 /**
  * Fetch summoner details to get the PUUID and profile icon.
  */
-export const fetchSummonerPUUID = async (summonerId, region) => {
+export const fetchSummonerPUUID = async (puuid, region) => {
+	const response = await fetch(
+		`https://${region}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}`,
+		{ headers: { "X-Riot-Token": RIOT_API_KEY } }
+	);
+	if (!response.ok) {
+		throw new Error(`Failed to fetch PUUID for puuid: ${puuid}`);
+	}
+	const data = await response.json();
+	return { puuid: data.puuid, profileIconId: data.profileIconId };
+};
+
+/**
+ * Convert summoner ID to PUUID and profile icon using the non-deprecated endpoint.
+ * This is needed for leaderboard APIs that still return summoner IDs.
+ */
+export const fetchPUUIDFromSummonerId = async (summonerId, region) => {
 	const response = await fetch(
 		`https://${region}.api.riotgames.com/lol/summoner/v4/summoners/${summonerId}`,
 		{ headers: { "X-Riot-Token": RIOT_API_KEY } }
 	);
 	if (!response.ok) {
-		throw new Error(`Failed to fetch PUUID for summonerId: ${summonerId}`);
+		throw new Error(
+			`Failed to fetch summoner data for summoner ID: ${summonerId}`
+		);
 	}
 	const data = await response.json();
 	return { puuid: data.puuid, profileIconId: data.profileIconId };

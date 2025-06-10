@@ -139,10 +139,16 @@ export async function GET(req) {
 				let { data: userMatchObjects, error: matchesError } = await supabase
 					.from("league_matches")
 					.select("matchid, match_data, game_creation, created_at")
-					.filter('match_data->metadata->participants', 'cs', `"${riotAccount.puuid}"`)
+					.filter(
+						"match_data->metadata->participants",
+						"cs",
+						`"${riotAccount.puuid}"`
+					)
 					.order("game_creation", { ascending: false });
 				if (matchesError) throw matchesError;
-				const userMatchDetails = (userMatchObjects || []).map(match => match.match_data);
+				const userMatchDetails = (userMatchObjects || []).map(
+					(match) => match.match_data
+				);
 
 				// Return cached data with all stored match history
 				const responseData = {
@@ -165,7 +171,7 @@ export async function GET(req) {
 
 		const summonerData = await fetchSummonerData(puuid, region);
 		const [rankedData, matchIds] = await Promise.all([
-			fetchRankedData(summonerData.id, region),
+			fetchRankedData(puuid, region),
 			fetchMatchIds(puuid, matchPlatform),
 		]);
 		// Fetch match details concurrently and upsert them
@@ -192,14 +198,20 @@ export async function GET(req) {
 		let { data: allUserMatchObjects, error: allMatchesError } = await supabase
 			.from("league_matches")
 			.select("matchid, match_data, game_creation, created_at")
-			.filter('match_data->metadata->participants', 'cs', `"${riotAccount.puuid}"`)
+			.filter(
+				"match_data->metadata->participants",
+				"cs",
+				`"${riotAccount.puuid}"`
+			)
 			.order("game_creation", { ascending: false });
 		if (allMatchesError) throw allMatchesError;
-		const allMatchDetails = (allUserMatchObjects || []).map(match => match.match_data);
+		const allMatchDetails = (allUserMatchObjects || []).map(
+			(match) => match.match_data
+		);
 
 		const [championMasteryData, liveGameData] = await Promise.all([
 			fetchChampionMasteryData(puuid, region),
-			fetchLiveGameData(summonerData.puuid, region, platform),
+			fetchLiveGameData(puuid, region, platform),
 		]);
 
 		// Create JSONB data structure for simplified schema
