@@ -115,14 +115,36 @@ export const upsertTFTMatchDetail = async (
  */
 export const fetchTFTAdditionalData = async (summonerId, puuid, region) => {
 	try {
+		// Map platform region (e.g. EUW1) to the correct routing cluster (europe / americas / asia / sea)
+		const regionToPlatform = {
+			BR1: "americas",
+			EUN1: "europe",
+			EUW1: "europe",
+			JP1: "asia",
+			KR: "asia",
+			LA1: "americas",
+			LA2: "americas",
+			ME1: "europe",
+			NA1: "americas",
+			OC1: "americas",
+			RU: "europe",
+			SG2: "sea",
+			TR1: "europe",
+			TW2: "sea",
+			VN2: "sea",
+		};
+		const platform = regionToPlatform[region?.toUpperCase()] || "americas";
+
 		const [rankedResponse, accountResponse, summonerResponse] =
 			await Promise.all([
+				// Ranked TFT uses the summoner-id, *not* the puuid
 				fetch(
-					`https://${region}.api.riotgames.com/tft/league/v1/entries/by-puuid/${puuid}`,
+					`https://${region}.api.riotgames.com/tft/league/v1/entries/by-summoner/${summonerId}`,
 					{ headers: { "X-Riot-Token": TFT_API_KEY } }
 				),
+				// Account endpoint is cluster based (americas / europe / asia / sea)
 				fetch(
-					`https://europe.api.riotgames.com/riot/account/v1/accounts/by-puuid/${puuid}`,
+					`https://${platform}.api.riotgames.com/riot/account/v1/accounts/by-puuid/${puuid}`,
 					{ headers: { "X-Riot-Token": TFT_API_KEY } }
 				),
 				fetch(
@@ -202,7 +224,7 @@ export const fetchTFTPUUIDFromSummonerId = async (summonerId, region) => {
 	const data = await response.json();
 	return { puuid: data.puuid, profileIconId: data.profileIconId };
 };
-
+cl;
 /**
  * Fetch TFT live game data.
  */
@@ -236,14 +258,34 @@ export const fetchTFTLiveGameData = async (puuid, region, platform) => {
  */
 export const fetchTFTAdditionalGameData = async (summonerId, puuid, region) => {
 	try {
+		// Same region->platform mapping to resolve the correct routing cluster
+		const regionToPlatform = {
+			BR1: "americas",
+			EUN1: "europe",
+			EUW1: "europe",
+			JP1: "asia",
+			KR: "asia",
+			LA1: "americas",
+			LA2: "americas",
+			ME1: "europe",
+			NA1: "americas",
+			OC1: "americas",
+			RU: "europe",
+			SG2: "sea",
+			TR1: "europe",
+			TW2: "sea",
+			VN2: "sea",
+		};
+		const platform = regionToPlatform[region?.toUpperCase()] || "americas";
+
 		const [rankedResponse, accountResponse, summonerResponse] =
 			await Promise.all([
 				fetch(
-					`https://${region}.api.riotgames.com/tft/league/v1/entries/by-puuid/${puuid}`,
+					`https://${region}.api.riotgames.com/tft/league/v1/entries/by-summoner/${summonerId}`,
 					{ headers: { "X-Riot-Token": TFT_API_KEY } }
 				),
 				fetch(
-					`https://europe.api.riotgames.com/riot/account/v1/accounts/by-puuid/${puuid}`,
+					`https://${platform}.api.riotgames.com/riot/account/v1/accounts/by-puuid/${puuid}`,
 					{ headers: { "X-Riot-Token": TFT_API_KEY } }
 				),
 				fetch(
