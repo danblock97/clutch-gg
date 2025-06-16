@@ -224,7 +224,7 @@ export const fetchTFTPUUIDFromSummonerId = async (summonerId, region) => {
 	const data = await response.json();
 	return { puuid: data.puuid, profileIconId: data.profileIconId };
 };
-cl;
+
 /**
  * Fetch TFT live game data.
  */
