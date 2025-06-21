@@ -10,16 +10,16 @@ const Tag = ({ text, hoverText, color = "", icon }) => {
 	return (
 		<div className="relative inline-flex group items-center cursor-pointer">
 			<div
-				className={`flex items-center space-x-1 px-3 py-1.5 rounded-full 
-          text-sm font-medium shadow-sm border border-[--card-border] 
+				className={`flex items-center space-x-1 px-2 py-0.5 rounded-md 
+          text-xs font-medium shadow-sm border border-[--card-border] 
           transition-all duration-200 transform group-hover:scale-105
           ${color || "bg-[--card-bg]"}`}
 			>
 				{/* Optional Icon */}
 				{icon && (
 					<span className="flex items-center justify-center text-base mr-1">
-            {icon}
-          </span>
+						{icon}
+					</span>
 				)}
 
 				{/* Tag Text */}
@@ -42,7 +42,9 @@ const Tag = ({ text, hoverText, color = "", icon }) => {
             min-w-[180px] max-w-[280px]"
 				>
 					<div className="font-bold text-sm mb-1.5">{text}</div>
-					<div className="text-[--text-secondary] leading-snug">{hoverText}</div>
+					<div className="text-[--text-secondary] leading-snug">
+						{hoverText}
+					</div>
 				</div>
 			)}
 		</div>

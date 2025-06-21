@@ -98,16 +98,17 @@
 		@apply flex flex-col items-center bg-[--card-bg] rounded-lg p-3 text-center;
 	}
 
+	/* Solid row backgrounds */
 	.match-win {
-		@apply bg-gradient-to-r from-[#172e40] via-[#1a4a6b] to-[#172e40] border-l-4 border-[--success];
+		@apply bg-[#082840] border-l-4 border-[--success]; /* darker navy */
 	}
 
 	.match-loss {
-		@apply bg-gradient-to-r from-[#3a1d1d] via-[#4a2222] to-[#3a1d1d] border-l-4 border-[--error];
+		@apply bg-[#4a1f1f] border-l-4 border-[--error]; /* solid dark red */
 	}
 
 	.match-remake {
-		@apply bg-gradient-to-r from-[#2d2a16] via-[#3d3a1c] to-[#2d2a16] border-l-4 border-[--warning];
+		@apply bg-[#3d3814] border-l-4 border-[--warning]; /* solid olive/brown */
 	}
 
 	.animate-pulse-custom {

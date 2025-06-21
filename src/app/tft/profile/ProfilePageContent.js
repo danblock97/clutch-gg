@@ -59,6 +59,16 @@ const ProfilePageContent = () => {
 	const handleLadderRankingLoaded = () => {
 		setIsLoadingLadderRanking(false);
 	};
+
+	// Update page title with summoner name when profileData is available
+	useEffect(() => {
+		if (gameName && tagLine) {
+			if (typeof document !== "undefined") {
+				document.title = `${gameName}#${tagLine} - TFT Profile Stats`;
+			}
+		}
+	}, [gameName, tagLine]);
+
 	const triggerUpdate = async () => {
 		setIsUpdating(true);
 		try {
