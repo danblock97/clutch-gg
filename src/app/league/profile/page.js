@@ -138,6 +138,16 @@ const ProfilePageContent = () => {
 		dispatch({ type: "SET_SELECTED_CHAMPION", payload: championId });
 	};
 
+	// Update page title once account data is available
+	useEffect(() => {
+		if (state.accountData) {
+			const { gameName, tagLine } = state.accountData;
+			if (typeof document !== "undefined") {
+				document.title = `${gameName}#${tagLine} - LOL Profile Stats`;
+			}
+		}
+	}, [state.accountData]);
+
 	if (state.isLoading) {
 		return (
 			<div className="min-h-screen flex items-center justify-center">

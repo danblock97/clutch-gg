@@ -85,6 +85,12 @@ const Leaderboard = () => {
 		}
 	};
 
+	useEffect(() => {
+		if (typeof document !== "undefined") {
+			document.title = "ClutchGG Leaderboards";
+		}
+	}, []);
+
 	return (
 		<div className="min-h-screen flex flex-col">
 			{/* Header Section */}

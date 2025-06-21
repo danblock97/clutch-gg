@@ -108,6 +108,12 @@ const LeaderboardPage = () => {
 		return "text-[--tft-primary]"; // Fallback
 	};
 
+	useEffect(() => {
+		if (typeof document !== "undefined") {
+			document.title = "ClutchGG Leaderboards";
+		}
+	}, []);
+
 	return (
 		<div className="min-h-screen flex flex-col">
 			{/* Header Section */}
