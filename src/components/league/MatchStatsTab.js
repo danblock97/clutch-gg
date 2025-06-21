@@ -261,178 +261,196 @@ export default function MatchStatsTab({
 		);
 	}
 
-	// ----------------- Standard Summoner's Rift (and others) --------------------
-	const calcTeamStats = (ps) => {
-		return ps.reduce(
-			(a, c) => {
-				a.kills += c.kills;
-				a.deaths += c.deaths;
-				a.assists += c.assists;
-				a.gold += c.goldEarned;
-				a.damage += c.totalDamageDealtToChampions;
-				return a;
-			},
-			{ kills: 0, deaths: 0, assists: 0, gold: 0, damage: 0 }
+	// ----------------- Standard 5v5 / ARAM rendering --------------------
+
+	// Calculate clutch scores and find max damage for damage bar scaling
+	const calculateClutch = (m, currentP) => {
+		const kda =
+			(currentP.kills + currentP.assists) / Math.max(1, currentP.deaths);
+		const kdaScore = Math.min(20, (kda / 5) * 20);
+
+		const teamPlayers = m.info.participants.filter(
+			(pp) => pp.teamId === currentP.teamId
+		);
+		const teamKills = teamPlayers.reduce((sum, pp) => sum + pp.kills, 0);
+		const kp = teamKills ? (currentP.kills + currentP.assists) / teamKills : 0;
+		const kpScore = Math.min(20, kp * 20);
+
+		const visionScore = currentP.visionScore || 0;
+		const visionScoreNorm = Math.min(20, (visionScore / 40) * 20);
+
+		const damage = currentP.totalDamageDealtToChampions || 0;
+		const damageScore = Math.min(20, (damage / 20000) * 20);
+
+		const turretDamage = currentP.damageDealtToTurrets || 0;
+		const turretScore = Math.min(20, (turretDamage / 3000) * 20);
+
+		return Math.round(
+			kdaScore + kpScore + visionScoreNorm + damageScore + turretScore
 		);
 	};
 
-	const t1 = parts.filter((p) => p.teamId === 100);
-	const t2 = parts.filter((p) => p.teamId === 200);
-	const t1Stats = calcTeamStats(t1);
-	const t2Stats = calcTeamStats(t2);
-	const bans = {
-		team1: match.info.teams.find((t) => t.teamId === 100)?.bans || [],
-		team2: match.info.teams.find((t) => t.teamId === 200)?.bans || [],
-	};
+	match.info.participants.forEach((pp) => {
+		pp.clutchScore = calculateClutch(match, pp);
+	});
+
+	const maxDamage = Math.max(
+		...match.info.participants.map((pp) => pp.totalDamageDealtToChampions)
+	);
+
+	// Split teams
+	const blue = match.info.participants.filter((pp) => pp.teamId === 100);
+	const red = match.info.participants.filter((pp) => pp.teamId === 200);
 
 	const isWinner = (teamId) => {
 		return match.info.teams.find((t) => t.teamId === teamId)?.win;
 	};
 
-	const t1Winner = isWinner(100);
-	const t2Winner = isWinner(200);
+	const TeamBlock = ({ teamArr, teamName, isWin, teamColor }) => (
+		<div className="mb-4">
+			{/* Team header */}
+			<div className="px-2 py-1 text-sm font-semibold flex items-center gap-2 border border-[--card-border] rounded-t-lg bg-[--card-bg-secondary]">
+				<span className={isWin ? "text-green-400" : "text-red-400"}>
+					{teamName}
+				</span>
+			</div>
 
-	return (
-		<div className="p-4">
-			<div className="max-w-6xl mx-auto space-y-6">
-				{/* Team 1 (Blue) */}
-				<div
-					className={`card ${
-						t1Winner
-							? "border-l-4 border-green-500"
-							: "border-l-4 border-red-500"
-					}`}
-				>
-					<div className="flex justify-between items-center p-4 border-b border-[--card-border]">
-						<div className="flex items-center">
-							<FaFistRaised className="text-blue-500 mr-2" />
-							<span className="text-base font-semibold text-blue-500">
-								Blue Team
-							</span>
-							<span className="ml-2 text-xs bg-[--card-bg] px-2 py-0.5 rounded text-[--text-secondary]">
-								{t1Winner ? "Victory" : "Defeat"}
-							</span>
-						</div>
-						<div className="flex items-center space-x-4">
-							<div className="text-sm">
-								<span className="text-[--text-secondary]">Team KDA:</span>{" "}
-								{t1Stats.kills}/{t1Stats.deaths}/{t1Stats.assists}
-							</div>
-							<div className="text-sm hidden md:block">
-								<span className="text-[--text-secondary]">Gold:</span>{" "}
-								{(t1Stats.gold / 1000).toFixed(1)}k
-							</div>
+			{/* Column headings */}
+			<div className="grid grid-cols-[160px_60px_70px_180px_60px_60px_auto] px-2 py-1 text-[10px] uppercase text-[--text-secondary] border-x border-b border-[--card-border] bg-[--card-bg]">
+				<div>Player</div>
+				<div className="text-center">C-Score</div>
+				<div className="text-center">KDA</div>
+				<div>Damage</div>
+				<div className="text-center">CS</div>
+				<div className="text-center">Wards</div>
+				<div className="text-center">Items</div>
+			</div>
 
-							{/* Bans */}
-							{bans.team1.length > 0 && (
-								<div className="flex items-center text-sm">
-									<span className="text-[--text-secondary] mr-2">Bans:</span>
-									<div className="flex">
-										{bans.team1.map((ban, idx) => (
-											<div
-												key={idx}
-												className="w-6 h-6 mx-0.5 rounded-full overflow-hidden border border-[--card-border] opacity-70"
-											>
-												{ban.championId > 0 && (
-													<NextImage
-														src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${ban.championId}.png`}
-														alt="Champion Ban"
-														width={24}
-														height={24}
-														className="w-full h-full"
-													/>
-												)}
-											</div>
-										))}
-									</div>
-								</div>
-							)}
-						</div>
-					</div>
+			{/* Participant rows */}
+			{teamArr.map((pp, idx) => (
+				<StatsRow
+					key={pp.participantId}
+					p={pp}
+					maxDamage={maxDamage}
+					selected={pp.puuid === selectedSummonerPUUID}
+				/>
+			))}
+		</div>
+	);
 
-					<div className="divide-y divide-[--card-border]/30">
-						{t1.map((p, i) => (
-							<Participant
-								key={i}
-								p={p}
-								puuid={selectedSummonerPUUID}
-								r={region}
-								getA={getAugmentIcon}
-								getPerk={getPerkById}
-							/>
-						))}
+	const StatsRow = ({ p, maxDamage, selected }) => {
+		const kda =
+			p.deaths === 0
+				? (p.kills + p.assists).toFixed(1)
+				: ((p.kills + p.assists) / p.deaths).toFixed(2);
+		const cs = p.totalMinionsKilled + p.neutralMinionsKilled;
+		const csPer = p.csPerMin.toFixed(1);
+		const wardString = `${p.wardsPlaced ?? 0} / ${p.wardsKilled ?? 0}`;
+
+		const barPct = Math.round(
+			(p.totalDamageDealtToChampions / maxDamage) * 100
+		);
+
+		const scoreColor = p.win ? "bg-blue-600" : "bg-red-600";
+
+		return (
+			<div
+				className={`grid grid-cols-[160px_60px_70px_180px_60px_60px_auto] px-2 py-1 items-center border-x border-b border-[--card-border] ${
+					selected ? "bg-[--primary]/5" : ""
+				}`}
+			>
+				{/* Player column */}
+				<div className="flex items-center gap-2 overflow-hidden">
+					<NextImage
+						src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${p.championId}.png`}
+						alt="champ"
+						width={24}
+						height={24}
+						className="rounded-md"
+					/>
+					<Link
+						href={`/league/profile?gameName=${p.riotIdGameName}&tagLine=${p.riotIdTagline}&region=${region}`}
+						className="truncate text-xs hover:underline"
+					>
+						{p.riotIdGameName}
+						<span className="text-[--text-secondary]">#{p.riotIdTagline}</span>
+					</Link>
+				</div>
+
+				{/* AI Score */}
+				<div className="flex justify-center">
+					<div
+						className={`${scoreColor} text-white text-xs font-semibold px-1 rounded`}
+					>
+						{p.clutchScore}
 					</div>
 				</div>
 
-				{/* Team 2 (Red) */}
-				<div
-					className={`card ${
-						t2Winner
-							? "border-l-4 border-green-500"
-							: "border-l-4 border-red-500"
-					}`}
-				>
-					<div className="flex justify-between items-center p-4 border-b border-[--card-border]">
-						<div className="flex items-center">
-							<FaShieldAlt className="text-red-500 mr-2" />
-							<span className="text-base font-semibold text-red-500">
-								Red Team
-							</span>
-							<span className="ml-2 text-xs bg-[--card-bg] px-2 py-0.5 rounded text-[--text-secondary]">
-								{t2Winner ? "Victory" : "Defeat"}
-							</span>
-						</div>
-						<div className="flex items-center space-x-4">
-							<div className="text-sm">
-								<span className="text-[--text-secondary]">Team KDA:</span>{" "}
-								{t2Stats.kills}/{t2Stats.deaths}/{t2Stats.assists}
-							</div>
-							<div className="text-sm hidden md:block">
-								<span className="text-[--text-secondary]">Gold:</span>{" "}
-								{(t2Stats.gold / 1000).toFixed(1)}k
-							</div>
+				{/* KDA */}
+				<div className="text-center text-xs">
+					{p.kills}/{p.deaths}/{p.assists}
+					<span className="block text-[--text-secondary]">{kda}</span>
+				</div>
 
-							{/* Bans */}
-							{bans.team2.length > 0 && (
-								<div className="flex items-center text-sm">
-									<span className="text-[--text-secondary] mr-2">Bans:</span>
-									<div className="flex">
-										{bans.team2.map((ban, idx) => (
-											<div
-												key={idx}
-												className="w-6 h-6 mx-0.5 rounded-full overflow-hidden border border-[--card-border] opacity-70"
-											>
-												{ban.championId > 0 && (
-													<NextImage
-														src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${ban.championId}.png`}
-														alt="Champion Ban"
-														width={24}
-														height={24}
-														className="w-full h-full"
-													/>
-												)}
-											</div>
-										))}
-									</div>
-								</div>
-							)}
-						</div>
+				{/* Damage */}
+				<div className="flex items-center text-xs">
+					<span className="mr-0.5 w-12 text-right">
+						{p.totalDamageDealtToChampions.toLocaleString()}
+					</span>
+					<div className="relative w-20 h-2 bg-gray-700 rounded">
+						<div
+							className="absolute left-0 top-0 h-2 bg-pink-500 rounded"
+							style={{ width: `${barPct}%` }}
+						></div>
 					</div>
+				</div>
 
-					<div className="divide-y divide-[--card-border]/30">
-						{t2.map((p, i) => (
-							<Participant
-								key={i}
-								p={p}
-								puuid={selectedSummonerPUUID}
-								r={region}
-								getA={getAugmentIcon}
-								getPerk={getPerkById}
-							/>
-						))}
-					</div>
+				{/* CS */}
+				<div className="text-center text-xs">
+					{cs}
+					<span className="block text-[--text-secondary]">({csPer}/m)</span>
+				</div>
+
+				{/* Wards */}
+				<div className="text-center text-xs">{wardString}</div>
+
+				{/* Items */}
+				<div className="flex gap-0.5 justify-end flex-nowrap min-w-[160px]">
+					{[0, 1, 2, 3, 4, 5, 6].map((idx) => {
+						const itemId = p[`item${idx}`];
+						return (
+							<div
+								key={idx}
+								className="w-5 h-5 bg-[--card-bg] rounded overflow-hidden"
+							>
+								{itemId > 0 && (
+									<NextImage
+										src={`https://ddragon.leagueoflegends.com/cdn/15.8.1/img/item/${itemId}.png`}
+										alt="item"
+										width={20}
+										height={20}
+									/>
+								)}
+							</div>
+						);
+					})}
 				</div>
 			</div>
+		);
+	};
+
+	return (
+		<div>
+			<TeamBlock
+				teamArr={blue}
+				teamName={`${isWinner(100) ? "Win" : "Lose"} (Blue Team)`}
+				isWin={isWinner(100)}
+			/>
+			<TeamBlock
+				teamArr={red}
+				teamName={`${isWinner(200) ? "Win" : "Lose"} (Red Team)`}
+				isWin={isWinner(200)}
+			/>
 		</div>
 	);
 }
@@ -503,7 +521,8 @@ function Participant({ p, puuid, r, getA, getPerk, arena = false }) {
 							<span className="text-[--text-secondary] text-xs">
 								#{p.riotIdTagline}
 							</span>
-						</div>						<div className="text-xs text-[--text-secondary] flex items-center">
+						</div>{" "}
+						<div className="text-xs text-[--text-secondary] flex items-center">
 							{/* Position icon if available */}
 							{p.individualPosition &&
 								p.individualPosition !== "Invalid" &&
@@ -536,125 +555,6 @@ function Participant({ p, puuid, r, getA, getPerk, arena = false }) {
 								/>
 							</div>
 						))}
-					</div>
-
-					{/* Runes */}
-					<div className="flex space-x-1">
-						{/* Keystone */}
-						{keyPerk && keyPerk.iconPath && (
-							<div className="w-6 h-6 rounded-full overflow-hidden bg-[--card-bg]">
-								<NextImage
-									src={mapCDragonAssetPath(keyPerk.iconPath)}
-									alt={keyPerk.name}
-									width={24}
-									height={24}
-									className="w-full h-full"
-								/>
-							</div>
-						)}
-
-						{/* Secondary Tree */}
-						{subStyle && subStyle.iconPath && (
-							<div className="w-6 h-6 rounded-full overflow-hidden bg-[--card-bg]">
-								<NextImage
-									src={mapCDragonAssetPath(subStyle.iconPath)}
-									alt={subStyle.name}
-									width={24}
-									height={24}
-									className="w-full h-full opacity-80"
-								/>
-							</div>
-						)}
-					</div>
-				</div>
-
-				{/* Items */}
-				<div className="hidden md:flex md:w-1/4 justify-center">
-					<div className="grid grid-cols-4 gap-1">
-						{/* First row of items (0-3) */}
-						<div className="col-span-3 flex space-x-1">
-							{[0, 1, 2].map((idx) => {
-								const itemId = p[`item${idx}`];
-								return (
-									<div
-										key={idx}
-										className="w-6 h-6 bg-[--card-bg] rounded overflow-hidden"
-									>
-										{itemId > 0 ? (
-											<NextImage
-												src={`https://ddragon.leagueoflegends.com/cdn/15.8.1/img/item/${itemId}.png`}
-												alt={`Item ${itemId}`}
-												width={24}
-												height={24}
-												className="w-full h-full"
-											/>
-										) : null}
-									</div>
-								);
-							})}
-						</div>
-
-						{/* Trinket */}
-						<div className="col-span-1">
-							<div className="w-6 h-6 bg-[--card-bg] rounded overflow-hidden">
-								{p.item6 > 0 ? (
-									<NextImage
-										src={`https://ddragon.leagueoflegends.com/cdn/15.8.1/img/item/${p.item6}.png`}
-										alt={`Item ${p.item6}`}
-										width={24}
-										height={24}
-										className="w-full h-full"
-									/>
-								) : null}
-							</div>
-						</div>
-
-						{/* Second row of items (3-6) */}
-						<div className="col-span-3 flex space-x-1">
-							{[3, 4, 5].map((idx) => {
-								const itemId = p[`item${idx}`];
-								return (
-									<div
-										key={idx}
-										className="w-6 h-6 bg-[--card-bg] rounded overflow-hidden"
-									>
-										{itemId > 0 ? (
-											<NextImage
-												src={`https://ddragon.leagueoflegends.com/cdn/15.8.1/img/item/${itemId}.png`}
-												alt={`Item ${itemId}`}
-												width={24}
-												height={24}
-												className="w-full h-full"
-											/>
-										) : null}
-									</div>
-								);
-							})}
-						</div>
-
-						{/* Empty cell to balance the grid */}
-						<div className="col-span-1"></div>
-					</div>
-				</div>
-
-				{/* Stats (KDA, CS, etc) */}
-				<div className="ml-auto md:w-1/4 text-right">
-					<div className="text-sm flex flex-col items-end">
-						<div>
-							<span className={getKdaClass(kda)}>{kda} KDA</span>
-						</div>
-						<div className="text-xs text-[--text-secondary]">
-							{p.kills}/{p.deaths}/{p.assists}
-						</div>
-						<div className="flex items-center justify-end mt-1">
-							<span className="text-xs">
-								<span className="text-[--text-secondary] mr-1">CS:</span>
-								{p.totalMinionsKilled + p.neutralMinionsKilled}
-								<span className="text-[--text-secondary] ml-1">
-									({p.csPerMin.toFixed(1)}/min)
-								</span>
-							</span>
-						</div>
 					</div>
 				</div>
 			</div>

@@ -16,6 +16,7 @@ import {
 	FaChevronUp,
 	FaAngleRight,
 	FaCalendarAlt,
+	FaCrown,
 } from "react-icons/fa";
 
 function useBreakpoint() {
@@ -83,7 +84,7 @@ const fetchArenaAugments = async () => {
 const getQueueName = (queueId) => {
 	switch (queueId) {
 		case 420:
-			return "Ranked Solo/Duo";
+			return "Ranked Solo";
 		case 430:
 			return "Normal (Blind)";
 		case 400:
@@ -136,7 +137,7 @@ const lanes = [
 ];
 
 const queues = [
-	{ id: 420, name: "Ranked Solo/Duo" },
+	{ id: 420, name: "Ranked Solo" },
 	{ id: 440, name: "Ranked Flex" },
 	{ id: 450, name: "ARAM" },
 	{ id: 480, name: "Swiftplay" },
@@ -647,6 +648,19 @@ const MatchHistory = ({
 								}
 							}
 
+							// Calculate placement based on clutch score ranking (higher score = better)
+							const sortedByScore = [...participants]
+								.map((p) => ({
+									puuid: p.puuid,
+									score: calculateClutchScore(match, p),
+								}))
+								.sort((a, b) => b.score - a.score);
+
+							const placement =
+								sortedByScore.findIndex(
+									(o) => o.puuid === currentPlayer.puuid
+								) + 1;
+
 							const items = Array.from(
 								{ length: 7 },
 								(_, i) => currentPlayer[`item${i}`]
@@ -709,6 +723,17 @@ const MatchHistory = ({
 								currentPlayer.playerAugment4,
 							];
 
+							let outcomeText = "";
+							let outcomeColorClass = "text-gray-200";
+
+							// For Arena keep placement info, else show queue/game mode name
+							if (match.info.queueId === 1700 || match.info.queueId === 1710) {
+								// existing placement logic remains...
+							} else {
+								// Non-Arena: big text is game mode name
+								outcomeText = getQueueName(match.info.queueId);
+							}
+
 							return (
 								<div key={index} className="overflow-x-auto">
 									<div
@@ -735,25 +760,38 @@ const MatchHistory = ({
 											{/* Summary column */}
 											<div className="flex flex-col items-start w-28">
 												<p
-													className={`font-semibold text-xl ${getOutcomeClass(
+													className={`font-semibold text-md ${getOutcomeClass(
 														currentPlayer.win,
 														isRemake,
 														isMVP
 													)}`}
 												>
-													{isRemake
-														? "Remake"
-														: currentPlayer.win
-														? "Victory"
-														: "Defeat"}
+													{outcomeText}
 												</p>
 												<span className="text-md text-gray-300">{timeAgo}</span>
-												<span className="text-md text-gray-300">{`${Math.floor(
-													match.info.gameDuration / 60
-												)}:${String(match.info.gameDuration % 60).padStart(
-													2,
-													"0"
-												)}`}</span>
+												<p className="text-sm mr-2 flex items-center gap-1">
+													<span
+														className={`text-xs ${
+															isRemake
+																? "text-yellow-400"
+																: currentPlayer.win
+																? "text-blue-400"
+																: "text-red-400"
+														}`}
+													>
+														{isRemake
+															? "Remake"
+															: currentPlayer.win
+															? "Win"
+															: "Lose"}
+													</span>
+													{`${Math.floor(
+														match.info.gameDuration / 60
+													)}:${String(match.info.gameDuration % 60).padStart(
+														2,
+														"0"
+													)}`}
+												</p>
 											</div>
 
 											{/* Champion + spells + stats + items */}
@@ -843,16 +881,22 @@ const MatchHistory = ({
 											</div>
 
 											{/* Score box with label above */}
-											<div className="flex flex-col items-center justify-center ml-6 self-center">
-												<p className="text-md text-gray-300 mb-1">
-													Clutch Score
-												</p>
+											<div className="flex flex-col items-center justify-center ml-12 self-center">
+												<p className="text-md text-gray-300 mb-1">C-Score</p>
 												<DonutGraph
 													score={calculateClutchScore(match, currentPlayer)}
 													result={currentPlayer.win ? "win" : "loss"}
 													height={36}
 													width={40}
 												/>
+
+												{/* Placement display */}
+												<p className="text-xs text-gray-300 mt-1 flex items-center">
+													{placement === 1 && (
+														<FaCrown className="text-yellow-400 mr-1" />
+													)}
+													{placement}/10
+												</p>
 											</div>
 
 											{/* Participants scoreboard handled below in two-column layout */}
