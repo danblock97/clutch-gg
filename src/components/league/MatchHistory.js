@@ -44,32 +44,58 @@ function useBreakpoint() {
 }
 
 const calculateClutchScore = (match, currentPlayer) => {
+	// Core metrics
 	const kda =
 		(currentPlayer.kills + currentPlayer.assists) /
 		Math.max(1, currentPlayer.deaths);
-	const kdaScore = Math.min(20, (kda / 5) * 20);
+	const kdaScore = Math.min(25, (kda / 5) * 25);
 
 	const teamPlayers = match.info.participants.filter(
 		(p) => p.teamId === currentPlayer.teamId
 	);
 	const teamKills = teamPlayers.reduce((sum, p) => sum + p.kills, 0);
-	const killParticipation =
-		teamKills > 0
-			? (currentPlayer.kills + currentPlayer.assists) / teamKills
-			: 0;
+	const killParticipation = teamKills
+		? (currentPlayer.kills + currentPlayer.assists) / teamKills
+		: 0;
 	const kpScore = Math.min(20, killParticipation * 20);
 
-	const visionScore = currentPlayer.visionScore || 0;
-	const visionScoreNorm = Math.min(20, (visionScore / 40) * 20);
-
 	const damage = currentPlayer.totalDamageDealtToChampions || 0;
-	const damageScore = Math.min(20, (damage / 20000) * 20);
+	const damageScore = Math.min(25, (damage / 25000) * 25);
+
+	const visionScoreVal = currentPlayer.visionScore || 0;
+	const visionScore = Math.min(15, (visionScoreVal / 40) * 15);
 
 	const turretDamage = currentPlayer.damageDealtToTurrets || 0;
-	const turretScore = Math.min(20, (turretDamage / 3000) * 20);
+	const turretScore = Math.min(15, (turretDamage / 3000) * 15);
 
+	// Support-specific metrics (only counted if player identified as Support)
+	const isSupport =
+		["UTILITY", "SUPPORT"].includes(currentPlayer.teamPosition) ||
+		currentPlayer.role === "SUPPORT";
+	let supportBonus = 0;
+	if (isSupport) {
+		const healing =
+			(currentPlayer.totalHealsOnTeammates || 0) +
+			(currentPlayer.totalDamageShieldedOnTeammates || 0);
+		const healingScore = Math.min(15, (healing / 10000) * 15);
+
+		// Damage mitigated can be spread across a few fields – use the largest available.
+		const dmgMitigated =
+			currentPlayer.damageSelfMitigated || currentPlayer.totalDamageTaken || 0;
+		const mitigatedScore = Math.min(15, (dmgMitigated / 30000) * 15);
+
+		supportBonus = healingScore + mitigatedScore;
+	}
+
+	const winBonus = currentPlayer.win ? 10 : 0;
 	return Math.round(
-		kdaScore + kpScore + visionScoreNorm + damageScore + turretScore
+		kdaScore +
+			damageScore +
+			kpScore +
+			visionScore +
+			turretScore +
+			supportBonus +
+			winBonus
 	);
 };
 
@@ -362,6 +388,12 @@ const normaliseTeamPosition = (position) => {
 		default:
 			return position.toUpperCase();
 	}
+};
+
+const getOrdinal = (n) => {
+	const s = ["th", "st", "nd", "rd"],
+		v = n % 100;
+	return `${n}${s[(v - 20) % 10] || s[v] || s[0]}`;
 };
 
 const MatchHistory = ({
@@ -895,7 +927,7 @@ const MatchHistory = ({
 													{placement === 1 && (
 														<FaCrown className="text-yellow-400 mr-1" />
 													)}
-													{placement}/10
+													{getOrdinal(placement)}
 												</p>
 											</div>
 

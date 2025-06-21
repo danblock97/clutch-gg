@@ -265,9 +265,10 @@ export default function MatchStatsTab({
 
 	// Calculate clutch scores and find max damage for damage bar scaling
 	const calculateClutch = (m, currentP) => {
+		// Core metrics
 		const kda =
 			(currentP.kills + currentP.assists) / Math.max(1, currentP.deaths);
-		const kdaScore = Math.min(20, (kda / 5) * 20);
+		const kdaScore = Math.min(25, (kda / 5) * 25);
 
 		const teamPlayers = m.info.participants.filter(
 			(pp) => pp.teamId === currentP.teamId
@@ -276,17 +277,41 @@ export default function MatchStatsTab({
 		const kp = teamKills ? (currentP.kills + currentP.assists) / teamKills : 0;
 		const kpScore = Math.min(20, kp * 20);
 
-		const visionScore = currentP.visionScore || 0;
-		const visionScoreNorm = Math.min(20, (visionScore / 40) * 20);
-
 		const damage = currentP.totalDamageDealtToChampions || 0;
-		const damageScore = Math.min(20, (damage / 20000) * 20);
+		const damageScore = Math.min(25, (damage / 25000) * 25);
+
+		const visionVal = currentP.visionScore || 0;
+		const visionScore = Math.min(15, (visionVal / 40) * 15);
 
 		const turretDamage = currentP.damageDealtToTurrets || 0;
-		const turretScore = Math.min(20, (turretDamage / 3000) * 20);
+		const turretScore = Math.min(15, (turretDamage / 3000) * 15);
 
+		const isSupport =
+			["UTILITY", "SUPPORT"].includes(currentP.teamPosition) ||
+			currentP.role === "SUPPORT";
+		let supportBonus = 0;
+		if (isSupport) {
+			const healing =
+				(currentP.totalHealsOnTeammates || 0) +
+				(currentP.totalDamageShieldedOnTeammates || 0);
+			const healingScore = Math.min(15, (healing / 10000) * 15);
+
+			const dmgMitigated =
+				currentP.damageSelfMitigated || currentP.totalDamageTaken || 0;
+			const mitigatedScore = Math.min(15, (dmgMitigated / 30000) * 15);
+
+			supportBonus = healingScore + mitigatedScore;
+		}
+
+		const winBonus = currentP.win ? 10 : 0;
 		return Math.round(
-			kdaScore + kpScore + visionScoreNorm + damageScore + turretScore
+			kdaScore +
+				damageScore +
+				kpScore +
+				visionScore +
+				turretScore +
+				supportBonus +
+				winBonus
 		);
 	};
 
