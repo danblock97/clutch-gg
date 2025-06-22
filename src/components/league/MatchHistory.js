@@ -559,19 +559,21 @@ const MatchHistory = ({
 						<button
 							key={lane.id}
 							onClick={() => handleLaneSelect(lane.id)}
-							className={`p-2 rounded-lg ${
-								selectedLane === lane.id ? "bg-blue-500" : "bg-gray-800"
-							} hover:bg-blue-600 transition-colors duration-200`}
+							className={`p-1.5 rounded-md border transition-colors duration-150 ${
+								selectedLane === lane.id
+									? "bg-[#0b3a64] border-[#3a86ff]"
+									: "bg-[--card-bg] border-[--card-border] hover:border-[#3a86ff]"
+							}`}
 							title={lane.id}
 						>
-							<Image src={lane.icon} alt={lane.id} width={24} height={24} />
+							<Image src={lane.icon} alt={lane.id} width={22} height={22} />
 						</button>
 					))}
 				</div>
 				<div className="flex items-center space-x-2">
 					<select
 						id="queue-filter"
-						className="p-2 bg-gray-800 text-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-sans"
+						className="p-1.5 bg-[--card-bg] text-[--text-primary] border border-[--card-border] rounded-md focus:outline-none focus:ring-1 focus:ring-[#3a86ff] font-sans"
 						value={selectedQueue || ""}
 						onChange={handleQueueSelect}
 					>

@@ -151,14 +151,14 @@ const Profile = ({
 									className="w-full h-full object-cover"
 								/>
 							</div>
-							<div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-[--primary] to-[--secondary] text-white text-sm font-bold py-1 px-3 rounded-full shadow-lg">
+							<div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-[#0b3a64] text-white text-sm font-bold py-1 px-3 rounded-full border border-[#3a86ff] shadow-inner">
 								{profileData.summonerLevel}
 							</div>
 						</div>
 
 						{/* Middle: Name, Tag, Ranked Info */}
 						<div className="flex-grow flex flex-col">
-							<h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold mb-1 bg-clip-text text-transparent bg-gradient-to-r from-white via-blue-100 to-white">
+							<h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold mb-1 text-white">
 								{`${accountData.gameName}`}
 								<span className="text-[--text-secondary] text-base sm:text-lg md:text-xl font-medium">
 									#{accountData.tagLine}
@@ -175,7 +175,7 @@ const Profile = ({
 												alt={`${soloRankedData.tier} Emblem`}
 												width={40}
 												height={40}
-												className="drop-shadow-md"
+												className=""
 											/>
 											<div className="absolute -bottom-1 -right-1 bg-[--card-bg] text-xs px-1 rounded-md border border-[--card-border]">
 												{soloRankedData.rank}

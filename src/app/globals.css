@@ -231,6 +231,12 @@
 	.league-active {
 		@apply text-[--primary];
 	}
+
+	/* Season History specific card styling */
+	.season-history-card {
+		/* Dark subtle gradient with inner shadow for depth */
+		@apply bg-gradient-to-br from-[#131417] to-[--card-bg] border border-[--card-border] rounded-xl shadow-inner shadow-black/30;
+	}
 }
 
 @keyframes pulse {

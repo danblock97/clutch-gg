@@ -8,9 +8,9 @@ const ChampionMastery = ({ championMasteryData }) => {
 	// Format points with k/m suffix
 	const formatPoints = (points) => {
 		if (points >= 1000000) {
-			return (points / 1000000).toFixed(1) + 'M';
+			return (points / 1000000).toFixed(1) + "M";
 		} else if (points >= 1000) {
-			return (points / 1000).toFixed(1) + 'K';
+			return (points / 1000).toFixed(1) + "K";
 		}
 		return points;
 	};
@@ -18,28 +18,38 @@ const ChampionMastery = ({ championMasteryData }) => {
 	// Get mastery color class
 	const getMasteryColorClass = (level) => {
 		switch (level) {
-			case 7: return "text-purple-400 border-purple-400";
-			case 6: return "text-pink-400 border-pink-400";
-			case 5: return "text-red-400 border-red-400";
-			case 4: return "text-blue-400 border-blue-400";
-			default: return "text-gray-400 border-gray-400";
+			case 7:
+				return "text-purple-400 border-purple-400";
+			case 6:
+				return "text-pink-400 border-pink-400";
+			case 5:
+				return "text-red-400 border-red-400";
+			case 4:
+				return "text-blue-400 border-blue-400";
+			default:
+				return "text-gray-400 border-gray-400";
 		}
 	};
 
 	// Get mastery background class
 	const getMasteryBgClass = (level) => {
 		switch (level) {
-			case 7: return "bg-purple-900/20";
-			case 6: return "bg-pink-900/20";
-			case 5: return "bg-red-900/20";
-			case 4: return "bg-blue-900/20";
-			default: return "bg-gray-900/20";
+			case 7:
+				return "bg-purple-900/20";
+			case 6:
+				return "bg-pink-900/20";
+			case 5:
+				return "bg-red-900/20";
+			case 4:
+				return "bg-blue-900/20";
+			default:
+				return "bg-gray-900/20";
 		}
 	};
 
 	if (!championMasteryData || championMasteryData.length === 0) {
 		return (
-			<div className="card-highlight">
+			<div className="card season-history-card">
 				<div className="flex items-center p-4">
 					<div className="p-2 rounded-full bg-[--card-bg] mr-3 flex items-center justify-center">
 						<FaMedal className="text-[--secondary] text-lg" />
@@ -54,7 +64,7 @@ const ChampionMastery = ({ championMasteryData }) => {
 	}
 
 	return (
-		<div className="card-highlight">
+		<div className="card season-history-card">
 			<div
 				className="flex items-center justify-between p-4 cursor-pointer"
 				onClick={() => setIsExpanded(!isExpanded)}
@@ -82,7 +92,7 @@ const ChampionMastery = ({ championMasteryData }) => {
 							return (
 								<div
 									key={mastery.championId}
-									className={`flex flex-col items-center ${bgClass} rounded-lg p-3 transform transition-all duration-300 hover:-translate-y-1 hover:shadow-lg`}
+									className={`flex flex-col items-center ${bgClass} rounded-lg p-3`}
 									title={`Mastery Level: ${mastery.championLevel}`}
 								>
 									{/* Champion Icon with Mastery Badge */}
@@ -98,7 +108,9 @@ const ChampionMastery = ({ championMasteryData }) => {
 										</div>
 
 										{/* Mastery Level Badge */}
-										<div className={`absolute -bottom-2 -right-2 w-7 h-7 rounded-full ${colorClass} border-2 flex items-center justify-center bg-[--card-bg] text-xs font-bold`}>
+										<div
+											className={`absolute -bottom-2 -right-2 w-7 h-7 rounded-full ${colorClass} border-2 flex items-center justify-center bg-[--card-bg] text-xs font-bold`}
+										>
 											{masteryLevel}
 										</div>
 									</div>
@@ -117,8 +129,21 @@ const ChampionMastery = ({ championMasteryData }) => {
 									{masteryLevel < 7 && (
 										<div className="w-full h-1 bg-gray-700 rounded-full mt-2 overflow-hidden">
 											<div
-												className={`h-full ${masteryLevel === 6 ? 'bg-pink-500' : masteryLevel === 5 ? 'bg-red-500' : 'bg-blue-500'}`}
-												style={{ width: `${(mastery.championPointsSinceLastLevel / (mastery.championPointsUntilNextLevel + mastery.championPointsSinceLastLevel)) * 100}%` }}
+												className={`h-full ${
+													masteryLevel === 6
+														? "bg-pink-500"
+														: masteryLevel === 5
+														? "bg-red-500"
+														: "bg-blue-500"
+												}`}
+												style={{
+													width: `${
+														(mastery.championPointsSinceLastLevel /
+															(mastery.championPointsUntilNextLevel +
+																mastery.championPointsSinceLastLevel)) *
+														100
+													}%`,
+												}}
 											></div>
 										</div>
 									)}
