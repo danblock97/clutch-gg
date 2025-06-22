@@ -539,7 +539,7 @@ const MatchHistory = ({
 		if (isMVP) return "text-yellow-500 border-yellow-500";
 		if (isRemake) return "text-yellow-400 border-yellow-400";
 		return win
-			? "text-green-400 border-green-400"
+			? "text-blue-400 border-blue-400"
 			: "text-red-400 border-red-400";
 	};
 
@@ -587,7 +587,85 @@ const MatchHistory = ({
 			<div className="mt-2">
 				{Object.entries(paginatedGroupedMatches).map(([day, matches]) => (
 					<div key={day} className="mb-2">
-						<h2 className="text-xl font-semibold text-gray-200 my-4">{day}</h2>
+						{(() => {
+							// --- Build daily summary header -----------------
+							// 1. Time since last game on this day
+							const lastGameTs = matches.reduce((latest, m) => {
+								const ts = m.info.gameCreation ?? m.info.game_datetime ?? 0;
+								return ts > latest ? ts : latest;
+							}, 0);
+
+							const now = Date.now();
+							const diffMs = Math.max(0, now - lastGameTs);
+							const diffMins = Math.floor(diffMs / (1000 * 60));
+							const diffHours = Math.floor(diffMins / 60);
+							const diffDays = Math.floor(diffHours / 24);
+
+							const timeAgoHeader =
+								diffDays > 0
+									? `${diffDays}d ago`
+									: diffHours > 0
+									? `${diffHours}h ago`
+									: `${diffMins}m ago`;
+
+							// 2. Wins / Losses & clutch-score aggregation
+							let wins = 0;
+							let totalClutch = 0;
+							let totalDurationSeconds = 0;
+
+							matches.forEach((m) => {
+								const player = m.info.participants.find(
+									(p) => p.puuid === selectedSummonerPUUID
+								);
+								if (player) {
+									if (player.win) wins += 1;
+									totalClutch += calculateClutchScore(m, player);
+								}
+								totalDurationSeconds += m.info.gameDuration ?? 0;
+							});
+
+							const losses = matches.length - wins;
+							const winRate =
+								matches.length > 0
+									? Math.round((wins / matches.length) * 100)
+									: 0;
+							const avgClutch =
+								matches.length > 0
+									? Math.round(totalClutch / matches.length)
+									: 0;
+
+							// 3. Total play time string (e.g., 2h 42m)
+							const hours = Math.floor(totalDurationSeconds / 3600);
+							const minutes = Math.floor((totalDurationSeconds % 3600) / 60);
+							const totalDurationStr = `${
+								hours > 0 ? `${hours}h ` : ""
+							}${minutes}m`;
+
+							return (
+								<h2 className="text-xs font-semibold text-gray-200 my-4 flex items-center gap-1 flex-wrap">
+									<span>{timeAgoHeader}</span>
+									<span className="mx-1">/</span>
+									<span>
+										{matches.length} {matches.length === 1 ? "Game" : "Games"}
+									</span>
+									<span className="mx-1">/</span>
+									<span>
+										{wins}W {losses}L
+									</span>
+									<span className="mx-1">/</span>
+									<span>{winRate}%</span>
+									<span className="mx-1">/</span>
+									<DonutGraph
+										score={avgClutch}
+										result={wins >= losses ? "win" : "loss"}
+										height={18}
+										width={22}
+									/>
+									<span className="mx-1">/</span>
+									<span>{totalDurationStr}</span>
+								</h2>
+							);
+						})()}
 						{matches.map((match, index) => {
 							const participants = match.info.participants;
 							let maxCsPerMin = 0;
