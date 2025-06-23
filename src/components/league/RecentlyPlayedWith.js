@@ -73,7 +73,7 @@ const RecentlyPlayedWith = ({
 	};
 
 	return (
-		<div className="card-highlight border border-[--card-border] rounded-lg overflow-hidden">
+		<div className="card season-history-card overflow-hidden">
 			<div
 				className="flex items-center justify-between p-3 cursor-pointer"
 				onClick={toggleExpand}

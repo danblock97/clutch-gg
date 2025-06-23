@@ -30,108 +30,111 @@ const SeasonRanks = ({
 		return `text-[--${baseTier}]`;
 	};
 
-	const fetchRankHistory = useCallback(async (shouldRefresh = false) => {
-		if (!gameName || !tagLine || !region) {
-			setRankHistory([]);
-			setIsExpanded(false);
-			setIsLoading(false);
+	const fetchRankHistory = useCallback(
+		async (shouldRefresh = false) => {
+			if (!gameName || !tagLine || !region) {
+				setRankHistory([]);
+				setIsExpanded(false);
+				setIsLoading(false);
+				setError(null);
+				onLoadComplete && onLoadComplete(); // Call onLoadComplete if no fetch needed
+				return;
+			}
+
+			setIsLoading(true);
 			setError(null);
-			onLoadComplete && onLoadComplete(); // Call onLoadComplete if no fetch needed
-			return;
-		}
 
-		setIsLoading(true);
-		setError(null);
+			const storageKey = `rankHistory_${gameName}_${tagLine}_${region}`;
+			const now = Date.now();
+			let isCacheLoaded = false;
 
-		const storageKey = `rankHistory_${gameName}_${tagLine}_${region}`;
-		const now = Date.now();
-		let isCacheLoaded = false;
-
-		try {
-			if (!shouldRefresh) {
-				const cachedData = localStorage.getItem(storageKey);
-				if (cachedData) {
-					const parsedCache = JSON.parse(cachedData);
-					if (parsedCache.expiresAt && parsedCache.expiresAt > now) {
-						const historyData = parsedCache.data || [];
-						setRankHistory(historyData);
-						setIsExpanded(historyData.length > 0);
-						setIsLoading(false);
-						isCacheLoaded = true;
-						return;
-					} else {
-						localStorage.removeItem(storageKey);
-					}
-				}
-			}
-
-			const refreshParam = shouldRefresh ? "&refresh=true" : "";
-			const apiUrl = `/api/league/rankHistory?gameName=${encodeURIComponent(
-				gameName
-			)}&tagLine=${encodeURIComponent(tagLine)}&region=${encodeURIComponent(
-				region
-			)}${refreshParam}`;
-			const response = await fetch(apiUrl);
-
-			if (!response.ok) {
-				let errorMsg = `Failed to fetch rank history (${response.status})`;
-				try {
-					const errorData = await response.json();
-					errorMsg = errorData.message || errorMsg;
-				} catch (e) {}
-				throw new Error(errorMsg);
-			}
-
-			const data = await response.json();
-			const historyData = data && Array.isArray(data) ? data : [];
-
-			setRankHistory(historyData);
-			setIsExpanded(historyData.length > 0);
-
-			if (historyData.length > 0) {
-				const expiresHeader = response.headers.get("X-Cache-Expires");
-				const expiresAt = expiresHeader
-					? new Date(expiresHeader).getTime()
-					: now + 24 * 60 * 60 * 1000;
-
-				localStorage.setItem(
-					storageKey,
-					JSON.stringify({
-						data: historyData,
-						timestamp: now,
-						expiresAt: expiresAt,
-					})
-				);
-			} else {
-				localStorage.removeItem(storageKey);
-			}
-		} catch (err) {
-			console.error("Error fetching rank history:", err);
-			setError(err.message);
-
-			if (!isCacheLoaded) {
-				try {
+			try {
+				if (!shouldRefresh) {
 					const cachedData = localStorage.getItem(storageKey);
 					if (cachedData) {
 						const parsedCache = JSON.parse(cachedData);
-						const cacheContent = parsedCache.data || [];
-						setRankHistory(cacheContent);
-						setIsExpanded(cacheContent.length > 0);
-					} else {
+						if (parsedCache.expiresAt && parsedCache.expiresAt > now) {
+							const historyData = parsedCache.data || [];
+							setRankHistory(historyData);
+							setIsExpanded(historyData.length > 0);
+							setIsLoading(false);
+							isCacheLoaded = true;
+							return;
+						} else {
+							localStorage.removeItem(storageKey);
+						}
+					}
+				}
+
+				const refreshParam = shouldRefresh ? "&refresh=true" : "";
+				const apiUrl = `/api/league/rankHistory?gameName=${encodeURIComponent(
+					gameName
+				)}&tagLine=${encodeURIComponent(tagLine)}&region=${encodeURIComponent(
+					region
+				)}${refreshParam}`;
+				const response = await fetch(apiUrl);
+
+				if (!response.ok) {
+					let errorMsg = `Failed to fetch rank history (${response.status})`;
+					try {
+						const errorData = await response.json();
+						errorMsg = errorData.message || errorMsg;
+					} catch (e) {}
+					throw new Error(errorMsg);
+				}
+
+				const data = await response.json();
+				const historyData = data && Array.isArray(data) ? data : [];
+
+				setRankHistory(historyData);
+				setIsExpanded(historyData.length > 0);
+
+				if (historyData.length > 0) {
+					const expiresHeader = response.headers.get("X-Cache-Expires");
+					const expiresAt = expiresHeader
+						? new Date(expiresHeader).getTime()
+						: now + 24 * 60 * 60 * 1000;
+
+					localStorage.setItem(
+						storageKey,
+						JSON.stringify({
+							data: historyData,
+							timestamp: now,
+							expiresAt: expiresAt,
+						})
+					);
+				} else {
+					localStorage.removeItem(storageKey);
+				}
+			} catch (err) {
+				console.error("Error fetching rank history:", err);
+				setError(err.message);
+
+				if (!isCacheLoaded) {
+					try {
+						const cachedData = localStorage.getItem(storageKey);
+						if (cachedData) {
+							const parsedCache = JSON.parse(cachedData);
+							const cacheContent = parsedCache.data || [];
+							setRankHistory(cacheContent);
+							setIsExpanded(cacheContent.length > 0);
+						} else {
+							setRankHistory([]);
+							setIsExpanded(false);
+						}
+					} catch (cacheError) {
+						console.error("Error reading cache during fallback:", cacheError);
 						setRankHistory([]);
 						setIsExpanded(false);
 					}
-				} catch (cacheError) {
-					console.error("Error reading cache during fallback:", cacheError);
-					setRankHistory([]);
-					setIsExpanded(false);
 				}
+			} finally {
+				setIsLoading(false);
+				onLoadComplete && onLoadComplete(); // Call onLoadComplete in finally block
 			}
-		} finally {
-			setIsLoading(false);
-			onLoadComplete && onLoadComplete(); // Call onLoadComplete in finally block
-		}
-	}, [gameName, tagLine, region, onLoadComplete]);
+		},
+		[gameName, tagLine, region, onLoadComplete]
+	);
 
 	useEffect(() => {
 		setRankHistory([]);
@@ -187,7 +190,7 @@ const SeasonRanks = ({
 		);
 	}
 	return (
-		<div className="card-highlight">
+		<div className="card season-history-card">
 			<div
 				className="flex items-center justify-between p-4 cursor-pointer"
 				onClick={() => setIsExpanded(!isExpanded)}
@@ -246,7 +249,7 @@ const SeasonRanks = ({
 													alt={`${rank.tier} emblem`}
 													width={24}
 													height={24}
-													className="drop-shadow-lg"
+													className=""
 												/>
 											</div>
 										) : (

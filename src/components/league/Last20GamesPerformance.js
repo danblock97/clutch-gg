@@ -192,12 +192,8 @@ const Last20GamesPerformance = ({
 	const csStatus = getStatusIndicator(performanceStats.comparisons.csPerMin);
 
 	return (
-		<div className="card-highlight rounded-xl p-4">
-			{" "}
-			{/* Reduced padding */}
+		<div className="card season-history-card p-4">
 			<h2 className="text-lg font-bold mb-3 flex items-center">
-				{" "}
-				{/* Reduced margin */}
 				<FaChartLine className="text-[--primary] mr-2" />
 				Recent Performance
 				<span className="text-[--text-secondary] text-sm font-normal ml-2">
@@ -205,13 +201,7 @@ const Last20GamesPerformance = ({
 				</span>
 			</h2>
 			<div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-				{" "}
-				{/* Reduced gap */}
-				{/* Left side: Performance Stats */}
 				<div className="lg:col-span-4 space-y-3">
-					{" "}
-					{/* Reduced vertical space */}
-					{/* Win Rate Circle - Fixed for mobile display */}
 					<div className="flex items-center justify-between">
 						<div className="flex items-center space-x-4">
 							<div className="relative w-16 h-16 flex-shrink-0">
@@ -271,7 +261,6 @@ const Last20GamesPerformance = ({
 							</div>
 						</div>
 
-						{/* KDA Display */}
 						<div className="text-center">
 							<p className="text-base font-semibold flex items-center justify-end">
 								KDA
@@ -288,10 +277,7 @@ const Last20GamesPerformance = ({
 							</p>
 						</div>
 					</div>
-					{/* Additional Stats */}
 					<div className="grid grid-cols-2 gap-2 mt-3">
-						{" "}
-						{/* Reduced gap and margin */}
 						<div className="bg-[--card-bg] rounded-lg p-2 text-center">
 							<p className="text-[--text-secondary] text-xs uppercase">
 								CS per Min
@@ -313,13 +299,9 @@ const Last20GamesPerformance = ({
 						</div>
 					</div>
 				</div>
-				{/* Right side: Top Champions */}
 				<div className="lg:col-span-8">
-					<p className="text-base font-semibold mb-2">Top Champions</p>{" "}
-					{/* Reduced margin */}
+					<p className="text-base font-semibold mb-2">Top Champions</p>
 					<div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-						{" "}
-						{/* Reduced gap */}
 						{topChampions.map((champion) => {
 							const winRateValue = parseFloat(champion.winRate);
 							let winRateColorClass = "text-red-500";
@@ -333,7 +315,6 @@ const Last20GamesPerformance = ({
 								<div
 									key={champion.championId}
 									className={`bg-[--card-bg] rounded-lg p-2 cursor-pointer transition-all duration-200 hover:shadow-lg ${
-										// Reduced padding
 										selectedChampionId === champion.championId
 											? "ring-2 ring-[--primary]"
 											: "hover:bg-[--card-bg-secondary]"
@@ -342,8 +323,6 @@ const Last20GamesPerformance = ({
 								>
 									<div className="flex flex-col items-center">
 										<div className="relative w-12 h-12 mb-1">
-											{" "}
-											{/* Reduced margin */}
 											<Image
 												src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${champion.championId}.png`}
 												alt="Champion Icon"

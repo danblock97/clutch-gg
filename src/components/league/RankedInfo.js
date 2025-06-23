@@ -37,7 +37,7 @@ const RankedInfo = ({ rankedData }) => {
 
 		return (
 			<div
-				className="card-highlight group cursor-pointer transition-all duration-300 hover:shadow-xl"
+				className="card season-history-card group cursor-pointer transition-all duration-300 hover:shadow-xl"
 				onClick={handleToggleExpand}
 			>
 				<div className="flex justify-between items-center">
@@ -56,7 +56,7 @@ const RankedInfo = ({ rankedData }) => {
 									alt={`${tier} Emblem`}
 									width={28}
 									height={28}
-									className="drop-shadow-lg"
+									className=""
 								/>
 								<p className={`ml-2 font-semibold ${tierColorClass}`}>
 									{data ? `${tier} ${rank}` : "Unranked"}

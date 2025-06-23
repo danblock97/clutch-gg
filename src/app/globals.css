@@ -100,7 +100,7 @@
 
 	/* Solid row backgrounds */
 	.match-win {
-		@apply bg-[#082840] border-l-4 border-[--success]; /* darker navy */
+		@apply bg-[#0b3a64] border-l-4 border-[#3a86ff];
 	}
 
 	.match-loss {
@@ -230,6 +230,12 @@
 
 	.league-active {
 		@apply text-[--primary];
+	}
+
+	/* Season History specific card styling */
+	.season-history-card {
+		/* Dark subtle gradient with inner shadow for depth */
+		@apply bg-gradient-to-br from-[#131417] to-[--card-bg] border border-[--card-border] rounded-xl shadow-inner shadow-black/30;
 	}
 }
 
