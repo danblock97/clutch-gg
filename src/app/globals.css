@@ -237,6 +237,63 @@
 		/* Dark subtle gradient with inner shadow for depth */
 		@apply bg-gradient-to-br from-[#131417] to-[--card-bg] border border-[--card-border] rounded-xl shadow-inner shadow-black/30;
 	}
+
+	/* CSS Tree for Item Builds */
+	.tree {
+		@apply w-full overflow-x-auto py-4 flex justify-center;
+	}
+
+	.tree ul {
+		@apply pt-5 relative whitespace-nowrap inline-flex;
+		transition: all 0.5s;
+	}
+
+	.tree li {
+		@apply float-left text-center list-none relative px-2 pt-5;
+		transition: all 0.5s;
+	}
+
+	/* Connectors */
+	.tree li::before,
+	.tree li::after {
+		content: "";
+		@apply absolute top-0 right-1/2 border-t border-gray-600 w-1/2 h-5;
+	}
+
+	.tree li::after {
+		@apply right-auto left-1/2 border-l border-gray-600;
+	}
+
+	/* Remove connectors for single children */
+	.tree li:only-child::after,
+	.tree li:only-child::before {
+		@apply hidden;
+	}
+
+	.tree li:only-child {
+		@apply pt-0;
+	}
+
+	/* Remove side connectors for first/last children */
+	.tree li:first-child::before,
+	.tree li:last-child::after {
+		@apply border-0;
+	}
+
+	/* Add back vertical connector for last child */
+	.tree li:last-child::before {
+		@apply border-r border-gray-600 rounded-tr-lg;
+	}
+
+	.tree li:first-child::after {
+		@apply rounded-tl-lg;
+	}
+
+	/* Downward connectors from parent */
+	.tree ul ul::before {
+		content: "";
+		@apply absolute top-0 left-1/2 border-l border-gray-600 w-0 h-5;
+	}
 }
 
 @keyframes pulse {
@@ -351,4 +408,22 @@
 	html {
 		font-size: 16px;
 	}
+}
+
+/* Tooltip Styles */
+.tooltip-wrapper {
+	@apply relative inline-block align-middle;
+}
+
+.tooltip-icon {
+	@apply inline-flex items-center justify-center w-4 h-4 bg-yellow-500 text-black text-xs font-bold rounded-full cursor-help;
+}
+
+.tooltip-content {
+	@apply invisible absolute w-48 bg-gray-900 text-white text-center text-sm rounded-lg py-2 px-4 z-10 bottom-full left-1/2 -ml-24;
+	@apply opacity-0 transition-opacity pointer-events-none;
+}
+
+.tooltip-wrapper:hover .tooltip-content {
+	@apply visible opacity-100;
 }

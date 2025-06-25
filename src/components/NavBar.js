@@ -23,6 +23,7 @@ import {
 	FaChessKnight,
 	FaUser,
 	FaSignOutAlt,
+	FaDatabase,
 } from "react-icons/fa";
 import PropTypes from "prop-types";
 
@@ -273,6 +274,17 @@ const NavBar = ({ bannersVisible = 0 }) => {
 									<FaGamepad className="text-sm" />
 									<span>Featured Games</span>
 								</Link>
+								<Link
+									href="/league/datastudio"
+									className={`nav-link flex items-center space-x-1 ${
+										pathname.startsWith("/league/datastudio")
+											? getActiveColorClass()
+											: ""
+									}`}
+								>
+									<FaDatabase className="text-sm" />
+									<span>Data Studio</span>
+								</Link>
 							</div>
 						</div>
 
@@ -438,6 +450,17 @@ const NavBar = ({ bannersVisible = 0 }) => {
 						>
 							<FaGamepad className="mr-3" />
 							Live Games
+						</Link>
+
+						<Link
+							href="/league/datastudio"
+							onClick={handleLinkClick}
+							className="nav-link block px-3 py-2 rounded-md hover:bg-[--card-bg-secondary]"
+						>
+							<div className="flex items-center space-x-3">
+								<FaDatabase />
+								<span>Data Studio</span>
+							</div>
 						</Link>
 
 						{/* Mobile Search Option (only on profile/match pages) */}
