@@ -229,6 +229,28 @@ export const fetchLiveGameData = async (puuid, region, platform) => {
 };
 
 /**
+ * Fetch featured games data.
+ */
+export const getFeaturedGames = async (region) => {
+	const platformId = region.toLowerCase();
+	const response = await fetch(
+		`https://${platformId}.api.riotgames.com/lol/spectator/v5/featured-games`,
+		{
+			headers: {
+				"X-Riot-Token": RIOT_API_KEY,
+			},
+		}
+	);
+
+	if (!response.ok) {
+		console.error(`Failed to fetch featured games: ${response.statusText}`);
+		throw new Error("Failed to fetch featured games");
+	}
+
+	return response.json();
+};
+
+/**
  * Fetch additional data for live game enrichment.
  */
 export const fetchAdditionalData = async (puuid, region) => {
@@ -335,13 +357,14 @@ export const fetchPUUIDFromSummonerId = async (summonerId, region) => {
 /**
  * Fetch account data using a player's PUUID.
  */
-export const fetchAccountDataByPUUID = async (puuid) => {
+export const fetchAccountDataByPUUID = async (puuid, platform) => {
 	const response = await fetch(
-		`https://europe.api.riotgames.com/riot/account/v1/accounts/by-puuid/${puuid}`,
+		`https://${platform}.api.riotgames.com/riot/account/v1/accounts/by-puuid/${puuid}`,
 		{ headers: { "X-Riot-Token": RIOT_API_KEY } }
 	);
 	if (!response.ok) {
-		throw new Error(`Failed to fetch account data for puuid: ${puuid}`);
+		// Return null instead of throwing, so one failure doesn't stop all
+		return null;
 	}
 	return response.json();
 };
