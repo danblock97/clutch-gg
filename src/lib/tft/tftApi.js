@@ -24,12 +24,23 @@ export const fetchTFTSummonerData = async (encryptedPUUID, region) => {
 export const fetchTFTRankedData = async (puuid, region) => {
 	// First get the summoner data to get the summoner ID
 	const summonerData = await fetchTFTSummonerData(puuid, region);
+	if (!summonerData?.id) {
+		// If summonerData or its ID is not available, return empty array.
+		return [];
+	}
 
 	const rankedResponse = await fetch(
 		`https://${region}.api.riotgames.com/tft/league/v1/entries/by-summoner/${summonerData.id}`,
 		{ headers: { "X-Riot-Token": TFT_API_KEY } }
 	);
 	if (!rankedResponse.ok) {
+		if (rankedResponse.status === 404) {
+			return []; // Player is unranked or has no ranked data.
+		}
+		const errorBody = await rankedResponse.text();
+		console.error(
+			`Failed to fetch TFT ranked data for summonerId ${summonerData.id} in region ${region}. Status: ${rankedResponse.status}, Body: ${errorBody}`
+		);
 		throw new Error("Failed to fetch TFT ranked data");
 	}
 	return rankedResponse.json();

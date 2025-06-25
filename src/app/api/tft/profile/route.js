@@ -7,6 +7,7 @@ import {
 	fetchTFTMatchDetail,
 	upsertTFTMatchDetail,
 	fetchTFTLiveGameData,
+	fetchTFTAdditionalData,
 } from "@/lib/tft/tftApi";
 
 // TFT uses the same region to platform mapping as League
@@ -116,62 +117,28 @@ export async function GET(req) {
 			throw new Error("Riot account record is missing the puuid.");
 		}
 
-		// Check if we should return cached data first
-		if (!forceUpdate) {
-			let { data: storedTftData, error: tftDataError } = await supabase
-				.from("tft_data")
-				.select("*")
-				.eq("riot_account_id", riotAccount.id)
-				.maybeSingle();
-			if (tftDataError) throw tftDataError;
-			if (storedTftData) {
-				// Fetch stored match history from database (all matches for this user)
-				let { data: userMatchObjects, error: matchDataError } = await supabase // ensure variable name matches original if used later
-					.from("tft_matches")
-					.select("matchid, match_data, game_datetime, created_at")
-					.filter(
-						"match_data->metadata->participants",
-						"cs",
-						`"${riotAccount.puuid}"`
-					)
-					.order("game_datetime", { ascending: false });
-				if (matchDataError) throw matchDataError;
-				const userMatchDetails = (userMatchObjects || []).map(
-					(match) => match.match_data
-				);
-
-				// Format the response to maintain frontend compatibility using JSONB structure
-				const responseData = {
-					profiledata: storedTftData.profiledata,
-					accountdata: storedTftData.accountdata || {
-						gameName: riotAccount.gamename,
-						tagLine: riotAccount.tagline,
-					},
-					rankeddata: storedTftData.rankeddata,
-					livegamedata: storedTftData.livegamedata,
-					updated_at: storedTftData.updated_at,
-					game_type: "tft",
-					matchdetails: userMatchDetails,
-				};
-
-				return new Response(JSON.stringify(responseData), {
-					status: 200,
-					headers: { "Content-Type": "application/json" },
-				});
-			}
-		}
-
 		const puuid = riotAccount.puuid;
 
-		// Fetch summoner data once and use it for ranked data.
+		// Fetch summoner data to get the summonerId, which is needed for additional data fetching.
 		const summonerData = await fetchTFTSummonerData(puuid, region);
-		const [rankedData, matchIds, liveGameData] = await Promise.all([
-			fetchTFTRankedData(puuid, region),
+		if (!summonerData?.id) {
+			throw new Error("Could not retrieve summoner data.");
+		}
+
+		// Fetch additional data, which includes ranked info, using the summonerId.
+		const additionalData = await fetchTFTAdditionalData(
+			summonerData.id,
+			puuid,
+			region
+		);
+
+		const [matchIds, liveGameData] = await Promise.all([
 			fetchTFTMatchIds(puuid, platform),
 			fetchTFTLiveGameData(puuid, region, platform),
-		]); // Fetch match details concurrently and upsert them
+		]);
+
 		const matchDetails = await Promise.all(
-			matchIds.map(async (matchId) => {
+			(matchIds || []).map(async (matchId) => {
 				const matchDetail = await fetchTFTMatchDetail(matchId, platform);
 				if (matchDetail) {
 					try {
@@ -191,9 +158,6 @@ export async function GET(req) {
 				return matchDetail;
 			})
 		);
-		if (!matchDetails || matchDetails.length === 0) {
-			console.warn("[TFT] No match details found for user", riotAccount.id);
-		}
 
 		// Store data using JSONB structure
 		const tftDataObj = {
@@ -203,12 +167,11 @@ export async function GET(req) {
 				gameName: riotAccount.gamename,
 				tagLine: riotAccount.tagline,
 			},
-			rankeddata: rankedData,
+			rankeddata: [additionalData], // Wrap in array to match expected structure.
 			livegamedata: liveGameData,
 			updated_at: new Date(),
 		};
 
-		// Use supabaseAdmin for write operations
 		// Use supabaseAdmin for write operations
 		let { data: tftRecord, error: tftError } = await supabaseAdmin
 			.from("tft_data")
