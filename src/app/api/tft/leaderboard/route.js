@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { fetchTFTPUUIDFromSummonerId } from "@/lib/tft/tftApi";
 import { fetchAccountDataByPUUID } from "@/lib/league/leagueApi";
+import { fetchTFTSummonerData } from "@/lib/tft/tftApi";
 
 const TFT_API_KEY = process.env.TFT_API_KEY;
 
@@ -84,33 +84,28 @@ export async function GET(req) {
 
 		leaderboardData.sort((a, b) => b.leaguePoints - a.leaguePoints);
 
-		leaderboardData = leaderboardData.slice(0, 100);
+		leaderboardData = leaderboardData.slice(0, 200);
 		const detailedResults = await Promise.allSettled(
 			leaderboardData
-				.filter((entry) => entry && entry.summonerId) // Filter out null/undefined entries
+				.filter((entry) => entry && entry.puuid)
 				.map(async (entry) => {
 					try {
-						const { puuid, profileIconId } = await fetchWithRetry(
-							fetchTFTPUUIDFromSummonerId,
-							[entry.summonerId, region]
-						);
-
-						// Fetch account data using PUUID (Game Agnostic)
-						const accountData = await fetchWithRetry(fetchAccountDataByPUUID, [
-							puuid,
+						const [accountData, summonerData] = await Promise.all([
+							fetchWithRetry(fetchAccountDataByPUUID, [entry.puuid]),
+							fetchWithRetry(fetchTFTSummonerData, [entry.puuid, region]),
 						]);
 
 						return {
 							...entry,
 							profileData: {
-								gameName: accountData.gameName,
-								tagLine: accountData.tagLine,
-								profileIconId: profileIconId,
+								gameName: accountData?.gameName || entry.summonerName || "Unknown",
+								tagLine: accountData?.tagLine || "Unknown",
+								profileIconId: summonerData?.profileIconId || null,
 							},
 						};
 					} catch (error) {
 						console.error(
-							`Error enriching data for summonerId ${entry.summonerId}:`,
+							`Error enriching data for puuid ${entry.puuid}:`,
 							error.message
 						);
 						return {
@@ -126,9 +121,7 @@ export async function GET(req) {
 		);
 		// Filter out rejected promises and extract values
 		const enrichedData = detailedResults
-			.filter(
-				(result) => result && result.status === "fulfilled" && result.value
-			)
+			.filter((result) => result.status === "fulfilled")
 			.map((result) => result.value);
 
 		return NextResponse.json(enrichedData);

@@ -218,23 +218,7 @@ export const fetchTFTSummonerPUUID = async (encryptedPUUID, region) => {
 	return { puuid: data.puuid, profileIconId: data.profileIconId };
 };
 
-/**
- * Convert TFT summoner ID to PUUID and profile icon using the non-deprecated endpoint.
- * This is needed for TFT leaderboard APIs that still return summoner IDs.
- */
-export const fetchTFTPUUIDFromSummonerId = async (summonerId, region) => {
-	const response = await fetch(
-		`https://${region}.api.riotgames.com/tft/summoner/v1/summoners/${summonerId}`,
-		{ headers: { "X-Riot-Token": TFT_API_KEY } }
-	);
-	if (!response.ok) {
-		throw new Error(
-			`Failed to fetch TFT summoner data for summoner ID: ${summonerId}`
-		);
-	}
-	const data = await response.json();
-	return { puuid: data.puuid, profileIconId: data.profileIconId };
-};
+
 
 /**
  * Fetch TFT live game data.

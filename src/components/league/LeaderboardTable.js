@@ -59,7 +59,7 @@ const LeaderboardTable = ({ leaderboardData, region, tier }) => {
 
 					return (
 						<div
-							key={entry.summonerId}
+							key={entry.puuid}
 							className={`grid grid-cols-12 py-3 px-4 items-center border-b border-[--card-border] hover:bg-[--primary]/5 transition-colors duration-150 ${getRowHighlightClass(index)}`}
 						>
 							{/* Rank Column */}
@@ -100,7 +100,7 @@ const LeaderboardTable = ({ leaderboardData, region, tier }) => {
 											{entry.profileData?.gameName || "Unknown"}
 										</div>
 										<div className="text-xs text-[--text-secondary]">
-											#{entry.profileData?.tagLine || "Unknown"}
+											#{entry.profileData?.tagLine}
 										</div>
 									</div>
 								</Link>

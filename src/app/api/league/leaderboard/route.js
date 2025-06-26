@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import {
-	fetchPUUIDFromSummonerId,
+	fetchSummonerData,
 	fetchAccountDataByPUUID,
 } from "@/lib/league/leagueApi";
 
@@ -24,7 +24,7 @@ export async function GET(req) {
 	const tier = searchParams.get("tier") || "CHALLENGER";
 	const division = searchParams.get("division") || "I";
 	const region = searchParams.get("region") || "euw1";
-	const apiUrl = `https://${region}.api.riotgames.com/lol/league-exp/v4/entries/${queue}/${tier}/${division}?page=1`;
+	const apiUrl = `https://${region}.api.riotgames.com/lol/league-exp/v4/entries/${queue}/${tier}/${division}?page=1&limit=200`;
 
 	try {
 		const response = await fetch(apiUrl, {
@@ -32,10 +32,14 @@ export async function GET(req) {
 		});
 
 		if (!response.ok) {
+			const errorBody = await response.text();
 			console.error(
-				`Riot API returned non-OK status: ${response.status} ${response.statusText}`
+				`Riot API returned non-OK status: ${response.status} - ${errorBody}`
 			);
-			return NextResponse.json([], { status: 200 });
+			return NextResponse.json(
+				{ error: `Riot API Error: ${errorBody}` },
+				{ status: response.status }
+			);
 		}
 
 		let leaderboardData = [];
@@ -47,28 +51,23 @@ export async function GET(req) {
 		}
 
 		if (!Array.isArray(leaderboardData) || leaderboardData.length === 0) {
-			return NextResponse.json([]);
+			return NextResponse.json([], { status: 200 });
 		}
 
 		const detailedResults = await Promise.allSettled(
 			leaderboardData.map(async (entry) => {
 				try {
-					const { puuid, profileIconId } = await fetchWithRetry(
-						fetchPUUIDFromSummonerId,
-						[entry.summonerId, region],
-						1
-					);
-					const accountData = await fetchWithRetry(
-						fetchAccountDataByPUUID,
-						[puuid],
-						1
-					);
+					const [accountData, summonerData] = await Promise.all([
+						fetchWithRetry(fetchAccountDataByPUUID, [entry.puuid]),
+						fetchWithRetry(fetchSummonerData, [entry.puuid, region]),
+					]);
+
 					return {
 						...entry,
 						profileData: {
 							gameName: accountData.gameName,
 							tagLine: accountData.tagLine,
-							profileIconId,
+							profileIconId: summonerData.profileIconId,
 						},
 					};
 				} catch (error) {
@@ -85,15 +84,18 @@ export async function GET(req) {
 			})
 		);
 
-		const detailedData = detailedResults.map((result) =>
-			result.status === "fulfilled" ? result.value : {}
-		);
+		const detailedData = detailedResults
+			.filter((result) => result.status === "fulfilled" && result.value)
+			.map((result) => result.value);
 
 		return NextResponse.json(detailedData, {
-			headers: { "Cache-Control": "s-maxage=60, stale-while-revalidate" },
+			headers: { "Cache-Control": "s-maxage=300, stale-while-revalidate" },
 		});
 	} catch (error) {
 		console.error("Error in leaderboard API route:", error);
-		return NextResponse.json([], { status: 200 });
+		return NextResponse.json(
+			{ error: "Internal Server Error" },
+			{ status: 500 }
+		);
 	}
 }

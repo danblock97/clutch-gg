@@ -13,7 +13,7 @@ import { fetchWithErrorHandling, extractErrorMessage } from "@/lib/errorUtils";
 const LeaderboardPage = () => {
 	const [leaderboardData, setLeaderboardData] = useState([]);
 	const [loading, setLoading] = useState(true);
-	const [region, setRegion] = useState("EUW1"); // Default region
+	const [region, setRegion] = useState("NA1"); // Default region
 	const [tier, setTier] = useState("CHALLENGER"); // Default tier
 	const [division, setDivision] = useState("I"); // Default division
 	const [error, setError] = useState(null);

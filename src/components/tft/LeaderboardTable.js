@@ -87,7 +87,7 @@ const TFTLeaderboardTable = ({ leaderboardData, region, tier }) => {
 
 					return (
 						<div
-							key={entry.summonerId} // Use summonerId as key
+							key={entry.puuid} // Use summonerId as key
 							className={`grid grid-cols-12 py-3 px-4 items-center border-b border-[--card-border] hover:bg-[--primary]/5 transition-colors duration-150 ${getRowHighlightClass(
 								index
 							)}`}
@@ -128,12 +128,10 @@ const TFTLeaderboardTable = ({ leaderboardData, region, tier }) => {
 									{/* Summoner Name (using gameName and tagLine) */}
 									<div className="overflow-hidden">
 										<div className="font-medium text-[--text-primary] truncate group-hover:text-[--primary] transition-colors">
-											{entry.profileData?.gameName ||
-												entry.summonerName ||
-												"Unknown"}
+											{entry.profileData?.gameName || "Unknown"}
 										</div>
 										<div className="text-xs text-[--text-secondary]">
-											#{entry.profileData?.tagLine || "Unknown"}
+											#{entry.profileData?.tagLine}
 										</div>
 									</div>
 								</Link>

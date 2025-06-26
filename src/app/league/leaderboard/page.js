@@ -11,7 +11,7 @@ import { fetchWithErrorHandling } from "@/lib/errorUtils";
 const Leaderboard = () => {
 	const [leaderboardData, setLeaderboardData] = useState([]);
 	const [loading, setLoading] = useState(true);
-	const [region, setRegion] = useState("EUW1");
+	const [region, setRegion] = useState("NA1");
 	const [tier, setTier] = useState("CHALLENGER");
 	const [division, setDivision] = useState("I");
 	const [error, setError] = useState(null);

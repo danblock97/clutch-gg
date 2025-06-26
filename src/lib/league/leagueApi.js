@@ -6,11 +6,9 @@ const RIOT_API_KEY = process.env.RIOT_API_KEY;
  * Fetch League summoner data using an encrypted PUUID.
  */
 export const fetchSummonerData = async (encryptedPUUID, region) => {
-	// Ensure region is uppercase for API compatibility
-	const normalizedRegion = region.toUpperCase();
 
 	const summonerResponse = await fetch(
-		`https://${normalizedRegion}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${encryptedPUUID}`,
+		`https://${region}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${encryptedPUUID}`,
 		{ headers: { "X-Riot-Token": RIOT_API_KEY } }
 	);
 	if (!summonerResponse.ok) {
@@ -336,30 +334,14 @@ export const fetchSummonerPUUID = async (puuid, region) => {
 	return { puuid: data.puuid, profileIconId: data.profileIconId };
 };
 
-/**
- * Convert summoner ID to PUUID and profile icon using the non-deprecated endpoint.
- * This is needed for leaderboard APIs that still return summoner IDs.
- */
-export const fetchPUUIDFromSummonerId = async (summonerId, region) => {
-	const response = await fetch(
-		`https://${region}.api.riotgames.com/lol/summoner/v4/summoners/${summonerId}`,
-		{ headers: { "X-Riot-Token": RIOT_API_KEY } }
-	);
-	if (!response.ok) {
-		throw new Error(
-			`Failed to fetch summoner data for summoner ID: ${summonerId}`
-		);
-	}
-	const data = await response.json();
-	return { puuid: data.puuid, profileIconId: data.profileIconId };
-};
+
 
 /**
  * Fetch account data using a player's PUUID.
  */
-export const fetchAccountDataByPUUID = async (puuid, platform) => {
+export const fetchAccountDataByPUUID = async (puuid) => {
 	const response = await fetch(
-		`https://${platform}.api.riotgames.com/riot/account/v1/accounts/by-puuid/${puuid}`,
+		`https://europe.api.riotgames.com/riot/account/v1/accounts/by-puuid/${puuid}`,
 		{ headers: { "X-Riot-Token": RIOT_API_KEY } }
 	);
 	if (!response.ok) {
