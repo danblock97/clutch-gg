@@ -100,6 +100,10 @@ export const fetchRankedData = async (encryptedPUUID, region) => {
 		{ headers: { "X-Riot-Token": RIOT_API_KEY } }
 	);
 	if (!rankedResponse.ok) {
+		// If 404 (not found), it means the player is unranked, so return empty array
+		if (rankedResponse.status === 404) {
+			return [];
+		}
 		throw new Error("Failed to fetch ranked data");
 	}
 	return rankedResponse.json();
@@ -229,23 +233,55 @@ export const fetchLiveGameData = async (puuid, region, platform) => {
 /**
  * Fetch featured games data.
  */
-export const getFeaturedGames = async (region) => {
-	const platformId = region.toLowerCase();
-	const response = await fetch(
-		`https://${platformId}.api.riotgames.com/lol/spectator/v5/featured-games`,
-		{
-			headers: {
-				"X-Riot-Token": RIOT_API_KEY,
-			},
-		}
-	);
+export const getFeaturedGames = async (region, retries = 3) => {
+	const platformId = region.toUpperCase(); // Ensure region is uppercase
 
-	if (!response.ok) {
-		console.error(`Failed to fetch featured games: ${response.statusText}`);
-		throw new Error("Failed to fetch featured games");
+	const url = `https://${platformId}.api.riotgames.com/lol/spectator/v5/featured-games`;
+
+	for (let attempt = 1; attempt <= retries; attempt++) {
+		try {
+			const response = await fetch(url, {
+				headers: {
+					"X-Riot-Token": RIOT_API_KEY,
+				},
+			});
+
+			if (response.ok) {
+				return response.json();
+			}
+
+			if (response.status === 429) {
+				const retryAfter = response.headers.get("Retry-After");
+				const waitTime = (retryAfter ? parseInt(retryAfter) : 2) * 1000;
+				console.warn(`Rate limited for ${platformId}. Waiting ${waitTime}ms before retry...`);
+				await new Promise((resolve) => setTimeout(resolve, waitTime));
+				continue;
+			}
+
+			if (response.status === 502 || response.status === 503) {
+				const waitTime = attempt * 1000; // Exponential backoff
+				console.warn(`Server error (${response.status}) for ${platformId}. Waiting ${waitTime}ms before retry...`);
+				await new Promise((resolve) => setTimeout(resolve, waitTime));
+				continue;
+			}
+
+			// For other errors, throw immediately
+			const errorText = await response.text();
+			throw new Error(
+				`Failed to fetch featured games for ${platformId}. Status: ${response.status} - ${errorText}`
+			);
+		} catch (error) {
+			if (attempt === retries) {
+				console.error(`All retry attempts failed for ${platformId}:`, error);
+				throw error;
+			}
+			console.warn(`Attempt ${attempt} failed for ${platformId}:`, error);
+		}
 	}
 
-	return response.json();
+	throw new Error(
+		`Failed to fetch featured games for ${platformId} after all retry attempts`
+	);
 };
 
 /**

@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { FaGlobeAmericas, FaChevronDown, FaChevronUp } from "react-icons/fa";
 
 const regionMappings = {
+	ALL: "All Regions",
 	BR1: "Brazil",
 	EUN1: "Europe Nordic & East",
 	EUW1: "Europe West",

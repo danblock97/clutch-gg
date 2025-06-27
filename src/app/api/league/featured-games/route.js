@@ -26,6 +26,8 @@ const regionToPlatform = {
 export async function GET(request) {
 	const { searchParams } = new URL(request.url);
 	const region = searchParams.get("region");
+	const queue = searchParams.get("queue");
+	
 
 	if (!region) {
 		return NextResponse.json(
@@ -46,12 +48,12 @@ export async function GET(request) {
 		const data = await getFeaturedGames(region);
 
 		if (data.gameList && data.gameList.length > 0) {
+			// Enrich participant data first
 			for (const game of data.gameList) {
 				const participants = game.participants;
 				const promises = participants.map((p) =>
 					fetchRankedData(p.puuid, region)
 				);
-
 				const rankedResults = await Promise.all(promises);
 
 				for (let i = 0; i < participants.length; i++) {
@@ -63,6 +65,18 @@ export async function GET(request) {
 					participants[i].rankedData = rankedResults[i];
 				}
 			}
+
+			// Apply filters
+			let filteredGames = data.gameList;
+
+			if (queue && queue !== "ALL") {
+				filteredGames = filteredGames.filter(
+					(game) => game.gameQueueConfigId === parseInt(queue)
+				);
+			}
+
+			
+			data.gameList = filteredGames;
 		}
 
 		return NextResponse.json(data);
