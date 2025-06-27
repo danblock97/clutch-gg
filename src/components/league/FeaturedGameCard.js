@@ -252,8 +252,18 @@ export default function FeaturedGameCard({
 
 	return (
 		<div className="border border-[--card-border] rounded-md p-2 bg-[--card-bg] h-full flex flex-col">
-			<div className="flex justify-between items-baseline mb-1.5 pb-1.5 border-b border-neutral-800">
-				<h2 className="text-xs font-bold text-[--primary]">{gameMode}</h2>
+			<div className="flex justify-between items-start mb-1.5 pb-1.5 border-b border-neutral-800">
+				<div className="flex flex-col gap-0.5">
+					<div className="flex items-center gap-2">
+						<h2 className="text-xs font-bold text-[--primary]">{gameMode}</h2>
+						<span className="text-[10px] bg-neutral-700 text-neutral-300 px-1.5 py-0.5 rounded font-medium">
+							{region}
+						</span>
+					</div>
+					<p className="text-[10px] text-neutral-500 font-mono">
+						ID: {game.gameId}
+					</p>
+				</div>
 				<p className="text-xs text-neutral-400 font-mono">{gameTime}</p>
 			</div>
 			{isArena ? (
