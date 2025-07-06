@@ -404,12 +404,12 @@ const NavBar = ({ bannersVisible = 0 }) => {
 							: "max-h-0 opacity-0 invisible"
 					}`}
 				>
-					<div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-[--card-bg] border-t border-[--card-border] shadow-lg">
+					<div className="px-2 pt-2 pb-3 space-y-2 sm:px-3 bg-[--card-bg] border-t border-[--card-border] shadow-lg">
 						{/* Game Type Selector (Mobile) */}
-						<div className="flex justify-center mb-2 pt-2">
+						<div className="flex justify-center mb-3 pt-1">
 							<div className="inline-flex rounded-md border border-[--card-border] overflow-hidden">
 								<button
-									className={`px-3 py-2 text-sm flex items-center ${
+									className={`px-4 py-2 text-sm font-medium flex items-center transition-colors ${
 										(!mounted && !isTftPath) ||
 										(mounted && gameType === "league")
 											? "bg-[--primary] text-white"
@@ -420,7 +420,7 @@ const NavBar = ({ bannersVisible = 0 }) => {
 									<FaGamepad className="mr-2" /> League
 								</button>
 								<button
-									className={`px-3 py-2 text-sm flex items-center ${
+									className={`px-4 py-2 text-sm font-medium flex items-center transition-colors ${
 										(!mounted && isTftPath) || (mounted && gameType === "tft")
 											? "bg-[--tft-primary] text-white"
 											: "bg-[--card-bg] text-[--text-secondary] hover:bg-[--card-bg-secondary]"
@@ -434,11 +434,11 @@ const NavBar = ({ bannersVisible = 0 }) => {
 
 						<Link
 							href={getLeaderboardLink()}
-							className="nav-link block px-3 py-2 rounded-md hover:bg-[--card-bg-secondary]"
+							className="nav-link block px-4 py-2.5 rounded-md hover:bg-[--card-bg-secondary] transition-colors"
 							onClick={handleLinkClick}
 						>
-							<div className="flex items-center space-x-3">
-								<FaTrophy />
+							<div className="flex items-center">
+								<FaTrophy className="mr-3 text-lg" />
 								<span>Leaderboards</span>
 							</div>
 						</Link>
@@ -446,19 +446,21 @@ const NavBar = ({ bannersVisible = 0 }) => {
 						<Link
 							href="/league/featured-games"
 							onClick={handleLinkClick}
-							className="mobile-nav-link"
+							className="nav-link block px-4 py-2.5 rounded-md hover:bg-[--card-bg-secondary] transition-colors"
 						>
-							<FaGamepad className="mr-3" />
-							Live Games
+							<div className="flex items-center">
+								<FaGamepad className="mr-3 text-lg" />
+								<span>Featured Games</span>
+							</div>
 						</Link>
 
 						<Link
 							href="/league/datastudio"
 							onClick={handleLinkClick}
-							className="nav-link block px-3 py-2 rounded-md hover:bg-[--card-bg-secondary]"
+							className="nav-link block px-4 py-2.5 rounded-md hover:bg-[--card-bg-secondary] transition-colors"
 						>
-							<div className="flex items-center space-x-3">
-								<FaDatabase />
+							<div className="flex items-center">
+								<FaDatabase className="mr-3 text-lg" />
 								<span>Data Studio</span>
 							</div>
 						</Link>
@@ -470,10 +472,10 @@ const NavBar = ({ bannersVisible = 0 }) => {
 									setIsSearchModalOpen(true);
 									setIsMenuOpen(false);
 								}}
-								className="w-full text-left nav-link block px-3 py-2 rounded-md hover:bg-[--card-bg-secondary]"
+								className="w-full text-left nav-link block px-4 py-2.5 rounded-md hover:bg-[--card-bg-secondary] transition-colors"
 							>
-								<div className="flex items-center space-x-3">
-									<FaSearch />
+								<div className="flex items-center">
+									<FaSearch className="mr-3 text-lg" />
 									<span>Search Summoner</span>
 								</div>
 							</button>
@@ -487,11 +489,11 @@ const NavBar = ({ bannersVisible = 0 }) => {
 										navigateToProfile();
 										setIsMenuOpen(false);
 									}}
-									className="w-full text-left nav-link block px-3 py-2 rounded-md hover:bg-[--card-bg-secondary]"
+									className="w-full text-left nav-link block px-4 py-2.5 rounded-md hover:bg-[--card-bg-secondary] transition-colors"
 								>
-									<div className="flex items-center space-x-3">
+									<div className="flex items-center">
 										{user.profileIconId ? (
-											<div className="relative w-6 h-6 rounded-full overflow-hidden">
+											<div className="relative w-6 h-6 rounded-full overflow-hidden mr-3">
 												<Image
 													src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/${user.profileIconId}.jpg`}
 													alt="Profile Icon"
@@ -502,11 +504,11 @@ const NavBar = ({ bannersVisible = 0 }) => {
 												/>
 											</div>
 										) : (
-											<FaUser />
+											<FaUser className="mr-3 text-lg" />
 										)}
 										<span>
 											My Profile ({user.gameName}
-											<span className="text-[--text-secondary] text-xs">
+											<span className="text-[--text-secondary] text-xs ml-1">
 												#{user.tagLine}
 											</span>
 											)
@@ -518,10 +520,10 @@ const NavBar = ({ bannersVisible = 0 }) => {
 										logout();
 										setIsMenuOpen(false);
 									}}
-									className="w-full text-left nav-link block px-3 py-2 rounded-md hover:bg-[--card-bg-secondary]"
+									className="w-full text-left nav-link block px-4 py-2.5 rounded-md hover:bg-[--card-bg-secondary] transition-colors"
 								>
-									<div className="flex items-center space-x-3">
-										<FaSignOutAlt />
+									<div className="flex items-center">
+										<FaSignOutAlt className="mr-3 text-lg" />
 										<span>Sign Out</span>
 									</div>
 								</button>
@@ -532,10 +534,10 @@ const NavBar = ({ bannersVisible = 0 }) => {
 									loginWithRiot();
 									setIsMenuOpen(false);
 								}}
-								className="w-full text-left nav-link block px-3 py-2 rounded-md hover:bg-[--card-bg-secondary]"
+								className="w-full text-left nav-link block px-4 py-2.5 rounded-md hover:bg-[--card-bg-secondary] transition-colors"
 							>
-								<div className="flex items-center space-x-3">
-									<div className="relative w-5 h-5">
+								<div className="flex items-center">
+									<div className="relative w-5 h-5 mr-3">
 										<Image
 											src="/images/riot-logo.png"
 											alt="Riot Logo"
@@ -553,20 +555,24 @@ const NavBar = ({ bannersVisible = 0 }) => {
 							href="https://discord.gg/h2tP5aAFgQ"
 							target="_blank"
 							rel="noopener noreferrer"
-							className="mobile-nav-link"
+							className="nav-link block px-4 py-2.5 rounded-md hover:bg-[--card-bg-secondary] transition-colors"
 						>
-							<FaDiscord className="mr-3" />
-							Discord
+							<div className="flex items-center">
+								<FaDiscord className="mr-3 text-lg" />
+								<span>Discord</span>
+							</div>
 						</a>
 
 						<a
 							href="https://ko-fi.com/clutchgg"
 							target="_blank"
 							rel="noopener noreferrer"
-							className="mobile-nav-link"
+							className="nav-link block px-4 py-2.5 rounded-md hover:bg-[--card-bg-secondary] transition-colors"
 						>
-							<FaCoffee className="mr-3" />
-							Support Us
+							<div className="flex items-center">
+								<FaCoffee className="mr-3 text-lg" />
+								<span>Support Us</span>
+							</div>
 						</a>
 					</div>
 				</div>
