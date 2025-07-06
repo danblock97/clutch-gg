@@ -12,6 +12,7 @@ import { GameTypeProvider } from "@/context/GameTypeContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import CookieConsentBanner from "@/components/CookieConsentBanner";
 import PropTypes from "prop-types";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -68,6 +69,7 @@ export default function RootLayout({ children }) {
             <div>{children}</div>
             <Analytics />
             <SpeedInsights />
+            <CookieConsentBanner />
             <Footer />
           </AuthProvider>
         </GameTypeProvider>

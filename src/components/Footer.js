@@ -167,6 +167,18 @@ const Footer = () => {
 									Need help? Contact Us
 								</Link>
 							</li>
+              <li>
+                <button
+                  onClick={() => {
+                    const event = new CustomEvent('openCookieSettings');
+                    window.dispatchEvent(event);
+                  }}
+                  className="text-sm hover:text-[--primary] transition-colors inline-flex items-center"
+                >
+                  <FaShieldAlt className="mr-2 text-xs" />
+                  Manage Cookie Settings
+                </button>
+              </li>
 						</ul>
 					</div>
 				</div>
