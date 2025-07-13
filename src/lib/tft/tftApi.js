@@ -6,42 +6,49 @@ const TFT_API_KEY = process.env.TFT_API_KEY;
  * Fetch TFT summoner data using an encrypted PUUID.
  */
 export const fetchTFTSummonerData = async (encryptedPUUID, region) => {
-	const summonerResponse = await fetch(
-		`https://${region}.api.riotgames.com/tft/summoner/v1/summoners/by-puuid/${encryptedPUUID}`,
-		{ headers: { "X-Riot-Token": TFT_API_KEY } }
-	);
+	if (!TFT_API_KEY) {
+		throw new Error("TFT_API_KEY is not configured");
+	}
+	
+	const url = `https://${region}.api.riotgames.com/tft/summoner/v1/summoners/by-puuid/${encryptedPUUID}`;
+	
+	const summonerResponse = await fetch(url, {
+		headers: { "X-Riot-Token": TFT_API_KEY }
+	});
+	
 	if (!summonerResponse.ok) {
-		throw new Error("Failed to fetch TFT summoner data");
+		const errorText = await summonerResponse.text();
+		console.error(`TFT Summoner API Error: ${summonerResponse.status} - ${errorText}`);
+		console.error(`URL: ${url}`);
+		console.error(`Region: ${region}, PUUID: ${encryptedPUUID}`);
+		throw new Error(`Failed to fetch TFT summoner data: ${summonerResponse.status} - ${errorText}`);
 	}
 	return summonerResponse.json();
 };
 
 /**
- * Fetch TFT ranked data by summoner ID.
- * Note: TFT API doesn't have a by-puuid endpoint for ranked entries yet.
- * We need to get the summoner ID first, then fetch ranked data.
+ * Fetch TFT ranked data by PUUID (updated to use by-puuid endpoint).
  */
 export const fetchTFTRankedData = async (puuid, region) => {
-	// First get the summoner data to get the summoner ID
-	const summonerData = await fetchTFTSummonerData(puuid, region);
-	if (!summonerData?.id) {
-		// If summonerData or its ID is not available, return empty array.
-		return [];
+	if (!TFT_API_KEY) {
+		throw new Error("TFT_API_KEY is not configured");
 	}
 
-	const rankedResponse = await fetch(
-		`https://${region}.api.riotgames.com/tft/league/v1/entries/by-summoner/${summonerData.id}`,
-		{ headers: { "X-Riot-Token": TFT_API_KEY } }
-	);
+	const url = `https://${region}.api.riotgames.com/tft/league/v1/by-puuid/${puuid}`;
+	
+	const rankedResponse = await fetch(url, {
+		headers: { "X-Riot-Token": TFT_API_KEY }
+	});
+	
 	if (!rankedResponse.ok) {
 		if (rankedResponse.status === 404) {
+			console.log(`TFT ranked data not found for PUUID ${puuid} in region ${region} - player may be unranked`);
 			return []; // Player is unranked or has no ranked data.
 		}
 		const errorBody = await rankedResponse.text();
-		console.error(
-			`Failed to fetch TFT ranked data for summonerId ${summonerData.id} in region ${region}. Status: ${rankedResponse.status}, Body: ${errorBody}`
-		);
-		throw new Error("Failed to fetch TFT ranked data");
+		console.error(`TFT Ranked API Error: ${rankedResponse.status} - ${errorBody}`);
+		console.error(`URL: ${url}`);
+		throw new Error(`Failed to fetch TFT ranked data: ${rankedResponse.status} - ${errorBody}`);
 	}
 	return rankedResponse.json();
 };
@@ -122,9 +129,9 @@ export const upsertTFTMatchDetail = async (
 };
 
 /**
- * Fetch additional data for TFT player enrichment.
+ * Fetch additional data for TFT player enrichment using PUUID endpoints.
  */
-export const fetchTFTAdditionalData = async (summonerId, puuid, region) => {
+export const fetchTFTAdditionalData = async (puuid, region) => {
 	try {
 		// Map platform region (e.g. EUW1) to the correct routing cluster (europe / americas / asia / sea)
 		const regionToPlatform = {
@@ -148,9 +155,9 @@ export const fetchTFTAdditionalData = async (summonerId, puuid, region) => {
 
 		const [rankedResponse, accountResponse, summonerResponse] =
 			await Promise.all([
-				// Ranked TFT uses the summoner-id, *not* the puuid
+				// Updated to use by-puuid endpoint
 				fetch(
-					`https://${region}.api.riotgames.com/tft/league/v1/entries/by-summoner/${summonerId}`,
+					`https://${region}.api.riotgames.com/tft/league/v1/by-puuid/${puuid}`,
 					{ headers: { "X-Riot-Token": TFT_API_KEY } }
 				),
 				// Account endpoint is cluster based (americas / europe / asia / sea)
@@ -164,41 +171,57 @@ export const fetchTFTAdditionalData = async (summonerId, puuid, region) => {
 				),
 			]);
 
-		if (!rankedResponse.ok || !accountResponse.ok || !summonerResponse.ok) {
-			throw new Error("Failed to fetch additional TFT data");
+		// Check responses and log detailed errors
+		const rankedData = rankedResponse.ok ? await rankedResponse.json() : [];
+		if (!rankedResponse.ok && rankedResponse.status !== 404) {
+			console.error(`TFT ranked fetch failed: ${rankedResponse.status} - ${await rankedResponse.text()}`);
 		}
 
-		const [rankedData, accountData, summonerData] = await Promise.all([
-			rankedResponse.json(),
+		if (!accountResponse.ok) {
+			console.error(`TFT account fetch failed: ${accountResponse.status} - ${await accountResponse.text()}`);
+			throw new Error("Failed to fetch account data");
+		}
+
+		if (!summonerResponse.ok) {
+			console.error(`TFT summoner fetch failed: ${summonerResponse.status} - ${await summonerResponse.text()}`);
+			throw new Error("Failed to fetch summoner data");
+		}
+
+		const [accountData, summonerData] = await Promise.all([
 			accountResponse.json(),
 			summonerResponse.json(),
 		]);
 
 		// TFT ranked data structure is different from League
-		const rankedTftData = rankedData.find(
+		const rankedTftData = rankedData.find?.(
 			(queue) => queue.queueType === "RANKED_TFT"
 		);
 
 		return {
-			rank: rankedTftData
-				? `${rankedTftData.tier} ${rankedTftData.rank}`
-				: "Unranked",
-			lp: rankedTftData ? rankedTftData.leaguePoints : 0,
+			queueType: "RANKED_TFT", // Add queueType for frontend compatibility
+			tier: rankedTftData ? rankedTftData.tier : "UNRANKED",
+			rank: rankedTftData ? rankedTftData.rank : "",
+			leaguePoints: rankedTftData ? rankedTftData.leaguePoints : 0,
 			wins: rankedTftData ? rankedTftData.wins : 0,
 			losses: rankedTftData ? rankedTftData.losses : 0,
 			gameName: accountData.gameName,
 			tagLine: accountData.tagLine,
 			summonerLevel: summonerData.summonerLevel,
+			profileIconId: summonerData.profileIconId,
 		};
 	} catch (error) {
+		console.error("TFT Additional Data Error:", error.message);
 		return {
-			rank: "Unranked",
-			lp: 0,
+			queueType: "RANKED_TFT",
+			tier: "UNRANKED",
+			rank: "",
+			leaguePoints: 0,
 			wins: 0,
 			losses: 0,
 			gameName: "",
 			tagLine: "",
 			summonerLevel: 0,
+			profileIconId: null,
 		};
 	}
 };
@@ -237,7 +260,6 @@ export const fetchTFTLiveGameData = async (puuid, region, platform) => {
 	liveGameData.participants = await Promise.all(
 		liveGameData.participants.map(async (participant) => {
 			const additionalData = await fetchTFTAdditionalGameData(
-				participant.summonerId,
 				participant.puuid,
 				region
 			);
@@ -248,10 +270,10 @@ export const fetchTFTLiveGameData = async (puuid, region, platform) => {
 };
 
 /**
- * Fetch additional data for TFT live game enrichment.
+ * Fetch additional data for TFT live game enrichment using PUUID endpoints.
  * Similar to fetchTFTAdditionalData but specific for live game context
  */
-export const fetchTFTAdditionalGameData = async (summonerId, puuid, region) => {
+export const fetchTFTAdditionalGameData = async (puuid, region) => {
 	try {
 		// Same region->platform mapping to resolve the correct routing cluster
 		const regionToPlatform = {
@@ -275,8 +297,9 @@ export const fetchTFTAdditionalGameData = async (summonerId, puuid, region) => {
 
 		const [rankedResponse, accountResponse, summonerResponse] =
 			await Promise.all([
+				// Updated to use by-puuid endpoint
 				fetch(
-					`https://${region}.api.riotgames.com/tft/league/v1/entries/by-summoner/${summonerId}`,
+					`https://${region}.api.riotgames.com/tft/league/v1/by-puuid/${puuid}`,
 					{ headers: { "X-Riot-Token": TFT_API_KEY } }
 				),
 				fetch(
@@ -289,26 +312,28 @@ export const fetchTFTAdditionalGameData = async (summonerId, puuid, region) => {
 				),
 			]);
 
-		if (!rankedResponse.ok || !accountResponse.ok || !summonerResponse.ok) {
-			throw new Error("Failed to fetch additional TFT data");
+		// Handle errors gracefully for live game data
+		const rankedData = rankedResponse.ok ? await rankedResponse.json() : [];
+		
+		if (!accountResponse.ok || !summonerResponse.ok) {
+			throw new Error("Failed to fetch essential TFT live game data");
 		}
 
-		const [rankedData, accountData, summonerData] = await Promise.all([
-			rankedResponse.json(),
+		const [accountData, summonerData] = await Promise.all([
 			accountResponse.json(),
 			summonerResponse.json(),
 		]);
 
 		// TFT ranked data structure is different from League
-		const rankedTftData = rankedData.find(
+		const rankedTftData = rankedData.find?.(
 			(queue) => queue.queueType === "RANKED_TFT"
 		);
 
 		return {
-			rank: rankedTftData
-				? `${rankedTftData.tier} ${rankedTftData.rank}`
-				: "Unranked",
-			lp: rankedTftData ? rankedTftData.leaguePoints : 0,
+			queueType: "RANKED_TFT", // Add queueType for frontend compatibility
+			tier: rankedTftData ? rankedTftData.tier : "UNRANKED",
+			rank: rankedTftData ? rankedTftData.rank : "",
+			leaguePoints: rankedTftData ? rankedTftData.leaguePoints : 0,
 			wins: rankedTftData ? rankedTftData.wins : 0,
 			losses: rankedTftData ? rankedTftData.losses : 0,
 			gameName: accountData.gameName,
@@ -317,9 +342,12 @@ export const fetchTFTAdditionalGameData = async (summonerId, puuid, region) => {
 			profileIconId: summonerData.profileIconId,
 		};
 	} catch (error) {
+		console.error("TFT Live Game Data Error:", error.message);
 		return {
-			rank: "Unranked",
-			lp: 0,
+			queueType: "RANKED_TFT",
+			tier: "UNRANKED",
+			rank: "",
+			leaguePoints: 0,
 			wins: 0,
 			losses: 0,
 			gameName: "",

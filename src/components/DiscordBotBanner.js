@@ -49,7 +49,7 @@ export default function DiscordBotBanner() {
 
 				{/* Footer */}
 				<div className="bg-[#5865F2]/10 px-3 py-1 text-xs text-[--text-secondary] flex justify-between">
-					<span>420+ Servers</span>
+					<span>460+ Servers</span>
 					<span className="text-[#5865F2]">Free</span>
 				</div>
 			</div>

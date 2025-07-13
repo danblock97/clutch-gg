@@ -237,7 +237,7 @@ export default function MatchStatsTab({
 						<div className="text-xs text-[--text-secondary]">Arena Mode</div>
 					</div>
 
-					<div className="p-2 grid gap-2 grid-cols-1 md:grid-cols-2">
+					<div className="p-2 space-y-1">
 						{teamArr.map((p) => (
 							<Participant
 								key={p.participantId}
@@ -255,8 +255,8 @@ export default function MatchStatsTab({
 		});
 
 		return (
-			<div className="p-4">
-				<div className="max-w-6xl mx-auto">{comps}</div>
+			<div className="p-4 overflow-hidden">
+				<div className="max-w-6xl mx-auto space-y-4">{comps}</div>
 			</div>
 		);
 	}
@@ -565,23 +565,72 @@ function Participant({ p, puuid, r, getA, getPerk, arena = false }) {
 					</div>
 				</div>
 
-				{/* Spells & Runes */}
+				{/* Spells & Runes OR Arena Augments */}
 				<div className="hidden md:flex items-center space-x-1 md:w-1/6">
-					<div className="flex space-x-1">
-						{/* Summoner Spells */}
-						{[p.summoner1Id, p.summoner2Id].map((spellId, idx) => (
-							<div key={idx} className="w-6 h-6 rounded overflow-hidden">
-								<NextImage
-									src={`/images/league/summonerSpells/${spellId}.png`}
-									alt={`Spell ${spellId}`}
-									width={24}
-									height={24}
-									className="w-full h-full rounded"
-								/>
-							</div>
-						))}
-					</div>
+					{arena && p.missions?.playerAugments ? (
+						/* Arena Augments */
+						<div className="flex flex-wrap gap-1 max-w-[80px]">
+							{p.missions.playerAugments
+								.filter(Boolean)
+								.slice(0, 4)
+								.map((augmentId, idx) => {
+									const augmentIcon = getA(augmentId);
+									return augmentIcon ? (
+										<div key={idx} className="flex-shrink-0">
+											<NextImage
+												src={augmentIcon}
+												alt={`Augment ${idx + 1}`}
+												width={16}
+												height={16}
+												className="w-4 h-4 rounded border border-gray-600"
+											/>
+										</div>
+									) : null;
+								})}
+						</div>
+					) : (
+						/* Regular Summoner Spells */
+						<div className="flex space-x-1">
+							{[p.summoner1Id, p.summoner2Id].map((spellId, idx) => (
+								<div key={idx} className="w-6 h-6 rounded overflow-hidden">
+									<NextImage
+										src={`/images/league/summonerSpells/${spellId}.png`}
+										alt={`Spell ${spellId}`}
+										width={24}
+										height={24}
+										className="w-full h-full rounded"
+									/>
+								</div>
+							))}
+						</div>
+					)}
 				</div>
+
+				{/* Mobile Arena Augments */}
+				{arena && p.missions?.playerAugments && (
+					<div className="md:hidden flex items-center mt-2">
+						<div className="text-xs text-[--text-secondary] mr-2">Augments:</div>
+						<div className="flex gap-1">
+							{p.missions.playerAugments
+								.filter(Boolean)
+								.slice(0, 4)
+								.map((augmentId, idx) => {
+									const augmentIcon = getA(augmentId);
+									return augmentIcon ? (
+										<div key={idx} className="flex-shrink-0">
+											<NextImage
+												src={augmentIcon}
+												alt={`Augment ${idx + 1}`}
+												width={20}
+												height={20}
+												className="w-5 h-5 rounded border border-gray-600"
+											/>
+										</div>
+									) : null;
+								})}
+						</div>
+					</div>
+				)}
 			</div>
 		</Link>
 	);

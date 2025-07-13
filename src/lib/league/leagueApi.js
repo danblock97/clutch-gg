@@ -211,7 +211,7 @@ export const fetchLiveGameData = async (puuid, region, platform) => {
 	const normalizedRegion = region.toUpperCase();
 
 	const liveGameResponse = await fetch(
-		`https://${normalizedRegion}.api.riotgames.com/lol/spectator/v5/active-games/by-summoner/${puuid}`,
+		`https://${normalizedRegion}.api.riotgames.com/lol/spectator/v5/active-games/by-puuid/${puuid}`,
 		{ headers: { "X-Riot-Token": RIOT_API_KEY } }
 	);
 	if (!liveGameResponse.ok) return null;

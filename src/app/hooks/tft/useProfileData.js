@@ -18,15 +18,18 @@ export default function useTFTProfileData(profileData) {
 				puuid: profileData.profiledata?.puuid || "",
 			});
 
-			// Handle rankeddata - convert to array format if it's an object (new JSONB schema)
+			// Handle rankeddata - TFT ranked data is a single object, not an array like League
 			let processedRankedData = [];
 			if (profileData.rankeddata) {
 				if (Array.isArray(profileData.rankeddata)) {
-					// Old format: already an array
+					// Legacy format: array of rank objects
 					processedRankedData = profileData.rankeddata;
+				} else if (typeof profileData.rankeddata === "object" && profileData.rankeddata.rank) {
+					// New format: single TFT rank object from additionalData
+					processedRankedData = [profileData.rankeddata]; // Wrap in array for consistency
 				} else if (typeof profileData.rankeddata === "object") {
-					// New format: JSONB object, convert to array
-					processedRankedData = Object.values(profileData.rankeddata);
+					// Fallback: JSONB object, convert to array
+					processedRankedData = Object.values(profileData.rankeddata).filter(Boolean);
 				}
 			}
 			setRankedData(processedRankedData);

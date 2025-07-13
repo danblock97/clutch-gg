@@ -1,8 +1,6 @@
 import { supabase, supabaseAdmin } from "@/lib/supabase";
 import { fetchAccountData } from "@/lib/riot/riotAccountApi";
 import {
-	fetchTFTSummonerData,
-	fetchTFTRankedData,
 	fetchTFTMatchIds,
 	fetchTFTMatchDetail,
 	upsertTFTMatchDetail,
@@ -78,7 +76,7 @@ export async function GET(req) {
 			const insertPayload = {
 				gamename: gameName,
 				tagline: tagLine,
-				region,
+				region: normalizedRegion,
 				puuid: accountData.puuid,
 			};
 			try {
@@ -119,22 +117,15 @@ export async function GET(req) {
 
 		const puuid = riotAccount.puuid;
 
-		// Fetch summoner data to get the summonerId, which is needed for additional data fetching.
-		const summonerData = await fetchTFTSummonerData(puuid, region);
-		if (!summonerData?.id) {
-			throw new Error("Could not retrieve summoner data.");
-		}
-
-		// Fetch additional data, which includes ranked info, using the summonerId.
+		// Fetch additional data, which includes ranked info and summoner data, using the PUUID.
 		const additionalData = await fetchTFTAdditionalData(
-			summonerData.id,
 			puuid,
-			region
+			normalizedRegion
 		);
 
 		const [matchIds, liveGameData] = await Promise.all([
 			fetchTFTMatchIds(puuid, platform),
-			fetchTFTLiveGameData(puuid, region, platform),
+			fetchTFTLiveGameData(puuid, normalizedRegion, platform),
 		]);
 
 		const matchDetails = await Promise.all(
@@ -162,12 +153,19 @@ export async function GET(req) {
 		// Store data using JSONB structure
 		const tftDataObj = {
 			riot_account_id: riotAccount.id,
-			profiledata: summonerData,
+			profiledata: {
+				// TFT profile data is now derived from additionalData since we no longer fetch summoner data separately
+				gameName: additionalData.gameName || riotAccount.gamename,
+				tagLine: additionalData.tagLine || riotAccount.tagline,
+				summonerLevel: additionalData.summonerLevel || 0,
+				profileIconId: additionalData.profileIconId || null,
+				puuid: riotAccount.puuid, // Include PUUID for frontend compatibility
+			},
 			accountdata: {
 				gameName: riotAccount.gamename,
 				tagLine: riotAccount.tagline,
 			},
-			rankeddata: [additionalData], // Wrap in array to match expected structure.
+			rankeddata: additionalData, // Don't wrap in array - additionalData is already the rank object
 			livegamedata: liveGameData,
 			updated_at: new Date(),
 		};

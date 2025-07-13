@@ -1023,21 +1023,25 @@ const MatchHistory = ({
 											)}
 										{match.info.queueId === 1700 ||
 										match.info.queueId === 1710 ? (
-											<div className="absolute top-6 right-16 flex">
-												<div className="grid grid-cols-2 gap-2">
-													{augmentsSelected
-														.filter(Boolean)
-														.map((augmentId, idx) => (
-															<div key={idx} className="flex items-center">
-																<Image
-																	src={getAugmentIcon(augmentId)}
-																	alt={`Augment ${idx + 1}`}
-																	className="w-12 h-12 rounded-md border border-gray-700"
-																	width={48}
-																	height={48}
-																/>
-															</div>
-														))}
+											<div className="flex ml-auto">
+												<div className="flex flex-col items-start mr-4">
+													<div className="text-xs text-[--text-secondary] mb-1">Arena Augments</div>
+													<div className="flex flex-wrap gap-1 max-w-[120px]">
+														{augmentsSelected
+															.filter(Boolean)
+															.slice(0, 4)
+															.map((augmentId, idx) => (
+																<div key={idx} className="flex-shrink-0">
+																	<Image
+																		src={getAugmentIcon(augmentId)}
+																		alt={`Augment ${idx + 1}`}
+																		className="w-6 h-6 rounded border border-gray-700"
+																		width={24}
+																		height={24}
+																	/>
+																</div>
+															))}
+													</div>
 												</div>
 											</div>
 										) : (
