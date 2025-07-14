@@ -849,19 +849,14 @@ const MatchHistory = ({
 							return (
 								<div key={index} className="overflow-x-auto">
 									<div
-										onClick={
-											breakpoint !== "mobile"
-												? () =>
-														setExpandedMatchId(
-															expandedMatchId === match.metadata.matchId
-																? null
-																: match.metadata.matchId
-														)
-												: undefined
+										onClick={() =>
+											setExpandedMatchId(
+												expandedMatchId === match.metadata.matchId
+													? null
+													: match.metadata.matchId
+											)
 										}
-										className={`rounded-lg shadow-lg p-2 ${
-											breakpoint !== "mobile" ? "cursor-pointer" : ""
-										} relative flex items-center mb-2 min-w-[768px] text-xs sm:text-sm ${getGradientBackground(
+										className={`cursor-pointer rounded-lg shadow-lg p-2 relative flex items-center mb-2 min-w-[768px] text-xs sm:text-sm ${getGradientBackground(
 											match,
 											currentPlayer,
 											isRemake,
@@ -1025,7 +1020,9 @@ const MatchHistory = ({
 										match.info.queueId === 1710 ? (
 											<div className="flex ml-auto">
 												<div className="flex flex-col items-start mr-4">
-													<div className="text-xs text-[--text-secondary] mb-1">Arena Augments</div>
+													<div className="text-xs text-[--text-secondary] mb-1">
+														Arena Augments
+													</div>
 													<div className="flex flex-wrap gap-1 max-w-[120px]">
 														{augmentsSelected
 															.filter(Boolean)

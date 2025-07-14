@@ -6,19 +6,29 @@ export default function TeamAnalysisTab({ matchDetails, matchId }) {
 	if (!matchDetails) return null;
 
 	const match = matchDetails.find((m) => m.metadata.matchId === matchId);
-	if (!match) return (
-		<div className="card-highlight p-6 text-center">
-			<p className="text-[--text-secondary]">Match data not found.</p>
-		</div>
-	);
+	if (!match) {
+		return (
+			<div className="card-highlight p-6 text-center">
+				<p className="text-[--text-secondary]">Match data not found.</p>
+			</div>
+		);
+	}
+
+	// Arena mode is not supported for this tab.
+	if (match.info.queueId === 1700 || match.info.queueId === 1710) {
+		return (
+			<div className="p-4 text-center text-[--text-secondary]">
+				Team analysis is not available for Arena mode.
+			</div>
+		);
+	}
 
 	const parts = match.info.participants;
 	const team1 = parts.filter((p) => p.teamId === 100);
 	const team2 = parts.filter((p) => p.teamId === 200);
 
-	// Determine winner
-	const team1Won = match.info.teams.find(t => t.teamId === 100)?.win;
-	const team2Won = match.info.teams.find(t => t.teamId === 200)?.win;
+	const team1Won = match.info.teams.find((t) => t.teamId === 100)?.win;
+	const team2Won = match.info.teams.find((t) => t.teamId === 200)?.win;
 
 	const stats = [
 		{
@@ -70,23 +80,21 @@ export default function TeamAnalysisTab({ matchDetails, matchId }) {
 				</div>
 
 				<div className="p-4">
-					{/* Legend */}
 					<div className="flex justify-center space-x-6 mb-4">
 						<div className="flex items-center space-x-2">
 							<div className="w-3 h-3 rounded-full bg-blue-500"></div>
 							<span className="text-sm text-[--text-secondary]">
-                {team1Won ? "Winning Team (Blue)" : "Blue Team"}
-              </span>
+								{team1Won ? "Winning Team (Blue)" : "Blue Team"}
+							</span>
 						</div>
 						<div className="flex items-center space-x-2">
 							<div className="w-3 h-3 rounded-full bg-red-500"></div>
 							<span className="text-sm text-[--text-secondary]">
-                {team2Won ? "Winning Team (Red)" : "Red Team"}
-              </span>
+								{team2Won ? "Winning Team (Red)" : "Red Team"}
+							</span>
 						</div>
 					</div>
 
-					{/* Stats Comparison */}
 					<div className="space-y-8">
 						{stats.map((stat) => (
 							<TeamAnalysisRow
@@ -154,12 +162,12 @@ function TeamAnalysisRow({ label, icon, iconColor, team1, team2, getValue }) {
 
 					{/* Team Totals */}
 					<div className="flex justify-between w-full text-xs">
-            <span className="text-blue-500 font-semibold">
-              {t1Total.toLocaleString()}
-            </span>
+						<span className="text-blue-500 font-semibold">
+							{t1Total.toLocaleString()}
+						</span>
 						<span className="text-red-500 font-semibold">
-              {t2Total.toLocaleString()}
-            </span>
+							{t2Total.toLocaleString()}
+						</span>
 					</div>
 
 					{/* Percentage text */}
@@ -191,7 +199,11 @@ function ChampionStatBar({ championId, value, total, barColor, textRight }) {
 	const percentage = (fraction * 100).toFixed(1);
 
 	return (
-		<div className={`flex items-center gap-2 ${textRight ? 'flex-row-reverse' : 'flex-row'}`}>
+		<div
+			className={`flex items-center gap-2 ${
+				textRight ? "flex-row-reverse" : "flex-row"
+			}`}
+		>
 			{/* Champion Icon */}
 			<div className="relative w-6 h-6 flex-shrink-0">
 				<Image
@@ -210,14 +222,20 @@ function ChampionStatBar({ championId, value, total, barColor, textRight }) {
 
 				{/* Filled portion */}
 				<div
-					className={`absolute inset-y-0 ${textRight ? 'right-0' : 'left-0'} ${barColor} opacity-60 group-hover:opacity-80 transition-opacity duration-200`}
+					className={`absolute inset-y-0 ${
+						textRight ? "right-0" : "left-0"
+					} ${barColor} opacity-60 group-hover:opacity-80 transition-opacity duration-200`}
 					style={{
 						width: `${percentage}%`,
 					}}
 				/>
 
 				{/* Value text */}
-				<div className={`absolute inset-0 flex items-center ${textRight ? 'justify-end px-2' : 'justify-start px-2'} text-xs font-medium`}>
+				<div
+					className={`absolute inset-0 flex items-center ${
+						textRight ? "justify-end px-2" : "justify-start px-2"
+					} text-xs font-medium`}
+				>
 					{value.toLocaleString()}
 				</div>
 			</div>

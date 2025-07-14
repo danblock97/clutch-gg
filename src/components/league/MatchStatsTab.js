@@ -169,98 +169,6 @@ export default function MatchStatsTab({
 			(match.info.gameDuration / 60);
 	});
 
-	// ----------------- Arena Check --------------------
-	if (match.info.queueId === 1700 || match.info.queueId === 1710) {
-		let grouped = {};
-		let sorted = [...parts].map((p) => ({
-			...p,
-			playerScore0: p.missions?.playerScore0,
-		}));
-		sorted.sort((a, b) => a.playerScore0 - b.playerScore0);
-
-		sorted.forEach((p, i) => {
-			const tId = Math.floor(i / 2);
-			if (!grouped[tId]) grouped[tId] = [];
-			grouped[tId].push(p);
-		});
-
-		const getOrdinal = (n) => {
-			const s = ["th", "st", "nd", "rd"];
-			const v = n % 100;
-			return n + (s[(v - 20) % 10] || s[v] || s[0]);
-		};
-
-		const getPlacementColor = (plc) => {
-			switch (plc) {
-				case 1:
-					return "from-yellow-500/20 to-yellow-500/5 border-yellow-500/30";
-				case 2:
-					return "from-gray-400/20 to-gray-400/5 border-gray-400/30";
-				case 3:
-					return "from-amber-700/20 to-amber-700/5 border-amber-700/30";
-				case 4:
-					return "from-blue-500/20 to-blue-500/5 border-blue-500/30";
-				case 5:
-					return "from-red-500/20 to-red-500/5 border-red-500/30";
-				case 6:
-					return "from-green-500/20 to-green-500/5 border-green-500/30";
-				case 7:
-					return "from-purple-500/20 to-purple-500/5 border-purple-500/30";
-				case 8:
-					return "from-indigo-500/20 to-indigo-500/5 border-indigo-500/30";
-				default:
-					return "from-gray-700/20 to-gray-700/5 border-gray-700/30";
-			}
-		};
-
-		// Render Arena mode
-		const comps = Object.entries(grouped).map(([teamIndex, teamArr]) => {
-			const place = Number(teamIndex) + 1;
-			const placementColorClass = getPlacementColor(place);
-
-			return (
-				<div
-					key={teamIndex}
-					className={`mb-4 rounded-lg overflow-hidden border bg-gradient-to-r ${placementColorClass}`}
-				>
-					<div className="px-4 py-2 border-b border-[--card-border] flex items-center justify-between">
-						<div className="flex items-center">
-							<FaCrown
-								className={`mr-2 ${
-									place === 1 ? "text-yellow-500" : "text-[--text-secondary]"
-								}`}
-							/>
-							<h3 className="text-base font-semibold">
-								{getOrdinal(place)} Place
-							</h3>
-						</div>
-						<div className="text-xs text-[--text-secondary]">Arena Mode</div>
-					</div>
-
-					<div className="p-2 space-y-1">
-						{teamArr.map((p) => (
-							<Participant
-								key={p.participantId}
-								p={p}
-								puuid={selectedSummonerPUUID}
-								r={region}
-								getA={getAugmentIcon}
-								getPerk={getPerkById}
-								arena
-							/>
-						))}
-					</div>
-				</div>
-			);
-		});
-
-		return (
-			<div className="p-4 overflow-hidden">
-				<div className="max-w-6xl mx-auto space-y-4">{comps}</div>
-			</div>
-		);
-	}
-
 	// ----------------- Standard 5v5 / ARAM rendering --------------------
 
 	// Calculate clutch scores and find max damage for damage bar scaling
@@ -331,39 +239,55 @@ export default function MatchStatsTab({
 		return match.info.teams.find((t) => t.teamId === teamId)?.win;
 	};
 
-	const TeamBlock = ({ teamArr, teamName, isWin, teamColor }) => (
-		<div className="mb-4">
-			{/* Team header */}
-			<div className="px-2 py-1 text-sm font-semibold flex items-center gap-2 border border-[--card-border] rounded-t-lg bg-[--card-bg-secondary]">
-				<span className={isWin ? "text-green-400" : "text-red-400"}>
-					{teamName}
-				</span>
+	const TeamBlock = ({ teamArr, teamName, isWin, teamColor }) => {
+		const isArena = match.info.queueId === 1700 || match.info.queueId === 1710;
+
+		return (
+			<div className="mb-4">
+				<div
+					className={`px-2 py-1 text-sm font-semibold flex items-center gap-2 border border-[--card-border] rounded-t-lg ${
+						isArena ? "bg-gray-800" : "bg-[--card-bg-secondary]"
+					}`}
+				>
+					<span className={isWin ? "text-green-400" : "text-red-400"}>
+						{teamName}
+					</span>
+				</div>
+
+				<div className="overflow-x-auto">
+					<div className="overflow-x-auto">
+						<table className="min-w-full text-xs">
+							<thead className="bg-[--card-bg]">
+								<tr>
+									<th className="p-2 text-left">Player</th>
+									<th className="p-2 text-center">C-Score</th>
+									<th className="p-2 text-center">KDA</th>
+									<th className="p-2 text-left">Damage</th>
+									<th className="p-2 text-center">CS</th>
+									<th className="p-2 text-center">Wards</th>
+									<th className="p-2 text-right">Items</th>
+								</tr>
+							</thead>
+							<tbody>
+								{teamArr.map((p) => (
+									<StatsRow
+										key={p.participantId}
+										p={p}
+										maxDamage={maxDamage}
+										selected={p.puuid === selectedSummonerPUUID}
+										isArena={isArena}
+										getAugmentIcon={getAugmentIcon}
+									/>
+								))}
+							</tbody>
+						</table>
+					</div>
+				</div>
 			</div>
+		);
+	};
 
-			{/* Column headings */}
-			<div className="grid grid-cols-[160px_60px_70px_180px_60px_60px_auto] px-2 py-1 text-[10px] uppercase text-[--text-secondary] border-x border-b border-[--card-border] bg-[--card-bg]">
-				<div>Player</div>
-				<div className="text-center">C-Score</div>
-				<div className="text-center">KDA</div>
-				<div>Damage</div>
-				<div className="text-center">CS</div>
-				<div className="text-center">Wards</div>
-				<div className="text-center">Items</div>
-			</div>
-
-			{/* Participant rows */}
-			{teamArr.map((pp, idx) => (
-				<StatsRow
-					key={pp.participantId}
-					p={pp}
-					maxDamage={maxDamage}
-					selected={pp.puuid === selectedSummonerPUUID}
-				/>
-			))}
-		</div>
-	);
-
-	const StatsRow = ({ p, maxDamage, selected }) => {
+	const StatsRow = ({ p, maxDamage, selected, isArena, getAugmentIcon }) => {
 		const kda =
 			p.deaths === 0
 				? (p.kills + p.assists).toFixed(1)
@@ -379,90 +303,132 @@ export default function MatchStatsTab({
 		const scoreColor = p.win ? "bg-blue-600" : "bg-red-600";
 
 		return (
-			<div
-				className={`grid grid-cols-[160px_60px_70px_180px_60px_60px_auto] px-2 py-1 items-center border-x border-b border-[--card-border] ${
+			<tr
+				className={`border-b border-[--card-border] ${
 					selected ? "bg-[--primary]/5" : ""
 				}`}
 			>
-				{/* Player column */}
-				<div className="flex items-center gap-2 overflow-hidden">
-					<NextImage
-						src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${p.championId}.png`}
-						alt="champ"
-						width={24}
-						height={24}
-						className="rounded-md"
-					/>
-					<Link
-						href={`/league/profile?gameName=${p.riotIdGameName}&tagLine=${p.riotIdTagline}&region=${region}`}
-						className="truncate text-xs hover:underline"
-					>
-						{p.riotIdGameName}
-						<span className="text-[--text-secondary]">#{p.riotIdTagline}</span>
-					</Link>
-				</div>
-
-				{/* AI Score */}
-				<div className="flex justify-center">
+				<td className="p-2 whitespace-nowrap">
+					<div className="flex items-center gap-2">
+						<NextImage
+							src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${p.championId}.png`}
+							alt="champ"
+							width={24}
+							height={24}
+							className="rounded-md"
+						/>
+						<Link
+							href={`/league/profile?gameName=${p.riotIdGameName}&tagLine=${p.riotIdTagline}&region=${region}`}
+							className="truncate hover:underline"
+						>
+							{p.riotIdGameName}
+							<span className="text-[--text-secondary]">
+								#{p.riotIdTagline}
+							</span>
+						</Link>
+					</div>
+				</td>
+				<td className="p-2 text-center">
 					<div
-						className={`${scoreColor} text-white text-xs font-semibold px-1 rounded`}
+						className={`inline-block ${scoreColor} text-white font-semibold px-1 rounded`}
 					>
 						{p.clutchScore}
 					</div>
-				</div>
-
-				{/* KDA */}
-				<div className="text-center text-xs">
+				</td>
+				<td className="p-2 text-center">
 					{p.kills}/{p.deaths}/{p.assists}
 					<span className="block text-[--text-secondary]">{kda}</span>
-				</div>
-
-				{/* Damage */}
-				<div className="flex items-center text-xs">
-					<span className="mr-0.5 w-12 text-right">
-						{p.totalDamageDealtToChampions.toLocaleString()}
-					</span>
-					<div className="relative w-20 h-2 bg-gray-700 rounded">
-						<div
-							className="absolute left-0 top-0 h-2 bg-pink-500 rounded"
-							style={{ width: `${barPct}%` }}
-						></div>
+				</td>
+				<td className="p-2">
+					<div className="flex items-center">
+						<span className="mr-1 w-12 text-right">
+							{p.totalDamageDealtToChampions.toLocaleString()}
+						</span>
+						<div className="relative w-20 h-2 bg-gray-700 rounded">
+							<div
+								className="absolute left-0 top-0 h-2 bg-pink-500 rounded"
+								style={{ width: `${barPct}%` }}
+							></div>
+						</div>
 					</div>
-				</div>
-
-				{/* CS */}
-				<div className="text-center text-xs">
+				</td>
+				<td className="p-2 text-center">
 					{cs}
 					<span className="block text-[--text-secondary]">({csPer}/m)</span>
-				</div>
-
-				{/* Wards */}
-				<div className="text-center text-xs">{wardString}</div>
-
-				{/* Items */}
-				<div className="flex gap-0.5 justify-end flex-nowrap min-w-[160px]">
-					{[0, 1, 2, 3, 4, 5, 6].map((idx) => {
-						const itemId = p[`item${idx}`];
-						return (
-							<div
-								key={idx}
-								className="w-5 h-5 bg-[--card-bg] rounded overflow-hidden"
-							>
-								{itemId > 0 && (
-									<NextImage
-										src={`https://ddragon.leagueoflegends.com/cdn/15.8.1/img/item/${itemId}.png`}
-										alt="item"
-										width={20}
-										height={20}
-									/>
-								)}
-							</div>
-						);
-					})}
-				</div>
-			</div>
+				</td>
+				<td className="p-2 text-center">{wardString}</td>
+				<td className="p-2 text-right">
+					<div className="flex gap-0.5 justify-end">
+						{isArena
+							? [
+									p.playerAugment1,
+									p.playerAugment2,
+									p.playerAugment3,
+									p.playerAugment4,
+							  ].map((augmentId, idx) =>
+									augmentId ? (
+										<div
+											key={idx}
+											className="w-5 h-5 bg-[--card-bg] rounded overflow-hidden"
+										>
+											<NextImage
+												src={getAugmentIcon(augmentId)}
+												alt="augment"
+												width={20}
+												height={20}
+											/>
+										</div>
+									) : null
+							  )
+							: [0, 1, 2, 3, 4, 5, 6].map((idx) => {
+									const itemId = p[`item${idx}`];
+									return (
+										<div
+											key={idx}
+											className="w-5 h-5 bg-[--card-bg] rounded overflow-hidden"
+										>
+											{itemId > 0 && (
+												<NextImage
+													src={`https://ddragon.leagueoflegends.com/cdn/15.8.1/img/item/${itemId}.png`}
+													alt="item"
+													width={20}
+													height={20}
+												/>
+											)}
+										</div>
+									);
+							  })}
+					</div>
+				</td>
+			</tr>
 		);
 	};
+
+	const isArena = match.info.queueId === 1700 || match.info.queueId === 1710;
+
+	if (isArena) {
+		const teams = {};
+		match.info.participants.forEach((p) => {
+			const teamId = p.playerSubteamId || p.teamId;
+			if (!teams[teamId]) {
+				teams[teamId] = [];
+			}
+			teams[teamId].push(p);
+		});
+
+		return (
+			<div>
+				{Object.entries(teams).map(([teamId, teamArr]) => (
+					<TeamBlock
+						key={teamId}
+						teamArr={teamArr}
+						teamName={`Team ${teamId}`}
+						isWin={teamArr.some((p) => p.win)}
+					/>
+				))}
+			</div>
+		);
+	}
 
 	return (
 		<div>
@@ -609,7 +575,9 @@ function Participant({ p, puuid, r, getA, getPerk, arena = false }) {
 				{/* Mobile Arena Augments */}
 				{arena && p.missions?.playerAugments && (
 					<div className="md:hidden flex items-center mt-2">
-						<div className="text-xs text-[--text-secondary] mr-2">Augments:</div>
+						<div className="text-xs text-[--text-secondary] mr-2">
+							Augments:
+						</div>
 						<div className="flex gap-1">
 							{p.missions.playerAugments
 								.filter(Boolean)
