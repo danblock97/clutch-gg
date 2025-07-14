@@ -6,7 +6,6 @@ const RIOT_API_KEY = process.env.RIOT_API_KEY;
  * Fetch League summoner data using an encrypted PUUID.
  */
 export const fetchSummonerData = async (encryptedPUUID, region) => {
-
 	const summonerResponse = await fetch(
 		`https://${region}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${encryptedPUUID}`,
 		{ headers: { "X-Riot-Token": RIOT_API_KEY } }
@@ -211,7 +210,7 @@ export const fetchLiveGameData = async (puuid, region, platform) => {
 	const normalizedRegion = region.toUpperCase();
 
 	const liveGameResponse = await fetch(
-		`https://${normalizedRegion}.api.riotgames.com/lol/spectator/v5/active-games/by-puuid/${puuid}`,
+		`https://${normalizedRegion}.api.riotgames.com/lol/spectator/v5/active-games/by-summoner/${puuid}`,
 		{ headers: { "X-Riot-Token": RIOT_API_KEY } }
 	);
 	if (!liveGameResponse.ok) return null;
@@ -253,14 +252,18 @@ export const getFeaturedGames = async (region, retries = 3) => {
 			if (response.status === 429) {
 				const retryAfter = response.headers.get("Retry-After");
 				const waitTime = (retryAfter ? parseInt(retryAfter) : 2) * 1000;
-				console.warn(`Rate limited for ${platformId}. Waiting ${waitTime}ms before retry...`);
+				console.warn(
+					`Rate limited for ${platformId}. Waiting ${waitTime}ms before retry...`
+				);
 				await new Promise((resolve) => setTimeout(resolve, waitTime));
 				continue;
 			}
 
 			if (response.status === 502 || response.status === 503) {
 				const waitTime = attempt * 1000; // Exponential backoff
-				console.warn(`Server error (${response.status}) for ${platformId}. Waiting ${waitTime}ms before retry...`);
+				console.warn(
+					`Server error (${response.status}) for ${platformId}. Waiting ${waitTime}ms before retry...`
+				);
 				await new Promise((resolve) => setTimeout(resolve, waitTime));
 				continue;
 			}
@@ -369,8 +372,6 @@ export const fetchSummonerPUUID = async (puuid, region) => {
 	const data = await response.json();
 	return { puuid: data.puuid, profileIconId: data.profileIconId };
 };
-
-
 
 /**
  * Fetch account data using a player's PUUID.
