@@ -30,6 +30,18 @@ const nextConfig = {
 		MONGODB_URI: process.env.MONGODB_URI,
 		RIOT_API_KEY: process.env.RIOT_API_KEY,
 	},
+	async rewrites() {
+		return [
+			{
+				source: "/robots.txt",
+				destination: "/robots.txt",
+			},
+			{
+				source: "/sitemap.xml",
+				destination: "/sitemap.xml",
+			},
+		];
+	},
 };
 
 export default nextConfig;

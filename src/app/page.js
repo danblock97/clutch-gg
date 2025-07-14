@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import HomePage from "@/components/HomePage";
 import { usePathname } from "next/navigation";
 
+
 const Page = () => {
 	const pathname = usePathname();
 	const [gameType, setGameType] = useState("league");

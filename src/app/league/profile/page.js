@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useReducer, useCallback, useEffect, Suspense } from "react";
+
 import { useSearchParams } from "next/navigation";
 import Profile from "@/components/league/Profile";
 import RankedInfo from "@/components/league/RankedInfo";

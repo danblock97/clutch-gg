@@ -1,6 +1,31 @@
 import Link from "next/link";
 import { FaUsers, FaArchive } from "react-icons/fa";
 
+export const metadata = {
+	title: "League of Legends Data Studio - ClutchGG",
+	description: "Explore comprehensive League of Legends data including champion information, item stats, abilities, and detailed analytics. Your central hub for LoL data.",
+	keywords: ["League of Legends data", "LoL champions", "champion stats", "item database", "champion abilities", "League data studio", "gaming analytics"],
+	openGraph: {
+		title: "League of Legends Data Studio - ClutchGG",
+		description: "Explore comprehensive League of Legends data including champion information, item stats, abilities, and detailed analytics. Your central hub for LoL data.",
+		type: "website",
+		images: [
+			{
+				url: "/images/logo.png",
+				width: 1200,
+				height: 630,
+				alt: "League of Legends Data Studio",
+			},
+		],
+	},
+	twitter: {
+		card: "summary_large_image",
+		title: "League of Legends Data Studio - ClutchGG",
+		description: "Explore comprehensive League of Legends data including champion information, item stats, abilities, and detailed analytics. Your central hub for LoL data.",
+		images: ["/images/logo.png"],
+	},
+};
+
 export default function DataStudio() {
 	return (
 		<div className="min-h-screen flex flex-col items-center justify-center p-4">

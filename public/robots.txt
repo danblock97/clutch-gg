@@ -1,2 +1,7 @@
 User-agent: *
+Allow: /
 Disallow: /api/
+Disallow: /auth/
+
+# Sitemap
+Sitemap: https://clutchgg.lol/sitemap.xml
