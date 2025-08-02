@@ -1,9 +1,7 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 
 const Support = () => {
-	const [isModalOpen, setIsModalOpen] = useState(false);
-
 	// Update document title for this page
 	useEffect(() => {
 		if (typeof document !== "undefined") {
@@ -11,36 +9,8 @@ const Support = () => {
 		}
 	}, []);
 
-	// Close modal on escape key
-	useEffect(() => {
-		const handleEscapeKey = (event) => {
-			if (event.key === 'Escape') {
-				setIsModalOpen(false);
-			}
-		};
-
-		if (isModalOpen) {
-			document.addEventListener('keydown', handleEscapeKey);
-			document.body.style.overflow = 'hidden';
-		} else {
-			document.body.style.overflow = 'unset';
-		}
-
-		return () => {
-			document.removeEventListener('keydown', handleEscapeKey);
-			document.body.style.overflow = 'unset';
-		};
-	}, [isModalOpen]);
-
-	const notionUrl = "https://roomy-pick-4e2.notion.site/ebd/20c05d85e58380a28481cd5f3c50d91b";
-
-	const openSupportModal = () => {
-		setIsModalOpen(true);
-	};
-
-	const closeSupportModal = () => {
-		setIsModalOpen(false);
-	};
+	const bugReportUrl = "https://danblock97.atlassian.net/jira/software/c/form/f0cb99d8-8982-4161-903f-cee6adca7be7?atlOrigin=eyJpIjoiZWM5N2I5ODVmMzdmNDQyZmFmMDI2M2Q0ZTkxY2NhMjEiLCJwIjoiaiJ9";
+	const featureRequestUrl = "https://danblock97.atlassian.net/jira/software/c/form/76f695dc-127f-4326-8fe9-95820dcbf114?atlOrigin=eyJpIjoiODlmMDYwMzM1OTEwNDc0Yzg1MWQzYzhjNzY0Y2MyNzciLCJwIjoiaiJ9";
 
 	const openExternalForm = (url) => {
 		window.open(url, '_blank', 'noopener noreferrer');
@@ -63,25 +33,42 @@ const Support = () => {
 					<p className="text-xl text-gray-200 max-w-3xl mx-auto mb-8">
 						Need assistance? Report bugs, request features, or get help with any questions.
 					</p>
-					<button
-						onClick={openSupportModal}
-						className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-2xl shadow-lg text-lg group"
-					>
-						<svg className="w-6 h-6 mr-2 group-hover:animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-						</svg>
-						Open Support Form
-						<svg className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-						</svg>
-					</button>
+					<div className="flex flex-col sm:flex-row gap-4 justify-center">
+						<button
+							onClick={() => openExternalForm(bugReportUrl)}
+							className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-2xl shadow-lg text-lg group"
+						>
+							<svg className="w-6 h-6 mr-2 group-hover:animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+							</svg>
+							Report a Bug
+							<svg className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+							</svg>
+						</button>
+						<button
+							onClick={() => openExternalForm(featureRequestUrl)}
+							className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-2xl shadow-lg text-lg group"
+						>
+							<svg className="w-6 h-6 mr-2 group-hover:animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+							</svg>
+							Request a Feature
+							<svg className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+							</svg>
+						</button>
+					</div>
 				</div>
 			</div>
 
 			{/* Feature Cards Grid */}
 			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
 				{/* Bug Report Card */}
-				<div className="bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-xl shadow-lg border border-gray-700 hover:border-red-500 transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl group">
+				<button
+					onClick={() => openExternalForm(bugReportUrl)}
+					className="bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-xl shadow-lg border border-gray-700 hover:border-red-500 transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl group text-left w-full"
+				>
 					<div className="flex items-center mb-4">
 						<div className="p-3 bg-red-500 bg-opacity-20 rounded-lg mr-4 group-hover:bg-opacity-30 transition-all duration-300">
 							<svg className="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -99,10 +86,13 @@ const Support = () => {
 						</svg>
 						Quick response
 					</div>
-				</div>
+				</button>
 
 				{/* Feature Request Card */}
-				<div className="bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-xl shadow-lg border border-gray-700 hover:border-green-500 transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl group">
+				<button
+					onClick={() => openExternalForm(featureRequestUrl)}
+					className="bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-xl shadow-lg border border-gray-700 hover:border-green-500 transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl group text-left w-full"
+				>
 					<div className="flex items-center mb-4">
 						<div className="p-3 bg-green-500 bg-opacity-20 rounded-lg mr-4 group-hover:bg-opacity-30 transition-all duration-300">
 							<svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -120,7 +110,7 @@ const Support = () => {
 						</svg>
 						Community driven
 					</div>
-				</div>
+				</button>
 
 				{/* General Support Card */}
 				<div className="bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-xl shadow-lg border border-gray-700 hover:border-blue-500 transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl group">
@@ -180,63 +170,6 @@ const Support = () => {
 				</div>
 			</div>
 
-			{/* Support Modal */}
-			{isModalOpen && (
-				<div 
-					className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm"
-					onClick={closeSupportModal}
-				>
-					<div 
-						className="bg-gray-900 rounded-2xl max-w-7xl w-full max-h-[95vh] overflow-hidden relative shadow-2xl border border-gray-700 transform transition-all duration-300 animate-in slide-in-from-bottom-4"
-						onClick={(e) => e.stopPropagation()}
-					>
-						{/* Modal Header */}
-						<div className="flex items-center justify-between p-6 border-b border-gray-700 bg-gradient-to-r from-gray-900 to-gray-800">
-							<div className="flex items-center">
-								<div className="p-2 bg-purple-500 bg-opacity-20 rounded-lg mr-3">
-									<svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-									</svg>
-								</div>
-								<h3 className="text-2xl font-bold text-white">Support Request Form</h3>
-							</div>
-							<div className="flex items-center space-x-3">
-								<button
-									onClick={() => openExternalForm(notionUrl)}
-									className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors flex items-center space-x-2 font-medium"
-									title="Open in new tab"
-								>
-									<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-									</svg>
-									<span>Open in Tab</span>
-								</button>
-								<button
-									onClick={closeSupportModal}
-									className="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors"
-									title="Close (Esc)"
-								>
-									<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-									</svg>
-								</button>
-							</div>
-						</div>
-						{/* Modal Content */}
-						<div className="h-[calc(95vh-100px)] bg-white">
-							<iframe
-								src={notionUrl}
-								width="100%"
-								height="100%"
-								frameBorder="0"
-								allowFullScreen
-								title="Support Request Form"
-								className="w-full h-full rounded-b-2xl"
-							/>
-						</div>
-					</div>
-				</div>
-			)}
 		</div>
 	);
 };
