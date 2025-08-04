@@ -125,7 +125,7 @@ export async function GET(req) {
 
 		const [matchIds, liveGameData] = await Promise.all([
 			fetchTFTMatchIds(puuid, platform),
-			fetchTFTLiveGameData(puuid, normalizedRegion, platform),
+			fetchTFTLiveGameData(puuid, normalizedRegion),
 		]);
 
 		const matchDetails = await Promise.all(

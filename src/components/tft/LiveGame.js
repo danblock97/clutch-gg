@@ -399,7 +399,6 @@ export default function LiveGame({ liveGameData, region, matchHistory }) {
 
 		return (
 			<div
-				key={p.summonerId}
 				className="card-highlight text-[--text-primary] border-l-4 border-[--tft-primary] rounded-md p-4 shadow-lg hover:shadow-xl transition-all bg-gradient-to-br from-gray-800 to-[#13151b]"
 			>
 				<div className="flex items-center space-x-3 mb-3">
@@ -557,7 +556,11 @@ export default function LiveGame({ liveGameData, region, matchHistory }) {
 
 			{/* Content based on view mode */}
 			<div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-				{sortedParticipants.map(renderEnhancedCard)}
+				{sortedParticipants.map((participant, index) => (
+					<div key={participant.puuid || participant.summonerId || index}>
+						{renderEnhancedCard(participant)}
+					</div>
+				))}
 			</div>
 
 			{/* Footer with game details */}

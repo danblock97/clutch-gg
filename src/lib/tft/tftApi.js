@@ -197,10 +197,16 @@ export const fetchTFTAdditionalData = async (puuid, region) => {
 			(queue) => queue.queueType === "RANKED_TFT"
 		);
 
+		// Combine tier and rank into a single field for LiveGame component compatibility
+		const combinedRank = rankedTftData 
+			? `${rankedTftData.tier} ${rankedTftData.rank}`.trim()
+			: "Unranked";
+
 		return {
 			queueType: "RANKED_TFT", // Add queueType for frontend compatibility
 			tier: rankedTftData ? rankedTftData.tier : "UNRANKED",
-			rank: rankedTftData ? rankedTftData.rank : "",
+			rank: combinedRank, // Combined format like "GOLD IV" for LiveGame compatibility
+			lp: rankedTftData ? rankedTftData.leaguePoints : 0, // Add lp alias for LiveGame
 			leaguePoints: rankedTftData ? rankedTftData.leaguePoints : 0,
 			wins: rankedTftData ? rankedTftData.wins : 0,
 			losses: rankedTftData ? rankedTftData.losses : 0,
@@ -214,7 +220,8 @@ export const fetchTFTAdditionalData = async (puuid, region) => {
 		return {
 			queueType: "RANKED_TFT",
 			tier: "UNRANKED",
-			rank: "",
+			rank: "Unranked", // Use consistent format
+			lp: 0, // Add lp alias for LiveGame
 			leaguePoints: 0,
 			wins: 0,
 			losses: 0,
@@ -246,7 +253,7 @@ export const fetchTFTSummonerPUUID = async (encryptedPUUID, region) => {
 /**
  * Fetch TFT live game data.
  */
-export const fetchTFTLiveGameData = async (puuid, region, platform) => {
+export const fetchTFTLiveGameData = async (puuid, region) => {
 	const normalizedRegion = region.toUpperCase();
 
 	const liveGameResponse = await fetch(
@@ -329,10 +336,16 @@ export const fetchTFTAdditionalGameData = async (puuid, region) => {
 			(queue) => queue.queueType === "RANKED_TFT"
 		);
 
+		// Combine tier and rank into a single field for LiveGame component compatibility
+		const combinedRank = rankedTftData 
+			? `${rankedTftData.tier} ${rankedTftData.rank}`.trim()
+			: "Unranked";
+
 		return {
 			queueType: "RANKED_TFT", // Add queueType for frontend compatibility
 			tier: rankedTftData ? rankedTftData.tier : "UNRANKED",
-			rank: rankedTftData ? rankedTftData.rank : "",
+			rank: combinedRank, // Combined format like "GOLD IV" for LiveGame compatibility
+			lp: rankedTftData ? rankedTftData.leaguePoints : 0, // Add lp alias for LiveGame
 			leaguePoints: rankedTftData ? rankedTftData.leaguePoints : 0,
 			wins: rankedTftData ? rankedTftData.wins : 0,
 			losses: rankedTftData ? rankedTftData.losses : 0,
@@ -346,7 +359,8 @@ export const fetchTFTAdditionalGameData = async (puuid, region) => {
 		return {
 			queueType: "RANKED_TFT",
 			tier: "UNRANKED",
-			rank: "",
+			rank: "Unranked", // Use consistent format
+			lp: 0, // Add lp alias for LiveGame
 			leaguePoints: 0,
 			wins: 0,
 			losses: 0,
