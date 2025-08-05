@@ -37,7 +37,7 @@ export const metadata = {
         card: "summary_large_image",
         title: "ClutchGG - League of Legends & TFT Stats",
         description: "ClutchGG is your ultimate destination for League of Legends and Teamfight Tactics analytics. Track your performance, view detailed match history, analyze champion statistics, and climb the leaderboards.",
-        images: ["/images/twitter-image.png"],
+        images: ["/images/og-image.png"],
         creator: "@ClutchGG",
         site: "@ClutchGG",
     },
@@ -53,9 +53,19 @@ export const metadata = {
         },
     },
     icons: {
-        icon: "/favicon.ico",
+        icon: [
+            { url: "/images/logo-16x16.png", sizes: "16x16", type: "image/png" },
+            { url: "/images/logo-32x32.png", sizes: "32x32", type: "image/png" },
+            { url: "/images/logo-48x48.png", sizes: "48x48", type: "image/png" },
+        ],
         shortcut: "/favicon.ico",
-        apple: "/apple-touch-icon.png",
+        apple: [
+            { url: "/images/logo-180x180.png", sizes: "180x180", type: "image/png" },
+        ],
+        other: [
+            { rel: "icon", url: "/images/logo-192x192.png", sizes: "192x192", type: "image/png" },
+            { rel: "icon", url: "/images/logo-512x512.png", sizes: "512x512", type: "image/png" },
+        ],
     },
     manifest: "/manifest.webmanifest",
     category: "gaming",
