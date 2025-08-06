@@ -41,5 +41,6 @@ next-env.d.ts
 
 .github
 CLAUDE.md
+.claude/
 
 certificates
