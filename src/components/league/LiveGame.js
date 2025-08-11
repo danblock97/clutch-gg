@@ -706,15 +706,6 @@ export default function LiveGame({ liveGameData, region }) {
 							</div>
 							<span className="font-mono">{time}</span>
 						</div>
-
-						{/* Time Counter */}
-						<div className="flex items-center">
-							<div className="flex h-2 w-2 relative mr-2">
-								<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
-								<span className="relative inline-flex rounded-full h-2 w-2 bg-red-600"></span>
-							</div>
-							<span className="font-mono">{time}</span>
-						</div>
 					</div>
 				</div>
 
@@ -751,15 +742,6 @@ export default function LiveGame({ liveGameData, region }) {
 				</div>
 
 				<div className="flex items-center gap-4">
-					{/* Time Counter */}
-					<div className="flex items-center">
-						<div className="flex h-2 w-2 relative mr-2">
-							<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
-							<span className="relative inline-flex rounded-full h-2 w-2 bg-red-600"></span>
-						</div>
-						<span className="font-mono">{time}</span>
-					</div>
-
 					{/* Time Counter */}
 					<div className="flex items-center">
 						<div className="flex h-2 w-2 relative mr-2">
