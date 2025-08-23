@@ -9,8 +9,8 @@ const Support = () => {
 		}
 	}, []);
 
-	const bugReportUrl = "https://danblock97.atlassian.net/jira/software/c/form/e7ae886a-1dc8-4d0e-ae49-1d2ca321e151?atlOrigin=eyJpIjoiNzkyNGUwMzIxOTIyNGUyODlhOWIzY2E0OWE3Mjg1MGQiLCJwIjoiaiJ9";
-	const featureRequestUrl = "https://danblock97.atlassian.net/jira/software/c/form/d2287937-3d1f-439f-9000-20c3c44cce24?atlOrigin=eyJpIjoiMTc2MGE3Y2QzZTcyNGRkZDliMWRhMzI4YTE1NGEwYmMiLCJwIjoiaiJ9";
+	const bugReportUrl = "https://github.com/danblock97/clutch-gg/issues/new?assignees=&labels=bug&projects=&template=bug_report.md&title=%5BBUG%5D%3A+";
+	const featureRequestUrl = "https://github.com/danblock97/clutch-gg/issues/new?assignees=&labels=enhancement&projects=&template=feature_request.md&title=%5BFEATURE%5D%3A+";
 
 	const openExternalForm = (url) => {
 		window.open(url, '_blank', 'noopener noreferrer');
