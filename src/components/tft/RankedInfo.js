@@ -7,6 +7,26 @@ import {
 	FaChartLine,
 } from "react-icons/fa";
 
+const RankDisplay = ({ tier, rank, tierColorClass }) => {
+	const [isHovered, setIsHovered] = useState(false);
+
+	return (
+		<div
+			className="relative flex items-center"
+			onMouseEnter={() => setIsHovered(true)}
+			onMouseLeave={() => setIsHovered(false)}
+		>
+			{isHovered && (
+				<div
+					className={`absolute bottom-full mb-2 w-max px-2 py-1 bg-gray-800 text-white text-xs rounded-md ${tierColorClass}`}
+				>
+					{`${tier} ${rank}`}
+				</div>
+			)}
+		</div>
+	);
+};
+
 export default function TFTRankedInfo({ rankedData }) {
 	// Find TFT ranked queue - ensure rankedData is an array
 	const tftRanked = Array.isArray(rankedData)
@@ -60,9 +80,11 @@ export default function TFTRankedInfo({ rankedData }) {
 									height={28}
 									className="drop-shadow-lg"
 								/>
-								<p className={`ml-2 font-semibold ${tierColorClass}`}>
-									{data && data.tier ? `${tier} ${rank}` : "Unranked"}
-								</p>
+								<RankDisplay
+									tier={tier}
+									rank={rank}
+									tierColorClass={tierColorClass}
+								/>
 							</div>
 						)}
 
@@ -300,9 +322,11 @@ export default function TFTRankedInfo({ rankedData }) {
 									height={28}
 									className="drop-shadow-lg"
 								/>
-								<p className={`ml-2 font-semibold ${tierColorClass}`}>
-									{`${tier} ${rank}`}
-								</p>
+								<RankDisplay
+									tier={tier}
+									rank={rank}
+									tierColorClass={tierColorClass}
+								/>
 							</div>
 						) : (
 							<p className="font-semibold text-gray-400">Unranked</p>

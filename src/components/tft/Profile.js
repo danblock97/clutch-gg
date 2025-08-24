@@ -221,7 +221,7 @@ export default function Profile({
 		? rankedData.find((queue) => queue.queueType === "RANKED_TFT")
 		: null;
 	const rankedIcon =
-		tftRanked && tftRanked.tier
+		tftRanked && tftRanked.tier && tftRanked.tier.toLowerCase() !== 'unranked'
 			? `/images/league/rankedEmblems/${tftRanked.tier.toLowerCase()}.webp`
 			: null;
 
@@ -265,11 +265,8 @@ export default function Profile({
 												alt={`${tftRanked.tier} Emblem`}
 												width={40}
 												height={40}
-												className="drop-shadow-md"
+												className=""
 											/>
-											<div className="absolute -bottom-1 -right-1 bg-[--card-bg] text-xs px-1 rounded-md border border-[--card-border]">
-												{tftRanked.rank}
-											</div>
 										</div>
 									)}
 									<div>
@@ -277,7 +274,7 @@ export default function Profile({
 											<span
 												className={`text-[--${tftRanked.tier.toLowerCase()}]`}
 											>
-												{tftRanked.tier}
+												{tftRanked.tier ? tftRanked.tier : "Unranked"}
 											</span>
 											<span className="text-[--text-primary] ml-2">
 												{tftRanked.leaguePoints} LP
@@ -285,10 +282,13 @@ export default function Profile({
 										</p>
 										<p className="text-[--text-secondary] text-sm">
 											{tftRanked.wins}W - {tftRanked.losses}L (
-											{(
-												(tftRanked.wins / (tftRanked.wins + tftRanked.losses)) *
-												100
-											).toFixed(1)}
+											{tftRanked.wins === 0 && tftRanked.losses === 0
+												? "0.0"
+												: (
+														(tftRanked.wins /
+															(tftRanked.wins + tftRanked.losses)) *
+														100
+												  ).toFixed(1)}
 											% WR)
 										</p>
 
