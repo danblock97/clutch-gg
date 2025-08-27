@@ -107,7 +107,12 @@ const fetchArenaAugments = async () => {
 	return augments;
 };
 
-const getQueueName = (queueId) => {
+const getQueueName = (queueId, gameMode) => {
+	// Check for specific game modes first
+	if (gameMode === "RUBY") {
+		return "Doombots";
+	}
+
 	switch (queueId) {
 		case 420:
 			return "Ranked Solo";
@@ -549,6 +554,13 @@ const MatchHistory = ({
 			: name;
 	};
 
+	const cleanBotName = (name, gameMode) => {
+		if (gameMode === "RUBY" && name && name.startsWith("Ruby_")) {
+			return name.substring(5); // Remove "Ruby_" prefix
+		}
+		return name;
+	};
+
 	return (
 		<div className="text-gray-400 w-full max-w-screen-xl mx-auto px-4">
 			{/* Filters */}
@@ -843,7 +855,7 @@ const MatchHistory = ({
 								// existing placement logic remains...
 							} else {
 								// Non-Arena: big text is game mode name
-								outcomeText = getQueueName(match.info.queueId);
+								outcomeText = getQueueName(match.info.queueId, match.info.gameMode);
 							}
 
 							return (
@@ -1068,7 +1080,7 @@ const MatchHistory = ({
 																			: ""
 																	}`}
 																>
-																	{truncateName(participant.riotIdGameName, 7)}
+																	{truncateName(cleanBotName(participant.riotIdGameName, match.info.gameMode), 7)}
 																</span>
 															</p>
 														</div>
@@ -1099,7 +1111,7 @@ const MatchHistory = ({
 																			: ""
 																	}`}
 																>
-																	{truncateName(participant.riotIdGameName, 7)}
+																	{truncateName(cleanBotName(participant.riotIdGameName, match.info.gameMode), 7)}
 																</span>
 															</p>
 														</div>
