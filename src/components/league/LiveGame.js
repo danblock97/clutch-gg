@@ -41,7 +41,7 @@ function getModeAndRankStatus(gameMode, queueId) {
 		case "ULTBOOK":
 			modeName = "Ultimate Spellbook";
 			break;
-		case "DOOMBOTSTEEMO":
+		case "RUBY":
 			modeName = "Doom Bots";
 			break;
 		case "PRACTICETOOL":
