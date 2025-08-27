@@ -1,4 +1,6 @@
+import { Suspense } from "react";
 import FeaturedGamesPageContent from "./FeaturedGamesPageContent";
+import Loading from "@/components/Loading";
 
 export const metadata = {
 	title: "Live Games | Clutch.GG",
@@ -6,5 +8,9 @@ export const metadata = {
 };
 
 export default function FeaturedGamesPage() {
-	return <FeaturedGamesPageContent />;
+	return (
+		<Suspense fallback={<Loading />}>
+			<FeaturedGamesPageContent />
+		</Suspense>
+	);
 }
