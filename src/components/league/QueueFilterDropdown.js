@@ -14,6 +14,9 @@ export const QueueFilterDropdown = ({
 	const buttonRef = useRef(null);
 	const [dropdownWidth, setDropdownWidth] = useState(0);
 
+	// Parse current queue(s) into an array
+	const selectedQueues = selectedQueue === "ALL" ? ["ALL"] : selectedQueue.split(",").map(q => q.trim());
+
 	useEffect(() => {
 		const handleClickOutside = (event) => {
 			if (selectRef.current && !selectRef.current.contains(event.target)) {
@@ -33,15 +36,28 @@ export const QueueFilterDropdown = ({
 	}, [selectedQueue, queues]);
 
 	const handleSelect = (optionValue) => {
-		setSelectedQueue(optionValue);
-		setIsOpen(false);
+		if (optionValue === "ALL") {
+			setSelectedQueue("ALL");
+		} else {
+			const newSelectedQueues = selectedQueues.includes("ALL") 
+				? [optionValue.toString()] // Replace "ALL" with specific queue
+				: selectedQueues.includes(optionValue.toString())
+					? selectedQueues.filter(q => q !== optionValue.toString()) // Remove if already selected
+					: [...selectedQueues.filter(q => q !== "ALL"), optionValue.toString()]; // Add if not selected, remove "ALL"
+			
+			const newQueue = newSelectedQueues.length === 0 
+				? "ALL" 
+				: newSelectedQueues.join(",");
+			setSelectedQueue(newQueue);
+		}
+		// Don't close dropdown for multiselect behavior
 	};
 
-	const displayValue =
-		selectedQueue === "ALL"
-			? "All Queues"
-			: queues.find((q) => q.id === parseInt(selectedQueue))?.name ||
-			  "Select Queue";
+	const displayValue = selectedQueues.length === 1 && selectedQueues[0] === "ALL"
+		? "All Queues"
+		: selectedQueues.length === 1
+			? queues.find((q) => q.id === parseInt(selectedQueues[0]))?.name || "Select Queue"
+			: `${selectedQueues.length} queues selected`;
 
 	return (
 		<div className="relative w-full sm:w-48" ref={selectRef}>
@@ -65,20 +81,29 @@ export const QueueFilterDropdown = ({
 					style={{ width: `${dropdownWidth}px` }}
 				>
 					<li
-						className="px-3 py-2 cursor-pointer hover:bg-[--primary]/10 text-[--text-primary]"
+						className={`px-3 py-2 cursor-pointer hover:bg-[--primary]/10 text-[--text-primary] flex items-center justify-between ${
+							selectedQueues.includes("ALL") ? 'bg-[--primary]/20' : ''
+						}`}
 						onClick={() => handleSelect("ALL")}
 					>
-						All Queues
+						<span>All Queues</span>
+						{selectedQueues.includes("ALL") && <span className="text-[--primary] text-sm">✓</span>}
 					</li>
-					{queues.map((queue) => (
-						<li
-							key={queue.id}
-							className="px-3 py-2 cursor-pointer hover:bg-[--primary]/10 text-[--text-primary]"
-							onClick={() => handleSelect(queue.id.toString())}
-						>
-							{queue.name}
-						</li>
-					))}
+					{queues.map((queue) => {
+						const isSelected = selectedQueues.includes(queue.id.toString());
+						return (
+							<li
+								key={queue.id}
+								className={`px-3 py-2 cursor-pointer hover:bg-[--primary]/10 text-[--text-primary] flex items-center justify-between ${
+									isSelected ? 'bg-[--primary]/20' : ''
+								}`}
+								onClick={() => handleSelect(queue.id)}
+							>
+								<span>{queue.name}</span>
+								{isSelected && <span className="text-[--primary] text-sm">✓</span>}
+							</li>
+						);
+					})}
 				</ul>
 			)}
 		</div>

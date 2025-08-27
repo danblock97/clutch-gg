@@ -28,6 +28,9 @@ export const RegionDropdown = ({ region, setRegion, disabled = false }) => {
 	const buttonRef = useRef(null);
 	const [dropdownWidth, setDropdownWidth] = useState(0);
 
+	// Parse current region(s) into an array
+	const selectedRegions = region === "ALL" ? ["ALL"] : region.split(",").map(r => r.trim());
+
 	useEffect(() => {
 		const handleClickOutside = (event) => {
 			if (selectRef.current && !selectRef.current.contains(event.target)) {
@@ -47,25 +50,46 @@ export const RegionDropdown = ({ region, setRegion, disabled = false }) => {
 	}, [region]);
 
 	const handleSelect = (optionValue) => {
-		setRegion(optionValue);
-		setIsOpen(false);
+		if (optionValue === "ALL") {
+			setRegion("ALL");
+		} else {
+			const newSelectedRegions = selectedRegions.includes("ALL") 
+				? [optionValue] // Replace "ALL" with specific region
+				: selectedRegions.includes(optionValue)
+					? selectedRegions.filter(r => r !== optionValue) // Remove if already selected
+					: [...selectedRegions.filter(r => r !== "ALL"), optionValue]; // Add if not selected, remove "ALL"
+			
+			const newRegion = newSelectedRegions.length === 0 
+				? "ALL" 
+				: newSelectedRegions.join(",");
+			setRegion(newRegion);
+		}
+		// Don't close dropdown for multiselect behavior
 	};
 
 	const getOptionDisplay = (optionKey) => {
 		const optionName = regionMappings[optionKey];
+		const isSelected = selectedRegions.includes(optionKey);
 
 		return (
 			<li
 				key={optionKey}
-				className="px-3 py-2 cursor-pointer hover:bg-[--primary]/10 text-[--text-primary]"
+				className={`px-3 py-2 cursor-pointer hover:bg-[--primary]/10 text-[--text-primary] flex items-center justify-between ${
+					isSelected ? 'bg-[--primary]/20' : ''
+				}`}
 				onClick={() => handleSelect(optionKey)}
 			>
 				<span>{optionName}</span>
+				{isSelected && <span className="text-[--primary] text-sm">✓</span>}
 			</li>
 		);
 	};
 
-	const displayValue = regionMappings[region];
+	const displayValue = selectedRegions.length === 1 && selectedRegions[0] === "ALL"
+		? "All Regions"
+		: selectedRegions.length === 1
+			? regionMappings[selectedRegions[0]]
+			: `${selectedRegions.length} regions selected`;
 
 	return (
 		<div className="relative w-full sm:w-48" ref={selectRef}>
