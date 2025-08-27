@@ -30,6 +30,13 @@ const fetchPerks = async () => {
 	return res.json();
 };
 
+const cleanBotName = (name, gameMode) => {
+	if (gameMode === "RUBY" && name && name.startsWith("Ruby_")) {
+		return name.substring(5); // Remove "Ruby_" prefix
+	}
+	return name;
+};
+
 export default function MatchStatsTab({
 	matchDetails,
 	matchId,
@@ -321,7 +328,7 @@ export default function MatchStatsTab({
 							href={`/league/profile?gameName=${p.riotIdGameName}&tagLine=${p.riotIdTagline}&region=${region}`}
 							className="truncate hover:underline"
 						>
-							{p.riotIdGameName}
+							{cleanBotName(p.riotIdGameName, match.info.gameMode)}
 							<span className="text-[--text-secondary]">
 								#{p.riotIdTagline}
 							</span>
@@ -508,7 +515,7 @@ function Participant({ p, puuid, r, getA, getPerk, arena = false }) {
 								isCurrentPlayer ? "text-[--primary]" : ""
 							}`}
 						>
-							{p.riotIdGameName}
+							{cleanBotName(p.riotIdGameName, match.info.gameMode)}
 							<span className="text-[--text-secondary] text-xs">
 								#{p.riotIdTagline}
 							</span>

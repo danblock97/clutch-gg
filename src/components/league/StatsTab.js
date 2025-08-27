@@ -2,6 +2,13 @@ import React from "react";
 import Image from "next/image";
 import { FaInfoCircle, FaChartLine, FaShieldAlt, FaEye, FaCoins, FaFlag } from "react-icons/fa";
 
+const cleanBotName = (name, gameMode) => {
+	if (gameMode === "RUBY" && name && name.startsWith("Ruby_")) {
+		return name.substring(5); // Remove "Ruby_" prefix
+	}
+	return name;
+};
+
 export default function StatsTab({ matchDetails, matchId }) {
 	if (!matchDetails) return null;
 
@@ -214,7 +221,7 @@ export default function StatsTab({ matchDetails, matchId }) {
 														/>
 													</div>
 													<span className="truncate text-xs max-w-[50px]">
-                              {p.riotIdGameName?.split('#')[0]}
+                              {cleanBotName(p.riotIdGameName, match.info.gameMode)?.split('#')[0]}
                             </span>
 												</div>
 											</th>
