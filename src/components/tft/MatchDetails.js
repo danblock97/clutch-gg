@@ -502,17 +502,13 @@ function ParticipantRow({
 						href={`/profile/${encodeURIComponent(playerData.name)}/${
 							playerData.tagLine || "NA1"
 						}`}
-						legacyBehavior
+						className="font-semibold text-gray-100 hover:text-blue-400 truncate"
+						title={`${playerData.name}#${playerData.tagLine}`}
 					>
-						<a
-							className="font-semibold text-gray-100 hover:text-blue-400 truncate"
-							title={`${playerData.name}#${playerData.tagLine}`}
-						>
-							{playerData.name}
-							<span className="text-[--text-secondary] text-xs ml-1">
-								#{playerData.tagLine}
-							</span>
-						</a>
+						{playerData.name}
+						<span className="text-[--text-secondary] text-xs ml-1">
+							#{playerData.tagLine}
+						</span>
 					</Link>
 				) : (
 					<span className="font-semibold text-gray-100 truncate">Unknown</span>

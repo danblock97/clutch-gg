@@ -122,66 +122,66 @@ const RecentlyPlayedWith = ({
 											: "text-red-500";
 
 									return (
-										<Link key={index} href={profileLink} legacyBehavior>
-											<a
-												onClick={(e) => handleProfileClick(e, profileLink)}
-												className="flex items-center justify-between py-1.5 border-b border-[--card-border] last:border-b-0 hover:bg-[--card-bg] cursor-pointer transition-colors duration-150 px-1"
-											>
-												<div className="flex items-center min-w-0 gap-2">
-													<div className="relative flex-shrink-0 w-6 h-6">
-														<Image
-															src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${teammate.championId}.png`}
-															alt="Champion Icon"
-															width={24}
-															height={24}
-															className="rounded-full border border-[--card-border]"
-														/>
-													</div>
-													<div className="min-w-0">
-														<p className="text-sm font-medium truncate">
-															{riotIdGameName}
-															<span className="text-[--text-secondary] ml-1 text-xs font-normal">
-																#{riotIdTagline}
-															</span>
-														</p>
-													</div>
+										<Link
+											key={index}
+											href={profileLink}
+											onClick={(e) => handleProfileClick(e, profileLink)}
+											className="flex items-center justify-between py-1.5 border-b border-[--card-border] last:border-b-0 hover:bg-[--card-bg] cursor-pointer transition-colors duration-150 px-1"
+										>
+											<div className="flex items-center min-w-0 gap-2">
+												<div className="relative flex-shrink-0 w-6 h-6">
+													<Image
+														src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${teammate.championId}.png`}
+														alt="Champion Icon"
+														width={24}
+														height={24}
+														className="rounded-full border border-[--card-border]"
+													/>
 												</div>
+												<div className="min-w-0">
+													<p className="text-sm font-medium truncate">
+														{riotIdGameName}
+														<span className="text-[--text-secondary] ml-1 text-xs font-normal">
+															#{riotIdTagline}
+														</span>
+													</p>
+												</div>
+											</div>
 
-												<div className="flex items-center gap-3 flex-shrink-0 text-xs">
-													<div className="text-center w-8">
-														<p className="text-[--text-secondary] text-[10px]">
-															Games
-														</p>
-														<p className="font-medium">
-															{teammate.gamesPlayed}
-														</p>
-													</div>
-													<div className="text-center w-12">
-														<p className="text-[--text-secondary] text-[10px]">
-															W/L
-														</p>
-														<p className="font-medium">
-															<span className="text-[--success]">
-																{teammate.wins}
-															</span>
-															<span className="text-[--text-secondary] mx-0.5">
-																/
-															</span>
-															<span className="text-[--error]">
-																{teammate.losses}
-															</span>
-														</p>
-													</div>
-													<div className="text-center w-8">
-														<p className="text-[--text-secondary] text-[10px]">
-															WR
-														</p>
-														<p className={`font-bold ${winRateColor}`}>
-															{winRate}%
-														</p>
-													</div>
+											<div className="flex items-center gap-3 flex-shrink-0 text-xs">
+												<div className="text-center w-8">
+													<p className="text-[--text-secondary] text-[10px]">
+														Games
+													</p>
+													<p className="font-medium">
+														{teammate.gamesPlayed}
+													</p>
 												</div>
-											</a>
+												<div className="text-center w-12">
+													<p className="text-[--text-secondary] text-[10px]">
+														W/L
+													</p>
+													<p className="font-medium">
+														<span className="text-[--success]">
+															{teammate.wins}
+														</span>
+														<span className="text-[--text-secondary] mx-0.5">
+															/
+														</span>
+														<span className="text-[--error]">
+															{teammate.losses}
+														</span>
+													</p>
+												</div>
+												<div className="text-center w-8">
+													<p className="text-[--text-secondary] text-[10px]">
+														WR
+													</p>
+													<p className={`font-bold ${winRateColor}`}>
+														{winRate}%
+													</p>
+												</div>
+											</div>
 										</Link>
 									);
 								})}

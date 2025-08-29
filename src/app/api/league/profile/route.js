@@ -62,6 +62,8 @@ export async function GET(req) {
 
 	try {
 		const normalizedRegion = region.toUpperCase();
+		const normalizedGameName = gameName.trim();
+		const normalizedTagLine = tagLine.trim();
 		const platform = regionToPlatform[normalizedRegion];
 		const matchPlatform = regionToMatchPlatform[normalizedRegion];
 
@@ -72,8 +74,52 @@ export async function GET(req) {
 			);
 		}
 
+		// DB-first: try to resolve Riot account by name/tag/region and return cached data if available
+		let { data: riotAccountByName, error: accountLookupError } = await supabase
+			.from("riot_accounts")
+			.select("*")
+			.ilike("region", normalizedRegion)
+			.ilike("gamename", normalizedGameName)
+			.ilike("tagline", normalizedTagLine)
+			.maybeSingle();
+		if (accountLookupError) throw accountLookupError;
+		if (riotAccountByName && !forceUpdate) {
+			let { data: storedLeagueDataA, error: leagueDataErrorA } = await supabase
+				.from("league_data")
+				.select("*")
+				.eq("riot_account_id", riotAccountByName.id)
+				.maybeSingle();
+			if (leagueDataErrorA) throw leagueDataErrorA;
+			if (storedLeagueDataA) {
+				let { data: userMatchObjectsA, error: matchesErrorA } = await supabase
+					.from("league_matches")
+					.select("matchid, match_data, game_creation, created_at")
+					.filter(
+						"match_data->metadata->participants",
+						"cs",
+						`"${riotAccountByName.puuid}"`
+					)
+					.order("game_creation", { ascending: false });
+				if (matchesErrorA) throw matchesErrorA;
+				const userMatchDetailsA = (userMatchObjectsA || []).map((m) => m.match_data);
+				const responseDataA = {
+					profiledata: storedLeagueDataA.profiledata,
+					accountdata: storedLeagueDataA.accountdata,
+					rankeddata: storedLeagueDataA.rankeddata,
+					championmasterydata: storedLeagueDataA.championmasterydata,
+					livegamedata: storedLeagueDataA.livegamedata,
+					updated_at: storedLeagueDataA.updated_at,
+					matchdetails: userMatchDetailsA,
+				};
+				return new Response(JSON.stringify(responseDataA), {
+					status: 200,
+					headers: { "Content-Type": "application/json" },
+				});
+			}
+		}
+
 		// Fetch account data to get the puuid. Uses 'platform'
-		const accountData = await fetchAccountData(gameName, tagLine, platform);
+		const accountData = await fetchAccountData(normalizedGameName, normalizedTagLine, platform);
 
 		if (!accountData?.puuid) {
 			return new Response(
@@ -125,7 +171,8 @@ export async function GET(req) {
 
 		if (!riotAccount?.puuid) {
 			throw new Error("Riot account record is missing the puuid.");
-		} // Check if we should return cached data first
+		}
+		// Second DB-first early return after resolving by PUUID
 		if (!forceUpdate) {
 			let { data: storedLeagueData, error: leagueDataError } = await supabase
 				.from("league_data")
@@ -134,8 +181,6 @@ export async function GET(req) {
 				.maybeSingle();
 			if (leagueDataError) throw leagueDataError;
 			if (storedLeagueData) {
-				// Fetch stored match history from database (all matches for this user)
-				// Use a more reliable approach to filter matches by participant
 				let { data: userMatchObjects, error: matchesError } = await supabase
 					.from("league_matches")
 					.select("matchid, match_data, game_creation, created_at")
@@ -146,11 +191,7 @@ export async function GET(req) {
 					)
 					.order("game_creation", { ascending: false });
 				if (matchesError) throw matchesError;
-				const userMatchDetails = (userMatchObjects || []).map(
-					(match) => match.match_data
-				);
-
-				// Return cached data with all stored match history
+				const userMatchDetails = (userMatchObjects || []).map((match) => match.match_data);
 				const responseData = {
 					profiledata: storedLeagueData.profiledata,
 					accountdata: storedLeagueData.accountdata,
@@ -165,13 +206,15 @@ export async function GET(req) {
 					headers: { "Content-Type": "application/json" },
 				});
 			}
+			// If no cache and not forcing update, proceed to create the profile by fetching external data
 		}
 
 		const puuid = riotAccount.puuid;
 
-		const summonerData = await fetchSummonerData(puuid, region);
+		// Only reach here if forceUpdate=true: perform external fetch and persist
+		const summonerData = await fetchSummonerData(puuid, normalizedRegion);
 		const [rankedData, matchIds] = await Promise.all([
-			fetchRankedData(puuid, region),
+			fetchRankedData(puuid, normalizedRegion),
 			fetchMatchIds(puuid, matchPlatform),
 		]);
 		// Fetch match details concurrently and upsert them

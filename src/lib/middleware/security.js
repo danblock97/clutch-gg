@@ -7,17 +7,44 @@ const VALID_API_KEYS = new Set([
 ]);
 
 // Allowed origins for CORS
-const ALLOWED_ORIGINS = ["https://www.clutchgg.lol", "http://localhost:3000"];
+const ENV_ORIGINS = [
+	process.env.NEXT_PUBLIC_SITE_URL,
+	process.env.SITE_URL,
+	process.env.NEXT_PUBLIC_BASE_URL,
+].filter(Boolean);
+
+const DEFAULT_ORIGINS = [
+	"https://www.clutchgg.lol",
+	"https://clutchgg.lol",
+	"http://localhost:3000",
+	"http://127.0.0.1:3000",
+];
+
+const ALLOWED_ORIGINS = new Set([...DEFAULT_ORIGINS, ...ENV_ORIGINS]);
 
 export async function securityMiddleware(req) {
 	try {
-		// 1. CORS Protection
+		// 1. CORS / Origin Protection
 		const origin = req.headers.get("origin");
-		if (origin && !ALLOWED_ORIGINS.includes(origin)) {
-			return new NextResponse(
-				JSON.stringify({ error: "Unauthorized origin" }),
-				{ status: 403, headers: { "Content-Type": "application/json" } }
-			);
+		const host = req.headers.get("host");
+		if (origin) {
+			let isAllowed = false;
+			try {
+				const originUrl = new URL(origin);
+				const sameHost = originUrl.host === host; // same-origin
+				const exactAllowed = ALLOWED_ORIGINS.has(origin);
+				const isVercelPreview = /\.vercel\.app$/i.test(originUrl.hostname);
+				const isLocalhost = /^(localhost|127\.0\.0\.1)(:\\d+)?$/i.test(originUrl.host);
+				isAllowed = sameHost || exactAllowed || isVercelPreview || isLocalhost;
+			} catch (_) {
+				isAllowed = false;
+			}
+			if (!isAllowed) {
+				return new NextResponse(
+					JSON.stringify({ error: "Unauthorized origin" }),
+					{ status: 403, headers: { "Content-Type": "application/json" } }
+				);
+			}
 		}
 
 		// 2. Request Logging (optional - can be removed if not needed)

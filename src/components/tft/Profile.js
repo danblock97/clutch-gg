@@ -224,6 +224,11 @@ export default function Profile({
 		tftRanked && tftRanked.tier && tftRanked.tier.toLowerCase() !== 'unranked'
 			? `/images/league/rankedEmblems/${tftRanked.tier.toLowerCase()}.webp`
 			: null;
+	// Derive division (I/II/III/IV) from combined rank string if available
+	const tftDivision =
+		tftRanked && typeof tftRanked.rank === "string" && tftRanked.rank.toLowerCase() !== "unranked"
+			? (tftRanked.rank.split(" ")[1] || "")
+			: "";
 
 	return (
 		<main className="min-h-screen bg-gray-900 text-white">
@@ -267,6 +272,11 @@ export default function Profile({
 												height={40}
 												className=""
 											/>
+											{tftDivision && (
+												<div className="absolute -bottom-1 -right-1 bg-gradient-to-br from-[--primary] to-[--secondary] text-white text-[10px] font-bold flex items-center justify-center w-5 h-5 rounded-full shadow">
+													{tftDivision}
+												</div>
+											)}
 										</div>
 									)}
 									<div>

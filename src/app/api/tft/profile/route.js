@@ -42,8 +42,10 @@ export async function GET(req) {
 	}
 
 	try {
-		// Normalize region to uppercase to ensure API compatibility
+		// Normalize inputs to ensure API compatibility and consistent DB lookups
 		const normalizedRegion = region.toUpperCase();
+		const normalizedGameName = gameName.trim();
+		const normalizedTagLine = tagLine.trim();
 		// Get the corresponding platform for the region
 		const platform = regionToPlatform[normalizedRegion];
 
@@ -54,8 +56,56 @@ export async function GET(req) {
 			);
 		}
 
-		// Fetch account data to get the puuid.
-		const accountData = await fetchAccountData(gameName, tagLine, platform);
+		// DB-first: try to resolve account and cached TFT data before calling external APIs
+		// 1) Attempt to find Riot account by normalized name/tag/region to avoid unnecessary Riot API calls
+		let { data: riotAccount, error: accountLookupError } = await supabase
+			.from("riot_accounts")
+			.select("*")
+			.ilike("region", normalizedRegion)
+			.ilike("gamename", normalizedGameName)
+			.ilike("tagline", normalizedTagLine)
+			.maybeSingle();
+		if (accountLookupError) throw accountLookupError;
+
+		// 2) If we found an account mapping and we're not forcing an update, return cached TFT data
+		if (riotAccount && !forceUpdate) {
+			let { data: storedTftData, error: tftLookupError } = await supabase
+				.from("tft_data")
+				.select("*")
+				.eq("riot_account_id", riotAccount.id)
+				.maybeSingle();
+			if (tftLookupError) throw tftLookupError;
+			if (storedTftData) {
+				// Fetch all stored matches for this user for a complete frontend experience
+				let { data: userMatchObjects, error: matchesError } = await supabase
+					.from("tft_matches")
+					.select("matchid, match_data, game_datetime, created_at")
+					.filter(
+						"match_data->metadata->participants",
+						"cs",
+						`"${riotAccount.puuid}"`
+					)
+					.order("game_datetime", { ascending: false });
+				if (matchesError) throw matchesError;
+				const userMatchDetails = (userMatchObjects || []).map((match) => match.match_data);
+				const responseData = {
+					profiledata: storedTftData.profiledata,
+					accountdata: storedTftData.accountdata,
+					rankeddata: storedTftData.rankeddata,
+					livegamedata: storedTftData.livegamedata,
+					updated_at: storedTftData.updated_at,
+					game_type: "tft",
+					matchdetails: userMatchDetails,
+				};
+				return new Response(JSON.stringify(responseData), {
+					status: 200,
+					headers: { "Content-Type": "application/json" },
+				});
+			}
+		}
+
+		// 3) Either account not found by name or forceUpdate=true: resolve account via Riot and ensure DB mapping
+		const accountData = await fetchAccountData(normalizedGameName, normalizedTagLine, platform);
 
 		if (!accountData?.puuid) {
 			return new Response(
@@ -64,18 +114,18 @@ export async function GET(req) {
 			);
 		}
 
-		// Check and insert the Riot account as needed.
-		let { data: riotAccount, error: puuidCheckError } = await supabase
+		// Check and insert the Riot account as needed by PUUID (handles name changes)
+		let { data: puuidAccount, error: puuidCheckError } = await supabase
 			.from("riot_accounts")
 			.select("*")
 			.eq("puuid", accountData.puuid)
 			.maybeSingle();
 		if (puuidCheckError) throw puuidCheckError;
 
-		if (!riotAccount) {
+		if (!puuidAccount) {
 			const insertPayload = {
-				gamename: gameName,
-				tagline: tagLine,
+				gamename: normalizedGameName,
+				tagline: normalizedTagLine,
 				region: normalizedRegion,
 				puuid: accountData.puuid,
 			};
@@ -101,19 +151,57 @@ export async function GET(req) {
 			} catch (error) {
 				// We'll continue to fetch the account even if insertion failed due to duplication
 			}
-
-			// In either case (successful insert or duplicate key), fetch the account
-			const { data: fetchedAccount, error: fetchError } = await supabase
-				.from("riot_accounts")
-				.select("*")
-				.eq("puuid", accountData.puuid)
-				.maybeSingle();
-			if (fetchError) throw fetchError;
-			riotAccount = fetchedAccount;
 		}
+		// In either case (successful insert or duplicate key), fetch the account by PUUID
+		const { data: fetchedAccount, error: fetchError } = await supabase
+			.from("riot_accounts")
+			.select("*")
+			.eq("puuid", accountData.puuid)
+			.maybeSingle();
+		if (fetchError) throw fetchError;
+		riotAccount = fetchedAccount;
+
 		if (!riotAccount?.puuid) {
 			throw new Error("Riot account record is missing the puuid.");
 		}
+
+		// Second DB-first early return: after resolving via PUUID, if cache exists and not forceUpdate, return it
+		if (!forceUpdate) {
+			let { data: storedTftData2, error: tftLookupError2 } = await supabase
+				.from("tft_data")
+				.select("*")
+				.eq("riot_account_id", riotAccount.id)
+				.maybeSingle();
+			if (tftLookupError2) throw tftLookupError2;
+			if (storedTftData2) {
+				let { data: userMatchObjects2, error: matchesError2 } = await supabase
+					.from("tft_matches")
+					.select("matchid, match_data, game_datetime, created_at")
+					.filter(
+						"match_data->metadata->participants",
+						"cs",
+						`"${riotAccount.puuid}"`
+					)
+					.order("game_datetime", { ascending: false });
+				if (matchesError2) throw matchesError2;
+				const userMatchDetails2 = (userMatchObjects2 || []).map((match) => match.match_data);
+				const responseData2 = {
+					profiledata: storedTftData2.profiledata,
+					accountdata: storedTftData2.accountdata,
+					rankeddata: storedTftData2.rankeddata,
+					livegamedata: storedTftData2.livegamedata,
+					updated_at: storedTftData2.updated_at,
+					game_type: "tft",
+					matchdetails: userMatchDetails2,
+				};
+				return new Response(JSON.stringify(responseData2), {
+					status: 200,
+					headers: { "Content-Type": "application/json" },
+				});
+			}
+		}
+
+		// For TFT, proceed to create the profile on initial search when cache is missing
 
 		const puuid = riotAccount.puuid;
 

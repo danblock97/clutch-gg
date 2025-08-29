@@ -414,7 +414,7 @@ export default function LiveGame({ liveGameData, region }) {
 		};
 
 		const aPosition = a.individualPosition || a.teamPosition || "";
-		const bPosition = a.individualPosition || a.teamPosition || "";
+		const bPosition = b.individualPosition || b.teamPosition || "";
 
 		return (roleOrder[aPosition] || 99) - (roleOrder[bPosition] || 99);
 	});
@@ -468,7 +468,7 @@ export default function LiveGame({ liveGameData, region }) {
 
 							return (
 								<tr
-									key={p.summonerId}
+									key={`${p.puuid || p.summonerId || (p.gameName && p.tagLine ? `${p.gameName}#${p.tagLine}` : p.championId)}-${p.teamId}`}
 									className={`${
 										index % 2 === 0 ? "bg-gray-800/30" : "bg-gray-900"
 									} hover:bg-gray-700/50`}
@@ -580,7 +580,7 @@ export default function LiveGame({ liveGameData, region }) {
 
 							return (
 								<tr
-									key={p.summonerId}
+									key={`${p.puuid || p.summonerId || (p.gameName && p.tagLine ? `${p.gameName}#${p.tagLine}` : p.championId)}-${p.teamId}`}
 									className={`${
 										index % 2 === 0 ? "bg-gray-800/30" : "bg-gray-900"
 									} hover:bg-gray-700/50`}
