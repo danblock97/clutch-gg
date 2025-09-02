@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { FaBan } from "react-icons/fa";
+import { FaBan, FaDesktop } from "react-icons/fa";
 import { useState, useEffect } from "react";
 import { getQueueName } from "@/lib/league/utils";
 
@@ -199,6 +199,25 @@ export default function FeaturedGameCard({
 	region,
 }) {
 	const [gameTime, setGameTime] = useState("00:00");
+	const [showSpectateInfo, setShowSpectateInfo] = useState(false);
+
+	const handleSpectate = () => {
+		try {
+			const encryptionKey = game?.observers?.encryptionKey;
+			const platformId = (region || "").toUpperCase();
+			const gameId = game?.gameId;
+			if (!encryptionKey || !platformId || !gameId) return;
+			const params = new URLSearchParams({
+				platformId,
+				encryptionKey,
+				gameId: String(gameId),
+			});
+			if (typeof window !== "undefined") {
+				window.open(`/api/league/spectate?${params.toString()}`);
+				setShowSpectateInfo(true);
+			}
+		} catch (e) {}
+	};
 
 	useEffect(() => {
 		// Calculate a reliable start time based on the gameLength provided by the API
@@ -264,7 +283,21 @@ export default function FeaturedGameCard({
 						ID: {game.gameId}
 					</p>
 				</div>
-				<p className="text-xs text-neutral-400 font-mono">{gameTime}</p>
+				<div className="flex items-center gap-2">
+					<p className="text-xs text-neutral-400 font-mono">{gameTime}</p>
+					<button
+						onClick={handleSpectate}
+						disabled={!game?.observers?.encryptionKey}
+						className={`inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-bold border transition-colors ${
+							game?.observers?.encryptionKey
+								? "bg-gradient-to-r from-yellow-500 via-amber-500 to-black hover:from-yellow-400 hover:via-amber-400 hover:to-black text-white shadow-md shadow-yellow-900/30 border-yellow-600"
+								: "bg-gray-700 text-gray-400 cursor-not-allowed border-gray-600"
+						}`}
+					>
+						<FaDesktop className="w-3.5 h-3.5" />
+						Spectate
+					</button>
+				</div>
 			</div>
 			{isArena ? (
 				<div className="flex flex-col gap-2">
@@ -319,6 +352,29 @@ export default function FeaturedGameCard({
 						ddragonVersion={ddragonVersion}
 						region={region}
 					/>
+				</div>
+			)}
+			{showSpectateInfo && (
+				<div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/70 p-4" onClick={() => setShowSpectateInfo(false)}>
+					<div className="max-w-lg w-full bg-[#1b1b2d] text-white rounded-md border border-gray-700 p-4" onClick={(e) => e.stopPropagation()}>
+						<div className="flex items-center justify-between mb-2">
+							<h3 className="text-lg font-bold">How to spectate</h3>
+							<button className="text-gray-400 hover:text-white" onClick={() => setShowSpectateInfo(false)}>✕</button>
+						</div>
+						<div className="text-sm space-y-2">
+							<p>To spectate this game, follow the instructions below:</p>
+							<ol className="list-decimal ml-5 space-y-1">
+								<li>Double Click the downloaded file to run it</li>
+								<li>Windows will block the file. Click "More Info" at the top, then "Run Anyway" at the bottom</li>
+								<li>This will launch the game and spectate the match</li>
+							</ol>
+							<p className="text-gray-300">The file is safe to run, however feel free to inspect it if you want to check what it's doing.</p>
+							<p className="text-xs text-gray-400">
+								Note:
+								If a game has recently started, you may need to wait a few minutes before joining (Load screen + 65 seconds). If you get the message "Unable to download spectator data", close the game and try again.
+							</p>
+						</div>
+					</div>
 				</div>
 			)}
 		</div>

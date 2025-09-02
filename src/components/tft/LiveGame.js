@@ -7,6 +7,7 @@ import {
 	FaTrophy,
 	FaChartLine,
 	FaExchangeAlt,
+	FaDesktop,
 } from "react-icons/fa";
 
 /**
@@ -285,6 +286,25 @@ function getTFTSetNumber(liveGameData) {
  */
 export default function LiveGame({ liveGameData, region, matchHistory }) {
 	const [time, setTime] = useState("");
+	const [showSpectateInfo, setShowSpectateInfo] = useState(false);
+
+	const handleSpectate = () => {
+		try {
+			const encryptionKey = liveGameData?.observers?.encryptionKey;
+			const platformId = (validRegion || "").toUpperCase();
+			const gameId = liveGameData?.gameId;
+			if (!encryptionKey || !platformId || !gameId) return;
+			const params = new URLSearchParams({
+				platformId,
+				encryptionKey,
+				gameId: String(gameId),
+			});
+			if (typeof window !== "undefined") {
+				window.open(`/api/tft/spectate?${params.toString()}`);
+				setShowSpectateInfo(true);
+			}
+		} catch (e) {}
+	};
 
 	// Ensure region has a valid fallback with proper Riot region format
 	const validRegion = region || "EUW1"; // Using EUW1 as fallback instead of "europe"
@@ -542,6 +562,18 @@ export default function LiveGame({ liveGameData, region, matchHistory }) {
 						</div>
 						<span className="font-mono">{time}</span>
 					</div>
+					<button
+						onClick={handleSpectate}
+						disabled={!liveGameData?.observers?.encryptionKey}
+						className={`ml-2 inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-bold border transition-colors ${
+							liveGameData?.observers?.encryptionKey
+								? "bg-gradient-to-r from-yellow-500 via-amber-500 to-black hover:from-yellow-400 hover:via-amber-400 hover:to-black text-white shadow-lg shadow-yellow-900/30 border-yellow-600"
+								: "bg-gray-700 text-gray-400 cursor-not-allowed border-gray-600"
+						}`}
+					>
+						<FaDesktop className="w-4 h-4" />
+						Spectate
+					</button>
 				</div>
 			</div>
 
@@ -562,6 +594,29 @@ export default function LiveGame({ liveGameData, region, matchHistory }) {
 				</div>
 				<div>TFT Set: {getTFTSetNumber(liveGameData)}</div>
 			</div>
+			{showSpectateInfo && (
+				<div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/70 p-4" onClick={() => setShowSpectateInfo(false)}>
+					<div className="max-w-lg w-full bg-[#1b1b2d] text-white rounded-md border border-gray-700 p-4" onClick={(e) => e.stopPropagation()}>
+						<div className="flex items-center justify-between mb-2">
+							<h3 className="text-lg font-bold">How to spectate</h3>
+							<button className="text-gray-400 hover:text-white" onClick={() => setShowSpectateInfo(false)}>✕</button>
+						</div>
+						<div className="text-sm space-y-2">
+							<p>To spectate this game, follow the instructions below:</p>
+							<ol className="list-decimal ml-5 space-y-1">
+								<li>Double Click the downloaded file to run it</li>
+								<li>Windows will block the file. Click "More Info" at the top, then "Run Anyway" at the bottom</li>
+								<li>This will launch the game and spectate the match</li>
+							</ol>
+							<p className="text-gray-300">The file is safe to run, however feel free to inspect it if you want to check what it's doing.</p>
+							<p className="text-xs text-gray-400">
+								Note:
+								If a game has recently started, you may need to wait a few minutes before joining (Load screen + 65 seconds). If you get the message "Unable to download spectator data", close the game and try again.
+							</p>
+						</div>
+					</div>
+				</div>
+			)}
 		</div>
 	);
 }
