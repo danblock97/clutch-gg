@@ -2,6 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Simple slide-down fade animation for modals */
+@keyframes fade-down {
+  0% {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-down {
+  animation: fade-down 200ms ease-out both;
+}
+
 :root {
 	--primary: #3a86ff;
 	--primary-dark: #2667cc;

@@ -7,6 +7,7 @@ import {
 	FaTrophy,
 	FaChartLine,
 	FaExchangeAlt,
+	FaDesktop,
 } from "react-icons/fa";
 
 /**
@@ -285,6 +286,27 @@ function getTFTSetNumber(liveGameData) {
  */
 export default function LiveGame({ liveGameData, region, matchHistory }) {
 	const [time, setTime] = useState("");
+	const [showSpectateInfo, setShowSpectateInfo] = useState(false);
+
+	const handleSpectate = () => {
+		try {
+			const encryptionKey = liveGameData?.observers?.encryptionKey;
+			// Prefer platformId from live game payload; fall back to region prop
+			const platformIdRaw = liveGameData?.platformId || region;
+			const platformId = (platformIdRaw || "").toUpperCase();
+			const gameId = liveGameData?.gameId;
+			if (!encryptionKey || !platformId || !gameId) return;
+			const params = new URLSearchParams({
+				platformId,
+				encryptionKey,
+				gameId: String(gameId),
+			});
+			if (typeof window !== "undefined") {
+				window.open(`/api/tft/spectate?${params.toString()}`);
+				setShowSpectateInfo(true);
+			}
+		} catch (e) {}
+	};
 
 	// Ensure region has a valid fallback with proper Riot region format
 	const validRegion = region || "EUW1"; // Using EUW1 as fallback instead of "europe"
@@ -542,6 +564,18 @@ export default function LiveGame({ liveGameData, region, matchHistory }) {
 						</div>
 						<span className="font-mono">{time}</span>
 					</div>
+					<button
+						onClick={handleSpectate}
+						disabled={!liveGameData?.observers?.encryptionKey}
+						className={`ml-2 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-[--primary]/60 focus:ring-offset-2 focus:ring-offset-black ${
+							liveGameData?.observers?.encryptionKey
+								? "bg-[--primary] text-white hover:brightness-110 border border-[--primary] shadow-sm"
+								: "bg-gray-700 text-gray-400 cursor-not-allowed border border-gray-600"
+						}`}
+					>
+						<FaDesktop className="w-4 h-4" />
+						Spectate
+					</button>
 				</div>
 			</div>
 
@@ -562,6 +596,26 @@ export default function LiveGame({ liveGameData, region, matchHistory }) {
 				</div>
 				<div>TFT Set: {getTFTSetNumber(liveGameData)}</div>
 			</div>
+			{showSpectateInfo && (
+				<div className="fixed inset-0 z-[10000] bg-black/70" onClick={() => setShowSpectateInfo(false)}>
+					<div className="absolute left-1/2 -translate-x-1/2 top-6 w-full max-w-lg px-4">
+						<div className="bg-[#1b1b2d] text-white rounded-xl border border-gray-700 shadow-2xl overflow-hidden animate-fade-down" onClick={(e) => e.stopPropagation()}>
+							<div className="flex items-center justify-between px-4 py-3 border-b border-gray-700/50">
+								<h3 className="text-base font-semibold tracking-wide">How to spectate</h3>
+								<button aria-label="Close" className="text-gray-400 hover:text-white transition" onClick={() => setShowSpectateInfo(false)}>✕</button>
+							</div>
+							<div className="px-4 py-4 text-sm space-y-3">
+								<ol className="list-decimal ml-5 space-y-1.5">
+									<li>Double‑click the downloaded file</li>
+									<li>If SmartScreen appears: More info → Run anyway</li>
+									<li>Wait for the spectator delay, then the game will open</li>
+								</ol>
+								<p className="text-xs text-gray-400">You can open the file to inspect its contents anytime.</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			)}
 		</div>
 	);
 }
