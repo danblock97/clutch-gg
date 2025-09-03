@@ -288,10 +288,10 @@ export default function FeaturedGameCard({
 					<button
 						onClick={handleSpectate}
 						disabled={!game?.observers?.encryptionKey}
-						className={`inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-bold border transition-colors ${
+						className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-[--primary]/60 focus:ring-offset-2 focus:ring-offset-black ${
 							game?.observers?.encryptionKey
-								? "bg-gradient-to-r from-yellow-500 via-amber-500 to-black hover:from-yellow-400 hover:via-amber-400 hover:to-black text-white shadow-md shadow-yellow-900/30 border-yellow-600"
-								: "bg-gray-700 text-gray-400 cursor-not-allowed border-gray-600"
+								? "bg-[--primary] text-white hover:brightness-110 border border-[--primary] shadow-sm"
+								: "bg-gray-700 text-gray-400 cursor-not-allowed border border-gray-600"
 						}`}
 					>
 						<FaDesktop className="w-3.5 h-3.5" />
@@ -355,24 +355,21 @@ export default function FeaturedGameCard({
 				</div>
 			)}
 			{showSpectateInfo && (
-				<div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/70 p-4" onClick={() => setShowSpectateInfo(false)}>
-					<div className="max-w-lg w-full bg-[#1b1b2d] text-white rounded-md border border-gray-700 p-4" onClick={(e) => e.stopPropagation()}>
-						<div className="flex items-center justify-between mb-2">
-							<h3 className="text-lg font-bold">How to spectate</h3>
-							<button className="text-gray-400 hover:text-white" onClick={() => setShowSpectateInfo(false)}>✕</button>
-						</div>
-						<div className="text-sm space-y-2">
-							<p>To spectate this game, follow the instructions below:</p>
-							<ol className="list-decimal ml-5 space-y-1">
-								<li>Double Click the downloaded file to run it</li>
-								<li>Windows will block the file. Click "More Info" at the top, then "Run Anyway" at the bottom</li>
-								<li>This will launch the game and spectate the match</li>
-							</ol>
-							<p className="text-gray-300">The file is safe to run, however feel free to inspect it if you want to check what it's doing.</p>
-							<p className="text-xs text-gray-400">
-								Note:
-								If a game has recently started, you may need to wait a few minutes before joining (Load screen + 65 seconds). If you get the message "Unable to download spectator data", close the game and try again.
-							</p>
+				<div className="fixed inset-0 z-[10000] bg-black/70" onClick={() => setShowSpectateInfo(false)}>
+					<div className="absolute left-1/2 -translate-x-1/2 top-6 w-full max-w-lg px-4">
+						<div className="bg-[#1b1b2d] text-white rounded-xl border border-gray-700 shadow-2xl overflow-hidden animate-fade-down" onClick={(e) => e.stopPropagation()}>
+							<div className="flex items-center justify-between px-4 py-3 border-b border-gray-700/50">
+								<h3 className="text-base font-semibold tracking-wide">How to spectate</h3>
+								<button aria-label="Close" className="text-gray-400 hover:text-white transition" onClick={() => setShowSpectateInfo(false)}>✕</button>
+							</div>
+							<div className="px-4 py-4 text-sm space-y-3">
+								<ol className="list-decimal ml-5 space-y-1.5">
+									<li>Double‑click the downloaded file</li>
+									<li>If SmartScreen appears: More info → Run anyway</li>
+									<li>Wait for the spectator delay, then the game will open</li>
+								</ol>
+								<p className="text-xs text-gray-400">You can open the file to inspect its contents anytime.</p>
+							</div>
 						</div>
 					</div>
 				</div>
