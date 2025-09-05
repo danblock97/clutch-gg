@@ -14,6 +14,7 @@ import {
 } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import { useGameType } from "@/context/GameTypeContext";
+import AstroStatsPromo from "./AstroStatsPromo";
 
 const HomePage = () => {
 	const { gameType, setGameType } = useGameType(); // Use the shared context
@@ -29,13 +30,7 @@ const HomePage = () => {
 
 	const features = [
 		{
-			icon: (
-				<FaChartLine
-					className={`${
-						gameType === "tft" ? "text-[--tft-primary]" : "text-[--primary]"
-					} text-2xl`}
-				/>
-			),
+			icon: <FaChartLine className="text-lg" />,
 			title: "Performance Analytics",
 			description:
 				gameType === "tft"
@@ -43,13 +38,7 @@ const HomePage = () => {
 					: "Track your win rates, KDAs, and champion-specific stats",
 		},
 		{
-			icon: (
-				<FaUsers
-					className={`${
-						gameType === "tft" ? "text-[--tft-secondary]" : "text-[--secondary]"
-					} text-2xl`}
-				/>
-			),
+			icon: <FaUsers className="text-lg" />,
 			title: gameType === "tft" ? "Composition Insights" : "Team Insights",
 			description:
 				gameType === "tft"
@@ -57,12 +46,12 @@ const HomePage = () => {
 					: "See who you play with most and your success with them",
 		},
 		{
-			icon: <FaTrophy className="text-[--gold] text-2xl" />,
+			icon: <FaTrophy className="text-lg" />,
 			title: "Ranked Progress",
 			description: "Historical rank data across seasons.",
 		},
 		{
-			icon: <FaGamepad className="text-[--accent] text-2xl" />,
+			icon: <FaGamepad className="text-lg" />,
 			title: gameType === "tft" ? "Match Details" : "Live Game Stats",
 			description:
 				gameType === "tft"
@@ -76,95 +65,84 @@ const HomePage = () => {
 			{/* Hero Section - Adjusted for mobile */}
 			<section className="pt-16 md:pt-24 pb-12 md:pb-16 px-4">
 				<div className="max-w-6xl mx-auto relative">
+					{/* Decorative background orbs + giant brand watermark */}
+					<div className="absolute inset-0 -z-10">
+						{/* Huge faded logo watermark */}
+						<div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none opacity-20">
+							<Image src="/images/logo.png" alt="ClutchGG watermark" width={2200} height={2200} className="w-[1600px] sm:w-[2200px] h-auto blur-0" />
+						</div>
+						<div
+							className={`orb orb-lg ${gameType === "tft" ? "orb-tft" : "orb-league"}`}
+							style={{ top: "-40px", right: "-80px" }}
+						></div>
+						<div
+							className={`orb orb-md ${gameType === "tft" ? "orb-tft" : "orb-league"}`}
+							style={{ bottom: "-60px", left: "-40px" }}
+						></div>
+					</div>
+
 					{/* Content */}
-					<div className="flex flex-col lg:flex-row items-center justify-between gap-8 md:gap-12">
-						{/* Left side - Text */}
-						<div className="w-full lg:w-3/5 text-center lg:text-left space-y-4 md:space-y-6">
-							<h1 className="text-3xl sm:text-4xl lg:text-6xl font-extrabold">
-								<span
-									className={`bg-clip-text text-transparent bg-gradient-to-r ${
-										gameType === "tft"
-											? "from-[--tft-primary] to-[--tft-secondary]"
-											: "from-[--primary] to-[--secondary]"
-									}`}
-								>
-									ClutchGG.LOL
-								</span>
-							</h1>
+					<div className="flex flex-col items-center text-center gap-6 md:gap-8">
+						<h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight">
+							<span
+								className={`bg-clip-text text-transparent bg-gradient-to-r ${
+									gameType === "tft"
+										? "from-[--tft-primary] to-[--tft-secondary]"
+										: "from-[--primary] to-[--secondary]"
+								}`}
+							>
+								ClutchGG.LOL
+							</span>
+						</h1>
 
-							<div className="text-xl sm:text-2xl lg:text-4xl font-bold h-12 md:h-16">
-								<TypeAnimation
-									sequence={[
-										"Match History",
-										1000,
-										"Match Details",
-										1000,
-										gameType === "tft" ? "Augments" : "Live Games",
-										1000,
-										"Ranked Stats",
-										1000,
-										"Leaderboards",
-										1000,
-									]}
-									wrapper="span"
-									speed={50}
-									repeat={Infinity}
-								/>
-							</div>
-
-							<p className="text-[--text-secondary] text-base lg:text-lg max-w-xl mx-auto lg:mx-0">
-								{gameType === "tft"
-									? "Your ultimate destination for comprehensive Teamfight Tactics analytics, match history, and player performance insights."
-									: "Your ultimate destination for in-depth League of Legends analytics and real-time insights into players' performance."}
-							</p>
-
-							{/* Search Bar - Properly centered on mobile */}
-							<div className="flex justify-center lg:block">
-								<div className="w-full max-w-xs sm:max-w-sm">
-									<SearchBar initialGameType={gameType} />
-								</div>
-							</div>
-
-							<div className="flex flex-wrap justify-center lg:justify-start gap-4 pt-2">
-								<button
-									onClick={navigateToLeaderboard}
-									className={
-										gameType === "tft" ? "btn-primary-tft" : "btn-primary"
-									}
-								>
-									<span>Leaderboards</span>
-								</button>
-								<Link
-									href="https://discord.gg/BeszQxTn9D"
-									target="_blank"
-									className={
-										gameType === "tft" ? "btn-outline-tft" : "btn-outline"
-									}
-								>
-									Join Discord
-								</Link>
-							</div>
+						<div className="text-lg sm:text-2xl lg:text-4xl font-bold h-10 md:h-16">
+							<TypeAnimation
+								sequence={[
+									"Match History",
+									1000,
+									"Match Details",
+									1000,
+									gameType === "tft" ? "Augments" : "Live Games",
+									1000,
+									"Ranked Stats",
+									1000,
+									"Leaderboards",
+									1000,
+								]}
+								wrapper="span"
+								speed={50}
+								repeat={Infinity}
+							/>
 						</div>
 
-						{/* Right side - Logo and glow */}
-						<div className="w-full lg:w-2/5 flex justify-center lg:justify-end">
-							<div className="relative w-52 h-52 sm:w-64 sm:h-64 md:w-80 md:h-80">
-								<div
-									className={`absolute inset-0 rounded-full bg-gradient-to-r ${
-										gameType === "tft"
-											? "from-[--tft-primary] to-[--tft-secondary]"
-											: "from-[--primary] to-[--secondary]"
-									} opacity-20 blur-xl`}
-								></div>
-								<Image
-									src="/images/logo.png"
-									alt="ClutchGG.LOL Logo"
-									width={320}
-									height={320}
-									className="relative z-10"
-									priority
-								/>
-							</div>
+						<p className="text-[--text-secondary] text-base lg:text-lg max-w-2xl">
+							{gameType === "tft"
+								? "Your ultimate destination for comprehensive Teamfight Tactics analytics, match history, and player performance insights."
+								: "Your ultimate destination for in-depth League of Legends analytics and real-time insights into players' performance."}
+						</p>
+
+						<div className={`w-full max-w-2xl p-2 md:p-3 search-surface ${gameType === "tft" ? "ring-tft" : "ring-league"}`}>
+							<SearchBar initialGameType={gameType} />
+						</div>
+
+						<div className="flex flex-wrap justify-center gap-4 pt-2">
+							<button
+								onClick={navigateToLeaderboard}
+								className={
+									gameType === "tft" ? "btn-primary-tft" : "btn-primary"
+								}
+							>
+								<span>Leaderboards</span>
+							</button>
+							<Link
+								href="https://discord.gg/BeszQxTn9D"
+								target="_blank"
+								className={
+									gameType === "tft" ? "btn-outline-tft" : "btn-outline"
+								}
+							>
+								Join Discord
+							</Link>
 						</div>
 					</div>
 				</div>
@@ -185,21 +163,21 @@ const HomePage = () => {
 
 					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
 						{features.map((feature, index) => (
-							<div
-								key={index}
-								className={`card-highlight p-6 hover:shadow-2xl transition-all duration-300 border-t-4 ${
-									gameType === "tft"
-										? "border-[--tft-primary]"
-										: "border-[--primary]"
-								}`}
-							>
-								<div className="mb-4">{feature.icon}</div>
+							<div key={index} className="feature-card p-6">
+								<div className={`icon-badge ${gameType === "tft" ? "icon-badge-tft" : "icon-badge-league"} mb-4`}>
+									{feature.icon}
+								</div>
 								<h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
 								<p className="text-[--text-secondary]">{feature.description}</p>
 							</div>
 						))}
 					</div>
 				</div>
+			</section>
+
+			{/* AstroStats Discord Promo */}
+			<section className="pb-16 md:pb-24">
+				<AstroStatsPromo />
 			</section>
 		</div>
 	);

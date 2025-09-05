@@ -10,6 +10,7 @@ import {
   FaTimes,
   FaGamepad,
   FaChessKnight,
+  FaChevronDown,
 } from "react-icons/fa";
 import PropTypes from "prop-types";
 
@@ -230,17 +231,17 @@ const SearchBar = ({
 
   const searchBarContent = (
     <div
-      className="relative w-full max-w-xs sm:max-w-sm md:max-w-md mx-auto lg:mx-0"
+      className="relative w-full max-w-2xl mx-auto"
       ref={dropdownRef}
     >
       <div
-        className={`flex w-full h-12 glass rounded-lg overflow-hidden border transition-all duration-200 
+        className={`flex w-full h-12 sm:h-12 rounded-2xl overflow-hidden border border-white/10 bg-white/[0.04] backdrop-blur-md transition-all duration-200 
         ${
           isInputFocused
             ? gameType === "tft"
               ? "border-[--tft-primary] shadow-lg shadow-[--tft-primary]/20"
               : "border-[--primary] shadow-lg shadow-[--primary]/20"
-            : "border-[--card-border]"
+            : ""
         }
         ${
           !combinedInput &&
@@ -249,26 +250,31 @@ const SearchBar = ({
             : ""
         }`}
       >
-        <select
-          value={selectedRegion}
-          onChange={handleRegionChange}
-          className="bg-transparent text-[--text-primary] px-2 sm:px-3 text-xs sm:text-sm focus:outline-none focus:bg-[--card-bg]/40 font-medium"
-        >
-          {regions.map((region) => (
-            <option
-              key={region.code}
-              value={region.code}
-              className="bg-[--card-bg] text-[--text-primary]"
-            >
-              {region.name}
-            </option>
-          ))}
-        </select>
+        <div className="relative flex items-center">
+          <select
+            value={selectedRegion}
+            onChange={handleRegionChange}
+            className="appearance-none bg-transparent text-[--text-primary] pl-3 pr-6 sm:pl-4 sm:pr-8 text-xs sm:text-sm focus:outline-none font-medium"
+          >
+            {regions.map((region) => (
+              <option
+                key={region.code}
+                value={region.code}
+                className="bg-[--card-bg] text-[--text-primary]"
+              >
+                {region.name}
+              </option>
+            ))}
+          </select>
+          <FaChevronDown className="pointer-events-none absolute right-2 text-[--text-secondary] text-[10px] sm:text-xs" />
+        </div>
+
+        <div className="w-px h-6 my-auto bg-white/10" />
 
         <div className="relative flex-grow flex items-center">
           <input
             ref={inputRef}
-            className="w-full h-full p-3 text-xs sm:text-sm text-[--text-primary] bg-transparent focus:outline-none placeholder-gray-500"
+            className="w-full h-full px-3 sm:px-4 text-sm text-[--text-primary] bg-transparent focus:outline-none placeholder-gray-500"
             type="text"
             placeholder="Summoner name#tag"
             value={combinedInput}
@@ -289,11 +295,7 @@ const SearchBar = ({
         </div>
 
         <button
-          className={`flex items-center justify-center px-3 sm:px-4 text-[--text-primary] transition-colors duration-200 ${
-            gameType === "tft"
-              ? "hover:bg-[--tft-primary]"
-              : "hover:bg-[--primary]"
-          }`}
+          className="flex items-center justify-center px-4 sm:px-5 text-white/90 bg-white/10 hover:bg-white/15 transition-colors duration-200"
           onClick={() => handleSearch()}
           aria-label="Search"
         >

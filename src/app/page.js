@@ -19,15 +19,16 @@ const Page = () => {
 	}, [pathname]);
 
 	return (
-		<div className="bg-[#0e1015] min-h-screen relative overflow-x-hidden">
-			{/* Center Glow */}
-			<div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+		<div className="min-h-screen relative overflow-x-hidden">
+			{/* Layered gradient background */}
+			<div className="absolute inset-0 -z-10">
+				<div className="absolute inset-0 bg-[--background]"></div>
 				<div
-					className={`w-[600px] h-[600px] ${
+					className={`absolute left-1/2 top-0 -translate-x-1/2 w-[900px] h-[900px] rounded-full blur-[160px] opacity-25 ${
 						gameType === "tft"
-							? "bg-gradient-to-r from-orange-600 via-amber-500 to-yellow-400"
-							: "bg-gradient-to-r from-purple-600 via-blue-500 to-yellow-400"
-					} opacity-25 rounded-full blur-[150px] transform -translate-x-16`}
+							? "bg-[radial-gradient(circle_at_center,var(--tft-secondary),transparent_60%)]"
+							: "bg-[radial-gradient(circle_at_center,var(--secondary),transparent_60%)]"
+					}`}
 				></div>
 			</div>
 

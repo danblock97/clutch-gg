@@ -195,7 +195,7 @@ const NavBar = ({ bannersVisible = 0 }) => {
 				id="main-navbar"
 				className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
 					scrolled
-						? "bg-[--background]/90 backdrop-blur-md shadow-lg"
+						? "bg-[--background]/80 backdrop-blur-lg border-b border-white/10"
 						: "bg-transparent"
 				} ${bannersVisible > 0 ? `mt-${bannersVisible * 10}` : ""}`}
 			>
@@ -207,7 +207,7 @@ const NavBar = ({ bannersVisible = 0 }) => {
 								href="/"
 								className="flex-shrink-0 flex items-center space-x-2"
 							>
-								<div className="relative w-8 h-8 overflow-hidden">
+								<div className="relative w-8 h-8 overflow-hidden rounded-md ring-1 ring-white/10 bg-white/5">
 									<Image
 										src="/images/logo.png"
 										alt="ClutchGG.LOL"
