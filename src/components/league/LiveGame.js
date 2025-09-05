@@ -728,7 +728,7 @@ export default function LiveGame({ liveGameData, region }) {
 						<button
 							onClick={handleSpectate}
 							disabled={!liveGameData?.observers?.encryptionKey}
-							className={`ml-2 rounded px-3 py-1 text-xs font-semibold transition-colors ${liveGameData?.observers?.encryptionKey ? "bg-[--primary] text-white hover:bg-[--primary]/90" : "bg-gray-700 text-gray-400 cursor-not-allowed"}`}
+							className={`ml-2 rounded-md px-3 py-1.5 text-xs font-semibold transition-all focus:outline-none focus:ring-1 focus:ring-amber-400/40 focus:ring-offset-1 focus:ring-offset-black ${liveGameData?.observers?.encryptionKey ? "bg-gradient-to-br from-amber-400/20 to-black/70 text-white hover:from-amber-400/25 hover:to-black/75 border border-amber-400/20" : "bg-gray-700 text-gray-400 cursor-not-allowed border border-gray-600"}`}
 						>
 							Spectate
 						</button>
@@ -779,9 +779,9 @@ export default function LiveGame({ liveGameData, region }) {
 					<button
 						onClick={handleSpectate}
 						disabled={!liveGameData?.observers?.encryptionKey}
-						className={`ml-2 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-[--primary]/60 focus:ring-offset-2 focus:ring-offset-black ${
+						className={`ml-2 inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-semibold transition-all focus:outline-none focus:ring-1 focus:ring-amber-400/40 focus:ring-offset-1 focus:ring-offset-black ${
 							liveGameData?.observers?.encryptionKey
-								? "bg-[--primary] text-white hover:brightness-110 border border-[--primary] shadow-sm"
+								? "bg-gradient-to-br from-amber-400/20 to-black/70 text-white hover:from-amber-400/25 hover:to-black/75 border border-amber-400/20"
 								: "bg-gray-700 text-gray-400 cursor-not-allowed border border-gray-600"
 						}`}
 					>
