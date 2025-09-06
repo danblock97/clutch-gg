@@ -232,12 +232,12 @@ export default function Profile({
 
 	return (
 		<main className="min-h-screen bg-gray-900 text-white">
-			<div className="profile-header-bg w-full py-8 shadow-2xl overflow-hidden">
+			<div className="w-full py-8 bg-[radial-gradient(ellipse_at_top,_rgba(255,255,255,0.06),_transparent_60%)]">
 				<div className="w-full max-w-screen-xl mx-auto px-4 sm:px-6">
-					<div className="relative flex flex-col lg:flex-row items-start lg:items-center gap-6">
+					<div className="relative flex flex-col lg:flex-row items-start lg:items-center gap-6 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-5 shadow-[0_10px_30px_rgba(0,0,0,0.25)]">
 						{/* Left Side: Profile Icon & Level */}
 						<div className="flex-shrink-0 relative">
-							<div className="rank-icon rank-gold w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden">
+							<div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden ring-1 ring-white/15 bg-white/5">
 								<Image
 									src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/${summonerData.profileIconId}.jpg`}
 									alt="Player Icon"
@@ -246,34 +246,28 @@ export default function Profile({
 									className="w-full h-full object-cover"
 								/>
 							</div>
-							<div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-[--primary] to-[--secondary] text-white text-sm font-bold py-1 px-3 rounded-full shadow-lg">
+							<div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 text-white text-[11px] font-semibold py-1 px-2 rounded-full border border-white/20 bg-gradient-to-r from-[--primary-tft]/70 to-[--secondary]/70">
 								{summonerData.summonerLevel}
 							</div>
 						</div>
 
 						{/* Middle: Name, Tag, Ranked Info */}
 						<div className="flex-grow flex flex-col">
-							<h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold mb-1 bg-clip-text text-transparent bg-gradient-to-r from-white via-blue-100 to-white">
+							<h1 className="text-3xl sm:text-4xl font-extrabold mb-1 bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">
 								{summonerData.name}
-								<span className="text-[--text-secondary] text-base sm:text-lg md:text-xl font-medium">
+								<span className="text-[--text-secondary] text-base sm:text-lg font-medium">
 									#{summonerData.tagLine}
 								</span>
 							</h1>
 
 							{/* TFT Queue Rank */}
 							{tftRanked ? (
-								<div className="flex items-center mt-2">
+								<div className="flex items-center mt-3">
 									{rankedIcon && (
 										<div className="relative mr-3">
-											<Image
-												src={rankedIcon}
-												alt={`${tftRanked.tier} Emblem`}
-												width={40}
-												height={40}
-												className=""
-											/>
+											<Image src={rankedIcon} alt={`${tftRanked.tier} Emblem`} width={40} height={40} />
 											{tftDivision && (
-												<div className="absolute -bottom-1 -right-1 bg-gradient-to-br from-[--primary] to-[--secondary] text-white text-[10px] font-bold flex items-center justify-center w-5 h-5 rounded-full shadow">
+												<div className="absolute -bottom-1 -right-1 bg-[--card-bg] border border-[--card-border] text-[10px] font-bold flex items-center justify-center w-5 h-5 rounded-full">
 													{tftDivision}
 												</div>
 											)}
@@ -281,103 +275,55 @@ export default function Profile({
 									)}
 									<div>
 										<p className="font-semibold text-lg">
-											<span
-												className={`text-[--${tftRanked.tier.toLowerCase()}]`}
-											>
-												{tftRanked.tier ? tftRanked.tier : "Unranked"}
-											</span>
-											<span className="text-[--text-primary] ml-2">
-												{tftRanked.leaguePoints} LP
-											</span>
+											<span className={`text-[--${tftRanked.tier.toLowerCase()}]`}>{tftRanked.tier ? tftRanked.tier : "Unranked"}</span>
+											<span className="text-[--text-primary] ml-2">{tftRanked.leaguePoints} LP</span>
 										</p>
 										<p className="text-[--text-secondary] text-sm">
 											{tftRanked.wins}W - {tftRanked.losses}L (
-											{tftRanked.wins === 0 && tftRanked.losses === 0
-												? "0.0"
-												: (
-														(tftRanked.wins /
-															(tftRanked.wins + tftRanked.losses)) *
-														100
-												  ).toFixed(1)}
+											{tftRanked.wins === 0 && tftRanked.losses === 0 ? "0.0" : ((tftRanked.wins / (tftRanked.wins + tftRanked.losses)) * 100).toFixed(1)}
 											% WR)
 										</p>
 
 										{/* TFT Ladder Ranking */}
 										{ladderRanking && (
-											<p className="text-[--text-secondary] text-sm mt-1">
-												Ladder Rank{" "}
-												<span className="text-[--primary-tft]">
-													{ladderRanking.rank}
-												</span>{" "}
-												({ladderRanking.percentile}% of top)
+											<p className="text-[--text-secondary] text-xs mt-1">
+												Ladder Rank <span className="text-[--primary-tft]">{ladderRanking.rank}</span> ({ladderRanking.percentile}% of top)
 											</p>
 										)}
 										{isLoadingLadder && (
-											<p className="text-[--text-secondary] text-sm mt-1">
-												Loading ladder ranking...
-											</p>
+											<p className="text-[--text-secondary] text-xs mt-1">Loading ladder ranking...</p>
 										)}
 									</div>
 								</div>
 							) : (
-								<p className="text-[--text-secondary] font-semibold">
-									Unranked
-								</p>
+								<p className="text-[--text-secondary] font-semibold">Unranked</p>
 							)}
 
 							{/* Action Buttons */}
-							<div className="flex flex-wrap gap-3 mt-4">
+							<div className="flex flex-wrap gap-2 mt-4">
 								<button
 									onClick={(e) => {
 										e.stopPropagation();
 										triggerUpdate();
 										setUpdateTriggered(true);
 									}}
-									className={`relative overflow-hidden rounded-lg text-sm font-medium transition-all duration-300 inline-flex items-center justify-center px-4 py-2
-                    ${
-											isUpdating
-												? "bg-gray-600 opacity-50 cursor-not-allowed"
-												: isUpdated
-												? "btn-success"
-												: "btn-primary-tft"
-										}`}
+									className={`relative overflow-hidden rounded-full text-sm font-semibold transition-all duration-300 inline-flex items-center justify-center px-4 py-1.5 shadow-sm ${
+										isUpdating ? "bg-gray-600 opacity-50 cursor-not-allowed" : isUpdated ? "bg-emerald-500/90 hover:bg-emerald-500 text-white" : "bg-gradient-to-r from-[--primary-tft] to-[--secondary] hover:opacity-95 text-white"
+									}`}
 									disabled={isUpdating || countdown > 0}
 								>
 									{isUpdating && (
-										<svg
-											className="animate-spin h-4 w-4 mr-2"
-											xmlns="http://www.w3.org/2000/svg"
-											fill="none"
-											viewBox="0 0 24 24"
-										>
-											<circle
-												className="opacity-25"
-												cx="12"
-												cy="12"
-												r="10"
-												stroke="currentColor"
-												strokeWidth="4"
-											></circle>
-											<path
-												className="opacity-75"
-												fill="currentColor"
-												d="M4 12a8 8 0 018-8v8H4z"
-											></path>
+										<svg className="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+											<circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+											<path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
 										</svg>
 									)}
-									{isUpdating
-										? "Updating..."
-										: isUpdated
-										? "Updated"
-										: "Update Profile"}
+									{isUpdating ? "Updating..." : isUpdated ? "Updated" : "Update Profile"}
 								</button>
 
 								{/* Live Game Button - only displayed if there's a live game */}
 								{liveGameData && (
-									<button
-										onClick={() => setIsLiveGameOpen(!isLiveGameOpen)}
-										className="relative overflow-hidden rounded-lg text-sm font-medium transition-all duration-300 inline-flex items-center justify-center px-4 py-2 bg-gradient-to-r from-green-600 to-teal-500 hover:from-green-500 hover:to-teal-400 text-white"
-									>
+									<button onClick={() => setIsLiveGameOpen(!isLiveGameOpen)} className="relative overflow-hidden rounded-full text-sm font-semibold transition-all duration-300 inline-flex items-center justify-center px-4 py-1.5 shadow-sm bg-gradient-to-r from-rose-500 to-orange-500 hover:opacity-95 text-white">
 										<span className="relative flex h-2 w-2 mr-2">
 											<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
 											<span className="relative inline-flex rounded-full h-2 w-2 bg-red-600"></span>
@@ -388,9 +334,7 @@ export default function Profile({
 
 								{/* Timer */}
 								{isUpdated && countdown > 0 && (
-									<div className="text-xs text-[--text-secondary] self-center">
-										Next update available in {countdown}s
-									</div>
+									<div className="text-xs text-[--text-secondary] self-center">Next update available in {countdown}s</div>
 								)}
 							</div>
 						</div>
@@ -400,7 +344,6 @@ export default function Profile({
 							<DiscordBotBanner />
 						</div>
 					</div>
-
 					{/* Discord Banner (Mobile) - Appears below on smaller screens */}
 					<div className="lg:hidden mt-6">
 						<DiscordBotBanner />
@@ -413,11 +356,7 @@ export default function Profile({
 				{/* Live Game Section (Conditionally Rendered) */}
 				{liveGameData && isLiveGameOpen && (
 					<div className="max-w-screen-xl w-full mx-auto mb-8">
-						<LiveGame
-							liveGameData={liveGameData}
-							region={profileData.region}
-							matchHistory={matchDetails}
-						/>
+						<LiveGame liveGameData={liveGameData} region={profileData.region} matchHistory={matchDetails} />
 					</div>
 				)}
 
@@ -427,39 +366,23 @@ export default function Profile({
 						<TFTRankedInfo rankedData={rankedData} />
 
 						{/* Top Traits Component */}
-						<TopTraits
-							matchDetails={matchDetails}
-							summonerData={summonerData}
-							traitsData={traitsData}
-						/>
+						<TopTraits matchDetails={matchDetails} summonerData={summonerData} traitsData={traitsData} />
 
 						{/* Top Units Component */}
-						<TopUnits
-							matchDetails={matchDetails}
-							summonerData={summonerData}
-							championsData={championsData}
-						/>
+						<TopUnits matchDetails={matchDetails} summonerData={summonerData} championsData={championsData} />
 					</div>
 
 					{/* Right Column */}
 					<div className="w-full lg:w-2/3">
 						{/* Last 20 Games Performance Component */}
 						<div className="mb-6">
-							<Last20GamesPerformance
-								matchDetails={matchDetails}
-								summonerData={summonerData}
-							/>
+							<Last20GamesPerformance matchDetails={matchDetails} summonerData={summonerData} />
 						</div>
 
 						{/* Tab Content */}
 						<div className="card-highlight">
 							{tab === "matches" && (
-								<TFTMatchHistory
-									matchDetails={matchDetails}
-									summonerData={summonerData}
-									sharedTraitsData={traitsData}
-									sharedChampionsData={championsData}
-								/>
+								<TFTMatchHistory matchDetails={matchDetails} summonerData={summonerData} sharedTraitsData={traitsData} sharedChampionsData={championsData} />
 							)}
 						</div>
 					</div>
