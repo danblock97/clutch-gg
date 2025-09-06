@@ -355,6 +355,39 @@ function getTeamName(teamId) {
 	return teamId === 100 ? "Blue Team" : "Red Team";
 }
 
+// Map rank to theme color variables for borders and accents
+function getRankColorVar(shortRank) {
+	switch ((shortRank || "").toLowerCase()) {
+		case "iron":
+			return "var(--iron)";
+		case "bronze":
+			return "var(--bronze)";
+		case "silver":
+			return "var(--silver)";
+		case "gold":
+			return "var(--gold)";
+		case "platinum":
+			return "var(--platinum)";
+		case "emerald":
+			return "var(--emerald)";
+		case "diamond":
+			return "var(--diamond)";
+		case "master":
+			return "var(--master)";
+		case "grandmaster":
+			return "var(--grandmaster)";
+		case "challenger":
+			return "var(--challenger)";
+		default:
+			return "#4b5563";
+	}
+}
+
+function getRankBorderColor(shortRank) {
+	const base = getRankColorVar(shortRank);
+	return `color-mix(in srgb, ${base} 45%, transparent)`;
+}
+
 /* -------------------- MAIN COMPONENT -------------------- */
 export default function LiveGame({ liveGameData, region }) {
 	const [perkList, setPerkList] = useState([]);
@@ -484,8 +517,9 @@ export default function LiveGame({ liveGameData, region }) {
 			? [
 				`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/characters/${name}/skins/base/${name}loadscreen.jpg`,
 				`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/characters/${name}/skins/skin0/${name}loadscreen_0.jpg`,
-				`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/characters/${name}/skins/skin1/${name}loadscreen_1.jpg`
-			]
+				`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/characters/${name}/skins/skin1/${name}loadscreen_1.jpg`,
+				(ddId ? `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${ddId}_0.jpg` : null)
+			].filter(Boolean)
 			: [];
 		const candidates = name && LOADSCREEN_OVERRIDES[name] ? LOADSCREEN_OVERRIDES[name] : defaultCandidates;
 		const fallbackIcon = `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${championId}.png`;
@@ -521,7 +555,7 @@ export default function LiveGame({ liveGameData, region }) {
 		if (!resolvedSrc) {
 			return <div className="w-full h-full" />; // avoid initial swap flicker
 		}
-		return <Image src={resolvedSrc} alt="" fill className="object-cover object-center" loading="eager" priority sizes="300px" />;
+		return <Image src={resolvedSrc} alt="" fill className="object-cover object-center opacity-80" loading="eager" priority sizes="300px" />;
 	}, (prev, next) => prev.championId === next.championId);
 
 	// Participant card component, memoized to ignore timer re-renders
@@ -550,23 +584,36 @@ export default function LiveGame({ liveGameData, region }) {
 		const spells = [p.spell1Id, p.spell2Id];
 
 		return (
-			<div className="relative group rounded-xl overflow-hidden border border-gray-700/60 bg-[#0f1117] shadow-sm hover:shadow-md transition-shadow">
-				<div className="absolute inset-0">
+			<div className="relative group rounded-xl border bg-[#0f1117] shadow-sm hover:shadow-md transition-shadow overflow-visible" style={{ borderColor: getRankBorderColor(shortRank || "") }}>
+				<div className="absolute inset-px z-0 rounded-[inherit] overflow-hidden">
 					{!isArena ? (
 						<ChampionLoadscreen championId={p.championId} />
 					) : (
-						<Image src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${p.championId}.png`} alt="" fill className="object-cover object-center" />
+						<Image src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${p.championId}.png`} alt="" fill className="object-cover object-center opacity-80" />
 					)}
 				</div>
-				<div className="absolute inset-0 bg-gradient-to-b from-black/15 via-black/40 to-black/80" />
-				<div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_center,_rgba(0,0,0,0)_52%,_rgba(17,17,27,0.65)_100%)]" />
-				<div className="relative h-80 p-3 sm:p-3 flex flex-col">
+				<div className="absolute inset-px z-10 rounded-[inherit] bg-gradient-to-b from-black/15 via-black/40 to-black/80" />
+				<div className="absolute inset-px z-20 rounded-[inherit] pointer-events-none bg-[radial-gradient(ellipse_at_center,_rgba(0,0,0,0)_52%,_rgba(17,17,27,0.65)_100%)]" />
+				{rankTxt !== "Unranked" && (
+					<div className="absolute -top-1 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
+						{/* Short connectors to visually merge with the top border */}
+						<span className="absolute right-full top-1/2 -translate-y-1/2 h-px w-3" style={{ backgroundColor: getRankBorderColor(shortRank || "") }}></span>
+						<span className="absolute left-full top-1/2 -translate-y-1/2 h-px w-3" style={{ backgroundColor: getRankBorderColor(shortRank || "") }}></span>
+						{/* Mask only the section under the text so the top border appears cut */}
+						<span className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 h-px w-12" style={{ backgroundColor: 'var(--background)' }}></span>
+						{/* Tier text */}
+						<span className="relative px-1.5 text-[12px] font-black uppercase tracking-widest" style={{ color: getRankColorVar(shortRank || "") }}>
+							{(rankTxt.match(/\b(I{1,4})\b/) || [null, ""])?.[1]}
+						</span>
+					</div>
+				)}
+				<div className="relative z-30 h-96 pt-6 px-3 pb-3 sm:pt-6 sm:px-3 flex flex-col">
 					<div className="text-[10px] sm:text-xs text-gray-300 flex flex-col items-center">
 						<div className="font-semibold truncate max-w-[80%] text-center text-gray-300">
 							{p.championName || champMapProp[String(p.championId)] || ""}
 						</div>
 						<div className="opacity-95 mt-0.5 text-center text-gray-400">
-							{total > 0 ? `${total} games • ${wr}% WR` : "1st Time"}
+							{rankTxt !== "Unranked" ? (total > 0 ? `${total} games • ${wr}% WR` : "No champion stats") : "No ranked games"}
 						</div>
 					</div>
 					<div className="mt-auto" />
@@ -588,7 +635,7 @@ export default function LiveGame({ liveGameData, region }) {
 						</Link>
 						<div className="text-[10px] text-gray-300/90 mt-0.5 flex items-center justify-center gap-1 leading-tight">
 							{rankTxt !== "Unranked" && (
-								<span className="relative inline-block w-4 h-4 mr-0.5 align-middle">
+								<span className="relative inline-block w-8 h-8 mr-1 align-middle">
 									<Image src={`/images/league/rankedEmblems/${shortRank}.webp`} alt="" fill className="object-contain" />
 								</span>
 							)}
@@ -710,7 +757,7 @@ export default function LiveGame({ liveGameData, region }) {
 													src={(!isArenaQueue && getLoadscreenUrl(p.championId)) || `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${p.championId}.png`}
 													alt=""
 													fill
-													className="object-cover"
+													className={`${getLoadscreenUrl(p.championId) ? "object-cover" : "object-contain"}`}
 												/>
 											</div>
 										</div>
@@ -822,7 +869,7 @@ export default function LiveGame({ liveGameData, region }) {
 													src={(!isArenaQueue && getLoadscreenUrl(p.championId)) || `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${p.championId}.png`}
 													alt=""
 													fill
-													className="object-cover"
+													className={`${getLoadscreenUrl(p.championId) ? "object-cover" : "object-contain"}`}
 												/>
 											</div>
 										</div>
@@ -911,7 +958,7 @@ export default function LiveGame({ liveGameData, region }) {
 	) {
 		// Arena typically has 8 or 16 participants. We just place them in a responsive grid.
 		return (
-			<div className="bg-[#13151b] text-white rounded-md shadow-lg w-full max-w-5xl mx-auto mt-4">
+			<div className="bg-[#13151b] text-white rounded-md shadow-lg w-full max-w-screen-xl mx-auto mt-4">
 				{/* Enhanced Header with Mode, Time, and View Toggle */}
 				<div className="py-3 px-4 text-sm font-bold bg-gray-900 rounded-t-md flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
 					<div className="flex items-center">
@@ -963,7 +1010,7 @@ export default function LiveGame({ liveGameData, region }) {
 
 	/* -------------------- STANDARD LAYOUT (Summoner's Rift, ARAM, etc) -------------------- */
 	return (
-		<div className="bg-[#13151b] text-white rounded-md shadow-lg w-full max-w-5xl mx-auto mt-4">
+		<div className="bg-[#13151b] text-white rounded-md shadow-lg w-full max-w-screen-xl mx-auto mt-4">
 			{/* Enhanced Header with Mode, Time, and View Toggle */}
 			<div className="py-3 px-4 text-sm font-bold bg-gray-900 rounded-t-md flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
 				<div className="flex items-center">
