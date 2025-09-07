@@ -288,11 +288,7 @@ export default function FeaturedGameCard({
 					<button
 						onClick={handleSpectate}
 						disabled={!game?.observers?.encryptionKey}
-						className={`inline-flex items-center gap-2 rounded-md px-4 py-2 text-xs font-semibold transition-all focus:outline-none focus:ring-1 focus:ring-amber-400/40 focus:ring-offset-1 focus:ring-offset-black ${
-							game?.observers?.encryptionKey
-								? "bg-gradient-to-br from-amber-400/20 to-black/70 text-white hover:from-amber-400/25 hover:to-black/75 border border-amber-400/20"
-								: "bg-gray-700 text-gray-400 cursor-not-allowed border border-gray-600"
-						}`}
+						className={`btn-spectate text-xs px-3 py-1.5`}
 					>
 						<FaDesktop className="w-3.5 h-3.5" />
 						Spectate

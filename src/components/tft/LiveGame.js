@@ -1,23 +1,9 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import {
-	FaCoins,
-	FaStar,
-	FaTrophy,
-	FaChartLine,
-	FaExchangeAlt,
-	FaDesktop,
-} from "react-icons/fa";
+import { FaTrophy, FaChartLine, FaDesktop } from "react-icons/fa";
 
-/**
- * Format game time in minutes and seconds
- */
-function formatGameTime(ms) {
-	const s = Math.floor((ms / 1000) % 60);
-	const m = Math.floor((ms / 60000) % 60);
-	return `${m}m ${s}s`;
-}
+// (removed unused formatGameTime)
 
 // Helper function to get winrate color
 function getWinrateColor(winrate) {
@@ -242,21 +228,18 @@ function getPlacementColor(placement) {
 }
 
 // Helper function to format last 10 games performance
-function formatLast10Games(wins, losses) {
-	const total = wins + losses;
-	if (total === 0) return [];
+// (removed: unused last-10 games helper)
 
-	// For demonstration, generate random W/L sequence
-	// In a real implementation, this would use actual match history data
-	const results = [];
-	for (let i = 0; i < Math.min(10, total); i++) {
-		results.push(Math.random() > 0.5 ? "W" : "L");
-	}
-	return results;
+// Color helper for average placement value
+function getAveragePlacementColor(avg) {
+	if (typeof avg !== "number" || Number.isNaN(avg)) return "text-[--text-secondary]";
+	if (avg <= 3.5) return "text-green-400";
+	if (avg <= 5) return "text-yellow-400";
+	return "text-red-400";
 }
 
-// Helper function to extract TFT set number from gameVariation or other data
-function getTFTSetNumber(liveGameData) {
+// Helper: robustly extract TFT set number from live game or related data
+function getTFTSetNumber(liveGameData, matchHistory) {
 	// First try from gameVariation
 	if (liveGameData.gameVariation) {
 		// Common patterns are: "TFT11", "TFTSet11", "Set11", etc.
@@ -266,7 +249,19 @@ function getTFTSetNumber(liveGameData) {
 		}
 	}
 
-	// Try from other data like tftGameType or champion data
+	// Direct fields commonly present in some payloads
+	if (typeof liveGameData.tft_set_number === "number") {
+		return `Set ${liveGameData.tft_set_number}`;
+	}
+	if (typeof liveGameData.tftSetNumber === "number") {
+		return `Set ${liveGameData.tftSetNumber}`;
+	}
+	if (typeof liveGameData.tft_set_core_name === "string") {
+		const m = liveGameData.tft_set_core_name.match(/(?:TFT)?(?:Set)?(\d+)/i);
+		if (m && m[1]) return `Set ${m[1]}`;
+	}
+
+	// Try from other data like tftGameType or champion/unit data
 	if (liveGameData.tftGameType) {
 		const setMatch = liveGameData.tftGameType.match(/TFT(\d+)/i);
 		if (setMatch && setMatch[1]) {
@@ -274,11 +269,33 @@ function getTFTSetNumber(liveGameData) {
 		}
 	}
 
+	// Try to infer from participants' units (character_id often includes TFTxx_ prefix)
+	if (Array.isArray(liveGameData.participants)) {
+		for (const p of liveGameData.participants) {
+			if (Array.isArray(p?.units)) {
+				for (const u of p.units) {
+					const id = u?.character_id || u?.characterId || u?.name;
+					if (typeof id === "string") {
+						const m = id.match(/TFT(\d+)/i);
+						if (m && m[1]) return `Set ${m[1]}`;
+					}
+				}
+			}
+		}
+	}
+
+	// Use recent match history (most common set) if available
+	if (Array.isArray(matchHistory) && matchHistory.length > 0) {
+		const common = getSetInfoFromMatches(matchHistory);
+		if (common) {
+			const m = String(common).match(/TFT(\d+)/i);
+			if (m && m[1]) return `Set ${m[1]}`;
+		}
+	}
+
 	// If we can't determine, check current date - this is a fallback
-	// TFT sets typically last ~3 months
-	// As of April 15, 2025, TFT would be around Set 13-15
-	// This is an approximation that will need to be updated periodically
-	return "Set 14";
+	// As of late 2025, default to current set if undetectable
+	return "Set 15";
 }
 
 /**
@@ -404,8 +421,9 @@ export default function LiveGame({ liveGameData, region, matchHistory }) {
 		return b.lp - a.lp;
 	});
 
-	// Enhanced card-based rendering
-	const renderEnhancedCard = (p) => {
+
+	// Enhanced card-based rendering (legacy)
+	const renderLegacyTFTCard_DO_NOT_USE = (p) => {
 		const rankTxt = formatRank(p.rank);
 		const total = p.wins + p.losses;
 		const wr = total > 0 ? ((p.wins / total) * 100).toFixed(1) : 0;
@@ -535,10 +553,110 @@ export default function LiveGame({ liveGameData, region, matchHistory }) {
 		);
 	};
 
+
+	// Neon/glass drastically redesigned card
+	const renderNeonCard = (p) => {
+		const rankTxt = formatRank(p.rank);
+		const total = p.wins + p.losses;
+		const wr = total > 0 ? ((p.wins / total) * 100).toFixed(1) : 0;
+		const winrateColor = getWinrateColor(wr);
+		const shortRank = rankTxt !== "Unranked" ? rankTxt.split(" ")[0].toLowerCase() : null;
+		const lastPlacements = getRealPlacements(matchHistory, p.puuid) || generateFallbackPlacements(p.wins, p.losses);
+		const avgPlacementVal = lastPlacements.length
+			? lastPlacements.reduce((a, b) => a + b, 0) / lastPlacements.length
+			: NaN;
+		const avgPlacementText = Number.isNaN(avgPlacementVal)
+			? "-"
+			: avgPlacementVal.toFixed(1);
+		const avgColor = getAveragePlacementColor(avgPlacementVal);
+		const top4Rate = lastPlacements.length
+			? Math.round((lastPlacements.filter((x) => x <= 4).length / lastPlacements.length) * 100)
+			: 0;
+		const bestFinish = lastPlacements.length ? Math.min(...lastPlacements) : "-";
+
+		return (
+			<div className="neon-card p-4">
+				<div className="flex items-start gap-3">
+					<div className="relative w-16 h-16 hex-mask overflow-hidden ring-2 ring-[--tft-primary]/40">
+						<Image
+							src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/${p.profileIconId || 1}.jpg`}
+							alt=""
+							fill
+							className="object-cover"
+						/>
+						<div className="absolute -bottom-1 -right-1 neon-chip bg-[--tft-secondary]/20 border-[--tft-secondary]/40 text-white">
+							{p.summonerLevel}
+						</div>
+					</div>
+
+					<div className="flex-1 min-w-0">
+						<Link
+							href={`/tft/profile?gameName=${encodeURIComponent(p.gameName)}&tagLine=${encodeURIComponent(p.tagLine)}&region=${encodeURIComponent(validRegion)}`}
+							className="block font-extrabold text-white text-base md:text-lg truncate hover:text-[--tft-primary] transition-colors"
+						>
+							{p.gameName}
+							<span className="text-[--text-secondary] font-semibold">#{p.tagLine}</span>
+						</Link>
+						<div className="mt-1 flex items-center gap-2 text-sm">
+							{shortRank && shortRank !== "unranked" && (
+								<span className="relative inline-flex w-5 h-5">
+									<Image src={`/images/league/rankedEmblems/${shortRank}.webp`} alt="" fill className="object-contain opacity-80" />
+								</span>
+							)}
+							<span className="text-white/90 font-semibold truncate">
+								{rankTxt !== "Unranked" ? (
+									<>
+										{rankTxt}
+										<span className="text-[--tft-secondary] font-bold ml-1">{p.lp} LP</span>
+									</>
+								) : (
+									"Unranked"
+								)}
+							</span>
+						</div>
+					</div>
+				</div>
+
+				<div className="mt-3">
+					<div className="flex items-center justify-between text-xs text-[--text-secondary] mb-1">
+						<span className="uppercase tracking-wide">Win Rate</span>
+						<span className={`font-bold ${winrateColor}`}>{wr}%</span>
+					</div>
+					<div className="h-2 w-full rounded-full bg-white/10 overflow-hidden">
+						<div className="h-full rounded-full bg-gradient-to-r from-[--tft-secondary] to-[--tft-primary]" style={{ width: `${wr}%` }} />
+					</div>
+				</div>
+
+				<div className="mt-4">
+					<div className="flex items-center justify-between text-xs text-[--text-secondary] mb-1">
+						<span className="uppercase tracking-wide">Recent Performance</span>
+						<span className="neon-chip bg-white/5 whitespace-nowrap">Record {p.wins}W/{p.losses}L</span>
+					</div>
+						<div className="grid grid-cols-3 gap-2 text-xs text-[--text-secondary]">
+							<div className="neon-chip justify-center whitespace-nowrap">Avg
+								<span className={`ml-1 font-bold ${avgColor}`}>{avgPlacementText}</span>
+							</div>
+							<div className="neon-chip justify-center whitespace-nowrap">Top4
+								<span className="ml-1 font-bold text-[--tft-primary]">{top4Rate}%</span>
+							</div>
+							<div className="neon-chip justify-center whitespace-nowrap">Best
+								<span className="ml-1 font-bold text-[--success]">#{bestFinish}</span>
+							</div>
+						</div>
+					<div className="mt-3 flex items-center flex-wrap gap-1">
+						{lastPlacements.map((placement, idx) => (
+							<span key={idx} className={`px-2 py-0.5 rounded-md text-xs font-bold text-white ${getPlacementColor(placement)}`}>#{placement}</span>
+						))}
+					</div>
+				</div>
+			</div>
+		);
+	};
+
 	return (
-		<div className="bg-[#13151b] text-white rounded-md shadow-lg w-full max-w-7xl mx-auto mt-4">
+		<div className="neon-panel w-full overflow-hidden">
 			{/* Enhanced Header with Mode, Time, and View Toggle */}
-			<div className="py-3 px-4 text-sm font-bold bg-gray-900 rounded-t-md flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+			<div className="neon-header">
 				<div className="flex items-center">
 					<div className="flex items-center gap-2">
 						<span className="px-2 py-0.5 bg-[--tft-primary]/20 text-[--tft-primary] rounded">
@@ -549,13 +667,13 @@ export default function LiveGame({ liveGameData, region, matchHistory }) {
 							{isRanked ? " (Ranked)" : ""}
 						</span>
 					</div>
-					<div className="hidden md:flex items-center ml-4 text-xs bg-black/30 rounded px-2 py-0.5">
+					<div className="hidden md:inline-flex neon-chip ml-4">
 						<FaTrophy className="text-[--tft-secondary] mr-1" />
 						<span>{liveGameData.participants.length} Players</span>
 					</div>
 				</div>
 
-				<div className="flex items-center gap-4">
+				<div className="flex items-center gap-2 sm:gap-4">
 					{/* Time Counter */}
 					<div className="flex items-center">
 						<div className="flex h-2 w-2 relative mr-2">
@@ -567,11 +685,7 @@ export default function LiveGame({ liveGameData, region, matchHistory }) {
 					<button
 						onClick={handleSpectate}
 						disabled={!liveGameData?.observers?.encryptionKey}
-						className={`ml-2 inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-semibold transition-all focus:outline-none focus:ring-1 focus:ring-amber-400/40 focus:ring-offset-1 focus:ring-offset-black ${
-							liveGameData?.observers?.encryptionKey
-								? "bg-gradient-to-br from-amber-400/20 to-black/70 text-white hover:from-amber-400/25 hover:to-black/75 border border-amber-400/20"
-								: "bg-gray-700 text-gray-400 cursor-not-allowed border border-gray-600"
-						}`}
+						className={`btn-spectate ml-1 sm:ml-2`}
 					>
 						<FaDesktop className="w-4 h-4" />
 						Spectate
@@ -579,22 +693,22 @@ export default function LiveGame({ liveGameData, region, matchHistory }) {
 				</div>
 			</div>
 
-			{/* Content based on view mode */}
-			<div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+			{/* Players grid */}
+			<div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
 				{sortedParticipants.map((participant, index) => (
 					<div key={participant.puuid || participant.summonerId || index}>
-						{renderEnhancedCard(participant)}
+						{renderNeonCard(participant)}
 					</div>
 				))}
 			</div>
 
 			{/* Footer with game details */}
-			<div className="py-2 px-4 text-[11px] text-[--text-secondary] border-t border-gray-700/30 flex justify-between">
+			<div className="py-2 px-4 text-[11px] text-[--text-secondary] border-t border-[--card-border] flex justify-between">
 				<div>
 					Game started{" "}
 					{new Date(liveGameData.gameStartTime).toLocaleTimeString()}
 				</div>
-				<div>TFT Set: {getTFTSetNumber(liveGameData)}</div>
+				<div>TFT Set: {getTFTSetNumber(liveGameData, matchHistory)}</div>
 			</div>
 			{showSpectateInfo && (
 				<div className="fixed inset-0 z-[10000] bg-black/70" onClick={() => setShowSpectateInfo(false)}>

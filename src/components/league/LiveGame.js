@@ -983,11 +983,11 @@ export default function LiveGame({ liveGameData, region }) {
 							</div>
 							<Timer start={liveGameData.gameStartTime} />
 						</div>
-						<button
-							onClick={handleSpectate}
-							disabled={!liveGameData?.observers?.encryptionKey}
-							className={`ml-2 rounded-md px-3 py-1.5 text-xs font-semibold transition-all focus:outline-none focus:ring-1 focus:ring-amber-400/40 focus:ring-offset-1 focus:ring-offset-black ${liveGameData?.observers?.encryptionKey ? "bg-gradient-to-br from-amber-400/20 to-black/70 text-white hover:from-amber-400/25 hover:to-black/75 border border-amber-400/20" : "bg-gray-700 text-gray-400 cursor-not-allowed border border-gray-600"}`}
-						>
+					<button
+						onClick={handleSpectate}
+						disabled={!liveGameData?.observers?.encryptionKey}
+						className={`btn-spectate ml-2 text-xs`}
+					>
 							Spectate
 						</button>
 					</div>
@@ -1037,11 +1037,7 @@ export default function LiveGame({ liveGameData, region }) {
 					<button
 						onClick={handleSpectate}
 						disabled={!liveGameData?.observers?.encryptionKey}
-						className={`ml-2 inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-semibold transition-all focus:outline-none focus:ring-1 focus:ring-amber-400/40 focus:ring-offset-1 focus:ring-offset-black ${
-							liveGameData?.observers?.encryptionKey
-								? "bg-gradient-to-br from-amber-400/20 to-black/70 text-white hover:from-amber-400/25 hover:to-black/75 border border-amber-400/20"
-								: "bg-gray-700 text-gray-400 cursor-not-allowed border border-gray-600"
-						}`}
+						className={`btn-spectate ml-2`}
 					>
 						<FaDesktop className="w-4 h-4" />
 						Spectate
