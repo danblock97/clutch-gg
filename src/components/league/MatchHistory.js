@@ -340,14 +340,14 @@ const getGradientBackground = (match, currentPlayer, isRemake, isMVP) => {
 	// Keep colourful arena placement styling
 	if (match.info.queueId === 1700 || match.info.queueId === 1710) {
 		const placementGradientClasses = {
-			1: "bg-gradient-to-r from-[--card-bg] via-yellow-500/20 to-[--card-bg] border border-[--card-border]",
-			2: "bg-gradient-to-r from-[--card-bg] via-pink-500/20 to-[--card-bg] border border-[--card-border]",
-			3: "bg-gradient-to-r from-[--card-bg] via-orange-500/20 to-[--card-bg] border border-[--card-border]",
-			4: "bg-gradient-to-r from-[--card-bg] via-blue-500/20 to-[--card-bg] border border-[--card-border]",
-			5: "bg-gradient-to-r from-[--card-bg] via-red-500/20 to-[--card-bg] border border-[--card-border]",
-			6: "bg-gradient-to-r from-[--card-bg] via-green-500/20 to-[--card-bg] border border-[--card-border]",
-			7: "bg-gradient-to-r from-[--card-bg] via-purple-500/20 to-[--card-bg] border border-[--card-border]",
-			8: "bg-gradient-to-r from-[--card-bg] via-indigo-500/20 to-[--card-bg] border border-[--card-border]",
+			1: "bg-gradient-to-r from-transparent via-yellow-500/20 to-transparent border border-[--card-border]",
+			2: "bg-gradient-to-r from-transparent via-pink-500/20 to-transparent border border-[--card-border]",
+			3: "bg-gradient-to-r from-transparent via-orange-500/20 to-transparent border border-[--card-border]",
+			4: "bg-gradient-to-r from-transparent via-blue-500/20 to-transparent border border-[--card-border]",
+			5: "bg-gradient-to-r from-transparent via-red-500/20 to-transparent border border-[--card-border]",
+			6: "bg-gradient-to-r from-transparent via-green-500/20 to-transparent border border-[--card-border]",
+			7: "bg-gradient-to-r from-transparent via-purple-500/20 to-transparent border border-[--card-border]",
+			8: "bg-gradient-to-r from-transparent via-indigo-500/20 to-transparent border border-[--card-border]",
 		};
 		let sortedParticipants = [...match.info.participants].map((p) => ({
 			...p,
@@ -541,8 +541,8 @@ const MatchHistory = ({
 	};
 
 	const getOutcomeClass = (win, isRemake, isMVP) => {
-		if (isMVP) return "text-yellow-500 border-yellow-500";
-		if (isRemake) return "text-yellow-400 border-yellow-400";
+    if (isMVP) return "text-yellow-500 border-yellow-500";
+    if (isRemake) return "text-gray-400 border-gray-500";
 		return win
 			? "text-blue-400 border-blue-400"
 			: "text-red-400 border-red-400";
@@ -889,15 +889,15 @@ const MatchHistory = ({
 												</p>
 												<span className="text-md text-gray-300">{timeAgo}</span>
 												<p className="text-sm mr-2 flex items-center gap-1">
-													<span
-														className={`text-xs ${
-															isRemake
-																? "text-yellow-400"
-																: currentPlayer.win
-																? "text-blue-400"
-																: "text-red-400"
-														}`}
-													>
+                                            <span
+                                                className={`text-xs ${
+                                                    isRemake
+                                                        ? "text-gray-400"
+                                                        : currentPlayer.win
+                                                        ? "text-blue-400"
+                                                        : "text-red-400"
+                                                }`}
+                                            >
 														{isRemake
 															? "Remake"
 															: currentPlayer.win
