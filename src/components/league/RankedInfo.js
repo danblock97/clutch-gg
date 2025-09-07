@@ -1,138 +1,120 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
-import {
-	FaChevronDown,
-	FaChevronUp,
-	FaTrophy,
-	FaChartLine,
-} from "react-icons/fa";
+import { FaChevronDown, FaChevronUp, FaTrophy, FaChartLine, FaArrowUp, FaArrowDown } from "react-icons/fa";
 
 const RankedInfo = ({ rankedData }) => {
-	// Fetch the Ranked Flex data only - ensure rankedData is an array
-	const flexRankedData = Array.isArray(rankedData)
-		? rankedData.find((item) => item.queueType === "RANKED_FLEX_SR")
-		: null;
+  const flexRankedData = Array.isArray(rankedData)
+    ? rankedData.find((item) => item.queueType === "RANKED_FLEX_SR")
+    : null;
 
-	const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const handleToggleExpand = () => setIsExpanded((p) => !p);
 
-	const handleToggleExpand = () => {
-		setIsExpanded((prev) => !prev);
-	};
+  const data = flexRankedData;
+  const rankedIcon = data ? `/images/league/rankedEmblems/${data.tier.toLowerCase()}.webp` : null;
+  const tier = data ? data.tier : "Unranked";
+  const rank = data ? data.rank : "";
+  const wins = data ? data.wins : 0;
+  const losses = data ? data.losses : 0;
+  const leaguePoints = data ? data.leaguePoints : 0;
+  const winRate = data ? ((wins / Math.max(1, wins + losses)) * 100).toFixed(1) : "0.0";
+  const wr = parseFloat(winRate);
+  const winRateColor = wr >= 55 ? "text-green-400" : wr >= 48 ? "text-blue-400" : "text-red-400";
+  const winRateIcon = wr >= 55 ? <FaArrowUp className="ml-1" /> : wr >= 48 ? null : <FaArrowDown className="ml-1" />;
+  const tierColorClass = data ? `text-[--${tier.toLowerCase()}]` : "text-gray-400";
 
-	const renderRankedFlex = (data) => {
-		const rankedIcon = data
-			? `/images/league/rankedEmblems/${data.tier.toLowerCase()}.webp`
-			: null;
-		const tier = data ? data.tier : "Unranked";
-		const rank = data ? data.rank : "";
-		const wins = data ? data.wins : 0;
-		const losses = data ? data.losses : 0;
-		const leaguePoints = data ? data.leaguePoints : 0;
-		const winRate = data ? ((wins / (wins + losses)) * 100).toFixed(1) : "0.0";
+  return (
+    <div className="card group transition-all duration-300 hover:shadow-xl overflow-hidden">
+      <div className="h-1 bg-gradient-to-r from-[--primary] to-[--secondary]" />
+      <div className="p-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-[--card-bg] border border-[--card-border]">
+            <FaTrophy className="text-[--gold] text-lg" />
+          </div>
+          <div className="flex-1">
+            <p className="text-xs uppercase tracking-widest text-[--text-secondary]">Flex Ranked</p>
+            <h2 className="text-lg font-extrabold">{data ? `${tier} ${rank}` : "Unranked"}</h2>
+          </div>
+          {rankedIcon ? (
+            <div className="relative w-14 h-14">
+              <Image src={rankedIcon} alt={`${tier} Emblem`} fill className="object-contain" />
+            </div>
+          ) : null}
+        </div>
 
-		// Determine color class based on tier
-		const tierColorClass = data
-			? `text-[--${tier.toLowerCase()}]`
-			: "text-gray-400";
+        <div className="mt-4 grid grid-cols-3 gap-3">
+          <div className="rounded-md border border-[--card-border] bg-[--card-bg] p-3">
+            <p className="text-[10px] uppercase tracking-wider text-[--text-secondary]">Win Rate</p>
+            <p className={`mt-1 text-xl font-bold flex items-center ${winRateColor}`}>
+              {winRate}%
+              {winRateIcon}
+            </p>
+          </div>
+          <div className="rounded-md border border-[--card-border] bg-[--card-bg] p-3">
+            <p className="text-[10px] uppercase tracking-wider text-[--text-secondary]">LP</p>
+            <p className="mt-1 text-xl font-bold flex items-center">
+              <FaChartLine className="text-[--primary] mr-1" /> {leaguePoints}
+            </p>
+          </div>
+          <div className="rounded-md border border-[--card-border] bg-[--card-bg] p-3">
+            <p className="text-[10px] uppercase tracking-wider text-[--text-secondary]">Tier</p>
+            <p className={`mt-1 text-sm font-semibold ${tierColorClass}`}>{data ? tier : "Unranked"}</p>
+          </div>
+        </div>
 
-		return (
-			<div
-				className="card season-history-card group cursor-pointer transition-all duration-300 hover:shadow-xl"
-				onClick={handleToggleExpand}
-			>
-				<div className="flex justify-between items-center">
-					<div className="flex items-center gap-2">
-						<div className="p-2 rounded-full bg-[--card-bg] flex items-center justify-center">
-							<FaTrophy className="text-[--gold] text-lg" />
-						</div>
-						<h2 className="text-base font-bold">Ranked Flex</h2>
-					</div>
+        <div className="mt-4">
+          <div className="flex items-center justify-between text-xs text-[--text-secondary] mb-1">
+            <span>W/L</span>
+            <span>
+              <span className="text-[--success] font-semibold">{wins}W</span>
+              <span className="mx-1">/</span>
+              <span className="text-[--error] font-semibold">{losses}L</span>
+            </span>
+          </div>
+          <div className="h-2 rounded bg-[--card-bg] border border-[--card-border] overflow-hidden">
+            {(() => {
+              const total = Math.max(1, wins + losses);
+              const winPct = (wins / total) * 100;
+              return (
+                <div className="h-full w-full flex">
+                  <div className="h-full bg-green-500/70" style={{ width: `${winPct}%` }} />
+                  <div className="h-full bg-red-500/60" style={{ width: `${100 - winPct}%` }} />
+                </div>
+              );
+            })()}
+          </div>
+        </div>
 
-					<div className="flex items-center gap-3">
-						{rankedIcon && (
-							<div className="flex items-center">
-								<Image
-									src={rankedIcon}
-									alt={`${tier} Emblem`}
-									width={28}
-									height={28}
-									className=""
-								/>
-								<p className={`ml-2 font-semibold ${tierColorClass}`}>
-									{data ? `${tier} ${rank}` : "Unranked"}
-								</p>
-							</div>
-						)}
+        <div className="mt-4 flex items-center justify-end">
+          <button
+            className="text-[--text-secondary] hover:text-[--primary] transition-colors text-sm inline-flex items-center gap-1"
+            onClick={handleToggleExpand}
+          >
+            {isExpanded ? (
+              <>
+                Hide details <FaChevronUp />
+              </>
+            ) : (
+              <>
+                Show details <FaChevronDown />
+              </>
+            )}
+          </button>
+        </div>
 
-						<div className="text-[--text-secondary] group-hover:text-[--primary] transition-colors duration-200">
-							{isExpanded ? <FaChevronUp /> : <FaChevronDown />}
-						</div>
-					</div>
-				</div>
-
-				{isExpanded && (
-					<div className="mt-4 pt-4 border-t border-[--card-border] grid grid-cols-3 gap-4 text-center">
-						<div className="stat-block">
-							<span className="text-xs text-[--text-secondary] uppercase">
-								Win Rate
-							</span>
-							<div className="relative my-2">
-								<svg className="w-16 h-16" viewBox="0 0 36 36">
-									<path
-										d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-										fill="none"
-										stroke="#444"
-										strokeWidth="1"
-									/>
-									<path
-										d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-										fill="none"
-										stroke={parseFloat(winRate) > 50 ? "#10b981" : "#ef4444"}
-										strokeWidth="3"
-										strokeDasharray={`${winRate}, 100`}
-										strokeLinecap="round"
-									/>
-									<text
-										x="18"
-										y="20.5"
-										textAnchor="middle"
-										fontSize="8"
-										fill="white"
-										fontWeight="bold"
-									>
-										{winRate}%
-									</text>
-								</svg>
-							</div>
-						</div>
-
-						<div className="stat-block">
-							<span className="text-xs text-[--text-secondary] uppercase">
-								W/L
-							</span>
-							<div className="flex items-center justify-center gap-1 mt-2">
-								<span className="text-[--success] font-semibold">{wins}W</span>
-								<span className="text-[--text-secondary]">/</span>
-								<span className="text-[--error] font-semibold">{losses}L</span>
-							</div>
-						</div>
-
-						<div className="stat-block">
-							<span className="text-xs text-[--text-secondary] uppercase">
-								LP
-							</span>
-							<div className="flex items-center justify-center mt-2">
-								<FaChartLine className="text-[--primary] mr-1" />
-								<span className="font-bold text-lg">{leaguePoints}</span>
-							</div>
-						</div>
-					</div>
-				)}
-			</div>
-		);
-	};
-
-	return <div className="space-y-4">{renderRankedFlex(flexRankedData)}</div>;
+        {isExpanded ? (
+          <div className="mt-2 text-xs text-[--text-secondary] grid grid-cols-2 gap-2">
+            <p>
+              Games: <span className="text-[--text-primary] font-semibold">{wins + losses}</span>
+            </p>
+            <p>
+              Queue: <span className="text-[--text-primary] font-semibold">Flex SR</span>
+            </p>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
 };
 
 export default RankedInfo;

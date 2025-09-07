@@ -189,108 +189,64 @@ const SeasonRanks = ({
 			</div>
 		);
 	}
-	return (
-		<div className="card season-history-card">
-			<div
-				className="flex items-center justify-between p-4 cursor-pointer"
-				onClick={() => setIsExpanded(!isExpanded)}
-			>
-				<h3 className="text-base font-semibold flex items-center">
-					<FaHistory className="mr-2 text-[--secondary]" />
-					Season History
-				</h3>
-				<div>
-					{isExpanded ? (
-						<FaChevronUp className="text-[--text-secondary]" />
-					) : (
-						<FaChevronDown className="text-[--text-secondary]" />
-					)}
-				</div>
-			</div>
-
-			{isExpanded && (
-				<div className="p-4 pt-0 border-t border-[--card-border]">
-					{error && (
-						<p className="text-[--error] text-xs mb-2">
-							Error refreshing: {error} (showing previous data)
-						</p>
-					)}
-
-					{isLoading && (
-						<div className="flex items-center text-xs text-[--text-secondary] mb-2">
-							<div className="loading-spinner-xs mr-2"></div>
-							Refreshing...
-						</div>
-					)}
-					<div>
-						{rankHistory.map((rank, index) => (
-							<div
-								key={index}
-								// Use flexbox to align items and justify-between to push LP to the right
-								className="flex items-center justify-between py-1.5 border-b border-[--card-border] last:border-b-0"
-							>
-								{/* Left side: Season and Rank */}
-								<div className="flex items-center gap-2 flex-grow">
-									{/* Season - Fixed width for alignment */}
-									<div className="bg-[--card-bg] text-[--text-secondary] text-xs font-semibold py-0.5 px-2 rounded-md w-[60px] text-center flex-shrink-0">
-										{rank.season}
-									</div>
-
-									{/* Rank - Allow this to take remaining space */}
-									<div className="flex items-center gap-1 flex-grow min-w-0">
-										{" "}
-										{/* Added min-w-0 for flex shrink */}
-										{rank.tier ? (
-											<div className="relative w-6 h-6 flex-shrink-0">
-												{" "}
-												{/* Added flex-shrink-0 */}
-												<Image
-													src={getRankEmblemPath(rank.tier)}
-													alt={`${rank.tier} emblem`}
-													width={24}
-													height={24}
-													className=""
-												/>
-											</div>
-										) : (
-											<div className="w-6 h-6 bg-[--card-bg] rounded-full flex items-center justify-center flex-shrink-0">
-												{" "}
-												{/* Added flex-shrink-0 */}
-												<span className="text-gray-600 text-xs">-</span>
-											</div>
-										)}
-										<span
-											className={`font-bold text-sm truncate ${getRankColorClass(
-												// Added truncate
-												rank.tier
-											)}`}
-										>
-											{rank.tier || "Unranked"}
-										</span>
-									</div>
-								</div>
-
-								{/* Right side: LP - Fixed width for alignment */}
-								{rank.lp !== undefined && rank.lp !== null && (
-									<div className="text-right w-[60px] flex-shrink-0">
-										{" "}
-										{/* Fixed width and flex-shrink-0 */}
-										<span className="text-xs text-[--text-secondary]">
-											{rank.lp} LP
-										</span>
-									</div>
-								)}
-								{/* Add a placeholder div if LP is not present to maintain alignment */}
-								{(rank.lp === undefined || rank.lp === null) && (
-									<div className="w-[60px] flex-shrink-0"></div>
-								)}
-							</div>
-						))}
-					</div>
-				</div>
-			)}
-		</div>
-	);
+    return (
+        <div className="card overflow-hidden">
+            <div className="h-1 bg-gradient-to-r from-[--secondary] to-[--primary]" />
+            <div className="flex items-center justify-between p-4">
+                <h3 className="text-base font-semibold flex items-center">
+                    <FaHistory className="mr-2 text-[--primary]" />
+                    Season History
+                </h3>
+                <button
+                    className="text-[--text-secondary] hover:text-[--text-primary]"
+                    onClick={() => setIsExpanded(!isExpanded)}
+                    aria-label="Toggle season history"
+                >
+                    {isExpanded ? <FaChevronUp /> : <FaChevronDown />}
+                </button>
+            </div>
+            {isExpanded && (
+                <div className="px-4 pb-4">
+                    {error && (
+                        <p className="text-[--error] text-xs mb-2">
+                            Error refreshing: {error} (showing previous data)
+                        </p>
+                    )}
+                    {isLoading && (
+                        <div className="flex items-center text-xs text-[--text-secondary] mb-2">
+                            <div className="loading-spinner-xs mr-2"></div>
+                            Refreshing...
+                        </div>
+                    )}
+                    {/* Stacked list, no timeline dots */}
+                    <div className="space-y-2">
+                        {rankHistory.map((rank, index) => (
+                            <div key={index} className="flex items-center justify-between p-2 rounded-md bg-[--card-bg] border border-[--card-border]">
+                                <div className="flex items-center gap-2 min-w-0">
+                                    <span className="text-[10px] font-semibold text-[--text-secondary] bg-[--card-bg-secondary] px-2 py-0.5 rounded-md">
+                                        {rank.season}
+                                    </span>
+                                    {rank.tier ? (
+                                        <Image src={getRankEmblemPath(rank.tier)} alt={`${rank.tier} emblem`} width={20} height={20} />
+                                    ) : (
+                                        <span className="w-5 h-5 rounded-full bg-[--card-bg-secondary]" />
+                                    )}
+                                    <span className={`font-bold text-sm truncate ${getRankColorClass(rank.tier)}`}>
+                                        {rank.tier || "Unranked"}
+                                    </span>
+                                </div>
+                                {rank.lp !== undefined && rank.lp !== null ? (
+                                    <span className="text-xs text-[--text-secondary] bg-[--card-bg-secondary] px-2 py-0.5 rounded-md">{rank.lp} LP</span>
+                                ) : (
+                                    <span className="text-xs text-[--text-secondary] opacity-60">—</span>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
 };
 
 export default SeasonRanks;

@@ -73,9 +73,9 @@ const RecentlyPlayedWith = ({
 	};
 
 	return (
-		<div className="card season-history-card overflow-hidden">
+		<div className="card overflow-hidden">
 			<div
-				className="flex items-center justify-between p-3 cursor-pointer"
+				className="flex items-center justify-between p-4"
 				onClick={toggleExpand}
 			>
 				<div className="flex items-center">
@@ -97,7 +97,7 @@ const RecentlyPlayedWith = ({
 			{isExpanded && (
 				<>
 					<hr className="border-t border-[--card-border] mx-4" />
-					<div className="px-4 pb-2 pt-2">
+					<div className="px-4 pb-3 pt-2">
 						{teammatesData.length > 0 ? (
 							<div>
 								{teammatesData.map((teammate, index) => {
@@ -126,7 +126,7 @@ const RecentlyPlayedWith = ({
 											key={index}
 											href={profileLink}
 											onClick={(e) => handleProfileClick(e, profileLink)}
-											className="flex items-center justify-between py-1.5 border-b border-[--card-border] last:border-b-0 hover:bg-[--card-bg] cursor-pointer transition-colors duration-150 px-1"
+											className="flex items-center justify-between py-2 border-b border-[--card-border] last:border-b-0 hover:bg-[--card-bg-secondary] cursor-pointer transition-colors duration-150 px-2 rounded"
 										>
 											<div className="flex items-center min-w-0 gap-2">
 												<div className="relative flex-shrink-0 w-6 h-6">
@@ -173,13 +173,12 @@ const RecentlyPlayedWith = ({
 														</span>
 													</p>
 												</div>
-												<div className="text-center w-8">
-													<p className="text-[--text-secondary] text-[10px]">
-														WR
-													</p>
-													<p className={`font-bold ${winRateColor}`}>
-														{winRate}%
-													</p>
+												<div className="w-24">
+													<p className="text-[--text-secondary] text-[10px]">Winrate</p>
+													<div className="h-1.5 bg-[--card-bg] rounded overflow-hidden border border-[--card-border]">
+														<div className="h-full bg-green-500/70" style={{ width: `${winRate}%` }} />
+													</div>
+													<p className={`mt-1 text-xs font-bold ${winRateColor}`}>{winRate}%</p>
 												</div>
 											</div>
 										</Link>
