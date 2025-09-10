@@ -233,7 +233,7 @@ export default function Profile({
 	return (
 		<main className="min-h-screen bg-gray-900 text-white">
 			<div className="w-full py-8 bg-[radial-gradient(ellipse_at_top,_rgba(255,255,255,0.06),_transparent_60%)]">
-				<div className="w-full max-w-screen-xl mx-auto px-4 sm:px-6">
+				<div className="container mx-auto px-4 sm:px-6">
 					<div className="relative flex flex-col lg:flex-row items-start lg:items-center gap-6 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-5 shadow-[0_10px_30px_rgba(0,0,0,0.25)]">
 						{/* Left Side: Profile Icon & Level */}
 						<div className="flex-shrink-0 relative">
@@ -355,7 +355,7 @@ export default function Profile({
 			<div className="container mx-auto px-4 py-8">
 				{/* Live Game Section (Conditionally Rendered) */}
 				{liveGameData && isLiveGameOpen && (
-					<div className="max-w-screen-xl w-full mx-auto mb-8">
+					<div className="w-full mb-8">
 						<LiveGame liveGameData={liveGameData} region={profileData.region} matchHistory={matchDetails} />
 					</div>
 				)}
