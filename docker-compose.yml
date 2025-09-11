@@ -1,0 +1,26 @@
+version: "3.9"
+
+services:
+  app:
+    image: clutch-gg:local
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Forward public envs at build time so Next.js can inline them
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_KEY: ${NEXT_PUBLIC_SUPABASE_KEY}
+        NEXT_PUBLIC_UPDATE_API_KEY: ${NEXT_PUBLIC_UPDATE_API_KEY}
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    env_file:
+      # Load runtime env vars locally; Dokploy will inject these in production
+      - .env.local
+    expose:
+      - "3000"
+    ports:
+      # Local testing: map host 3000 -> container 3000
+      - "3000:3000"
+    restart: unless-stopped
+
