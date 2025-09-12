@@ -14,13 +14,6 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
-    env_file:
-      # Load runtime env vars locally; Dokploy will inject these in production
-      - .env.local
     expose:
       - "3000"
-    ports:
-      # Local testing: map host 3000 -> container 3000
-      - "3000:3000"
     restart: unless-stopped
-
