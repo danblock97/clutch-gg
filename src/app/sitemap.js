@@ -70,7 +70,7 @@ export default function sitemap() {
 			priority: 0.3,
 		},
 		{
-			url: "https://clutchgg.lol/legal/support",
+			url: "https://clutchgg.lol/support",
 			lastModified: new Date(),
 			changeFrequency: "monthly",
 			priority: 0.4,

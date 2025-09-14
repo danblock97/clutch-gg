@@ -3,7 +3,7 @@
 	"version": "2.1.0",
 	"private": true,
 	"scripts": {
-		"dev": "next dev --experimental-https",
+		"dev": "next dev",
 		"build": "next build",
 		"update-profiles": "node scripts/update-profiles.js",
 		"populate-accounts": "node scripts/populate-accounts-direct.js"
@@ -15,7 +15,7 @@
 		"@supabase/supabase-js": "^2.49.10",
 		"@vercel/analytics": "^1.5.0",
 		"@vercel/speed-insights": "^1.2.0",
-		"axios": "^1.8.4",
+		"axios": "^1.12.1",
 		"brace-expansion": "^2.0.2",
 		"cheerio": "^1.0.0",
 		"dotenv": "^16.5.0",

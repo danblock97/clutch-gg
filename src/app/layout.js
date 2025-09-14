@@ -33,6 +33,8 @@ export default function RootLayout({ children }) {
 			<body className={inter.className}>
 				<StructuredData type="WebSite" />
 				<RootLayoutContent>{children}</RootLayoutContent>
+				<Analytics />
+				<SpeedInsights />
 			</body>
 		</html>
 	);

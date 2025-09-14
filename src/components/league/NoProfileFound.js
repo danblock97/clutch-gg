@@ -57,7 +57,7 @@ const NoProfileFound = () => {
 					Need help or experiencing an issue?
 				</p>
 				<Link
-					href="/legal/support"
+					href="/support"
 					className="btn-secondary flex items-center justify-center gap-2 rounded-lg px-4 py-2 transition-colors"
 				>
 					<FaTicketAlt />

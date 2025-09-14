@@ -160,7 +160,7 @@ const Footer = () => {
 							</li>
 							<li>
 								<Link
-									href="/legal/support"
+									href="/support"
 									className="text-sm hover:text-[--primary] transition-colors inline-flex items-center"
 								>
 									<FaLightbulb className="mr-2 text-xs" />
