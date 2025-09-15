@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import ShareCardClient from "@/components/profile-card/ShareCardClient";
 import LeagueShareCard from "@/components/profile-card/LeagueShareCard";
+import TFTShareCard from "@/components/profile-card/TFTShareCard";
 import React from "react";
 import { headers } from "next/headers";
 
@@ -128,16 +129,24 @@ export default async function CardPage({ searchParams }) {
           mastery={Array.isArray(data.championmasterydata) ? data.championmasterydata : []}
         />
       ) : (
-        <ShareCardClient
-          name={name}
-          title={title}
+        <TFTShareCard
           handle={handle}
-          status={status}
-          contactText="Copy Link"
-          avatarUrl={avatarUrl}
-          showUserInfo={true}
-          enableTilt={true}
-          enableMobileTilt={false}
+          region={regionUpper}
+          level={level}
+          tftRank={(() => {
+            if (Array.isArray(data.rankeddata)) {
+              const list = data.rankeddata;
+              return (
+                list.find((q) => q.queueType === "RANKED_TFT") ||
+                list.find((q) => (q.queueType || "").includes("RANKED_TFT")) ||
+                list[0] || null
+              );
+            }
+            // rankeddata can be an object (from additionalData)
+            return data.rankeddata || null;
+          })()}
+          matchDetails={Array.isArray(data.matchdetails) ? data.matchdetails : []}
+          puuid={profile.puuid || data.profiledata?.puuid}
         />
       )}
       <div className="mt-4 text-center text-sm text-white/70">

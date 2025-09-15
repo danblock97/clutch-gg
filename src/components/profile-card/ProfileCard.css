@@ -136,3 +136,11 @@
 .dak-champ .icon { width: 34px; height: 34px; border-radius: 999px; overflow: hidden; border: 1px solid rgba(255,255,255,.18); background: rgba(255,255,255,.06); }
 .dak-champ .icon img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .dak-champ .meta { font-size: 11px; line-height: 1.2; }
+
+/* TFT placements rows (two rows of 10) */
+.dak-placements-rows { display: grid; grid-auto-rows: auto; row-gap: 6px; margin-top: 8px; }
+.dak-placements-row { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; }
+.dak-placements-row .cell { height: 18px; border-radius: 4px; font-size: 10px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+.dak-placements-row .cell.first { background: #facc15; color: #0b0f14; }
+.dak-placements-row .cell.top4 { background: #22c55e; color: #0b0f14; }
+.dak-placements-row .cell.bot4 { background: #ef4444; color: #fff; }
