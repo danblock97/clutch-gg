@@ -2,6 +2,7 @@ import { supabase } from "@/lib/supabase";
 import ShareCardClient from "@/components/profile-card/ShareCardClient";
 import LeagueShareCard from "@/components/profile-card/LeagueShareCard";
 import TFTShareCard from "@/components/profile-card/TFTShareCard";
+import CardPageChrome from "@/components/card/CardPageChrome";
 import React from "react";
 import { headers } from "next/headers";
 
@@ -112,7 +113,7 @@ export default async function CardPage({ searchParams }) {
   const regionUpper = region.toUpperCase();
 
   return (
-    <main className="min-h-[60vh] grid place-items-center p-6">
+    <CardPageChrome mode={mode} gameName={name} tagLine={account.tagLine} region={regionUpper}>
       {mode === "league" ? (
         <LeagueShareCard
           name={name}
@@ -142,21 +143,12 @@ export default async function CardPage({ searchParams }) {
                 list[0] || null
               );
             }
-            // rankeddata can be an object (from additionalData)
             return data.rankeddata || null;
           })()}
           matchDetails={Array.isArray(data.matchdetails) ? data.matchdetails : []}
           puuid={profile.puuid || data.profiledata?.puuid}
         />
       )}
-      <div className="mt-4 text-center text-sm text-white/70">
-        <a
-          className="underline hover:text-white"
-          href={`/${mode}/profile?` + new URLSearchParams({ gameName, tagLine, region: regionUpper }).toString()}
-        >
-          View full profile
-        </a>
-      </div>
-    </main>
+    </CardPageChrome>
   );
 }
