@@ -401,32 +401,34 @@ export default function Profile({
 							)}
 
 							{!claimStatus.loading && !claimStatus.claimed && (
-								<button
-									onClick={() => {
-										if (!user) return loginWithRiot();
-										handleClaim();
-									}}
-									disabled={!canClaim || claimLoading}
-									className={`relative overflow-hidden rounded-full text-sm font-semibold transition-all duration-300 inline-flex items-center justify-center px-4 py-1.5 shadow-sm ${
-										canClaim && !claimLoading ? "bg-indigo-500 hover:bg-indigo-400 text-white" : "bg-gray-700 text-gray-400 cursor-not-allowed"
-									}`}
-								>
-									{claimLoading ? "Claiming..." : (user ? (canClaim ? "Claim Profile" : "Sign-in mismatch") : "Sign in to claim")}
-								</button>
+                            <button
+                                onClick={() => {
+                                    if (!user) return loginWithRiot();
+                                    handleClaim();
+                                }}
+                                disabled={!canClaim || claimLoading}
+                                className={`relative overflow-hidden rounded-lg text-sm font-semibold transition-all duration-300 inline-flex items-center justify-center px-4 py-1.5 border ${
+                                    canClaim && !claimLoading
+                                        ? "bg-indigo-500/90 hover:bg-indigo-400 text-white border-indigo-300/50 ring-1 ring-indigo-400/60 shadow-[0_0_14px_rgba(99,102,241,0.55)]"
+                                        : "bg-gray-700 text-gray-400 cursor-not-allowed border-gray-600"
+                                }`}
+                            >
+                                {claimLoading ? "Claiming..." : (user ? (canClaim ? "Claim Profile" : "Sign-in mismatch") : "Sign in to claim")}
+                            </button>
 							)}
 
 							{!claimStatus.loading && user && claimStatus.claimed && claimStatus.ownClaim && (
-								<a
-									href={`/card?` + new URLSearchParams({
-										mode: "tft",
-										gameName: summonerData.name,
-										tagLine: summonerData.tagLine,
-										region: (profileData?.region || "euw1").toUpperCase(),
-									}).toString()}
-									className="relative overflow-hidden rounded-full text-sm font-semibold inline-flex items-center justify-center px-4 py-1.5 shadow-sm bg-fuchsia-500 hover:bg-fuchsia-400 text-white"
-								>
-									Create Share Card
-								</a>
+                            <a
+                                href={`/card?` + new URLSearchParams({
+                                    mode: "tft",
+                                    gameName: summonerData.name,
+                                    tagLine: summonerData.tagLine,
+                                    region: (profileData?.region || "euw1").toUpperCase(),
+                                }).toString()}
+                                className="relative overflow-hidden rounded-lg text-sm font-semibold inline-flex items-center justify-center px-4 py-1.5 border bg-fuchsia-500/90 hover:bg-fuchsia-400 text-white border-fuchsia-300/50 ring-1 ring-fuchsia-400/60 shadow-[0_0_14px_rgba(232,121,249,0.55)]"
+                            >
+                                Create ClutchGG Card
+                            </a>
 							)}
 
 							{!claimStatus.loading && claimStatus.claimed && !claimStatus.ownClaim && (
