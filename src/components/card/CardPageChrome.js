@@ -40,14 +40,15 @@ export default function CardPageChrome({ mode, gameName, tagLine, region, childr
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
           {/* Left: Actions & CTA */}
           <aside className="lg:col-span-2 w-full">
-            <div className="space-y-6">
+            <div className="space-y-8">
               <div>
-                <h2 className="text-lg font-bold mb-3">Share your card</h2>
-                <div className="flex items-center gap-3">
+                <h2 className="text-2xl font-extrabold mb-3 tracking-tight">Share your card</h2>
+                <p className="text-white/70 text-base mb-5">Get the word out on social or copy a direct link.</p>
+                <div className="flex flex-wrap items-center gap-4">
                   <button
                     onClick={onShareX}
                     title="Share on X"
-                    className="w-11 h-11 rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 grid place-items-center text-white/90"
+                    className="w-14 h-14 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 grid place-items-center text-white/90 text-xl"
                     aria-label="Share on X"
                     type="button"
                   >
@@ -56,7 +57,7 @@ export default function CardPageChrome({ mode, gameName, tagLine, region, childr
                   <button
                     onClick={onShareReddit}
                     title="Share on Reddit"
-                    className="w-11 h-11 rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 grid place-items-center text-white/90"
+                    className="w-14 h-14 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 grid place-items-center text-white/90 text-xl"
                     aria-label="Share on Reddit"
                     type="button"
                   >
@@ -65,14 +66,14 @@ export default function CardPageChrome({ mode, gameName, tagLine, region, childr
                   <button
                     onClick={onCopyLink}
                     title="Copy link"
-                    className="w-11 h-11 rounded-lg border border-indigo-300/50 ring-1 ring-indigo-400/60 bg-indigo-500/90 hover:bg-indigo-400 grid place-items-center text-white shadow-[0_0_14px_rgba(99,102,241,0.55)]"
+                    className="w-14 h-14 rounded-xl border border-indigo-300/50 ring-1 ring-indigo-400/60 bg-indigo-500/90 hover:bg-indigo-400 grid place-items-center text-white text-xl shadow-[0_0_18px_rgba(99,102,241,0.55)]"
                     aria-label="Copy link"
                     type="button"
                   >
                     <FaLink />
                   </button>
                 </div>
-                <div className="mt-3 text-xs text-white/70">{copied ? "Link copied" : ""}</div>
+                <div className="mt-3 text-sm text-white/70 h-5">{copied ? "Link copied" : ""}</div>
               </div>
 
               <div>
@@ -81,7 +82,7 @@ export default function CardPageChrome({ mode, gameName, tagLine, region, childr
                 </a>
               </div>
 
-              <div className="text-sm text-white/70">
+              <div className="text-base text-white/80">
                 <button onClick={() => setShowModal(true)} className="underline hover:text-white">Create your ClutchGG Card</button>
               </div>
             </div>
