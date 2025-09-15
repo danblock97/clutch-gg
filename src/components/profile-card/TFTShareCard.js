@@ -10,6 +10,9 @@ export default function TFTShareCard({
   tftRank, // object with tier, rank, leaguePoints, wins, losses
   matchDetails = [],
   puuid,
+  enableTilt = true,
+  exportMode = false,
+  backgroundUrl,
 }) {
   const [companionsMap, setCompanionsMap] = useState({});
   const [bgUrl, setBgUrl] = useState(null);
@@ -130,9 +133,10 @@ export default function TFTShareCard({
       showAvatar={false}
       showBehindGradient={false}
       disableGlow={true}
-      enableTilt
+      enableTilt={enableTilt}
       enableMobileTilt={false}
-      backgroundUrl={bgUrl || undefined}
+      backgroundUrl={backgroundUrl || bgUrl || undefined}
+      exportMode={exportMode}
       topOverlay={(
         <div className="dak-topbar">
           <div className="dak-pill dak-game"><span>Teamfight Tactics</span></div>
@@ -145,7 +149,7 @@ export default function TFTShareCard({
           {bgUrl && (
             <div style={{ display: "flex", justifyContent: "center", marginTop: 6, marginBottom: 8 }}>
               <div style={{ width: 72, height: 72, borderRadius: 9999, overflow: "hidden", border: "1px solid rgba(255,255,255,.18)", background: "rgba(0,0,0,.25)" }}>
-                <img src={bgUrl} alt="Legend" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                <img src={bgUrl} alt="Legend" crossOrigin="anonymous" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               </div>
             </div>
           )}
@@ -160,7 +164,7 @@ export default function TFTShareCard({
           <div className="dak-stats">
             <div className="dak-rank">
               {tftRank?.tier ? (
-                <img src={`/images/league/rankedEmblems/${String(tftRank.tier).toLowerCase()}.webp`} alt="Rank Emblem" />
+                <img src={`/images/league/rankedEmblems/${String(tftRank.tier).toLowerCase()}.webp`} alt="Rank Emblem" crossOrigin="anonymous" />
               ) : (
                 <div style={{ width: 44, height: 44, borderRadius: 8, background: "rgba(255,255,255,.08)" }} />
               )}

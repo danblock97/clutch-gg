@@ -46,6 +46,7 @@ const ProfileCardComponent = ({
   backgroundUrl,
   showAvatar = true,
   disableGlow = false,
+  exportMode = false,
 }) => {
   const wrapRef = useRef(null);
   const cardRef = useRef(null);
@@ -242,7 +243,11 @@ const ProfileCardComponent = ({
     <div ref={wrapRef} className={`pc-card-wrapper ${className}`.trim()} style={cardStyle}>
       <section ref={cardRef} className="pc-card">
         {backgroundUrl && (
-          <div className="pc-bg" style={{ backgroundImage: `url(${backgroundUrl})` }} />
+          exportMode ? (
+            <img className="pc-bg-img" src={backgroundUrl} crossOrigin="anonymous" alt="" />
+          ) : (
+            <div className="pc-bg" style={{ backgroundImage: `url(${backgroundUrl})` }} />
+          )
         )}
         <div className="pc-inside">
           {!disableGlow && <div className="pc-shine" />}

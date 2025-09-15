@@ -31,6 +31,7 @@
 
 /* Background image layer */
 .pc-bg { position: absolute; inset: 0; background-size: cover; background-position: center; filter: none; z-index: 0; }
+.pc-bg-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; display: block; }
 
 .pc-shine {
   position: absolute; inset: 0;

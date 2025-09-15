@@ -18,6 +18,9 @@ export default function LeagueShareCard({
   mastery = [],
   matchDetails = [],
   puuid,
+  enableTilt = true,
+  exportMode = false,
+  backgroundUrl,
 }) {
   const emblemUrl = solo?.tier
     ? `/images/league/rankedEmblems/${String(solo.tier).toLowerCase()}.webp`
@@ -130,9 +133,10 @@ export default function LeagueShareCard({
       showAvatar={false}
       showBehindGradient={false}
       disableGlow={true}
-      enableTilt
+      enableTilt={enableTilt}
       enableMobileTilt={false}
-      backgroundUrl={bgUrl || undefined}
+      backgroundUrl={backgroundUrl || bgUrl || undefined}
+      exportMode={exportMode}
       topOverlay={(
         <div className="dak-topbar">
           <div className="dak-pill dak-game"><span>League of Legends</span></div>
@@ -140,7 +144,7 @@ export default function LeagueShareCard({
             {region ? <div className="dak-pill">{region}</div> : null}
             {topRoles.map((r)=> (
               <div key={r} className="dak-pill" style={{padding:"6px 8px"}}>
-                <img src={laneIcon(r)} alt={r} style={{width:16,height:16,display:"block"}} />
+                <img src={laneIcon(r)} alt={r} crossOrigin="anonymous" style={{width:16,height:16,display:"block"}} />
               </div>
             ))}
           </div>
@@ -154,7 +158,7 @@ export default function LeagueShareCard({
           </div>
           <div className="dak-stats">
             <div className="dak-rank">
-              {emblemUrl ? <img src={emblemUrl} alt="Rank Emblem" /> : <div style={{width:44,height:44,borderRadius:8,background:'rgba(255,255,255,.08)'}}/>}
+              {emblemUrl ? <img src={emblemUrl} alt="Rank Emblem" crossOrigin="anonymous" /> : <div style={{width:44,height:44,borderRadius:8,background:'rgba(255,255,255,.08)'}}/>}
               <div>
                 <div className="label">Solo Rank</div>
                 <div className="value">{solo?.tier ? (<><span className="uppercase">{solo.tier}</span>{solo.rank ? <span> {solo.rank}</span> : null}</>) : 'Unranked'}</div>
@@ -166,7 +170,7 @@ export default function LeagueShareCard({
           <div className="dak-champs">
             {top3.map((m) => (
               <div className="dak-champ" key={m.championId}>
-                <div className="icon"><img src={championIcon(m.championId)} alt="Champion" /></div>
+                <div className="icon"><img src={championIcon(m.championId)} alt="Champion" crossOrigin="anonymous" /></div>
                 <div className="meta">{m.championName}<br/>{m.championPoints.toLocaleString()} pts</div>
               </div>
             ))}

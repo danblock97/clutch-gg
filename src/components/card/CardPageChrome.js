@@ -1,13 +1,20 @@
 "use client";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState, Children, isValidElement, cloneElement } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { FaTwitter, FaRedditAlien, FaLink } from "react-icons/fa";
+import ExportFrame from "@/components/card/ExportFrame";
+import { exportNodeToPng } from "@/utils/exportImage";
 
 export default function CardPageChrome({ mode, gameName, tagLine, region, children }) {
   const { user, loginWithRiot, navigateToProfile } = useAuth();
   const [copied, setCopied] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const cardMountRef = useRef(null);
+  const exportRef = useRef(null);
+  const [exportDims, setExportDims] = useState({ w: null, h: null });
+  const [exporting, setExporting] = useState(false);
+  const [exportBgUrl, setExportBgUrl] = useState(null);
 
   const profileHref = useMemo(() => {
     const params = new URLSearchParams({ gameName, tagLine, region });
@@ -32,6 +39,46 @@ export default function CardPageChrome({ mode, gameName, tagLine, region, childr
     const url = encodeURIComponent(window.location.href);
     const title = encodeURIComponent(`My ${mode.toUpperCase()} card on ClutchGG.LOL`);
     window.open(`https://www.reddit.com/submit?url=${url}&title=${title}`, "_blank");
+  }, [mode]);
+
+  const onDownloadImage = useCallback(async () => {
+    try {
+      const host = cardMountRef.current;
+      const liveCard = host ? host.querySelector('.pc-card') : null;
+      if (!liveCard) {
+        setExportDims({ w: 360, h: 520 });
+      } else {
+        const rect = liveCard.getBoundingClientRect();
+        setExportDims({ w: Math.round(rect.width), h: Math.round(rect.height) });
+      }
+      // Try to resolve champion background from the live card
+      if (host) {
+        let bg = null;
+        const img = host.querySelector('.pc-bg-img');
+        if (img && img.getAttribute('src')) {
+          bg = img.getAttribute('src');
+        } else {
+          const bgDiv = host.querySelector('.pc-bg');
+          if (bgDiv) {
+            const s = bgDiv.style.backgroundImage || window.getComputedStyle(bgDiv).backgroundImage;
+            const m = s && s.match(/url\(("|')?([^"')]+)("|')?\)/);
+            if (m && m[2]) bg = m[2];
+          }
+        }
+        setExportBgUrl(bg);
+      } else {
+        setExportBgUrl(null);
+      }
+      setExporting(true);
+      await new Promise(r => requestAnimationFrame(() => r()));
+      const node = exportRef.current;
+      if (!node) return;
+      await exportNodeToPng(node, `clutchgg-${mode}-card.png`, 2);
+    } catch (e) {
+      console.error('Export failed', e);
+    } finally {
+      setExporting(false);
+    }
   }, [mode]);
 
   return (
@@ -72,6 +119,15 @@ export default function CardPageChrome({ mode, gameName, tagLine, region, childr
                   >
                     <FaLink />
                   </button>
+                  <button
+                    onClick={onDownloadImage}
+                    title="Download image"
+                    className="px-4 h-14 rounded-xl border border-emerald-300/50 ring-1 ring-emerald-400/60 bg-emerald-500/90 hover:bg-emerald-400 text-white text-sm font-semibold shadow-[0_0_14px_rgba(16,185,129,0.55)]"
+                    aria-label="Download image"
+                    type="button"
+                  >
+                    Download PNG
+                  </button>
                 </div>
                 <div className="mt-3 text-sm text-white/70 h-5">{copied ? "Link copied" : ""}</div>
               </div>
@@ -89,8 +145,36 @@ export default function CardPageChrome({ mode, gameName, tagLine, region, childr
           </aside>
 
           {/* Right: Card */}
-          <section className="lg:col-span-3 w-full grid place-items-center">
+          <section ref={cardMountRef} className="lg:col-span-3 w-full grid place-items-center relative">
             {children}
+            {exporting && (
+              <div
+                style={{
+                  position: 'fixed',
+                  left: -99999,
+                  top: -99999,
+                  pointerEvents: 'none',
+                  zIndex: -1,
+                }}
+              >
+                <div ref={exportRef}>
+                  <ExportFrame
+                    width={(exportDims.w || 360) + 64}
+                    height={(exportDims.h || 520) + 120}
+                    padding={24}
+                    appName="clutchgg.lol"
+                    watermarkText="clutchgg.lol"
+                  >
+                    {(() => {
+                      const only = Children.only(children);
+                      return isValidElement(only)
+                        ? cloneElement(only, { enableTilt: false, exportMode: true, backgroundUrl: exportBgUrl || undefined })
+                        : children;
+                    })()}
+                  </ExportFrame>
+                </div>
+              </div>
+            )}
           </section>
         </div>
       </main>
