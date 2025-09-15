@@ -73,9 +73,12 @@ const NavBar = ({ bannersVisible = 0 }) => {
 		};
 	}, []);
 
-	const isProfileOrMatch =
-		pathname?.includes("/profile") || pathname?.includes("/match");
-	const region = isProfileOrMatch ? searchParams?.get("region") : null;
+    const isProfileOrMatch =
+        pathname?.includes("/profile") || pathname?.includes("/match");
+    const region = isProfileOrMatch ? searchParams?.get("region") : null;
+
+    // Avoid hydration mismatch: only show user UI after mount
+    const showUser = mounted && !!user;
 
 	// Handle scroll events to change navbar appearance
 	useEffect(() => {
@@ -298,7 +301,7 @@ const NavBar = ({ bannersVisible = 0 }) => {
 							)}
 
 							{/* User Profile or Login Button */}
-							{user ? (
+							{showUser ? (
 								<div className="relative hidden md:block">
 									<button
 										onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -306,14 +309,13 @@ const NavBar = ({ bannersVisible = 0 }) => {
 									>
 										{user.profileIconId ? (
 											<div className="relative w-6 h-6 rounded-full overflow-hidden">
-												<Image
-													src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/${user.profileIconId}.jpg`}
-													alt="Profile Icon"
-													width={24}
-													height={24}
-													className="object-cover"
-													fill
-												/>
+                                            <Image
+                                                src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/${user.profileIconId}.jpg`}
+                                                alt="Profile Icon"
+                                                width={24}
+                                                height={24}
+                                                className="object-cover"
+                                            />
 											</div>
 										) : (
 											<FaUser className="text-sm" />
@@ -472,9 +474,9 @@ const NavBar = ({ bannersVisible = 0 }) => {
 							</button>
 						)}
 
-						{/* User Profile or Login Button - Mobile */}
-						{user ? (
-							<>
+							{/* User Profile or Login Button - Mobile */}
+							{showUser ? (
+								<>
 								<button
 									onClick={() => {
 									navigateToProfile();
@@ -485,14 +487,13 @@ const NavBar = ({ bannersVisible = 0 }) => {
 									<div className="flex items-center">
 										{user.profileIconId ? (
 											<div className="relative w-6 h-6 rounded-full overflow-hidden mr-3">
-												<Image
-													src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/${user.profileIconId}.jpg`}
-													alt="Profile Icon"
-													width={24}
-													height={24}
-													className="object-cover"
-													fill
-												/>
+                                            <Image
+                                                src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/${user.profileIconId}.jpg`}
+                                                alt="Profile Icon"
+                                                width={24}
+                                                height={24}
+                                                className="object-cover"
+                                            />
 											</div>
 										) : (
 											<FaUser className="mr-3 text-lg" />
@@ -589,5 +590,5 @@ const NavBar = ({ bannersVisible = 0 }) => {
 export default NavBar;
 
 NavBar.propTypes = {
-	bannersVisible: PropTypes.number,
+    bannersVisible: PropTypes.number,
 };

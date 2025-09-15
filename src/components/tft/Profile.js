@@ -16,6 +16,7 @@ import {
 	getCompanionIconUrl,
 } from "@/lib/tft/companionsApi";
 import { scrapeTFTLadderRanking } from "@/lib/opggApi.js";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Profile({
 	profileData,
@@ -47,6 +48,67 @@ export default function Profile({
 	// State for ladder ranking
 	const [ladderRanking, setLadderRanking] = useState(null);
 	const [isLoadingLadder, setIsLoadingLadder] = useState(false);
+
+	// Claim state
+    const { user, loginWithRiot } = useAuth();
+    const [claimStatus, setClaimStatus] = useState({ loading: true, claimed: false, ownClaim: false });
+    const [claimLoading, setClaimLoading] = useState(false);
+    const [claimError, setClaimError] = useState("");
+
+    useEffect(() => {
+        const fetchClaim = async () => {
+            try {
+                const regionForClaim = (profileData?.accountdata?.region || "euw1").toUpperCase();
+                const params = new URLSearchParams({
+                    gameName: summonerData?.name || "",
+                    tagLine: summonerData?.tagLine || "",
+                    region: regionForClaim,
+                    mode: "tft",
+                });
+                if (user?.puuid) params.set("viewerPuuid", user.puuid);
+                const res = await fetch(`/api/claims/status?${params.toString()}`);
+                let json = {};
+                try { json = await res.json(); } catch {}
+                setClaimStatus({ loading: false, claimed: !!json.claimed, ownClaim: !!json.ownClaim });
+            } catch {
+                setClaimStatus({ loading: false, claimed: false, ownClaim: false });
+            }
+        };
+        if (summonerData?.name && summonerData?.tagLine) fetchClaim();
+    }, [summonerData?.name, summonerData?.tagLine, profileData?.accountdata?.region, user?.puuid]);
+
+	const canClaim = !!user && user.puuid && summonerData?.puuid === user.puuid;
+    const handleClaim = async () => {
+        if (!canClaim) return;
+        setClaimLoading(true);
+        setClaimError("");
+        try {
+            const res = await fetch("/api/claims/claim", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "x-api-key": process.env.NEXT_PUBLIC_UPDATE_API_KEY,
+                },
+                body: JSON.stringify({
+                    gameName: summonerData.name,
+                    tagLine: summonerData.tagLine,
+                    region: (profileData?.region || "euw1").toLowerCase(),
+                    mode: "tft",
+                    ownerPuuid: user.puuid,
+                }),
+            });
+            const json = await res.json().catch(() => ({}));
+            if (res.ok) {
+                setClaimStatus({ loading: false, claimed: true, ownClaim: true });
+            } else {
+                setClaimError(json?.error || "Failed to claim profile");
+            }
+        } catch (e) {
+            setClaimError(e?.message || "Network error");
+        } finally {
+            setClaimLoading(false);
+        }
+    };
 
 	// Initialize state from localStorage on mount
 	useEffect(() => {
@@ -321,16 +383,62 @@ export default function Profile({
 									{isUpdating ? "Updating..." : isUpdated ? "Updated" : "Update Profile"}
 								</button>
 
-								{/* Live Game Button - only displayed if there's a live game */}
-								{liveGameData && (
-									<button onClick={() => setIsLiveGameOpen(!isLiveGameOpen)} className="relative overflow-hidden rounded-full text-sm font-semibold transition-all duration-300 inline-flex items-center justify-center px-4 py-1.5 shadow-sm bg-gradient-to-r from-rose-500 to-orange-500 hover:opacity-95 text-white">
-										<span className="relative flex h-2 w-2 mr-2">
-											<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
-											<span className="relative inline-flex rounded-full h-2 w-2 bg-red-600"></span>
-										</span>
-										Live Game
-									</button>
-								)}
+						{/* Live Game Button - only displayed if there's a live game */}
+						{liveGameData && (
+							<button onClick={() => setIsLiveGameOpen(!isLiveGameOpen)} className="relative overflow-hidden rounded-full text-sm font-semibold transition-all duration-300 inline-flex items-center justify-center px-4 py-1.5 shadow-sm bg-gradient-to-r from-rose-500 to-orange-500 hover:opacity-95 text-white">
+								<span className="relative flex h-2 w-2 mr-2">
+									<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
+									<span className="relative inline-flex rounded-full h-2 w-2 bg-red-600"></span>
+								</span>
+								Live Game
+							</button>
+						)}
+
+						{/* Claim / Card buttons */}
+						<div className="flex items-center gap-2">
+							{claimStatus.loading && (
+								<span className="text-xs text-[--text-secondary]">Checking claim…</span>
+							)}
+
+							{!claimStatus.loading && !claimStatus.claimed && (
+                            <button
+                                onClick={() => {
+                                    if (!user) return loginWithRiot();
+                                    handleClaim();
+                                }}
+                                disabled={!canClaim || claimLoading}
+                                className={`relative overflow-hidden rounded-lg text-sm font-semibold transition-all duration-300 inline-flex items-center justify-center px-4 py-1.5 border ${
+                                    canClaim && !claimLoading
+                                        ? "bg-indigo-500/90 hover:bg-indigo-400 text-white border-indigo-300/50 ring-1 ring-indigo-400/60 shadow-[0_0_14px_rgba(99,102,241,0.55)]"
+                                        : "bg-gray-700 text-gray-400 cursor-not-allowed border-gray-600"
+                                }`}
+                            >
+                                {claimLoading ? "Claiming..." : (user ? (canClaim ? "Claim Profile" : "Sign-in mismatch") : "Sign in to claim")}
+                            </button>
+							)}
+
+							{!claimStatus.loading && user && claimStatus.claimed && claimStatus.ownClaim && (
+                            <a
+                                href={`/card?` + new URLSearchParams({
+                                    mode: "tft",
+                                    gameName: summonerData.name,
+                                    tagLine: summonerData.tagLine,
+                                    region: (profileData?.region || "euw1").toUpperCase(),
+                                }).toString()}
+                                className="relative overflow-hidden rounded-lg text-sm font-semibold inline-flex items-center justify-center px-4 py-1.5 border bg-fuchsia-500/90 hover:bg-fuchsia-400 text-white border-fuchsia-300/50 ring-1 ring-fuchsia-400/60 shadow-[0_0_14px_rgba(232,121,249,0.55)]"
+                            >
+                                Create ClutchGG Card
+                            </a>
+							)}
+
+							{!claimStatus.loading && claimStatus.claimed && !claimStatus.ownClaim && (
+								<span className="text-xs text-[--text-secondary]">Claimed by another account</span>
+							)}
+
+							{claimError && (
+								<span className="text-xs text-red-400 ml-2">{claimError}</span>
+							)}
+						</div>
 
 								{/* Timer */}
 								{isUpdated && countdown > 0 && (

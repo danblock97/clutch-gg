@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
+import { useAuth } from "@/context/AuthContext";
 import DiscordBotBanner from "@/components/DiscordBotBanner.js";
 import { scrapeLeagueLadderRanking } from "@/lib/opggApi.js";
 
@@ -30,6 +31,65 @@ const Profile = ({
 	const [ladderRanking, setLadderRanking] = useState(null);
 	const [isLoadingLadder, setIsLoadingLadder] = useState(false);
 	const intervalRef = useRef(null);
+
+	// Claim state
+	const { user, loginWithRiot } = useAuth();
+	const [claimStatus, setClaimStatus] = useState({ loading: true, claimed: false, ownClaim: false });
+	const [claimLoading, setClaimLoading] = useState(false);
+	const [claimError, setClaimError] = useState("");
+
+	useEffect(() => {
+		const fetchClaim = async () => {
+			try {
+				const params = new URLSearchParams({
+					gameName: accountData?.gameName || "",
+					tagLine: accountData?.tagLine || "",
+					region: (region || "euw1").toUpperCase(),
+					mode: "league",
+				});
+				if (user?.puuid) params.set("viewerPuuid", user.puuid);
+				const res = await fetch(`/api/claims/status?${params.toString()}`);
+				const json = await res.json();
+				setClaimStatus({ loading: false, claimed: !!json.claimed, ownClaim: !!json.ownClaim });
+			} catch {
+				setClaimStatus({ loading: false, claimed: false, ownClaim: false });
+			}
+		};
+		if (accountData?.gameName && accountData?.tagLine && region) fetchClaim();
+	}, [accountData?.gameName, accountData?.tagLine, region, user?.puuid]);
+
+	const canClaim = !!user && user.puuid && profileData?.puuid === user.puuid;
+	const handleClaim = async () => {
+		if (!canClaim) return;
+		setClaimLoading(true);
+		setClaimError("");
+		try {
+            const res = await fetch("/api/claims/claim", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "x-api-key": process.env.NEXT_PUBLIC_UPDATE_API_KEY,
+                },
+                body: JSON.stringify({
+                    gameName: accountData.gameName,
+                    tagLine: accountData.tagLine,
+                    region: (region || "euw1").toLowerCase(),
+                    mode: "league",
+                    ownerPuuid: user.puuid,
+                }),
+            });
+			const json = await res.json().catch(() => ({}));
+			if (res.ok) {
+				setClaimStatus({ loading: false, claimed: true, ownClaim: true });
+			} else {
+				setClaimError(json?.error || "Failed to claim profile");
+			}
+		} catch (e) {
+			setClaimError(e?.message || "Network error");
+		} finally {
+			setClaimLoading(false);
+		}
+	};
 
 	// Initialize state from localStorage on mount
 	useEffect(() => {
@@ -270,6 +330,44 @@ const Profile = ({
 											"Not In Game"
 										)}
 									</button>
+
+									{/* Claim / Card buttons */}
+									{claimStatus.loading ? null : (
+										<>
+									{!claimStatus.claimed && (
+										<button
+											onClick={() => {
+												if (!user) return loginWithRiot();
+												handleClaim();
+											}}
+										disabled={!canClaim || claimLoading}
+										className={`relative overflow-hidden rounded-lg text-sm font-semibold transition-all duration-300 inline-flex items-center justify-center px-4 py-1.5 border ${
+											canClaim && !claimLoading
+												? "bg-indigo-500/90 hover:bg-indigo-400 text-white border-indigo-300/50 ring-1 ring-indigo-400/60 shadow-[0_0_14px_rgba(99,102,241,0.55)]"
+												: "bg-gray-700 text-gray-400 cursor-not-allowed border-gray-600"
+										}`}
+										>
+											{claimLoading ? "Claiming..." : user ? (canClaim ? "Claim Profile" : "Sign-in mismatch") : "Sign in to claim"}
+										</button>
+									)}
+									{claimError && (
+										<span className="text-xs text-red-400 ml-2">{claimError}</span>
+									)}
+											{user && claimStatus.claimed && claimStatus.ownClaim && (
+												<a
+													href={`/card?` + new URLSearchParams({
+														mode: "league",
+														gameName: accountData.gameName,
+														tagLine: accountData.tagLine,
+														region: (region || "euw1").toUpperCase(),
+													}).toString()}
+													className="relative overflow-hidden rounded-lg text-sm font-semibold inline-flex items-center justify-center px-4 py-1.5 border bg-fuchsia-500/90 hover:bg-fuchsia-400 text-white border-fuchsia-300/50 ring-1 ring-fuchsia-400/60 shadow-[0_0_14px_rgba(232,121,249,0.55)]"
+												>
+													Create ClutchGG Card
+												</a>
+											)}
+										</>
+									)}
 
 									{/* Timer */}
 									{isUpdated && countdown > 0 && (
