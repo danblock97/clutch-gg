@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
+import { useAuth } from "@/context/AuthContext";
 import DiscordBotBanner from "@/components/DiscordBotBanner.js";
 import { scrapeLeagueLadderRanking } from "@/lib/opggApi.js";
 
@@ -30,6 +31,49 @@ const Profile = ({
 	const [ladderRanking, setLadderRanking] = useState(null);
 	const [isLoadingLadder, setIsLoadingLadder] = useState(false);
 	const intervalRef = useRef(null);
+
+	// Claim state
+	const { user, loginWithRiot } = useAuth();
+	const [claimStatus, setClaimStatus] = useState({ loading: true, claimed: false, ownClaim: false });
+
+	useEffect(() => {
+		const fetchClaim = async () => {
+			try {
+				const params = new URLSearchParams({
+					gameName: accountData?.gameName || "",
+					tagLine: accountData?.tagLine || "",
+					region: (region || "euw1").toUpperCase(),
+					mode: "league",
+				});
+				if (user?.puuid) params.set("viewerPuuid", user.puuid);
+				const res = await fetch(`/api/claims/status?${params.toString()}`);
+				const json = await res.json();
+				setClaimStatus({ loading: false, claimed: !!json.claimed, ownClaim: !!json.ownClaim });
+			} catch {
+				setClaimStatus({ loading: false, claimed: false, ownClaim: false });
+			}
+		};
+		if (accountData?.gameName && accountData?.tagLine && region) fetchClaim();
+	}, [accountData?.gameName, accountData?.tagLine, region, user?.puuid]);
+
+	const canClaim = !!user && user.puuid && profileData?.puuid === user.puuid;
+	const handleClaim = async () => {
+		if (!canClaim) return;
+		try {
+			const res = await fetch("/api/claims/claim", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					gameName: accountData.gameName,
+					tagLine: accountData.tagLine,
+					region: (region || "euw1").toLowerCase(),
+					mode: "league",
+					ownerPuuid: user.puuid,
+				}),
+			});
+			if (res.ok) setClaimStatus({ loading: false, claimed: true, ownClaim: true });
+		} catch {}
+	};
 
 	// Initialize state from localStorage on mount
 	useEffect(() => {
@@ -270,6 +314,39 @@ const Profile = ({
 											"Not In Game"
 										)}
 									</button>
+
+									{/* Claim / Card buttons */}
+									{claimStatus.loading ? null : (
+										<>
+											{!claimStatus.claimed && (
+												<button
+													onClick={() => {
+														if (!user) return loginWithRiot();
+														handleClaim();
+													}}
+													disabled={!canClaim}
+													className={`relative overflow-hidden rounded-full text-sm font-semibold transition-all duration-300 inline-flex items-center justify-center px-4 py-1.5 shadow-sm ${
+														canClaim ? "bg-indigo-500 hover:bg-indigo-400 text-white" : "bg-gray-700 text-gray-400 cursor-not-allowed"
+													}`}
+												>
+													{user ? (canClaim ? "Claim Profile" : "Sign-in mismatch") : "Sign in to claim"}
+												</button>
+											)}
+											{(claimStatus.claimed && (claimStatus.ownClaim || true)) && (
+												<a
+													href={`/card?` + new URLSearchParams({
+														mode: "league",
+														gameName: accountData.gameName,
+														tagLine: accountData.tagLine,
+														region: (region || "euw1").toUpperCase(),
+													}).toString()}
+													className="relative overflow-hidden rounded-full text-sm font-semibold inline-flex items-center justify-center px-4 py-1.5 shadow-sm bg-fuchsia-500 hover:bg-fuchsia-400 text-white"
+												>
+													Create Share Card
+												</a>
+											)}
+										</>
+									)}
 
 									{/* Timer */}
 									{isUpdated && countdown > 0 && (
