@@ -50,8 +50,10 @@ export default function Profile({
 	const [isLoadingLadder, setIsLoadingLadder] = useState(false);
 
 	// Claim state
-	const { user, loginWithRiot } = useAuth();
-	const [claimStatus, setClaimStatus] = useState({ loading: true, claimed: false, ownClaim: false });
+    const { user, loginWithRiot } = useAuth();
+    const [claimStatus, setClaimStatus] = useState({ loading: true, claimed: false, ownClaim: false });
+    const [claimLoading, setClaimLoading] = useState(false);
+    const [claimError, setClaimError] = useState("");
 
 	useEffect(() => {
 		const fetchClaim = async () => {
@@ -74,23 +76,37 @@ export default function Profile({
 	}, [summonerData?.name, summonerData?.tagLine, profileData?.region, user?.puuid]);
 
 	const canClaim = !!user && user.puuid && summonerData?.puuid === user.puuid;
-	const handleClaim = async () => {
-		if (!canClaim) return;
-		try {
-			const res = await fetch("/api/claims/claim", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					gameName: summonerData.name,
-					tagLine: summonerData.tagLine,
-					region: (profileData?.region || "euw1").toLowerCase(),
-					mode: "tft",
-					ownerPuuid: user.puuid,
-				}),
-			});
-			if (res.ok) setClaimStatus({ loading: false, claimed: true, ownClaim: true });
-		} catch {}
-	};
+    const handleClaim = async () => {
+        if (!canClaim) return;
+        setClaimLoading(true);
+        setClaimError("");
+        try {
+            const res = await fetch("/api/claims/claim", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "x-api-key": process.env.NEXT_PUBLIC_UPDATE_API_KEY,
+                },
+                body: JSON.stringify({
+                    gameName: summonerData.name,
+                    tagLine: summonerData.tagLine,
+                    region: (profileData?.region || "euw1").toLowerCase(),
+                    mode: "tft",
+                    ownerPuuid: user.puuid,
+                }),
+            });
+            const json = await res.json().catch(() => ({}));
+            if (res.ok) {
+                setClaimStatus({ loading: false, claimed: true, ownClaim: true });
+            } else {
+                setClaimError(json?.error || "Failed to claim profile");
+            }
+        } catch (e) {
+            setClaimError(e?.message || "Network error");
+        } finally {
+            setClaimLoading(false);
+        }
+    };
 
 	// Initialize state from localStorage on mount
 	useEffect(() => {
@@ -380,22 +396,26 @@ export default function Profile({
 						{claimStatus.loading ? null : (
 							<>
 								{!claimStatus.claimed && (
-									<button
-										onClick={() => {
-											if (!user) return loginWithRiot();
-											handleClaim();
-										}}
-										disabled={!canClaim}
-										className={`relative overflow-hidden rounded-full text-sm font-semibold transition-all duration-300 inline-flex items-center justify-center px-4 py-1.5 shadow-sm ${
-											canClaim ? "bg-indigo-500 hover:bg-indigo-400 text-white" : "bg-gray-700 text-gray-400 cursor-not-allowed"
-										}`}
-									>
-										{user ? (canClaim ? "Claim Profile" : "Sign-in mismatch") : "Sign in to claim"}
-									</button>
+                            <button
+                                onClick={() => {
+                                    if (!user) return loginWithRiot();
+                                    handleClaim();
+                                }}
+                                disabled={!canClaim || claimLoading}
+                                className={`relative overflow-hidden rounded-full text-sm font-semibold transition-all duration-300 inline-flex items-center justify-center px-4 py-1.5 shadow-sm ${
+                                    canClaim && !claimLoading ? "bg-indigo-500 hover:bg-indigo-400 text-white" : "bg-gray-700 text-gray-400 cursor-not-allowed"
+                                }`}
+                            >
+                                {claimLoading ? "Claiming..." : (user ? (canClaim ? "Claim Profile" : "Sign-in mismatch") : "Sign in to claim")}
+                            </button>
 								)}
 
-								{(claimStatus.claimed && (claimStatus.ownClaim || true)) && (
-									<a
+                        {claimError && (
+                            <span className="text-xs text-red-400 ml-2">{claimError}</span>
+                        )}
+
+                        {user && claimStatus.claimed && claimStatus.ownClaim && (
+                            <a
 										href={`/card?` + new URLSearchParams({
 											mode: "tft",
 											gameName: summonerData.name,

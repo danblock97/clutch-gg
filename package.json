@@ -36,16 +36,12 @@
 		"react-top-loading-bar": "^2.3.1",
 		"react-type-animation": "^3.2.0"
 	},
-	"devDependencies": {
-		"eslint": "^9",
-		"eslint-config-next": "15.0.2",
-		"postcss": "^8",
-		"supabase": "^2.40.7",
-		"tailwindcss": "^3.4.14"
-	},
-	"module": "index.ts",
-	"type": "module",
-	"peerDependencies": {
-		"typescript": "^5.0.0"
-	}
+  "devDependencies": {
+    "eslint": "^9",
+    "eslint-config-next": "15.0.2",
+    "postcss": "^8",
+    "supabase": "^2.40.7",
+    "tailwindcss": "^3.4.14"
+  },
+  "type": "module"
 }

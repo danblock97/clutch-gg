@@ -35,6 +35,8 @@ const Profile = ({
 	// Claim state
 	const { user, loginWithRiot } = useAuth();
 	const [claimStatus, setClaimStatus] = useState({ loading: true, claimed: false, ownClaim: false });
+	const [claimLoading, setClaimLoading] = useState(false);
+	const [claimError, setClaimError] = useState("");
 
 	useEffect(() => {
 		const fetchClaim = async () => {
@@ -59,20 +61,34 @@ const Profile = ({
 	const canClaim = !!user && user.puuid && profileData?.puuid === user.puuid;
 	const handleClaim = async () => {
 		if (!canClaim) return;
+		setClaimLoading(true);
+		setClaimError("");
 		try {
-			const res = await fetch("/api/claims/claim", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					gameName: accountData.gameName,
-					tagLine: accountData.tagLine,
-					region: (region || "euw1").toLowerCase(),
-					mode: "league",
-					ownerPuuid: user.puuid,
-				}),
-			});
-			if (res.ok) setClaimStatus({ loading: false, claimed: true, ownClaim: true });
-		} catch {}
+            const res = await fetch("/api/claims/claim", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "x-api-key": process.env.NEXT_PUBLIC_UPDATE_API_KEY,
+                },
+                body: JSON.stringify({
+                    gameName: accountData.gameName,
+                    tagLine: accountData.tagLine,
+                    region: (region || "euw1").toLowerCase(),
+                    mode: "league",
+                    ownerPuuid: user.puuid,
+                }),
+            });
+			const json = await res.json().catch(() => ({}));
+			if (res.ok) {
+				setClaimStatus({ loading: false, claimed: true, ownClaim: true });
+			} else {
+				setClaimError(json?.error || "Failed to claim profile");
+			}
+		} catch (e) {
+			setClaimError(e?.message || "Network error");
+		} finally {
+			setClaimLoading(false);
+		}
 	};
 
 	// Initialize state from localStorage on mount
@@ -318,21 +334,24 @@ const Profile = ({
 									{/* Claim / Card buttons */}
 									{claimStatus.loading ? null : (
 										<>
-											{!claimStatus.claimed && (
-												<button
-													onClick={() => {
-														if (!user) return loginWithRiot();
-														handleClaim();
-													}}
-													disabled={!canClaim}
-													className={`relative overflow-hidden rounded-full text-sm font-semibold transition-all duration-300 inline-flex items-center justify-center px-4 py-1.5 shadow-sm ${
-														canClaim ? "bg-indigo-500 hover:bg-indigo-400 text-white" : "bg-gray-700 text-gray-400 cursor-not-allowed"
-													}`}
-												>
-													{user ? (canClaim ? "Claim Profile" : "Sign-in mismatch") : "Sign in to claim"}
-												</button>
-											)}
-											{(claimStatus.claimed && (claimStatus.ownClaim || true)) && (
+									{!claimStatus.claimed && (
+										<button
+											onClick={() => {
+												if (!user) return loginWithRiot();
+												handleClaim();
+											}}
+										disabled={!canClaim || claimLoading}
+										className={`relative overflow-hidden rounded-full text-sm font-semibold transition-all duration-300 inline-flex items-center justify-center px-4 py-1.5 shadow-sm ${
+											canClaim && !claimLoading ? "bg-indigo-500 hover:bg-indigo-400 text-white" : "bg-gray-700 text-gray-400 cursor-not-allowed"
+										}`}
+										>
+											{claimLoading ? "Claiming..." : user ? (canClaim ? "Claim Profile" : "Sign-in mismatch") : "Sign in to claim"}
+										</button>
+									)}
+									{claimError && (
+										<span className="text-xs text-red-400 ml-2">{claimError}</span>
+									)}
+											{user && claimStatus.claimed && claimStatus.ownClaim && (
 												<a
 													href={`/card?` + new URLSearchParams({
 														mode: "league",

@@ -48,11 +48,10 @@ export async function POST(req) {
       .from("profile_claims")
       .insert({ riot_account_id: account.id, owner_puuid: normalized.ownerPuuid, mode: normalized.mode })
       .select("id, riot_account_id, owner_puuid, mode, created_at")
-      .single()
-      .throwOnError();
+      .single();
 
     // If unique violation, fetch existing
-    if (claimErr && (claimErr.code === "23505" || String(claimErr.message || "").includes("duplicate"))) {
+    if (claimErr && (claimErr.code === "23505" || String(claimErr.message || "").toLowerCase().includes("duplicate"))) {
       const { data: existing, error: fetchErr } = await supabase
         .from("profile_claims")
         .select("id, riot_account_id, owner_puuid, mode, created_at")
@@ -65,9 +64,12 @@ export async function POST(req) {
       return NextResponse.json({ claimed: true, claim: existing }, { status: 200 });
     }
 
+    if (claimErr) {
+      return NextResponse.json({ error: claimErr.message || "Insert failed" }, { status: 500 });
+    }
+
     return NextResponse.json({ claimed: true, claim }, { status: 200 });
   } catch (e) {
     return NextResponse.json({ error: e.message || "Unexpected error" }, { status: 500 });
   }
 }
-
