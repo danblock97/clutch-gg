@@ -21,29 +21,28 @@ export async function GET(req) {
     const { data: account, error: accountErr } = await supabase
       .from("riot_accounts")
       .select("id, puuid")
-      .eq("gamename", gameName)
-      .eq("tagline", tagLine)
-      .eq("region", region.toLowerCase())
+      .ilike("gamename", gameName)
+      .ilike("tagline", tagLine)
+      .ilike("region", region)
       .maybeSingle();
 
     if (accountErr) return NextResponse.json({ error: accountErr.message }, { status: 500 });
     if (!account) return NextResponse.json({ claimed: false }, { status: 200 });
 
-    const { data: claim, error: claimErr } = await supabase
-      .from("profile_claims")
-      .select("owner_puuid, mode")
-      .eq("riot_account_id", account.id)
-      .eq("mode", mode)
+    // With claimed flags on riot_accounts, determine claimed based on mode
+    const claimedFlag = mode === "league" ? "claimed_league" : "claimed_tft";
+    const { data: accountWithFlags, error: flagErr } = await supabase
+      .from("riot_accounts")
+      .select(`puuid, ${claimedFlag}`)
+      .eq("id", account.id)
       .maybeSingle();
 
-    if (claimErr) return NextResponse.json({ error: claimErr.message }, { status: 500 });
+    if (flagErr) return NextResponse.json({ error: flagErr.message }, { status: 500 });
 
-    if (!claim) return NextResponse.json({ claimed: false }, { status: 200 });
+    const isClaimed = !!accountWithFlags?.[claimedFlag];
+    const isOwn = viewerPuuid ? accountWithFlags?.puuid === viewerPuuid : undefined;
 
-    return NextResponse.json({
-      claimed: true,
-      ownClaim: viewerPuuid ? claim.owner_puuid === viewerPuuid : undefined,
-    });
+    return NextResponse.json({ claimed: isClaimed, ownClaim: isClaimed ? isOwn : undefined });
   } catch (e) {
     return NextResponse.json({ error: e.message || "Unexpected error" }, { status: 500 });
   }

@@ -26,9 +26,9 @@ export async function POST(req) {
     const { data: account, error: accountErr } = await supabase
       .from("riot_accounts")
       .select("id, puuid, gamename, tagline, region")
-      .eq("gamename", normalized.gameName)
-      .eq("tagline", normalized.tagLine)
-      .eq("region", normalized.region)
+      .ilike("gamename", normalized.gameName)
+      .ilike("tagline", normalized.tagLine)
+      .ilike("region", normalized.region)
       .maybeSingle();
 
     if (accountErr) {
@@ -43,32 +43,23 @@ export async function POST(req) {
       return NextResponse.json({ error: "Forbidden: PUUID does not match account" }, { status: 403 });
     }
 
-    // Insert claim (idempotent on riot_account_id + mode)
-    const { data: claim, error: claimErr } = await supabaseAdmin
-      .from("profile_claims")
-      .insert({ riot_account_id: account.id, owner_puuid: normalized.ownerPuuid, mode: normalized.mode })
-      .select("id, riot_account_id, owner_puuid, mode, created_at")
+    // Update claimed flag on riot_accounts
+    const flagColumn = normalized.mode === "league" ? "claimed_league" : "claimed_tft";
+    const { data: updated, error: updateErr } = await supabaseAdmin
+      .from("riot_accounts")
+      .update({ [flagColumn]: true })
+      .eq("id", account.id)
+      .select("id, puuid, gamename, tagline, region, claimed_league, claimed_tft")
       .single();
 
-    // If unique violation, fetch existing
-    if (claimErr && (claimErr.code === "23505" || String(claimErr.message || "").toLowerCase().includes("duplicate"))) {
-      const { data: existing, error: fetchErr } = await supabase
-        .from("profile_claims")
-        .select("id, riot_account_id, owner_puuid, mode, created_at")
-        .eq("riot_account_id", account.id)
-        .eq("mode", normalized.mode)
-        .maybeSingle();
-      if (fetchErr) {
-        return NextResponse.json({ error: fetchErr.message }, { status: 500 });
-      }
-      return NextResponse.json({ claimed: true, claim: existing }, { status: 200 });
+    if (updateErr) {
+      return NextResponse.json({ error: updateErr.message || "Update failed" }, { status: 500 });
     }
 
-    if (claimErr) {
-      return NextResponse.json({ error: claimErr.message || "Insert failed" }, { status: 500 });
-    }
-
-    return NextResponse.json({ claimed: true, claim }, { status: 200 });
+    return NextResponse.json({
+      claimed: true,
+      account: updated,
+    }, { status: 200 });
   } catch (e) {
     return NextResponse.json({ error: e.message || "Unexpected error" }, { status: 500 });
   }
