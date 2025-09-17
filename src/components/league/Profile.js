@@ -350,10 +350,10 @@ const Profile = ({
 											{claimLoading ? "Claiming..." : user ? (canClaim ? "Claim Profile" : "Sign-in mismatch") : "Sign in to claim"}
 										</button>
 									)}
-									{claimError && (
-										<span className="text-xs text-red-400 ml-2">{claimError}</span>
-									)}
-											{user && claimStatus.claimed && claimStatus.ownClaim && (
+                                    {claimError && (
+                                        <span className="text-xs text-red-400 ml-2">{claimError}</span>
+                                    )}
+                                            {user && claimStatus.claimed && claimStatus.ownClaim && (
 												<a
 													href={`/card?` + new URLSearchParams({
 														mode: "league",
@@ -366,6 +366,14 @@ const Profile = ({
 													Create ClutchGG Card
 												</a>
 											)}
+                                            {!user && claimStatus.claimed && !claimStatus.ownClaim && (
+                                                <button
+                                                    disabled
+                                                    className="relative overflow-hidden rounded-lg text-sm font-semibold inline-flex items-center justify-center px-4 py-1.5 border bg-gray-700 text-gray-400 cursor-not-allowed border-gray-600"
+                                                >
+                                                    Claimed by another account
+                                                </button>
+                                            )}
 										</>
 									)}
 

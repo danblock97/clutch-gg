@@ -7,14 +7,21 @@ import React from "react";
 import { headers } from "next/headers";
 
 async function getClaim(gameName, tagLine, region, mode) {
+  // Resolve the riot account (case-insensitive) and include claimed flags
   const { data: account } = await supabase
     .from("riot_accounts")
-    .select("id, gamename, tagline, region")
-    .eq("gamename", gameName)
-    .eq("tagline", tagLine)
-    .eq("region", region.toLowerCase())
+    .select("id, gamename, tagline, region, claimed_league, claimed_tft")
+    .ilike("gamename", gameName)
+    .ilike("tagline", tagLine)
+    .ilike("region", region)
     .maybeSingle();
   if (!account) return null;
+
+  // Prefer the claimed flags on riot_accounts (source of truth)
+  const claimedByFlag = mode === "league" ? account.claimed_league : account.claimed_tft;
+  if (claimedByFlag) return { id: account.id };
+
+  // Fallback to legacy profile_claims row if present
   const { data: claim } = await supabase
     .from("profile_claims")
     .select("id")

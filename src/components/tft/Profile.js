@@ -396,9 +396,9 @@ export default function Profile({
 
 						{/* Claim / Card buttons */}
 						<div className="flex items-center gap-2">
-							{claimStatus.loading && (
-								<span className="text-xs text-[--text-secondary]">Checking claim…</span>
-							)}
+                            {claimStatus.loading && (
+                                <span className="text-xs text-[--text-secondary]">Checking claim…</span>
+                            )}
 
 							{!claimStatus.loading && !claimStatus.claimed && (
                             <button
@@ -431,9 +431,14 @@ export default function Profile({
                             </a>
 							)}
 
-							{!claimStatus.loading && claimStatus.claimed && !claimStatus.ownClaim && (
-								<span className="text-xs text-[--text-secondary]">Claimed by another account</span>
-							)}
+                            {!claimStatus.loading && claimStatus.claimed && !claimStatus.ownClaim && (
+                                <button
+                                    disabled
+                                    className="relative overflow-hidden rounded-lg text-sm font-semibold inline-flex items-center justify-center px-4 py-1.5 border bg-gray-700 text-gray-400 cursor-not-allowed border-gray-600"
+                                >
+                                    Claimed by another account
+                                </button>
+                            )}
 
 							{claimError && (
 								<span className="text-xs text-red-400 ml-2">{claimError}</span>
