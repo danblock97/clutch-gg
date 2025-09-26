@@ -1,6 +1,6 @@
 export const metadata = {
   title: "Support | ClutchGG",
-  description: "Get help, report bugs, or view our roadmap.",
+  description: "Get help, report bugs, or request new features.",
 };
 
 export default function SupportPage() {
@@ -17,7 +17,7 @@ export default function SupportPage() {
           <span className="league-gradient-text">Support</span>
         </h1>
         <p className="mt-2 text-[--text-secondary]">
-          Get help, report issues, and follow what we’re building.
+          Get help, report issues, and track feature work directly through GitHub.
         </p>
         <div className="mx-auto mt-4 h-px w-24 rounded bg-gradient-to-r from-[--primary] to-[--secondary] opacity-70" />
       </header>
@@ -25,29 +25,29 @@ export default function SupportPage() {
       {/* Primary actions */}
       <div className="mt-8 flex flex-col sm:flex-row items-stretch justify-center gap-3">
         <a
-          href="https://roomy-pick-4e2.notion.site/26d05d85e5838133b81bd3e02d7525e0?pvs=105"
+          href="https://github.com/danblock97/clutch-gg/issues/new?assignees=&labels=bug&projects=&template=bug_report.md"
           target="_blank"
           rel="noopener noreferrer"
           className="relative inline-flex items-center justify-center rounded-lg px-4 py-1.5 text-sm font-semibold text-white select-none
-                     bg-gradient-to-b from-[--primary] to-[--primary-dark]
-                     shadow-[0_6px_0_0_rgba(0,0,0,0.45)] hover:shadow-[0_7px_0_0_rgba(0,0,0,0.45)]
-                     transition-all active:translate-y-[2px] active:shadow-[0_4px_0_0_rgba(0,0,0,0.45)]
-                     border border-white/10 hover:border-white/20"
+                    bg-gradient-to-b from-[--primary] to-[--primary-dark]
+                    shadow-[0_6px_0_0_rgba(0,0,0,0.45)] hover:shadow-[0_7px_0_0_rgba(0,0,0,0.45)]
+                    transition-all active:translate-y-[2px] active:shadow-[0_4px_0_0_rgba(0,0,0,0.45)]
+                    border border-white/10 hover:border-white/20"
         >
           Report a bug
         </a>
 
         <a
-          href="https://www.notion.so/ClutchGG-Public-Roadmap-26d05d85e58380cba371cad98d72b25e?source=copy_link"
+          href="https://github.com/danblock97/clutch-gg/issues/new?assignees=&labels=enhancement&projects=&template=feature_request.md"
           target="_blank"
           rel="noopener noreferrer"
           className="relative inline-flex items-center justify-center rounded-lg px-4 py-1.5 text-sm font-semibold text-white select-none
-                     bg-gradient-to-b from-[--secondary] to-[#5c25b6]
-                     shadow-[0_6px_0_0_rgba(0,0,0,0.45)] hover:shadow-[0_7px_0_0_rgba(0,0,0,0.45)]
-                     transition-all active:translate-y-[2px] active:shadow-[0_4px_0_0_rgba(0,0,0,0.45)]
-                     border border-white/10 hover:border-white/20"
+                    bg-gradient-to-b from-[--secondary] to-[#5c25b6]
+                    shadow-[0_6px_0_0_rgba(0,0,0,0.45)] hover:shadow-[0_7px_0_0_rgba(0,0,0,0.45)]
+                    transition-all active:translate-y-[2px] active:shadow-[0_4px_0_0_rgba(0,0,0,0.45)]
+                    border border-white/10 hover:border-white/20"
         >
-          View roadmap
+          Request a feature
         </a>
       </div>
 
@@ -65,17 +65,17 @@ export default function SupportPage() {
         </div>
 
         <div className="feature-card p-5">
-          <h3 className="text-base font-semibold">Roadmap & updates</h3>
+          <h3 className="text-base font-semibold">Feature requests & voting</h3>
           <p className="mt-3 text-sm text-[--text-secondary]">
-            Track features in progress, ideas we’re exploring, and recently shipped changes.
+            Share ideas, upvote existing threads, and follow progress directly through GitHub Issues.
           </p>
           <a
-            href="https://www.notion.so/ClutchGG-Public-Roadmap-26d05d85e58380cba371cad98d72b25e?source=copy_link"
+            href="https://github.com/danblock97/clutch-gg/issues"
             target="_blank"
             rel="noopener noreferrer"
             className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-white hover:text-[--primary] transition-colors"
           >
-            Open roadmap →
+            Browse issues →
           </a>
         </div>
 
