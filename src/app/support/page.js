@@ -17,7 +17,7 @@ export default function SupportPage() {
           <span className="league-gradient-text">Support</span>
         </h1>
         <p className="mt-2 text-[--text-secondary]">
-          Get help, report issues, and track feature work directly through GitHub.
+          Get help, report issues, and request features directly through Jira.
         </p>
         <div className="mx-auto mt-4 h-px w-24 rounded bg-gradient-to-r from-[--primary] to-[--secondary] opacity-70" />
       </header>
@@ -25,7 +25,7 @@ export default function SupportPage() {
       {/* Primary actions */}
       <div className="mt-8 flex flex-col sm:flex-row items-stretch justify-center gap-3">
         <a
-          href="https://github.com/danblock97/clutch-gg/issues/new?assignees=&labels=bug&projects=&template=bug_report.md"
+          href="https://danblock97.atlassian.net/jira/software/c/form/28b1ef4b-eac8-41f9-808e-d38cca7e1503?atlOrigin=eyJpIjoiOThkMzU4YWJhYzA3NDFmMWE3OGM3Y2RmZTU0NWM1MWEiLCJwIjoiaiJ9"
           target="_blank"
           rel="noopener noreferrer"
           className="relative inline-flex items-center justify-center rounded-lg px-4 py-1.5 text-sm font-semibold text-white select-none
@@ -38,7 +38,7 @@ export default function SupportPage() {
         </a>
 
         <a
-          href="https://github.com/danblock97/clutch-gg/issues/new?assignees=&labels=enhancement&projects=&template=feature_request.md"
+          href="https://danblock97.atlassian.net/jira/software/c/form/aef27bee-25af-4de9-a5f2-7487be1a7067?atlOrigin=eyJpIjoiZDg3YzY4NzRjNDE5NGYxMjkxZGFkNzkxNTNmYjU5NDEiLCJwIjoiaiJ9"
           target="_blank"
           rel="noopener noreferrer"
           className="relative inline-flex items-center justify-center rounded-lg px-4 py-1.5 text-sm font-semibold text-white select-none
@@ -65,17 +65,17 @@ export default function SupportPage() {
         </div>
 
         <div className="feature-card p-5">
-          <h3 className="text-base font-semibold">Feature requests & voting</h3>
+          <h3 className="text-base font-semibold">Feature requests</h3>
           <p className="mt-3 text-sm text-[--text-secondary]">
-            Share ideas, upvote existing threads, and follow progress directly through GitHub Issues.
+            Share ideas and feature requests through our Jira form. We track and prioritize all submissions.
           </p>
           <a
-            href="https://github.com/danblock97/clutch-gg/issues"
+            href="https://danblock97.atlassian.net/jira/software/c/form/aef27bee-25af-4de9-a5f2-7487be1a7067?atlOrigin=eyJpIjoiZDg3YzY4NzRjNDE5NGYxMjkxZGFkNzkxNTNmYjU5NDEiLCJwIjoiaiJ9"
             target="_blank"
             rel="noopener noreferrer"
             className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-white hover:text-[--primary] transition-colors"
           >
-            Browse issues →
+            Submit feature →
           </a>
         </div>
 
