@@ -20,12 +20,6 @@ export default function sitemap() {
 			priority: 0.8,
 		},
 		{
-			url: "https://clutchgg.lol/league/featured-games",
-			lastModified: new Date(),
-			changeFrequency: "hourly",
-			priority: 0.7,
-		},
-		{
 			url: "https://clutchgg.lol/league/datastudio",
 			lastModified: new Date(),
 			changeFrequency: "weekly",

@@ -229,63 +229,6 @@ export const fetchLiveGameData = async (puuid, region, platform) => {
 	return liveGameData;
 };
 
-/**
- * Fetch featured games data.
- */
-export const getFeaturedGames = async (region, retries = 3) => {
-	const platformId = region.toUpperCase(); // Ensure region is uppercase
-
-	const url = `https://${platformId}.api.riotgames.com/lol/spectator/v5/featured-games`;
-
-	for (let attempt = 1; attempt <= retries; attempt++) {
-		try {
-			const response = await fetch(url, {
-				headers: {
-					"X-Riot-Token": RIOT_API_KEY,
-				},
-			});
-
-			if (response.ok) {
-				return response.json();
-			}
-
-			if (response.status === 429) {
-				const retryAfter = response.headers.get("Retry-After");
-				const waitTime = (retryAfter ? parseInt(retryAfter) : 2) * 1000;
-				console.warn(
-					`Rate limited for ${platformId}. Waiting ${waitTime}ms before retry...`
-				);
-				await new Promise((resolve) => setTimeout(resolve, waitTime));
-				continue;
-			}
-
-			if (response.status === 502 || response.status === 503) {
-				const waitTime = attempt * 1000; // Exponential backoff
-				console.warn(
-					`Server error (${response.status}) for ${platformId}. Waiting ${waitTime}ms before retry...`
-				);
-				await new Promise((resolve) => setTimeout(resolve, waitTime));
-				continue;
-			}
-
-			// For other errors, throw immediately
-			const errorText = await response.text();
-			throw new Error(
-				`Failed to fetch featured games for ${platformId}. Status: ${response.status} - ${errorText}`
-			);
-		} catch (error) {
-			if (attempt === retries) {
-				console.error(`All retry attempts failed for ${platformId}:`, error);
-				throw error;
-			}
-			console.warn(`Attempt ${attempt} failed for ${platformId}:`, error);
-		}
-	}
-
-	throw new Error(
-		`Failed to fetch featured games for ${platformId} after all retry attempts`
-	);
-};
 
 /**
  * Fetch additional data for live game enrichment.
