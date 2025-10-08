@@ -29,9 +29,3 @@ services:
       - NEXT_TELEMETRY_DISABLED=1
     expose:
       - 3000
-    networks:
-      - clutch-network
-
-networks:
-  clutch-network:
-    driver: bridge
