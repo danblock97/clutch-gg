@@ -5,6 +5,22 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+        - NEXT_PUBLIC_SUPABASE_KEY=${NEXT_PUBLIC_SUPABASE_KEY}
+        - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
+        - RIOT_API_KEY=${RIOT_API_KEY}
+        - TFT_API_KEY=${TFT_API_KEY}
+        - RIOT_CLIENT_ID=${RIOT_CLIENT_ID}
+        - RIOT_CLIENT_SECRET=${RIOT_CLIENT_SECRET}
+        - RIOT_REDIRECT_URI=${RIOT_REDIRECT_URI}
+        - POST_LOGOUT_REDIRECT_URI=${POST_LOGOUT_REDIRECT_URI}
+        - UPDATE_PROFILES_SECRET=${UPDATE_PROFILES_SECRET}
+        - NEXT_PUBLIC_UPDATE_API_KEY=${NEXT_PUBLIC_UPDATE_API_KEY}
+        - APP_BASE_URL=${APP_BASE_URL}
+        - RIOT_API_RATE_LIMIT=${RIOT_API_RATE_LIMIT}
+        - MATCHES_PER_PAGE=${MATCHES_PER_PAGE}
+        - MAX_MATCHES_TO_FETCH=${MAX_MATCHES_TO_FETCH}
     restart: unless-stopped
     env_file:
       - .env
@@ -13,6 +29,11 @@ services:
       - NEXT_TELEMETRY_DISABLED=1
     expose:
       - 3000
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     networks:
       - clutch-network
 
