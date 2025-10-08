@@ -13,12 +13,6 @@ services:
       - NEXT_TELEMETRY_DISABLED=1
     expose:
       - 3000
-    healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 60s
     networks:
       - clutch-network
 
