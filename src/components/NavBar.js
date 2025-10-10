@@ -267,15 +267,6 @@ const NavBar = ({ bannersVisible = 0 }) => {
 									<span>Leaderboards</span>
 								</Link>
 								<Link
-									href="/league/featured-games"
-									className={`flex items-center gap-1 text-sm px-2.5 py-1.5 rounded-md ${
-										pathname === "/league/featured-games" ? getActiveColorClass() : "text-[--text-secondary] hover:text-[--text-primary] hover:bg-white/5"
-									}`}
-								>
-									<FaGamepad className="text-[13px]" />
-									<span>Featured Games</span>
-								</Link>
-								<Link
 									href="/league/datastudio"
 									className={`flex items-center gap-1 text-sm px-2.5 py-1.5 rounded-md ${
 										pathname.startsWith("/league/datastudio") ? getActiveColorClass() : "text-[--text-secondary] hover:text-[--text-primary] hover:bg-white/5"
@@ -433,17 +424,6 @@ const NavBar = ({ bannersVisible = 0 }) => {
 							<div className="flex items-center">
 								<FaTrophy className="mr-3 text-lg" />
 								<span>Leaderboards</span>
-							</div>
-						</Link>
-
-						<Link
-							href="/league/featured-games"
-							onClick={handleLinkClick}
-							className="block px-4 py-2.5 rounded-md hover:bg-[--card-bg-secondary] transition-colors"
-						>
-							<div className="flex items-center">
-								<FaGamepad className="mr-3 text-lg" />
-								<span>Featured Games</span>
 							</div>
 						</Link>
 
