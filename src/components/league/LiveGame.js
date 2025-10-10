@@ -478,7 +478,7 @@ export default function LiveGame({ liveGameData, region }) {
 		const ddId = champMap?.[String(championId)];
 		if (!ddId) return null;
 		const folder = String(ddId).toLowerCase().replace(/[^a-z0-9]/g, "");
-		return `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/characters/${folder}/skins/base/${folder}loadscreen.jpg`;
+		return `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/characters/${folder}/skins/base/images/${folder}_splash_centered_0.jpg`;
 	};
 
 	// --- Card helpers
@@ -503,7 +503,7 @@ export default function LiveGame({ liveGameData, region }) {
 
 	// Known loadscreens that do not reside in skins/base
 	const LOADSCREEN_OVERRIDES = {
-		hwei: [`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/characters/hwei/skins/skin1/hweiloadscreen_1.jpg`]
+		hwei: [`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/characters/hwei/skins/skin1/images/hwei_splash_centered_1.jpg`]
 	};
 
 	// Cache resolved urls to avoid repeat probing and flicker
@@ -515,9 +515,7 @@ export default function LiveGame({ liveGameData, region }) {
 		const name = ddId ? String(ddId).toLowerCase().replace(/[^a-z0-9]/g, "") : null;
 		const defaultCandidates = name
 			? [
-				`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/characters/${name}/skins/base/${name}loadscreen.jpg`,
-				`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/characters/${name}/skins/skin0/${name}loadscreen_0.jpg`,
-				`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/characters/${name}/skins/skin1/${name}loadscreen_1.jpg`,
+				`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/characters/${name}/skins/base/images/${name}_splash_centered_0.jpg`,
 				(ddId ? `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${ddId}_0.jpg` : null)
 			].filter(Boolean)
 			: [];

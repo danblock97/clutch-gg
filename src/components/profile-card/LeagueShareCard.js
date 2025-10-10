@@ -66,21 +66,15 @@ export default function LeagueShareCard({
     const ddId = ddMap?.[String(m.championId)] || m.championName;
     const cname = (ddId || "").toLowerCase().replace(/[^a-z0-9]/g, "");
     if (!cname) return;
-    const candidates = [
-      `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/characters/${cname}/skins/base/${cname}loadscreen.jpg`,
-      `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/characters/${cname}/skins/skin0/${cname}loadscreen_0.jpg`,
-      `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/characters/${cname}/skins/skin1/${cname}loadscreen_1.jpg`,
-      `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${ddId}_0.jpg`,
-    ];
+    const centeredUrl = `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/characters/${cname}/skins/base/images/${cname}_splash_centered_0.jpg`;
     let cancelled = false;
-    const tryNext = (i=0) => {
-      if (cancelled || i>=candidates.length) return;
-      const img = new Image();
-      img.onload = () => { if (!cancelled) setBgUrl(candidates[i]); };
-      img.onerror = () => tryNext(i+1);
-      img.src = candidates[i];
+    const img = new Image();
+    img.onload = () => { if (!cancelled) setBgUrl(centeredUrl); };
+    img.onerror = () => {
+      // Fallback to DDragon if centered image not available
+      if (!cancelled) setBgUrl(`https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${ddId}_0.jpg`);
     };
-    tryNext(0);
+    img.src = centeredUrl;
     return () => { cancelled = true; };
   }, [sortedMastery, ddMap]);
 
