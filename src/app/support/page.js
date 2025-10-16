@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export const metadata = {
   title: "Support | ClutchGG",
   description: "Get help or report bugs.",
@@ -56,6 +58,14 @@ export default function SupportPage() {
           <p className="mt-3 text-sm text-[--text-secondary]">
             Have an idea? Share it in our Discord and upvote others. We review suggestions regularly.
           </p>
+          <Link
+            href="https://discord.gg/BeszQxTn9D"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-white hover:text-[--secondary] transition-colors"
+          >
+            Join Discord →
+          </Link>
         </div>
 
         <div className="feature-card p-5">
@@ -90,18 +100,6 @@ export default function SupportPage() {
           </p>
         </div>
       </section>
-
-      {/* Small contact chips (no heading) */}
-      <div className="mt-8 flex flex-wrap items-center gap-2">
-        <a
-          href="https://discord.gg/BeszQxTn9D"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="neon-chip hover:text-white hover:border-white/30 transition-colors"
-        >
-          Discord
-        </a>
-      </div>
     </div>
   );
 }
