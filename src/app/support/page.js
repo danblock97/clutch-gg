@@ -1,6 +1,8 @@
+import Link from "next/link";
+
 export const metadata = {
   title: "Support | ClutchGG",
-  description: "Get help, report bugs, or request new features.",
+  description: "Get help or report bugs.",
 };
 
 export default function SupportPage() {
@@ -17,15 +19,15 @@ export default function SupportPage() {
           <span className="league-gradient-text">Support</span>
         </h1>
         <p className="mt-2 text-[--text-secondary]">
-          Get help, report issues, and request features directly through Jira.
+          Get help and report issues via our simple Notion form.
         </p>
         <div className="mx-auto mt-4 h-px w-24 rounded bg-gradient-to-r from-[--primary] to-[--secondary] opacity-70" />
       </header>
 
       {/* Primary actions */}
-      <div className="mt-8 flex flex-col sm:flex-row items-stretch justify-center gap-3">
+      <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
         <a
-          href="https://danblock97.atlassian.net/jira/software/c/form/28b1ef4b-eac8-41f9-808e-d38cca7e1503?atlOrigin=eyJpIjoiOThkMzU4YWJhYzA3NDFmMWE3OGM3Y2RmZTU0NWM1MWEiLCJwIjoiaiJ9"
+          href="https://animated-fine-273.notion.site/28df8761b64981e4975dc83aa95a6471?pvs=105"
           target="_blank"
           rel="noopener noreferrer"
           className="relative inline-flex items-center justify-center rounded-lg px-4 py-1.5 text-sm font-semibold text-white select-none
@@ -35,19 +37,6 @@ export default function SupportPage() {
                     border border-white/10 hover:border-white/20"
         >
           Report a bug
-        </a>
-
-        <a
-          href="https://danblock97.atlassian.net/jira/software/c/form/aef27bee-25af-4de9-a5f2-7487be1a7067?atlOrigin=eyJpIjoiZDg3YzY4NzRjNDE5NGYxMjkxZGFkNzkxNTNmYjU5NDEiLCJwIjoiaiJ9"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="relative inline-flex items-center justify-center rounded-lg px-4 py-1.5 text-sm font-semibold text-white select-none
-                    bg-gradient-to-b from-[--secondary] to-[#5c25b6]
-                    shadow-[0_6px_0_0_rgba(0,0,0,0.45)] hover:shadow-[0_7px_0_0_rgba(0,0,0,0.45)]
-                    transition-all active:translate-y-[2px] active:shadow-[0_4px_0_0_rgba(0,0,0,0.45)]
-                    border border-white/10 hover:border-white/20"
-        >
-          Request a feature
         </a>
       </div>
 
@@ -67,16 +56,16 @@ export default function SupportPage() {
         <div className="feature-card p-5">
           <h3 className="text-base font-semibold">Feature requests</h3>
           <p className="mt-3 text-sm text-[--text-secondary]">
-            Share ideas and feature requests through our Jira form. We track and prioritize all submissions.
+            Have an idea? Share it in our Discord and upvote others. We review suggestions regularly.
           </p>
-          <a
-            href="https://danblock97.atlassian.net/jira/software/c/form/aef27bee-25af-4de9-a5f2-7487be1a7067?atlOrigin=eyJpIjoiZDg3YzY4NzRjNDE5NGYxMjkxZGFkNzkxNTNmYjU5NDEiLCJwIjoiaiJ9"
+          <Link
+            href="https://discord.gg/BeszQxTn9D"
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-white hover:text-[--primary] transition-colors"
+            className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-white hover:text-[--secondary] transition-colors"
           >
-            Submit feature →
-          </a>
+            Join Discord →
+          </Link>
         </div>
 
         <div className="feature-card p-5">
@@ -111,18 +100,6 @@ export default function SupportPage() {
           </p>
         </div>
       </section>
-
-      {/* Small contact chips (no heading) */}
-      <div className="mt-8 flex flex-wrap items-center gap-2">
-        <a
-          href="https://discord.gg/BeszQxTn9D"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="neon-chip hover:text-white hover:border-white/30 transition-colors"
-        >
-          Discord
-        </a>
-      </div>
     </div>
   );
 }
