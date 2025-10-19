@@ -198,14 +198,17 @@ export const fetchTFTAdditionalData = async (puuid, region) => {
 		);
 
 		// Combine tier and rank into a single field for frontend compatibility
+		// Master/Grandmaster/Challenger don't have a rank field, only tier
 		const combinedRank = rankedTftData
-			? `${rankedTftData.tier} ${rankedTftData.rank}`.trim()
+			? rankedTftData.rank
+				? `${rankedTftData.tier} ${rankedTftData.rank}`
+				: rankedTftData.tier
 			: "Unranked";
 
 		return {
 			queueType: "RANKED_TFT", // Add queueType for frontend compatibility
 			tier: rankedTftData ? rankedTftData.tier : "UNRANKED",
-			rank: combinedRank, // Combined format like "GOLD IV" for frontend compatibility
+			rank: combinedRank, // Combined format like "GOLD IV" or "MASTER" for frontend compatibility
 			lp: rankedTftData ? rankedTftData.leaguePoints : 0, // Add lp alias for frontend
 			leaguePoints: rankedTftData ? rankedTftData.leaguePoints : 0,
 			wins: rankedTftData ? rankedTftData.wins : 0,
