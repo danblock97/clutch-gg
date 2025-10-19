@@ -197,16 +197,16 @@ export const fetchTFTAdditionalData = async (puuid, region) => {
 			(queue) => queue.queueType === "RANKED_TFT"
 		);
 
-		// Combine tier and rank into a single field for LiveGame component compatibility
-		const combinedRank = rankedTftData 
+		// Combine tier and rank into a single field for frontend compatibility
+		const combinedRank = rankedTftData
 			? `${rankedTftData.tier} ${rankedTftData.rank}`.trim()
 			: "Unranked";
 
 		return {
 			queueType: "RANKED_TFT", // Add queueType for frontend compatibility
 			tier: rankedTftData ? rankedTftData.tier : "UNRANKED",
-			rank: combinedRank, // Combined format like "GOLD IV" for LiveGame compatibility
-			lp: rankedTftData ? rankedTftData.leaguePoints : 0, // Add lp alias for LiveGame
+			rank: combinedRank, // Combined format like "GOLD IV" for frontend compatibility
+			lp: rankedTftData ? rankedTftData.leaguePoints : 0, // Add lp alias for frontend
 			leaguePoints: rankedTftData ? rankedTftData.leaguePoints : 0,
 			wins: rankedTftData ? rankedTftData.wins : 0,
 			losses: rankedTftData ? rankedTftData.losses : 0,
@@ -221,7 +221,7 @@ export const fetchTFTAdditionalData = async (puuid, region) => {
 			queueType: "RANKED_TFT",
 			tier: "UNRANKED",
 			rank: "Unranked", // Use consistent format
-			lp: 0, // Add lp alias for LiveGame
+			lp: 0, // Add lp alias for frontend
 			leaguePoints: 0,
 			wins: 0,
 			losses: 0,
@@ -246,128 +246,4 @@ export const fetchTFTSummonerPUUID = async (encryptedPUUID, region) => {
 	}
 	const data = await response.json();
 	return { puuid: data.puuid, profileIconId: data.profileIconId };
-};
-
-
-
-/**
- * Fetch TFT live game data.
- */
-export const fetchTFTLiveGameData = async (puuid, region) => {
-	const normalizedRegion = region.toUpperCase();
-
-	const liveGameResponse = await fetch(
-		`https://${normalizedRegion}.api.riotgames.com/lol/spectator/tft/v5/active-games/by-puuid/${puuid}`,
-		{ headers: { "X-Riot-Token": TFT_API_KEY } }
-	);
-	if (!liveGameResponse.ok) return null;
-
-	const liveGameData = await liveGameResponse.json();
-	// Enrich each participant with additional TFT-specific data concurrently.
-	liveGameData.participants = await Promise.all(
-		liveGameData.participants.map(async (participant) => {
-			const additionalData = await fetchTFTAdditionalGameData(
-				participant.puuid,
-				region
-			);
-			return { ...participant, ...additionalData };
-		})
-	);
-	return liveGameData;
-};
-
-/**
- * Fetch additional data for TFT live game enrichment using PUUID endpoints.
- * Similar to fetchTFTAdditionalData but specific for live game context
- */
-export const fetchTFTAdditionalGameData = async (puuid, region) => {
-	try {
-		// Same region->platform mapping to resolve the correct routing cluster
-		const regionToPlatform = {
-			BR1: "americas",
-			EUN1: "europe",
-			EUW1: "europe",
-			JP1: "asia",
-			KR: "asia",
-			LA1: "americas",
-			LA2: "americas",
-			ME1: "europe",
-			NA1: "americas",
-			OC1: "americas",
-			RU: "europe",
-			SG2: "sea",
-			TR1: "europe",
-			TW2: "sea",
-			VN2: "sea",
-		};
-		const platform = regionToPlatform[region?.toUpperCase()] || "americas";
-
-		const [rankedResponse, accountResponse, summonerResponse] =
-			await Promise.all([
-				// Updated to use by-puuid endpoint
-				fetch(
-					`https://${region}.api.riotgames.com/tft/league/v1/by-puuid/${puuid}`,
-					{ headers: { "X-Riot-Token": TFT_API_KEY } }
-				),
-				fetch(
-					`https://${platform}.api.riotgames.com/riot/account/v1/accounts/by-puuid/${puuid}`,
-					{ headers: { "X-Riot-Token": TFT_API_KEY } }
-				),
-				fetch(
-					`https://${region}.api.riotgames.com/tft/summoner/v1/summoners/by-puuid/${puuid}`,
-					{ headers: { "X-Riot-Token": TFT_API_KEY } }
-				),
-			]);
-
-		// Handle errors gracefully for live game data
-		const rankedData = rankedResponse.ok ? await rankedResponse.json() : [];
-		
-		if (!accountResponse.ok || !summonerResponse.ok) {
-			throw new Error("Failed to fetch essential TFT live game data");
-		}
-
-		const [accountData, summonerData] = await Promise.all([
-			accountResponse.json(),
-			summonerResponse.json(),
-		]);
-
-		// TFT ranked data structure is different from League
-		const rankedTftData = rankedData.find?.(
-			(queue) => queue.queueType === "RANKED_TFT"
-		);
-
-		// Combine tier and rank into a single field for LiveGame component compatibility
-		const combinedRank = rankedTftData 
-			? `${rankedTftData.tier} ${rankedTftData.rank}`.trim()
-			: "Unranked";
-
-		return {
-			queueType: "RANKED_TFT", // Add queueType for frontend compatibility
-			tier: rankedTftData ? rankedTftData.tier : "UNRANKED",
-			rank: combinedRank, // Combined format like "GOLD IV" for LiveGame compatibility
-			lp: rankedTftData ? rankedTftData.leaguePoints : 0, // Add lp alias for LiveGame
-			leaguePoints: rankedTftData ? rankedTftData.leaguePoints : 0,
-			wins: rankedTftData ? rankedTftData.wins : 0,
-			losses: rankedTftData ? rankedTftData.losses : 0,
-			gameName: accountData.gameName,
-			tagLine: accountData.tagLine,
-			summonerLevel: summonerData.summonerLevel,
-			profileIconId: summonerData.profileIconId,
-		};
-	} catch (error) {
-		console.error("TFT Live Game Data Error:", error.message);
-		return {
-			queueType: "RANKED_TFT",
-			tier: "UNRANKED",
-			rank: "Unranked", // Use consistent format
-			lp: 0, // Add lp alias for LiveGame
-			leaguePoints: 0,
-			wins: 0,
-			losses: 0,
-			gameName: "",
-			tagLine: "",
-			summonerLevel: 0,
-			profileIconId: null,
-		};
-	}
 };
