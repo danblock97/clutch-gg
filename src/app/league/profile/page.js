@@ -10,7 +10,6 @@ import ChampionMastery from "@/components/league/ChampionMastery";
 import MatchHistory from "@/components/league/MatchHistory";
 import Last20GamesPerformance from "@/components/league/Last20GamesPerformance";
 import Loading from "@/components/Loading";
-import LiveGame from "@/components/league/LiveGame";
 import RecentlyPlayedWith from "@/components/league/RecentlyPlayedWith";
 import NoProfileFound from "@/components/league/NoProfileFound";
 import ErrorPage from "@/components/ErrorPage";
@@ -22,10 +21,8 @@ const initialState = {
 	rankedData: null,
 	championMasteryData: null,
 	matchDetails: null,
-	liveGameData: null,
 	error: null,
 	isLoading: true,
-	isLiveGameOpen: false,
 	isUpdating: false,
 	selectedChampionId: null,
 };
@@ -42,13 +39,10 @@ function reducer(state, action) {
 				rankedData: action.payload.rankeddata,
 				championMasteryData: action.payload.championmasterydata,
 				matchDetails: action.payload.matchdetails,
-				liveGameData: action.payload.livegamedata,
 				isLoading: false,
 			};
 		case "FETCH_FAILURE":
 			return { ...state, error: action.payload, isLoading: false };
-		case "TOGGLE_LIVE_GAME":
-			return { ...state, isLiveGameOpen: !state.isLiveGameOpen };
 		case "SET_SELECTED_CHAMPION":
 			return {
 				...state,
@@ -99,7 +93,6 @@ const ProfilePageContent = () => {
 		};
 	}, [fetchProfileData]);
 
-	const toggleLiveGame = () => dispatch({ type: "TOGGLE_LIVE_GAME" });
 	const triggerUpdate = async () => {
 		dispatch({ type: "UPDATE_START" });
 		try {
@@ -177,9 +170,6 @@ const ProfilePageContent = () => {
 						accountData={state.accountData}
 						profileData={state.profileData}
 						rankedData={state.rankedData}
-						liveGameData={state.liveGameData}
-						toggleLiveGame={toggleLiveGame}
-						isLiveGameOpen={state.isLiveGameOpen}
 						triggerUpdate={triggerUpdate}
 						isUpdating={state.isUpdating}
 						region={region}
@@ -188,13 +178,6 @@ const ProfilePageContent = () => {
 					<p className="text-white">No profile data found.</p>
 				)}
 			</div>
-
-			{/* Live Game Section (Conditionally Rendered) */}
-			{state.liveGameData && state.isLiveGameOpen && (
-				<div className="max-w-screen-xl w-full mx-auto px-4 mt-4">
-					<LiveGame liveGameData={state.liveGameData} region={region} />
-				</div>
-			)}
 
 			{/* Main Content Section */}
 			<div className="max-w-screen-xl w-full mx-auto px-4 mt-8 flex flex-col gap-8">

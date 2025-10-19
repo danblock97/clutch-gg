@@ -8,10 +8,8 @@ const Profile = ({
 	accountData,
 	profileData,
 	rankedData,
-	toggleLiveGame,
 	triggerUpdate,
 	isUpdating,
-	liveGameData,
 	region,
 }) => {
 	const soloRankedData =
@@ -304,31 +302,6 @@ const Profile = ({
 											</svg>
 										)}
 										{isUpdating ? "Updating..." : isUpdated ? "Updated" : "Update Profile"}
-									</button>
-
-									<button
-										onClick={(e) => {
-											e.stopPropagation();
-											if (liveGameData) toggleLiveGame();
-										}}
-										disabled={!liveGameData}
-										className={`relative overflow-hidden rounded-full text-sm font-semibold transition-all duration-300 inline-flex items-center justify-center px-4 py-1.5 shadow-sm ${
-												liveGameData
-													? "bg-gradient-to-r from-rose-500 to-orange-500 hover:opacity-95 text-white"
-													: "bg-gray-700 text-gray-400 cursor-not-allowed"
-												}`}
-									>
-										{liveGameData ? (
-											<>
-												<span className="relative flex h-2 w-2 mr-2">
-													<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
-													<span className="relative inline-flex rounded-full h-2 w-2 bg-red-600"></span>
-												</span>
-												Live Game
-											</>
-										) : (
-											"Not In Game"
-										)}
 									</button>
 
 									{/* Claim / Card buttons */}

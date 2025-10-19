@@ -6,7 +6,6 @@ const useProfileData = (gameName, tagLine, region) => {
 	const [rankedData, setRankedData] = useState(null);
 	const [championMasteryData, setChampionMasteryData] = useState(null);
 	const [matchDetails, setMatchDetails] = useState(null);
-	const [liveGameData, setLiveGameData] = useState(null);
 	const [error, setError] = useState(null);
 	const [isLoading, setIsLoading] = useState(true);
 
@@ -45,7 +44,6 @@ const useProfileData = (gameName, tagLine, region) => {
 
 			setChampionMasteryData(data.championmasterydata);
 			setMatchDetails(data.matchdetails);
-			setLiveGameData(data.livegamedata);
 		} catch (error) {
 			setError(error.message);
 		} finally {
@@ -63,7 +61,6 @@ const useProfileData = (gameName, tagLine, region) => {
 		rankedData,
 		championMasteryData,
 		matchDetails,
-		liveGameData,
 		error,
 		isLoading,
 	};
