@@ -203,12 +203,12 @@ export const fetchTFTAdditionalData = async (puuid, region) => {
 			? rankedTftData.rank
 				? `${rankedTftData.tier} ${rankedTftData.rank}`
 				: rankedTftData.tier
-			: "Unranked";
+			: "UNRANKED";
 
 		return {
 			queueType: "RANKED_TFT", // Add queueType for frontend compatibility
 			tier: rankedTftData ? rankedTftData.tier : "UNRANKED",
-			rank: combinedRank, // Combined format like "GOLD IV" or "MASTER" for frontend compatibility
+			rank: combinedRank, // Combined format like "GOLD IV", "MASTER", or "UNRANKED" for frontend compatibility
 			lp: rankedTftData ? rankedTftData.leaguePoints : 0, // Add lp alias for frontend
 			leaguePoints: rankedTftData ? rankedTftData.leaguePoints : 0,
 			wins: rankedTftData ? rankedTftData.wins : 0,
@@ -223,7 +223,7 @@ export const fetchTFTAdditionalData = async (puuid, region) => {
 		return {
 			queueType: "RANKED_TFT",
 			tier: "UNRANKED",
-			rank: "Unranked", // Use consistent format
+			rank: "UNRANKED", // Use consistent format
 			lp: 0, // Add lp alias for frontend
 			leaguePoints: 0,
 			wins: 0,
