@@ -7,6 +7,7 @@ import {
 	fetchMatchIds,
 	fetchMatchDetail,
 	upsertMatchDetail,
+	fetchLiveGameData,
 } from "@/lib/league/leagueApi";
 
 const regionToPlatform = {
@@ -106,6 +107,7 @@ export async function GET(req) {
 					accountdata: storedLeagueDataA.accountdata,
 					rankeddata: storedLeagueDataA.rankeddata,
 					championmasterydata: storedLeagueDataA.championmasterydata,
+					livegamedata: storedLeagueDataA.livegamedata,
 					updated_at: storedLeagueDataA.updated_at,
 					matchdetails: userMatchDetailsA,
 				};
@@ -195,6 +197,7 @@ export async function GET(req) {
 					accountdata: storedLeagueData.accountdata,
 					rankeddata: storedLeagueData.rankeddata,
 					championmasterydata: storedLeagueData.championmasterydata,
+					livegamedata: storedLeagueData.livegamedata,
 					updated_at: storedLeagueData.updated_at,
 					matchdetails: userMatchDetails,
 				};
@@ -249,7 +252,10 @@ export async function GET(req) {
 			(match) => match.match_data
 		);
 
-		const championMasteryData = await fetchChampionMasteryData(puuid, region);
+		const [championMasteryData, liveGameData] = await Promise.all([
+			fetchChampionMasteryData(puuid, region),
+			fetchLiveGameData(puuid, region, platform),
+		]);
 
 		// Create JSONB data structure for simplified schema
 		const leagueDataObj = {
@@ -281,6 +287,9 @@ export async function GET(req) {
 			// Champion mastery as JSONB
 			championmasterydata: championMasteryData || null,
 
+			// Live game data as JSONB
+			livegamedata: liveGameData || null,
+
 			updated_at: new Date(),
 		};
 
@@ -310,6 +319,7 @@ export async function GET(req) {
 			accountdata: leagueRecord.accountdata,
 			rankeddata: leagueRecord.rankeddata,
 			championmasterydata: leagueRecord.championmasterydata,
+			livegamedata: leagueRecord.livegamedata,
 			updated_at: leagueRecord.updated_at,
 			matchdetails: allMatchDetails,
 		};

@@ -4,6 +4,7 @@ import {
 	fetchTFTMatchIds,
 	fetchTFTMatchDetail,
 	upsertTFTMatchDetail,
+	fetchTFTLiveGameData,
 	fetchTFTAdditionalData,
 } from "@/lib/tft/tftApi";
 
@@ -91,6 +92,7 @@ export async function GET(req) {
 					profiledata: storedTftData.profiledata,
 					accountdata: storedTftData.accountdata,
 					rankeddata: storedTftData.rankeddata,
+					livegamedata: storedTftData.livegamedata,
 					updated_at: storedTftData.updated_at,
 					game_type: "tft",
 					matchdetails: userMatchDetails,
@@ -187,6 +189,7 @@ export async function GET(req) {
 					profiledata: storedTftData2.profiledata,
 					accountdata: storedTftData2.accountdata,
 					rankeddata: storedTftData2.rankeddata,
+					livegamedata: storedTftData2.livegamedata,
 					updated_at: storedTftData2.updated_at,
 					game_type: "tft",
 					matchdetails: userMatchDetails2,
@@ -208,7 +211,10 @@ export async function GET(req) {
 			normalizedRegion
 		);
 
-		const matchIds = await fetchTFTMatchIds(puuid, platform);
+		const [matchIds, liveGameData] = await Promise.all([
+			fetchTFTMatchIds(puuid, platform),
+			fetchTFTLiveGameData(puuid, normalizedRegion),
+		]);
 
 		const matchDetails = await Promise.all(
 			(matchIds || []).map(async (matchId) => {
@@ -248,6 +254,7 @@ export async function GET(req) {
 				tagLine: riotAccount.tagline,
 			},
 			rankeddata: additionalData, // Don't wrap in array - additionalData is already the rank object
+			livegamedata: liveGameData,
 			updated_at: new Date(),
 		};
 
@@ -280,6 +287,7 @@ export async function GET(req) {
 			profiledata: tftRecord.profiledata,
 			accountdata: tftRecord.accountdata,
 			rankeddata: tftRecord.rankeddata,
+			livegamedata: tftRecord.livegamedata,
 			updated_at: tftRecord.updated_at,
 			game_type: "tft",
 			matchdetails: allUserMatchDetails,

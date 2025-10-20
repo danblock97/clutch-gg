@@ -106,18 +106,7 @@ export default async function CardPage({ searchParams }) {
       : null;
     if (tft) {
       const wr = tft.wins + tft.losses > 0 ? ((tft.wins / (tft.wins + tft.losses)) * 100).toFixed(1) : "0.0";
-      // tft.rank now contains the combined format (e.g., "GOLD IV", "MASTER", or "UNRANKED")
-      const rankValue = tft.rank || tft.tier || "";
-      const isUnranked = !rankValue || rankValue.toUpperCase() === "UNRANKED";
-      const displayRank = isUnranked ? "Unranked" : rankValue;
-
-      // Only show LP for ranked players with valid league points
-      if (isUnranked) {
-        title = "Unranked";
-      } else {
-        const lp = typeof tft.leaguePoints === "number" ? tft.leaguePoints : 0;
-        title = `${displayRank} • ${lp} LP`;
-      }
+      title = `${tft.tier}${tft.rank ? ` ${tft.rank}` : ""} • ${tft.leaguePoints} LP`;
       status = `${tft.wins}W-${tft.losses}L • ${wr}% WR`;
     } else {
       title = "Unranked";

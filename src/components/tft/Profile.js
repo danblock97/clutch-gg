@@ -6,6 +6,7 @@ import TFTMatchHistory from "./MatchHistory";
 import TopTraits from "./TopTraits";
 import TopUnits from "./TopUnits";
 import Last20GamesPerformance from "./Last20GamesPerformance";
+import LiveGame from "./LiveGame";
 import Loading from "@/components/Loading";
 import NoProfileFound from "@/components/league/NoProfileFound";
 import DiscordBotBanner from "@/components/DiscordBotBanner.js";
@@ -23,9 +24,10 @@ export default function Profile({
 	isUpdating,
 	onLoadComplete,
 }) {
-	const { summonerData, rankedData, matchDetails, isLoading } =
+	const { summonerData, rankedData, matchDetails, liveGameData, isLoading } =
 		useTFTProfileData(profileData);
 	const [tab, setTab] = useState("matches");
+	const [isLiveGameOpen, setIsLiveGameOpen] = useState(false);
 
 	// Update functionality
 	const [isUpdated, setIsUpdated] = useState(false);
@@ -381,6 +383,17 @@ export default function Profile({
 									{isUpdating ? "Updating..." : isUpdated ? "Updated" : "Update Profile"}
 								</button>
 
+						{/* Live Game Button - only displayed if there's a live game */}
+						{liveGameData && (
+							<button onClick={() => setIsLiveGameOpen(!isLiveGameOpen)} className="relative overflow-hidden rounded-full text-sm font-semibold transition-all duration-300 inline-flex items-center justify-center px-4 py-1.5 shadow-sm bg-gradient-to-r from-rose-500 to-orange-500 hover:opacity-95 text-white">
+								<span className="relative flex h-2 w-2 mr-2">
+									<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
+									<span className="relative inline-flex rounded-full h-2 w-2 bg-red-600"></span>
+								</span>
+								Live Game
+							</button>
+						)}
+
 						{/* Claim / Card buttons */}
 						<div className="flex items-center gap-2">
                             {claimStatus.loading && (
@@ -453,6 +466,13 @@ export default function Profile({
 
 			{/* Main Content */}
 			<div className="container mx-auto px-4 py-8">
+				{/* Live Game Section (Conditionally Rendered) */}
+				{liveGameData && isLiveGameOpen && (
+					<div className="w-full mb-8">
+						<LiveGame liveGameData={liveGameData} region={profileData.region} matchHistory={matchDetails} />
+					</div>
+				)}
+
 				<div className="flex flex-col lg:flex-row gap-6">
 					{/* Left Column */}
 					<div className="w-full lg:w-1/3">
