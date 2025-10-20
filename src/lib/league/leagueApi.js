@@ -202,6 +202,101 @@ export const upsertMatchDetail = async (
 	}
 };
 
+/**
+ * Fetch live game data.
+ */
+export const fetchLiveGameData = async (puuid, region, platform) => {
+	// Ensure region is uppercase for API compatibility
+	const normalizedRegion = region.toUpperCase();
+
+	const liveGameResponse = await fetch(
+		`https://${normalizedRegion}.api.riotgames.com/lol/spectator/v5/active-games/by-summoner/${puuid}`,
+		{ headers: { "X-Riot-Token": RIOT_API_KEY } }
+	);
+	if (!liveGameResponse.ok) return null;
+
+	const liveGameData = await liveGameResponse.json();
+	// Enrich each participant with additional League-specific data concurrently.
+	liveGameData.participants = await Promise.all(
+		liveGameData.participants.map(async (participant) => {
+			const additionalData = await fetchAdditionalData(
+				participant.puuid,
+				normalizedRegion
+			);
+			return { ...participant, ...additionalData };
+		})
+	);
+	return liveGameData;
+};
+
+
+/**
+ * Fetch additional data for live game enrichment.
+ */
+export const fetchAdditionalData = async (puuid, region) => {
+	// Always try to fetch as much as possible, even if some fail
+	const normalizedRegion = region.toUpperCase();
+	let rankedData = [];
+	let accountData = {};
+	let summonerData = {};
+	let soloQueueData = null;
+	let errors = [];
+
+	// Fetch all in parallel, but catch errors individually
+	const rankedPromise = fetch(
+		`https://${normalizedRegion}.api.riotgames.com/lol/league/v4/entries/by-puuid/${puuid}`,
+		{ headers: { "X-Riot-Token": RIOT_API_KEY } }
+	)
+		.then((r) => (r.ok ? r.json() : Promise.reject("ranked")))
+		.then((data) => {
+			rankedData = data;
+			soloQueueData = data.find((q) => q.queueType === "RANKED_SOLO_5x5");
+		})
+		.catch((e) => {
+			errors.push("ranked");
+		});
+
+	const accountPromise = fetch(
+		`https://europe.api.riotgames.com/riot/account/v1/accounts/by-puuid/${puuid}`,
+		{ headers: { "X-Riot-Token": RIOT_API_KEY } }
+	)
+		.then((r) => (r.ok ? r.json() : Promise.reject("account")))
+		.then((data) => {
+			accountData = data;
+		})
+		.catch((e) => {
+			errors.push("account");
+		});
+
+	const summonerPromise = fetch(
+		`https://${normalizedRegion}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}`,
+		{ headers: { "X-Riot-Token": RIOT_API_KEY } }
+	)
+		.then((r) => (r.ok ? r.json() : Promise.reject("summoner")))
+		.then((data) => {
+			summonerData = data;
+		})
+		.catch((e) => {
+			errors.push("summoner");
+		});
+
+	await Promise.all([rankedPromise, accountPromise, summonerPromise]);
+
+	// Fallbacks for missing data
+	return {
+		rank: soloQueueData
+			? `${soloQueueData.tier} ${soloQueueData.rank}`
+			: "Unranked",
+		lp: soloQueueData ? soloQueueData.leaguePoints : 0,
+		wins: soloQueueData ? soloQueueData.wins : 0,
+		losses: soloQueueData ? soloQueueData.losses : 0,
+		gameName: accountData.gameName || "",
+		tagLine: accountData.tagLine || "",
+		summonerLevel: summonerData.summonerLevel || 0,
+		_partialError: errors.length > 0 ? errors : undefined,
+	};
+};
+
 /* =====================================================
    NEW HELPER FUNCTIONS (for leaderboard, if needed)
    ===================================================== */

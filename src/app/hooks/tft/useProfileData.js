@@ -5,6 +5,7 @@ export default function useTFTProfileData(profileData) {
 	const [rankedData, setRankedData] = useState([]);
 	const [matchData, setMatchData] = useState([]);
 	const [matchDetails, setMatchDetails] = useState([]);
+	const [liveGameData, setLiveGameData] = useState(null);
 	const [isLoading, setIsLoading] = useState(true);
 
 	useEffect(() => {
@@ -33,6 +34,7 @@ export default function useTFTProfileData(profileData) {
 			}
 			setRankedData(processedRankedData);
 			setMatchData(profileData.matchdata || []);
+			setLiveGameData(profileData.livegamedata);
 			setMatchDetails(
 				profileData.matchdetails?.filter(Boolean).map((match) => {
 					return {
@@ -52,6 +54,7 @@ export default function useTFTProfileData(profileData) {
 		rankedData,
 		matchData,
 		matchDetails,
+		liveGameData,
 		isLoading,
 	};
 }
