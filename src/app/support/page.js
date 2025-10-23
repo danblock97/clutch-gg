@@ -68,7 +68,7 @@ export default function SupportPage() {
         <div className="feature-card p-5">
           <h3 className="text-base font-semibold">Feature requests</h3>
           <p className="mt-3 text-sm text-[--text-secondary]">
-            Have an idea? Submit it through our feature request form or join our community to discuss it further.
+            Have an idea? Submit it through our feature request form and we'll review it
           </p>
           <Link
             href="https://danblock97.atlassian.net/jira/software/c/form/aef27bee-25af-4de9-a5f2-7487be1a7067?atlOrigin=eyJpIjoiNWE3MzRmYjJmYjMyNGVmODk5YjRmYjM5MzI5OTg2NjgiLCJwIjoiaiJ9"
