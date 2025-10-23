@@ -8,8 +8,9 @@ import { FaChartLine, FaSkull, FaShieldAlt, FaDesktop } from "react-icons/fa";
 function getModeAndRankStatus(gameMode, queueId) {
 	let modeName = "";
 	let isRanked = false;
+	const normalizedMode = (gameMode || "").toUpperCase();
 
-	switch (gameMode) {
+	switch (normalizedMode) {
 		case "CLASSIC":
 			modeName = "Summoner's Rift";
 			// Check if queue is Solo/Duo or Flex
@@ -19,6 +20,10 @@ function getModeAndRankStatus(gameMode, queueId) {
 			break;
 		case "ARAM":
 			modeName = "ARAM";
+			break;
+		case "KIWI":
+		case "ARAMMAYHEM":
+			modeName = "ARAM Mayhem";
 			break;
 		case "URF":
 			modeName = "URF";
@@ -55,7 +60,7 @@ function getModeAndRankStatus(gameMode, queueId) {
 			modeName = "Arena";
 			break;
 		default:
-			modeName = gameMode || "Unknown Mode";
+			modeName = gameMode || normalizedMode || "Unknown Mode";
 			break;
 	}
 
