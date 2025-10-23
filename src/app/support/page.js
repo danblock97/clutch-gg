@@ -19,7 +19,7 @@ export default function SupportPage() {
           <span className="league-gradient-text">Support</span>
         </h1>
         <p className="mt-2 text-[--text-secondary]">
-          Get help and report issues via our simple Notion form.
+          Get help, report issues, or share ideas with our support forms.
         </p>
         <div className="mx-auto mt-4 h-px w-24 rounded bg-gradient-to-r from-[--primary] to-[--secondary] opacity-70" />
       </header>
@@ -27,7 +27,7 @@ export default function SupportPage() {
       {/* Primary actions */}
       <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
         <a
-          href="https://animated-fine-273.notion.site/28df8761b64981e4975dc83aa95a6471?pvs=105"
+          href="https://danblock97.atlassian.net/jira/software/c/form/28b1ef4b-eac8-41f9-808e-d38cca7e1503?atlOrigin=eyJpIjoiOTUzZTdjYTNjMTU0NGI1NmEzMTM0MGI3NjE4MDMzZjMiLCJwIjoiaiJ9"
           target="_blank"
           rel="noopener noreferrer"
           className="relative inline-flex items-center justify-center rounded-lg px-4 py-1.5 text-sm font-semibold text-white select-none
@@ -37,6 +37,18 @@ export default function SupportPage() {
                     border border-white/10 hover:border-white/20"
         >
           Report a bug
+        </a>
+        <a
+          href="https://danblock97.atlassian.net/jira/software/c/form/aef27bee-25af-4de9-a5f2-7487be1a7067?atlOrigin=eyJpIjoiNWE3MzRmYjJmYjMyNGVmODk5YjRmYjM5MzI5OTg2NjgiLCJwIjoiaiJ9"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="relative inline-flex items-center justify-center rounded-lg px-4 py-1.5 text-sm font-semibold text-white select-none
+                    bg-gradient-to-b from-[--secondary] to-[--primary]
+                    shadow-[0_6px_0_0_rgba(0,0,0,0.45)] hover:shadow-[0_7px_0_0_rgba(0,0,0,0.45)]
+                    transition-all active:translate-y-[2px] active:shadow-[0_4px_0_0_rgba(0,0,0,0.45)]
+                    border border-white/10 hover:border-white/20"
+        >
+          Request a feature
         </a>
       </div>
 
@@ -56,15 +68,15 @@ export default function SupportPage() {
         <div className="feature-card p-5">
           <h3 className="text-base font-semibold">Feature requests</h3>
           <p className="mt-3 text-sm text-[--text-secondary]">
-            Have an idea? Share it in our Discord and upvote others. We review suggestions regularly.
+            Have an idea? Submit it through our feature request form or join our community to discuss it further.
           </p>
           <Link
-            href="https://discord.gg/BeszQxTn9D"
+            href="https://danblock97.atlassian.net/jira/software/c/form/aef27bee-25af-4de9-a5f2-7487be1a7067?atlOrigin=eyJpIjoiNWE3MzRmYjJmYjMyNGVmODk5YjRmYjM5MzI5OTg2NjgiLCJwIjoiaiJ9"
             target="_blank"
             rel="noopener noreferrer"
             className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-white hover:text-[--secondary] transition-colors"
           >
-            Join Discord →
+            Submit a feature →
           </Link>
         </div>
 
