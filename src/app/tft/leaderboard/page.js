@@ -87,7 +87,7 @@ const LeaderboardPage = () => {
 	};
 
 	// Get text color class based on tier
-	const getTierColorClass = () => {
+	const getTierColorStyle = () => {
 		const lowerTier = tier.toLowerCase();
 		if (
 			[
@@ -103,9 +103,9 @@ const LeaderboardPage = () => {
 				"iron",
 			].includes(lowerTier)
 		) {
-			return `text-[--${lowerTier}]`;
+			return { color: `var(--${lowerTier})` };
 		}
-		return "text-[--tft-primary]"; // Fallback
+		return { color: "var(--tft-primary)" }; // Fallback
 	};
 
 	useEffect(() => {
@@ -124,7 +124,7 @@ const LeaderboardPage = () => {
 					<div className="flex justify-center mb-4">
 						<div className="p-3 rounded-full bg-[--card-bg] shadow-xl">
 							{/* Use TFT color for the trophy */}
-							<FaTrophy className={`${getTierColorClass()} text-3xl`} />
+							<FaTrophy className="text-3xl" style={getTierColorStyle()} />
 						</div>
 					</div>
 					<h1 className="text-3xl sm:text-4xl font-bold mb-4">

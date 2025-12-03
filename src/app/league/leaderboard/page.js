@@ -101,7 +101,7 @@ const Leaderboard = () => {
 				<div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
 					<div className="flex justify-center mb-4">
 						<div className="p-3 rounded-full bg-[--card-bg] shadow-xl">
-							<FaTrophy className={`text-[--${tier.toLowerCase()}] text-3xl`} />
+							<FaTrophy className="text-3xl" style={{ color: `var(--${tier.toLowerCase()})` }} />
 						</div>
 					</div>
 					<h1 className="text-3xl sm:text-4xl font-bold mb-4">

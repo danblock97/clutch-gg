@@ -244,7 +244,7 @@ const Profile = ({
 										)}
 										<div>
 											<p className="font-semibold text-lg">
-												<span className={`text-[--${soloRankedData.tier.toLowerCase()}]`}>
+												<span style={{ color: `var(--${soloRankedData.tier.toLowerCase()})` }}>
 													{soloRankedData.tier}
 												</span>
 												<span className="text-[--text-primary] ml-2">

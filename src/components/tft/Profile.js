@@ -337,7 +337,7 @@ export default function Profile({
 									)}
 									<div>
 										<p className="font-semibold text-lg">
-											<span className={`text-[--${tftRanked.tier.toLowerCase()}]`}>{tftRanked.tier ? tftRanked.tier : "Unranked"}</span>
+											<span style={{ color: `var(--${tftRanked.tier.toLowerCase()})` }}>{tftRanked.tier ? tftRanked.tier : "Unranked"}</span>
 											<span className="text-[--text-primary] ml-2">{tftRanked.leaguePoints} LP</span>
 										</p>
 										<p className="text-[--text-secondary] text-sm">

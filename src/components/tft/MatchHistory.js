@@ -292,7 +292,7 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 		// Handle multiple possible date field formats
 		const gameDateRaw =
 			match.info.game_datetime ?? match.info.gameCreation ?? Date.now();
-		const matchDate = new Date(gameDateRaw);
+		let matchDate = new Date(gameDateRaw);
 
 		// Validate the date
 		if (isNaN(matchDate.getTime())) {

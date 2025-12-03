@@ -7,7 +7,7 @@ import {
 	FaChartLine,
 } from "react-icons/fa";
 
-const RankDisplay = ({ tier, rank, tierColorClass }) => {
+const RankDisplay = ({ tier, rank, tierColorStyle }) => {
 	const [isHovered, setIsHovered] = useState(false);
 
 	return (
@@ -18,7 +18,8 @@ const RankDisplay = ({ tier, rank, tierColorClass }) => {
 		>
 			{isHovered && (
 				<div
-					className={`absolute bottom-full mb-2 w-max px-2 py-1 bg-gray-800 text-white text-xs rounded-md ${tierColorClass}`}
+					className="absolute bottom-full mb-2 w-max px-2 py-1 bg-gray-800 text-white text-xs rounded-md"
+					style={tierColorStyle}
 				>
 					{`${tier} ${rank}`}
 				</div>
@@ -53,9 +54,9 @@ export default function TFTRankedInfo({ rankedData }) {
 		const winRate =
 			totalGames > 0 ? ((wins / totalGames) * 100).toFixed(1) : "0.0";
 
-		// Determine color class based on tier
-		const tierColorClass =
-			data && data.tier ? `text-[--${tier.toLowerCase()}]` : "text-gray-400";
+		// Determine color style based on tier
+		const tierColorStyle =
+			data && data.tier ? { color: `var(--${tier.toLowerCase()})` } : { color: "var(--text-secondary)" };
 
 		return (
 			<div
@@ -83,7 +84,7 @@ export default function TFTRankedInfo({ rankedData }) {
 								<RankDisplay
 									tier={tier}
 									rank={rank}
-									tierColorClass={tierColorClass}
+									tierColorStyle={tierColorStyle}
 								/>
 							</div>
 						)}
@@ -295,9 +296,9 @@ export default function TFTRankedInfo({ rankedData }) {
 		const winRate =
 			totalGames > 0 ? ((wins / totalGames) * 100).toFixed(1) : "0.0";
 
-		// Determine color class based on tier
-		const tierColorClass =
-			data && data.tier ? `text-[--${tier.toLowerCase()}]` : "text-gray-400";
+		// Determine color style based on tier
+		const tierColorStyle =
+			data && data.tier ? { color: `var(--${tier.toLowerCase()})` } : { color: "var(--text-secondary)" };
 
 		return (
 			<div
@@ -325,7 +326,7 @@ export default function TFTRankedInfo({ rankedData }) {
 								<RankDisplay
 									tier={tier}
 									rank={rank}
-									tierColorClass={tierColorClass}
+									tierColorStyle={tierColorStyle}
 								/>
 							</div>
 						) : (

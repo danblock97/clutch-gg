@@ -23,11 +23,11 @@ const SeasonRanks = ({
 		return `/images/league/rankedEmblems/${baseTier}.webp`;
 	};
 
-	// Get rank color class
-	const getRankColorClass = (tier) => {
-		if (!tier) return "text-gray-400";
+	// Get rank color style
+	const getRankColorStyle = (tier) => {
+		if (!tier) return { color: "var(--text-secondary)" };
 		const baseTier = tier.split(" ")[0].toLowerCase();
-		return `text-[--${baseTier}]`;
+		return { color: `var(--${baseTier})` };
 	};
 
 	const fetchRankHistory = useCallback(
@@ -231,7 +231,7 @@ const SeasonRanks = ({
                                     ) : (
                                         <span className="w-5 h-5 rounded-full bg-[--card-bg-secondary]" />
                                     )}
-                                    <span className={`font-bold text-sm truncate ${getRankColorClass(rank.tier)}`}>
+                                    <span className="font-bold text-sm truncate" style={getRankColorStyle(rank.tier)}>
                                         {rank.tier || "Unranked"}
                                     </span>
                                 </div>

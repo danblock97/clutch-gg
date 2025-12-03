@@ -21,7 +21,7 @@ const RankedInfo = ({ rankedData }) => {
   const wr = parseFloat(winRate);
   const winRateColor = wr >= 55 ? "text-green-400" : wr >= 48 ? "text-blue-400" : "text-red-400";
   const winRateIcon = wr >= 55 ? <FaArrowUp className="ml-1" /> : wr >= 48 ? null : <FaArrowDown className="ml-1" />;
-  const tierColorClass = data ? `text-[--${tier.toLowerCase()}]` : "text-gray-400";
+  const tierColorStyle = data ? { color: `var(--${tier.toLowerCase()})` } : { color: "var(--text-secondary)" };
 
   return (
     <div className="card group transition-all duration-300 hover:shadow-xl overflow-hidden">
@@ -58,7 +58,7 @@ const RankedInfo = ({ rankedData }) => {
           </div>
           <div className="rounded-md border border-[--card-border] bg-[--card-bg] p-3">
             <p className="text-[10px] uppercase tracking-wider text-[--text-secondary]">Tier</p>
-            <p className={`mt-1 text-sm font-semibold ${tierColorClass}`}>{data ? tier : "Unranked"}</p>
+            <p className="mt-1 text-sm font-semibold" style={tierColorStyle}>{data ? tier : "Unranked"}</p>
           </div>
         </div>
 

@@ -46,7 +46,7 @@ const TFTLeaderboardTable = ({ leaderboardData, region, tier }) => {
 	};
 
 	// Get tier color class (using TFT tier names)
-	const getTierColorClass = () => {
+	const getTierColorStyle = () => {
 		const lowerTier = tier.toLowerCase();
 		if (
 			[
@@ -62,9 +62,9 @@ const TFTLeaderboardTable = ({ leaderboardData, region, tier }) => {
 				"iron",
 			].includes(lowerTier)
 		) {
-			return `text-[--${lowerTier}]`;
+			return { color: `var(--${lowerTier})` };
 		}
-		return "text-[--tft-primary]"; // Fallback
+		return { color: "var(--tft-primary)" }; // Fallback
 	};
 
 	return (
@@ -83,7 +83,7 @@ const TFTLeaderboardTable = ({ leaderboardData, region, tier }) => {
 			<div className="max-h-[600px] overflow-y-auto custom-scrollbar">
 				{leaderboardData.map((entry, index) => {
 					const winrateInfo = getWinrateDisplay(entry.wins, entry.losses);
-					const tierColor = getTierColorClass();
+					const tierColorStyle = getTierColorStyle();
 
 					return (
 						<div
@@ -139,7 +139,7 @@ const TFTLeaderboardTable = ({ leaderboardData, region, tier }) => {
 
 							{/* LP Column (using tier color) */}
 							<div className="col-span-2 text-center">
-								<span className={`font-bold ${tierColor}`}>
+								<span className="font-bold" style={tierColorStyle}>
 									{entry.leaguePoints}
 								</span>
 								<span className="text-[--text-secondary] ml-1 text-sm">LP</span>

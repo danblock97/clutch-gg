@@ -26,6 +26,7 @@ const nextConfig = {
 		}
 		return config;
 	},
+	turbopack: {},
 	env: {
 		MONGODB_URI: process.env.MONGODB_URI,
 		RIOT_API_KEY: process.env.RIOT_API_KEY,

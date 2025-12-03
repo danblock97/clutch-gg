@@ -108,7 +108,7 @@ const LeaderboardTable = ({ leaderboardData, region, tier }) => {
 
 							{/* LP Column */}
 							<div className="col-span-2 text-center">
-                <span className={`font-bold text-[--${tier.toLowerCase()}]`}>
+                <span className="font-bold" style={{ color: `var(--${tier.toLowerCase()})` }}>
                   {entry.leaguePoints}
                 </span>
 								<span className="text-[--text-secondary] ml-1 text-sm">LP</span>
