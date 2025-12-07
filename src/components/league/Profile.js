@@ -3,6 +3,16 @@ import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
 import DiscordBotBanner from "@/components/DiscordBotBanner.js";
 import { scrapeLeagueLadderRanking } from "@/lib/opggApi.js";
+import {
+	FaSync,
+	FaGamepad,
+	FaCheckCircle,
+	FaExclamationCircle,
+	FaIdCard,
+	FaClock,
+	FaTrophy
+} from "react-icons/fa";
+import { MdVerified } from "react-icons/md";
 
 const Profile = ({
 	accountData,
@@ -64,20 +74,20 @@ const Profile = ({
 		setClaimLoading(true);
 		setClaimError("");
 		try {
-            const res = await fetch("/api/claims/claim", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "x-api-key": process.env.NEXT_PUBLIC_UPDATE_API_KEY,
-                },
-                body: JSON.stringify({
-                    gameName: accountData.gameName,
-                    tagLine: accountData.tagLine,
-                    region: (region || "euw1").toLowerCase(),
-                    mode: "league",
-                    ownerPuuid: user.puuid,
-                }),
-            });
+			const res = await fetch("/api/claims/claim", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					"x-api-key": process.env.NEXT_PUBLIC_UPDATE_API_KEY,
+				},
+				body: JSON.stringify({
+					gameName: accountData.gameName,
+					tagLine: accountData.tagLine,
+					region: (region || "euw1").toLowerCase(),
+					mode: "league",
+					ownerPuuid: user.puuid,
+				}),
+			});
 			const json = await res.json().catch(() => ({}));
 			if (res.ok) {
 				setClaimStatus({ loading: false, claimed: true, ownClaim: true });
@@ -168,236 +178,192 @@ const Profile = ({
 		fetchLadderRanking();
 	}, [accountData?.gameName, accountData?.tagLine, region, updateTriggered]);
 
-	// Helper function to format "time ago"
-	const timeAgo = (date) => {
-		const now = new Date();
-		const seconds = Math.floor((now - date) / 1000);
-
-		let interval = Math.floor(seconds / 31536000);
-		if (interval >= 1)
-			return `${interval} year${interval !== 1 ? "s" : ""} ago`;
-
-		interval = Math.floor(seconds / 2592000);
-		if (interval >= 1)
-			return `${interval} month${interval !== 1 ? "s" : ""} ago`;
-
-		interval = Math.floor(seconds / 86400);
-		if (interval >= 1) return `${interval} day${interval !== 1 ? "s" : ""} ago`;
-
-		interval = Math.floor(seconds / 3600);
-		if (interval >= 1)
-			return `${interval} hour${interval !== 1 ? "s" : ""} ago`;
-
-		interval = Math.floor(seconds / 60);
-		if (interval >= 1)
-			return `${interval} minute${interval !== 1 ? "s" : ""} ago`;
-
-		return "Just now";
-	};
-
 	return (
-		<>
-				<div className="w-full py-8 bg-[radial-gradient(ellipse_at_top,_rgba(255,255,255,0.06),_transparent_60%)]">
-					<div className="w-full max-w-screen-xl mx-auto px-4 sm:px-6">
-						<div className="relative flex flex-col lg:flex-row items-start lg:items-center gap-6 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-5 shadow-[0_10px_30px_rgba(0,0,0,0.25)]">
-							{/* Left Side: Profile Icon & Level */}
-							<div className="flex-shrink-0 relative">
-								<div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden ring-1 ring-white/15 bg-white/5">
-									<Image
-										src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/${profileData.profileIconId}.jpg`}
-										alt="Player Icon"
-										width={112}
-										height={112}
-										className="w-full h-full object-cover"
-									/>
-								</div>
-								<div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 text-white text-[11px] font-semibold py-1 px-2 rounded-full border border-white/20 bg-gradient-to-r from-[--primary]/70 to-[--secondary]/70">
-									{profileData.summonerLevel}
-								</div>
-							</div>
+		<div className="w-full relative z-10 mb-6">
+			<div className="w-full max-w-screen-xl mx-auto px-4 sm:px-6 pt-6 pb-2">
+				<div className="flex flex-col md:flex-row items-center md:items-end gap-6">
 
-							{/* Middle: Name, Tag, Ranked Info */}
-							<div className="flex-grow flex flex-col">
-								<h1 className="text-3xl sm:text-4xl font-extrabold mb-1 bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">
-									{`${accountData.gameName}`}
-									<span className="text-[--text-secondary] text-base sm:text-lg font-medium">
-										#{accountData.tagLine}
-									</span>
-								</h1>
-
-								{/* Solo Queue Rank */}
-								{soloRankedData ? (
-									<div className="flex items-center mt-3">
-										{rankedIcon && (
-											<div className="relative mr-3">
-												<Image
-													src={rankedIcon}
-													alt={`${soloRankedData.tier} Emblem`}
-													width={40}
-													height={40}
-													className=""
-												/>
-												<div className="absolute -bottom-1 -right-1 bg-[--card-bg] text-[10px] px-1 rounded-md border border-[--card-border]">
-													{soloRankedData.rank}
-												</div>
-											</div>
-										)}
-										<div>
-											<p className="font-semibold text-lg">
-												<span style={{ color: `var(--${soloRankedData.tier.toLowerCase()})` }}>
-													{soloRankedData.tier}
-												</span>
-												<span className="text-[--text-primary] ml-2">
-													{soloRankedData.leaguePoints} LP
-												</span>
-											</p>
-											<p className="text-[--text-secondary] text-sm">
-												{soloRankedData.wins}W - {soloRankedData.losses}L (
-													{(
-														(soloRankedData.wins /
-															(soloRankedData.wins + soloRankedData.losses)) *
-														100
-													).toFixed(1)}
-												% WR)
-											</p>
-
-											{/* Ladder Ranking */}
-											{ladderRanking && (
-												<p className="text-[--text-secondary] text-xs mt-1">
-													Ladder Rank {" "}
-													<span className="text-[--primary]">{ladderRanking.rank}</span> {" "}
-													({ladderRanking.percentile}% of top)
-												</p>
-											)}
-											{isLoadingLadder && (
-												<p className="text-[--text-secondary] text-xs mt-1">
-													Loading ladder ranking...
-												</p>
-											)}
-										</div>
-									</div>
-								) : (
-									<p className="text-[--text-secondary] font-semibold">Unranked</p>
-								)}
-
-								{/* Action Buttons */}
-								<div className="flex flex-wrap gap-2 mt-4">
-									<button
-										onClick={(e) => {
-											e.stopPropagation();
-											triggerUpdate();
-											setUpdateTriggered(true);
-										}}
-										className={`relative overflow-hidden rounded-full text-sm font-semibold transition-all duration-300 inline-flex items-center justify-center px-4 py-1.5 shadow-sm ${
-												isUpdating
-													? "bg-gray-600 opacity-50 cursor-not-allowed"
-													: isUpdated
-													? "bg-emerald-500/90 hover:bg-emerald-500 text-white"
-													: "bg-gradient-to-r from-[--primary] to-[--secondary] hover:opacity-95 text-white"
-												}`}
-										disabled={isUpdating || countdown > 0}
-									>
-										{isUpdating && (
-											<svg className="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-												<circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-												<path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-											</svg>
-										)}
-										{isUpdating ? "Updating..." : isUpdated ? "Updated" : "Update Profile"}
-									</button>
-
-									<button
-										onClick={(e) => {
-											e.stopPropagation();
-											if (liveGameData) toggleLiveGame();
-										}}
-										disabled={!liveGameData}
-										className={`relative overflow-hidden rounded-full text-sm font-semibold transition-all duration-300 inline-flex items-center justify-center px-4 py-1.5 shadow-sm ${
-												liveGameData
-													? "bg-gradient-to-r from-rose-500 to-orange-500 hover:opacity-95 text-white"
-													: "bg-gray-700 text-gray-400 cursor-not-allowed"
-												}`}
-									>
-										{liveGameData ? (
-											<>
-												<span className="relative flex h-2 w-2 mr-2">
-													<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
-													<span className="relative inline-flex rounded-full h-2 w-2 bg-red-600"></span>
-												</span>
-												Live Game
-											</>
-										) : (
-											"Not In Game"
-										)}
-									</button>
-
-									{/* Claim / Card buttons */}
-									{claimStatus.loading ? null : (
-										<>
-									{!claimStatus.claimed && (
-										<button
-											onClick={() => {
-												if (!user) return loginWithRiot();
-												handleClaim();
-											}}
-										disabled={!canClaim || claimLoading}
-										className={`relative overflow-hidden rounded-lg text-sm font-semibold transition-all duration-300 inline-flex items-center justify-center px-4 py-1.5 border ${
-											canClaim && !claimLoading
-												? "bg-indigo-500/90 hover:bg-indigo-400 text-white border-indigo-300/50 ring-1 ring-indigo-400/60 shadow-[0_0_14px_rgba(99,102,241,0.55)]"
-												: "bg-gray-700 text-gray-400 cursor-not-allowed border-gray-600"
-										}`}
-										>
-											{claimLoading ? "Claiming..." : user ? (canClaim ? "Claim Profile" : "Sign-in mismatch") : "Sign in to claim"}
-										</button>
-									)}
-                                    {claimError && (
-                                        <span className="text-xs text-red-400 ml-2">{claimError}</span>
-                                    )}
-                                            {user && claimStatus.claimed && claimStatus.ownClaim && (
-												<a
-													href={`/card?` + new URLSearchParams({
-														mode: "league",
-														gameName: accountData.gameName,
-														tagLine: accountData.tagLine,
-														region: (region || "euw1").toUpperCase(),
-													}).toString()}
-													className="relative overflow-hidden rounded-lg text-sm font-semibold inline-flex items-center justify-center px-4 py-1.5 border bg-fuchsia-500/90 hover:bg-fuchsia-400 text-white border-fuchsia-300/50 ring-1 ring-fuchsia-400/60 shadow-[0_0_14px_rgba(232,121,249,0.55)]"
-												>
-													Create ClutchGG Card
-												</a>
-											)}
-                                            {!user && claimStatus.claimed && !claimStatus.ownClaim && (
-                                                <button
-                                                    disabled
-                                                    className="relative overflow-hidden rounded-lg text-sm font-semibold inline-flex items-center justify-center px-4 py-1.5 border bg-gray-700 text-gray-400 cursor-not-allowed border-gray-600"
-                                                >
-                                                    Claimed by another account
-                                                </button>
-                                            )}
-										</>
-									)}
-
-									{/* Timer */}
-									{isUpdated && countdown > 0 && (
-										<div className="text-xs text-[--text-secondary] self-center">
-											Next update available in {countdown}s
-										</div>
-									)}
-								</div>
-							</div>
-
-							{/* Right Side: Discord Bot Banner (Desktop) */}
-							<div className="hidden lg:block flex-shrink-0">
-								<DiscordBotBanner />
-							</div>
+					{/* Avatar Section - Minimal */}
+					<div className="relative shrink-0">
+						<div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden ring-1 ring-white/10 bg-white/5 shadow-lg">
+							<Image
+								src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/${profileData.profileIconId}.jpg`}
+								alt="Player Icon"
+								width={112}
+								height={112}
+								className="w-full h-full object-cover"
+							/>
 						</div>
-						{/* Discord Banner (Mobile) - Appears below on smaller screens */}
-						<div className="lg:hidden mt-6">
-							<DiscordBotBanner />
+						<div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2">
+							<span className="px-2 py-0.5 rounded-md bg-[--card-bg] border border-[--card-border] text-[--text-secondary] text-[10px] font-bold shadow-sm">
+								Lvl {profileData.summonerLevel}
+							</span>
 						</div>
 					</div>
+
+					{/* Info Section - Integrated */}
+					<div className="flex-grow flex flex-col items-center md:items-start text-center md:text-left">
+						<div className="flex items-baseline gap-2 mb-2">
+							<div className="flex items-center gap-2">
+								<h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
+									{accountData.gameName}
+								</h1>
+								{claimStatus?.claimed && (
+									<MdVerified className="text-blue-400 text-2xl" title="Verified Player" />
+								)}
+							</div>
+							<span className="text-xl text-[--text-secondary] font-medium">
+								#{accountData.tagLine}
+							</span>
+						</div>
+
+						{/* Rank Info Row */}
+						{soloRankedData ? (
+							<div className="flex flex-wrap items-center justify-center md:justify-start gap-x-6 gap-y-2">
+								<div className="flex items-center gap-2">
+									{rankedIcon && (
+										<Image
+											src={rankedIcon}
+											alt="Rank"
+											width={52}
+											height={52}
+											className="object-contain"
+										/>
+									)}
+									<div className="flex flex-col">
+										<span className="text-lg font-bold text-white leading-none">
+											<span style={{ color: `var(--${soloRankedData.tier.toLowerCase()})` }}>{soloRankedData.tier}</span>
+											<span className="ml-1.5">{soloRankedData.rank}</span>
+										</span>
+										<span className="text-sm text-[--text-secondary]">
+											{soloRankedData.leaguePoints} LP
+										</span>
+									</div>
+								</div>
+
+								<div className="h-8 w-px bg-white/10 mx-2 hidden sm:block" />
+
+								<div className="flex items-center gap-4 text-sm">
+									<div className="flex flex-col items-center md:items-start">
+										<span className="text-[10px] uppercase text-[--text-secondary] font-bold">Win Rate</span>
+										<span className={`font-bold ${(soloRankedData.wins / (soloRankedData.wins + soloRankedData.losses)) * 100 >= 50 ? 'text-[--success]' : 'text-[--text-primary]'
+											}`}>
+											{((soloRankedData.wins / (soloRankedData.wins + soloRankedData.losses)) * 100).toFixed(0)}%
+										</span>
+									</div>
+									<div className="flex flex-col items-center md:items-start text-[--text-secondary]">
+										<span className="text-[10px] uppercase font-bold">Record</span>
+										<span>
+											<span className="text-white">{soloRankedData.wins}</span>W - <span className="text-white">{soloRankedData.losses}</span>L
+										</span>
+									</div>
+								</div>
+
+								{ladderRanking && (
+									<>
+										<div className="h-8 w-px bg-white/10 mx-2 hidden sm:block" />
+										<div className="flex flex-col items-center md:items-start">
+											<span className="text-[10px] uppercase text-[--text-secondary] font-bold flex items-center gap-1">
+												<FaTrophy className="text-[8px]" /> Ladder
+											</span>
+											<span className="text-sm font-bold text-[--primary]">
+												#{ladderRanking.rank}
+											</span>
+										</div>
+									</>
+								)}
+							</div>
+						) : (
+							<div className="text-[--text-secondary] font-medium py-2">
+								Unranked in Solo/Duo
+							</div>
+						)}
+					</div>
+
+					{/* Actions - Right Aligned & Minimal */}
+					<div className="flex flex-wrap items-center justify-center md:justify-end gap-3 pb-1">
+						{/* Update Button */}
+						<button
+							onClick={(e) => {
+								e.stopPropagation();
+								triggerUpdate();
+								setUpdateTriggered(true);
+							}}
+							disabled={isUpdating || countdown > 0}
+							className={`h-9 px-4 rounded-lg flex items-center gap-2 text-sm font-semibold transition-all duration-200 border ${isUpdating || countdown > 0
+								? "bg-white/5 border-white/5 text-[--text-secondary] cursor-not-allowed"
+								: "bg-transparent border-[--card-border] text-[--text-primary] hover:bg-[--card-bg] hover:border-white/20"
+								}`}
+						>
+							<FaSync className={`text-xs ${isUpdating ? "animate-spin" : ""}`} />
+							<span>
+								{isUpdating ? "Updating..." : countdown > 0 ? `${countdown}s` : "Update"}
+							</span>
+						</button>
+
+						{/* Live Game Button */}
+						<button
+							onClick={(e) => {
+								e.stopPropagation();
+								if (liveGameData) toggleLiveGame();
+							}}
+							disabled={!liveGameData}
+							className={`h-9 px-4 rounded-lg flex items-center gap-2 text-sm font-semibold transition-all duration-200 border ${liveGameData
+								? "bg-red-500/10 border-red-500/50 text-red-500 hover:bg-red-500 hover:text-white"
+								: "bg-transparent border-[--card-border] text-[--text-secondary]/50 cursor-not-allowed"
+								}`}
+						>
+							<FaGamepad />
+							<span>Live Game</span>
+						</button>
+
+						{/* Claim Actions */}
+						{!claimStatus.loading && !claimStatus.claimed && user && (
+							<button
+								onClick={() => {
+									handleClaim();
+								}}
+								disabled={!canClaim || claimLoading}
+								className={`h-10 w-10 rounded-full flex items-center justify-center text-lg transition-all border ${canClaim
+										? "bg-indigo-500/20 border-indigo-500/50 text-indigo-400 hover:bg-indigo-500 hover:text-white"
+										: "bg-white/5 border-white/10 text-white/30 hover:bg-white/10"
+									}`}
+								title="Claim Profile"
+							>
+								<FaCheckCircle />
+							</button>
+						)}
+
+						{!claimStatus.loading && user && claimStatus.claimed && claimStatus.ownClaim && (
+							<a
+								href={`/card?` + new URLSearchParams({
+									mode: "league",
+									gameName: accountData.gameName,
+									tagLine: accountData.tagLine,
+									region: (region || "euw1").toUpperCase(),
+								}).toString()}
+								className="h-10 px-4 rounded-full flex items-center gap-2 text-sm font-bold bg-fuchsia-500/10 border border-fuchsia-500/50 text-fuchsia-400 hover:bg-fuchsia-500 hover:text-white transition-all transform hover:scale-105"
+							>
+								<FaIdCard />
+								<span>Card</span>
+							</a>
+						)}
+					</div>
 				</div>
-			</>
+
+				{/* Mobile Banner */}
+				<div className="md:hidden mt-4">
+					<DiscordBotBanner />
+				</div>
+			</div>
+			{/* Desktop Banner Absolute or integrated */}
+			<div className="hidden md:block absolute top-6 right-6 z-0 opacity-80 hover:opacity-100 transition-opacity">
+				{/*  Simplified banner placement or removed for cleaner look? 
+                      User asked for "minimal". Let's keep it but make it less obtrusive if possible, 
+                      or just keep standard placement. Let's stick to standard flow to avoid overlapping content.
+                  */}
+			</div>
+		</div>
 	);
 };
 

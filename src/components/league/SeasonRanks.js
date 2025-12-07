@@ -79,7 +79,7 @@ const SeasonRanks = ({
 					try {
 						const errorData = await response.json();
 						errorMsg = errorData.message || errorMsg;
-					} catch (e) {}
+					} catch (e) { }
 					throw new Error(errorMsg);
 				}
 
@@ -189,64 +189,78 @@ const SeasonRanks = ({
 			</div>
 		);
 	}
-    return (
-        <div className="card overflow-hidden">
-            <div className="h-1 bg-gradient-to-r from-[--secondary] to-[--primary]" />
-            <div className="flex items-center justify-between p-4">
-                <h3 className="text-base font-semibold flex items-center">
-                    <FaHistory className="mr-2 text-[--primary]" />
-                    Season History
-                </h3>
-                <button
-                    className="text-[--text-secondary] hover:text-[--text-primary]"
-                    onClick={() => setIsExpanded(!isExpanded)}
-                    aria-label="Toggle season history"
-                >
-                    {isExpanded ? <FaChevronUp /> : <FaChevronDown />}
-                </button>
-            </div>
-            {isExpanded && (
-                <div className="px-4 pb-4">
-                    {error && (
-                        <p className="text-[--error] text-xs mb-2">
-                            Error refreshing: {error} (showing previous data)
-                        </p>
-                    )}
-                    {isLoading && (
-                        <div className="flex items-center text-xs text-[--text-secondary] mb-2">
-                            <div className="loading-spinner-xs mr-2"></div>
-                            Refreshing...
-                        </div>
-                    )}
-                    {/* Stacked list, no timeline dots */}
-                    <div className="space-y-2">
-                        {rankHistory.map((rank, index) => (
-                            <div key={index} className="flex items-center justify-between p-2 rounded-md bg-[--card-bg] border border-[--card-border]">
-                                <div className="flex items-center gap-2 min-w-0">
-                                    <span className="text-[10px] font-semibold text-[--text-secondary] bg-[--card-bg-secondary] px-2 py-0.5 rounded-md">
-                                        {rank.season}
-                                    </span>
-                                    {rank.tier ? (
-                                        <Image src={getRankEmblemPath(rank.tier)} alt={`${rank.tier} emblem`} width={20} height={20} />
-                                    ) : (
-                                        <span className="w-5 h-5 rounded-full bg-[--card-bg-secondary]" />
-                                    )}
-                                    <span className="font-bold text-sm truncate" style={getRankColorStyle(rank.tier)}>
-                                        {rank.tier || "Unranked"}
-                                    </span>
-                                </div>
-                                {rank.lp !== undefined && rank.lp !== null ? (
-                                    <span className="text-xs text-[--text-secondary] bg-[--card-bg-secondary] px-2 py-0.5 rounded-md">{rank.lp} LP</span>
-                                ) : (
-                                    <span className="text-xs text-[--text-secondary] opacity-60">—</span>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
-        </div>
-    );
+	return (
+		<div className="overflow-hidden bg-white/5 rounded-xl">
+			<div className="flex items-center justify-between p-4 border-b border-[--card-border] bg-black/20">
+				<h3 className="text-base font-bold flex items-center gap-2">
+					<FaHistory className="text-[--text-secondary]" />
+					<span>Season History</span>
+				</h3>
+				<button
+					className="h-8 w-8 flex items-center justify-center rounded-lg bg-white/5 text-[--text-secondary] hover:text-white hover:bg-white/10 transition-colors"
+					onClick={() => setIsExpanded(!isExpanded)}
+					aria-label="Toggle season history"
+				>
+					{isExpanded ? <FaChevronUp className="text-xs" /> : <FaChevronDown className="text-xs" />}
+				</button>
+			</div>
+
+			{isExpanded && (
+				<div className="p-4 relative">
+					{error && (
+						<p className="text-[--error] text-xs px-2 py-1">
+							Error refreshing: {error}
+						</p>
+					)}
+					{isLoading && (
+						<div className="flex items-center justify-center py-4 text-xs text-[--text-secondary]">
+							<div className="loading-spinner-xs mr-2"></div>
+							Loading...
+						</div>
+					)}
+
+					{/* Timeline Vertical Line */}
+					{!isLoading && rankHistory.length > 0 && (
+						<div className="absolute left-[3.5rem] top-4 bottom-4 w-px bg-gradient-to-b from-white/10 via-white/5 to-transparent block" />
+					)}
+
+					<div className="grid grid-cols-1 gap-1 relative z-10">
+						{rankHistory.map((rank, index) => (
+							<div key={index} className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white/5 transition-all duration-300 group">
+								<div className="flex items-center gap-4">
+									<span className="text-[10px] font-bold text-[--text-secondary] uppercase tracking-wider w-8 text-right group-hover:text-white transition-colors">
+										{rank.season}
+									</span>
+
+									{/* Timeline Dot */}
+									<div className="w-1.5 h-1.5 rounded-full bg-[--card-border] ring-4 ring-[--card-bg] group-hover:bg-[--primary] transition-colors z-20 shrink-0" />
+
+									<div className="flex items-center gap-3">
+										{rank.tier ? (
+											<div className="relative w-6 h-6 shrink-0 transition-transform group-hover:scale-110 duration-300">
+												<Image src={getRankEmblemPath(rank.tier)} alt={`${rank.tier} emblem`} fill className="object-contain" />
+											</div>
+										) : (
+											<span className="w-6 h-6 rounded-full bg-white/5 block shrink-0" />
+										)}
+										<span className="text-sm font-bold tracking-tight" style={getRankColorStyle(rank.tier)}>
+											{rank.tier || "Unranked"}
+										</span>
+									</div>
+								</div>
+
+								{rank.lp !== undefined && rank.lp !== null ? (
+									<span className="text-xs font-mono text-[--text-secondary] opacity-70 group-hover:opacity-100 transition-opacity">{rank.lp} LP</span>
+								) : (
+									<span className="text-xs text-[--text-secondary] opacity-30">—</span>
+								)}
+							</div>
+						))}
+					</div>
+				</div>
+			)}
+		</div>
+	);
 };
 
 export default SeasonRanks;

@@ -61,82 +61,62 @@ const ChampionMastery = ({ championMasteryData }) => {
   }
 
   return (
-    <div className="card">
-      <div
-        className="flex items-center justify-between p-4 cursor-pointer"
-        onClick={() => setIsExpanded(!isExpanded)}
-      >
-        <div className="flex items-center">
-          <div className="p-2 rounded-full bg-[--card-bg] mr-3 flex items-center justify-center">
-            <FaMedal className="text-[--secondary] text-lg" />
-          </div>
-          <h2 className="text-base font-semibold">Champion Mastery</h2>
-        </div>
-        <button className="text-[--text-secondary] transition-colors duration-200 hover:text-[--text-primary]">
-          {isExpanded ? <FaChevronUp /> : <FaChevronDown />}
+    <div className="overflow-hidden bg-white/5 rounded-xl">
+      <div className="flex items-center justify-between p-4 border-b border-[--card-border] bg-black/20">
+        <h3 className="text-base font-bold flex items-center gap-2">
+          <FaMedal className="text-[--text-secondary]" />
+          <span>Champion Mastery</span>
+        </h3>
+        <button
+          className="h-8 w-8 flex items-center justify-center rounded-lg bg-white/5 text-[--text-secondary] hover:text-white hover:bg-white/10 transition-colors"
+          onClick={() => setIsExpanded(!isExpanded)}
+        >
+          {isExpanded ? <FaChevronUp className="text-xs" /> : <FaChevronDown className="text-xs" />}
         </button>
       </div>
 
       {isExpanded && (
-        <div className="px-4 pb-4">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div className="p-4">
+          <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 gap-3">
             {championMasteryData.map((mastery) => {
               const championIcon = `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${mastery.championId}.png`;
               const masteryLevel = mastery.championLevel;
-              const colorClass = getMasteryColorClass(masteryLevel);
-              const bgClass = getMasteryBgClass(masteryLevel);
+              const colorClass = getMasteryColorClass(masteryLevel).split(' ')[0]; // Extract just the text color
+              const borderColorClass = getMasteryColorClass(masteryLevel).split(' ')[1]; // Extract border color class if possible, or just re-use
 
               return (
                 <div
                   key={mastery.championId}
-                  className={`flex flex-col items-center ${bgClass} rounded-lg p-3`}
+                  className="group flex flex-col items-center bg-white/5 rounded-xl p-3 hover:bg-[--card-bg-hover] transition-all duration-300 border border-white/5 hover:border-white/20 hover:-translate-y-1 relative overflow-hidden"
                   title={`Mastery Level: ${mastery.championLevel}`}
                 >
-                  <div className="relative mb-2">
-                    <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-[--card-border]">
+                  {/* Top Highlight on Hover */}
+                  <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                  <div className="relative mb-3">
+                    <div className={`relative w-14 h-14 rounded-full overflow-hidden ring-2 ring-white/10 group-hover:ring-4 transition-all duration-300 ${masteryLevel >= 7 ? 'group-hover:ring-purple-500/30' : 'group-hover:ring-white/20'}`}>
                       <Image
                         src={championIcon}
                         alt={`${mastery.championName} Icon`}
                         fill
-                        className="object-cover transform scale-110"
+                        className="object-cover transform group-hover:scale-110 transition-transform duration-500"
                         loading="lazy"
                       />
                     </div>
                     <div
-                      className={`absolute -bottom-2 -right-2 w-7 h-7 rounded-full ${colorClass} border-2 flex items-center justify-center bg-[--card-bg] text-xs font-bold`}
+                      className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[--card-bg] border border-[--card-border] flex items-center justify-center text-[10px] font-black z-10 shadow-sm ${colorClass}`}
                     >
                       {masteryLevel}
                     </div>
                   </div>
 
-                  <h3 className="text-sm font-medium text-center line-clamp-1">
+                  <h3 className="text-xs font-bold text-center line-clamp-1 text-white mb-0.5 group-hover:text-[--primary] transition-colors">
                     {mastery.championName}
                   </h3>
 
-                  <div className="mt-1 text-xs text-[--text-secondary]">
-                    {formatPoints(mastery.championPoints)} pts
+                  <div className="text-[10px] text-[--text-secondary] font-mono opacity-70 group-hover:opacity-100">
+                    {formatPoints(mastery.championPoints)}
                   </div>
-
-                  {masteryLevel < 7 && (
-                    <div className="w-full h-1 bg-gray-700 rounded-full mt-2 overflow-hidden">
-                      <div
-                        className={`h-full ${
-                          masteryLevel === 6
-                            ? "bg-pink-500"
-                            : masteryLevel === 5
-                            ? "bg-red-500"
-                            : "bg-blue-500"
-                        }`}
-                        style={{
-                          width: `${
-                            (mastery.championPointsSinceLastLevel /
-                              (mastery.championPointsUntilNextLevel +
-                                mastery.championPointsSinceLastLevel)) * 100
-                          }%`,
-                        }}
-                      ></div>
-                    </div>
-                  )}
                 </div>
               );
             })}

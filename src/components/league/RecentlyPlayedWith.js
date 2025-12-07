@@ -73,7 +73,7 @@ const RecentlyPlayedWith = ({
 	};
 
 	return (
-		<div className="card overflow-hidden">
+		<div className="overflow-hidden bg-white/5 rounded-xl">
 			<div
 				className="flex items-center justify-between p-4"
 				onClick={toggleExpand}
@@ -116,10 +116,10 @@ const RecentlyPlayedWith = ({
 										winRate >= 60
 											? "text-green-500"
 											: winRate >= 50
-											? "text-blue-500"
-											: winRate >= 40
-											? "text-yellow-500"
-											: "text-red-500";
+												? "text-blue-500"
+												: winRate >= 40
+													? "text-yellow-500"
+													: "text-red-500";
 
 									return (
 										<Link

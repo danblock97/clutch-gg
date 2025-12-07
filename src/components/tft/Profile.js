@@ -10,13 +10,20 @@ import LiveGame from "./LiveGame";
 import Loading from "@/components/Loading";
 import NoProfileFound from "@/components/league/NoProfileFound";
 import DiscordBotBanner from "@/components/DiscordBotBanner.js";
-import { FaChevronDown, FaGamepad } from "react-icons/fa";
 import {
 	fetchTFTCompanions,
 	getCompanionIconUrl,
 } from "@/lib/tft/companionsApi";
 import { scrapeTFTLadderRanking } from "@/lib/opggApi.js";
 import { useAuth } from "@/context/AuthContext";
+import {
+	FaSync,
+	FaGamepad,
+	FaCheckCircle,
+	FaIdCard,
+	FaTrophy
+} from "react-icons/fa";
+import { MdVerified } from "react-icons/md";
 
 export default function Profile({
 	profileData,
@@ -50,65 +57,65 @@ export default function Profile({
 	const [isLoadingLadder, setIsLoadingLadder] = useState(false);
 
 	// Claim state
-    const { user, loginWithRiot } = useAuth();
-    const [claimStatus, setClaimStatus] = useState({ loading: true, claimed: false, ownClaim: false });
-    const [claimLoading, setClaimLoading] = useState(false);
-    const [claimError, setClaimError] = useState("");
+	const { user, loginWithRiot } = useAuth();
+	const [claimStatus, setClaimStatus] = useState({ loading: true, claimed: false, ownClaim: false });
+	const [claimLoading, setClaimLoading] = useState(false);
+	const [claimError, setClaimError] = useState("");
 
-    useEffect(() => {
-        const fetchClaim = async () => {
-            try {
-                const regionForClaim = (profileData?.accountdata?.region || "euw1").toUpperCase();
-                const params = new URLSearchParams({
-                    gameName: summonerData?.name || "",
-                    tagLine: summonerData?.tagLine || "",
-                    region: regionForClaim,
-                    mode: "tft",
-                });
-                if (user?.puuid) params.set("viewerPuuid", user.puuid);
-                const res = await fetch(`/api/claims/status?${params.toString()}`);
-                let json = {};
-                try { json = await res.json(); } catch {}
-                setClaimStatus({ loading: false, claimed: !!json.claimed, ownClaim: !!json.ownClaim });
-            } catch {
-                setClaimStatus({ loading: false, claimed: false, ownClaim: false });
-            }
-        };
-        if (summonerData?.name && summonerData?.tagLine) fetchClaim();
-    }, [summonerData?.name, summonerData?.tagLine, profileData?.accountdata?.region, user?.puuid]);
+	useEffect(() => {
+		const fetchClaim = async () => {
+			try {
+				const regionForClaim = (profileData?.accountdata?.region || "euw1").toUpperCase();
+				const params = new URLSearchParams({
+					gameName: summonerData?.name || "",
+					tagLine: summonerData?.tagLine || "",
+					region: regionForClaim,
+					mode: "tft",
+				});
+				if (user?.puuid) params.set("viewerPuuid", user.puuid);
+				const res = await fetch(`/api/claims/status?${params.toString()}`);
+				let json = {};
+				try { json = await res.json(); } catch { }
+				setClaimStatus({ loading: false, claimed: !!json.claimed, ownClaim: !!json.ownClaim });
+			} catch {
+				setClaimStatus({ loading: false, claimed: false, ownClaim: false });
+			}
+		};
+		if (summonerData?.name && summonerData?.tagLine) fetchClaim();
+	}, [summonerData?.name, summonerData?.tagLine, profileData?.accountdata?.region, user?.puuid]);
 
 	const canClaim = !!user && user.puuid && summonerData?.puuid === user.puuid;
-    const handleClaim = async () => {
-        if (!canClaim) return;
-        setClaimLoading(true);
-        setClaimError("");
-        try {
-            const res = await fetch("/api/claims/claim", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "x-api-key": process.env.NEXT_PUBLIC_UPDATE_API_KEY,
-                },
-                body: JSON.stringify({
-                    gameName: summonerData.name,
-                    tagLine: summonerData.tagLine,
-                    region: (profileData?.region || "euw1").toLowerCase(),
-                    mode: "tft",
-                    ownerPuuid: user.puuid,
-                }),
-            });
-            const json = await res.json().catch(() => ({}));
-            if (res.ok) {
-                setClaimStatus({ loading: false, claimed: true, ownClaim: true });
-            } else {
-                setClaimError(json?.error || "Failed to claim profile");
-            }
-        } catch (e) {
-            setClaimError(e?.message || "Network error");
-        } finally {
-            setClaimLoading(false);
-        }
-    };
+	const handleClaim = async () => {
+		if (!canClaim) return;
+		setClaimLoading(true);
+		setClaimError("");
+		try {
+			const res = await fetch("/api/claims/claim", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					"x-api-key": process.env.NEXT_PUBLIC_UPDATE_API_KEY,
+				},
+				body: JSON.stringify({
+					gameName: summonerData.name,
+					tagLine: summonerData.tagLine,
+					region: (profileData?.region || "euw1").toLowerCase(),
+					mode: "tft",
+					ownerPuuid: user.puuid,
+				}),
+			});
+			const json = await res.json().catch(() => ({}));
+			if (res.ok) {
+				setClaimStatus({ loading: false, claimed: true, ownClaim: true });
+			} else {
+				setClaimError(json?.error || "Failed to claim profile");
+			}
+		} catch (e) {
+			setClaimError(e?.message || "Network error");
+		} finally {
+			setClaimLoading(false);
+		}
+	};
 
 	// Initialize state from localStorage on mount
 	useEffect(() => {
@@ -293,13 +300,14 @@ export default function Profile({
 			: "";
 
 	return (
-		<main className="min-h-screen bg-gray-900 text-white">
-			<div className="w-full py-8 bg-[radial-gradient(ellipse_at_top,_rgba(255,255,255,0.06),_transparent_60%)]">
-				<div className="container mx-auto px-4 sm:px-6">
-					<div className="relative flex flex-col lg:flex-row items-start lg:items-center gap-6 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-5 shadow-[0_10px_30px_rgba(0,0,0,0.25)]">
-						{/* Left Side: Profile Icon & Level */}
-						<div className="flex-shrink-0 relative">
-							<div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden ring-1 ring-white/15 bg-white/5">
+		<main className="min-h-screen bg-transparent text-white">
+			<div className="w-full relative z-10 mb-6">
+				<div className="w-full max-w-screen-xl mx-auto px-4 sm:px-6 pt-6 pb-2">
+					<div className="flex flex-col md:flex-row items-center md:items-end gap-6">
+
+						{/* Avatar Section - Minimal */}
+						<div className="relative shrink-0">
+							<div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden ring-1 ring-white/10 bg-white/5 shadow-lg">
 								<Image
 									src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/${summonerData.profileIconId}.jpg`}
 									alt="Player Icon"
@@ -308,157 +316,159 @@ export default function Profile({
 									className="w-full h-full object-cover"
 								/>
 							</div>
-							<div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 text-white text-[11px] font-semibold py-1 px-2 rounded-full border border-white/20 bg-gradient-to-r from-[--primary-tft]/70 to-[--secondary]/70">
-								{summonerData.summonerLevel}
+							<div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2">
+								<span className="px-2 py-0.5 rounded-md bg-[--card-bg] border border-[--card-border] text-[--text-secondary] text-[10px] font-bold shadow-sm">
+									Lvl {summonerData.summonerLevel}
+								</span>
 							</div>
 						</div>
 
-						{/* Middle: Name, Tag, Ranked Info */}
-						<div className="flex-grow flex flex-col">
-							<h1 className="text-3xl sm:text-4xl font-extrabold mb-1 bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">
-								{summonerData.name}
-								<span className="text-[--text-secondary] text-base sm:text-lg font-medium">
+						{/* Info Section - Integrated */}
+						<div className="flex-grow flex flex-col items-center md:items-start text-center md:text-left min-w-0 pb-1">
+							<div className="flex items-baseline gap-2 mb-2">
+								<div className="flex items-center gap-2">
+									<h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
+										{summonerData.name}
+									</h1>
+									{claimStatus?.claimed && (
+										<MdVerified className="text-blue-400 text-2xl" title="Verified Player" />
+									)}
+								</div>
+								<span className="text-xl text-[--text-secondary] font-medium">
 									#{summonerData.tagLine}
 								</span>
-							</h1>
+							</div>
 
-							{/* TFT Queue Rank */}
+							{/* Rank Info Row */}
 							{tftRanked ? (
-								<div className="flex items-center mt-3">
-									{rankedIcon && (
-										<div className="relative mr-3">
-											<Image src={rankedIcon} alt={`${tftRanked.tier} Emblem`} width={40} height={40} />
-											{tftDivision && (
-												<div className="absolute -bottom-1 -right-1 bg-[--card-bg] border border-[--card-border] text-[10px] font-bold flex items-center justify-center w-5 h-5 rounded-full">
-													{tftDivision}
-												</div>
-											)}
+								<div className="flex flex-wrap items-center justify-center md:justify-start gap-x-6 gap-y-2">
+									<div className="flex items-center gap-2">
+										{rankedIcon && (
+											<div className="relative">
+												<Image src={rankedIcon} alt="Rank" width={52} height={52} className="object-contain" />
+												{tftDivision && (
+													<div className="absolute -bottom-1 -right-1 bg-black text-[9px] border border-white/20 font-bold flex items-center justify-center w-4 h-4 rounded-full">
+														{tftDivision}
+													</div>
+												)}
+											</div>
+										)}
+										<div className="flex flex-col">
+											<span className="text-lg font-bold text-white leading-none">
+												<span style={{ color: `var(--${tftRanked.tier.toLowerCase()})` }}>{tftRanked.tier ? tftRanked.tier : "Unranked"}</span>
+											</span>
+											<span className="text-sm text-[--text-secondary]">
+												{tftRanked.leaguePoints} LP
+											</span>
 										</div>
-									)}
-									<div>
-										<p className="font-semibold text-lg">
-											<span style={{ color: `var(--${tftRanked.tier.toLowerCase()})` }}>{tftRanked.tier ? tftRanked.tier : "Unranked"}</span>
-											<span className="text-[--text-primary] ml-2">{tftRanked.leaguePoints} LP</span>
-										</p>
-										<p className="text-[--text-secondary] text-sm">
-											{tftRanked.wins}W - {tftRanked.losses}L (
-											{tftRanked.wins === 0 && tftRanked.losses === 0 ? "0.0" : ((tftRanked.wins / (tftRanked.wins + tftRanked.losses)) * 100).toFixed(1)}
-											% WR)
-										</p>
-
-										{/* TFT Ladder Ranking */}
-										{ladderRanking && (
-											<p className="text-[--text-secondary] text-xs mt-1">
-												Ladder Rank <span className="text-[--primary-tft]">{ladderRanking.rank}</span> ({ladderRanking.percentile}% of top)
-											</p>
-										)}
-										{isLoadingLadder && (
-											<p className="text-[--text-secondary] text-xs mt-1">Loading ladder ranking...</p>
-										)}
 									</div>
+
+									<div className="h-8 w-px bg-white/10 mx-2 hidden sm:block" />
+
+									<div className="flex items-center gap-4 text-sm">
+										<div className="flex flex-col items-center md:items-start">
+											<span className="text-[10px] uppercase text-[--text-secondary] font-bold">Win Rate</span>
+											<span className={`font-bold ${(tftRanked.wins / (tftRanked.wins + tftRanked.losses)) * 100 >= 15 ? 'text-[--success]' : 'text-[--text-primary]'
+												}`}>
+												{tftRanked.wins === 0 && tftRanked.losses === 0 ? "0.0" : ((tftRanked.wins / (tftRanked.wins + tftRanked.losses)) * 100).toFixed(1)}%
+											</span>
+										</div>
+										<div className="flex flex-col items-center md:items-start text-[--text-secondary]">
+											<span className="text-[10px] uppercase font-bold">Record</span>
+											<span>
+												<span className="text-white">{tftRanked.wins}</span>W - <span className="text-white">{tftRanked.losses}</span>L
+											</span>
+										</div>
+									</div>
+
+									{/* Ladder Rank */}
+									{ladderRanking && (
+										<>
+											<div className="h-8 w-px bg-white/10 mx-2 hidden sm:block" />
+											<div className="flex flex-col items-center md:items-start">
+												<span className="text-[10px] uppercase text-[--text-secondary] font-bold flex items-center gap-1">
+													<FaTrophy className="text-[8px]" /> Ladder
+												</span>
+												<span className="text-sm font-bold text-[--primary-tft]">
+													#{ladderRanking.rank}
+												</span>
+											</div>
+										</>
+									)}
 								</div>
 							) : (
-								<p className="text-[--text-secondary] font-semibold">Unranked</p>
-							)}
-
-							{/* Action Buttons */}
-							<div className="flex flex-wrap gap-2 mt-4">
-								<button
-									onClick={(e) => {
-										e.stopPropagation();
-										triggerUpdate();
-										setUpdateTriggered(true);
-									}}
-									className={`relative overflow-hidden rounded-full text-sm font-semibold transition-all duration-300 inline-flex items-center justify-center px-4 py-1.5 shadow-sm ${
-										isUpdating ? "bg-gray-600 opacity-50 cursor-not-allowed" : isUpdated ? "bg-emerald-500/90 hover:bg-emerald-500 text-white" : "bg-gradient-to-r from-[--primary-tft] to-[--secondary] hover:opacity-95 text-white"
-									}`}
-									disabled={isUpdating || countdown > 0}
-								>
-									{isUpdating && (
-										<svg className="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-											<circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-											<path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-										</svg>
-									)}
-									{isUpdating ? "Updating..." : isUpdated ? "Updated" : "Update Profile"}
-								</button>
-
-						{/* Live Game Button - only displayed if there's a live game */}
-						{liveGameData && (
-							<button onClick={() => setIsLiveGameOpen(!isLiveGameOpen)} className="relative overflow-hidden rounded-full text-sm font-semibold transition-all duration-300 inline-flex items-center justify-center px-4 py-1.5 shadow-sm bg-gradient-to-r from-rose-500 to-orange-500 hover:opacity-95 text-white">
-								<span className="relative flex h-2 w-2 mr-2">
-									<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
-									<span className="relative inline-flex rounded-full h-2 w-2 bg-red-600"></span>
-								</span>
-								Live Game
-							</button>
-						)}
-
-						{/* Claim / Card buttons */}
-						<div className="flex items-center gap-2">
-                            {claimStatus.loading && (
-                                <span className="text-xs text-[--text-secondary]">Checking claim…</span>
-                            )}
-
-							{!claimStatus.loading && !claimStatus.claimed && (
-                            <button
-                                onClick={() => {
-                                    if (!user) return loginWithRiot();
-                                    handleClaim();
-                                }}
-                                disabled={!canClaim || claimLoading}
-                                className={`relative overflow-hidden rounded-lg text-sm font-semibold transition-all duration-300 inline-flex items-center justify-center px-4 py-1.5 border ${
-                                    canClaim && !claimLoading
-                                        ? "bg-indigo-500/90 hover:bg-indigo-400 text-white border-indigo-300/50 ring-1 ring-indigo-400/60 shadow-[0_0_14px_rgba(99,102,241,0.55)]"
-                                        : "bg-gray-700 text-gray-400 cursor-not-allowed border-gray-600"
-                                }`}
-                            >
-                                {claimLoading ? "Claiming..." : (user ? (canClaim ? "Claim Profile" : "Sign-in mismatch") : "Sign in to claim")}
-                            </button>
-							)}
-
-							{!claimStatus.loading && user && claimStatus.claimed && claimStatus.ownClaim && (
-                            <a
-                                href={`/card?` + new URLSearchParams({
-                                    mode: "tft",
-                                    gameName: summonerData.name,
-                                    tagLine: summonerData.tagLine,
-                                    region: (profileData?.region || "euw1").toUpperCase(),
-                                }).toString()}
-                                className="relative overflow-hidden rounded-lg text-sm font-semibold inline-flex items-center justify-center px-4 py-1.5 border bg-fuchsia-500/90 hover:bg-fuchsia-400 text-white border-fuchsia-300/50 ring-1 ring-fuchsia-400/60 shadow-[0_0_14px_rgba(232,121,249,0.55)]"
-                            >
-                                Create ClutchGG Card
-                            </a>
-							)}
-
-                            {!claimStatus.loading && claimStatus.claimed && !claimStatus.ownClaim && (
-                                <button
-                                    disabled
-                                    className="relative overflow-hidden rounded-lg text-sm font-semibold inline-flex items-center justify-center px-4 py-1.5 border bg-gray-700 text-gray-400 cursor-not-allowed border-gray-600"
-                                >
-                                    Claimed by another account
-                                </button>
-                            )}
-
-							{claimError && (
-								<span className="text-xs text-red-400 ml-2">{claimError}</span>
+								<div className="text-[--text-secondary] font-medium py-2">
+									Unranked in TFT
+								</div>
 							)}
 						</div>
 
-								{/* Timer */}
-								{isUpdated && countdown > 0 && (
-									<div className="text-xs text-[--text-secondary] self-center">Next update available in {countdown}s</div>
+						{/* Actions - Right Aligned & Minimal */}
+						<div className="flex flex-wrap items-center justify-center md:justify-end gap-3 pb-1">
+							<button
+								onClick={(e) => {
+									e.stopPropagation();
+									triggerUpdate();
+									setUpdateTriggered(true);
+								}}
+								disabled={isUpdating || countdown > 0}
+								className={`h-9 px-4 rounded-lg flex items-center gap-2 text-sm font-semibold transition-all duration-200 border ${isUpdating || countdown > 0
+									? "bg-white/5 border-white/5 text-[--text-secondary] cursor-not-allowed"
+									: "bg-transparent border-[--card-border] text-[--text-primary] hover:bg-[--card-bg] hover:border-white/20"
+									}`}
+							>
+								<FaSync className={`text-xs ${isUpdating ? "animate-spin" : ""}`} />
+								<span>
+									{isUpdating ? "Updating..." : countdown > 0 ? `${countdown}s` : "Update"}
+								</span>
+							</button>
+
+							{liveGameData && (
+								<button onClick={() => setIsLiveGameOpen(!isLiveGameOpen)} className="h-9 px-4 rounded-lg flex items-center gap-2 text-sm font-semibold transition-all duration-200 bg-red-500/10 border border-red-500/50 text-red-500 hover:bg-red-500 hover:text-white">
+									<FaGamepad />
+									<span>Live Game</span>
+								</button>
+							)}
+
+							{/* Claim Actions */}
+							<div className="flex items-center gap-2">
+								{claimStatus.loading && <span className="text-xs text-white/30">...</span>}
+
+								{!claimStatus.loading && !claimStatus.claimed && user && (
+									<button
+										onClick={() => {
+											handleClaim();
+										}}
+										disabled={!canClaim || claimLoading}
+										className={`h-10 w-10 rounded-full flex items-center justify-center text-lg transition-all border ${canClaim
+												? "bg-indigo-500/20 border-indigo-500/50 text-indigo-400 hover:bg-indigo-500 hover:text-white"
+												: "bg-white/5 border-white/10 text-white/30 hover:bg-white/10"
+											}`}
+										title="Claim Profile"
+									>
+										<FaCheckCircle />
+									</button>
+								)}
+
+								{!claimStatus.loading && user && claimStatus.claimed && claimStatus.ownClaim && (
+									<a
+										href={`/card?` + new URLSearchParams({
+											mode: "tft",
+											gameName: summonerData.name,
+											tagLine: summonerData.tagLine,
+											region: (profileData?.region || "euw1").toUpperCase(),
+										}).toString()}
+										className="h-10 px-4 rounded-full flex items-center gap-2 text-sm font-bold bg-fuchsia-500/10 border border-fuchsia-500/50 text-fuchsia-400 hover:bg-fuchsia-500 hover:text-white transition-all transform hover:scale-105"
+									>
+										<FaIdCard />
+										<span>Card</span>
+									</a>
 								)}
 							</div>
 						</div>
-
-						{/* Right Side: Discord Bot Banner (Desktop) */}
-						<div className="hidden lg:block flex-shrink-0">
-							<DiscordBotBanner />
-						</div>
 					</div>
-					{/* Discord Banner (Mobile) - Appears below on smaller screens */}
-					<div className="lg:hidden mt-6">
+					{/* Mobile Banner */}
+					<div className="lg:hidden mt-4">
 						<DiscordBotBanner />
 					</div>
 				</div>
