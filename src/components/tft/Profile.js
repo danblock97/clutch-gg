@@ -434,12 +434,12 @@ export default function Profile({
 							<div className="flex items-center gap-2">
 								{claimStatus.loading && <span className="text-xs text-white/30">...</span>}
 
-								{!claimStatus.loading && !claimStatus.claimed && user && (
+								{!claimStatus.loading && !claimStatus.claimed && canClaim && (
 									<button
 										onClick={() => {
 											handleClaim();
 										}}
-										disabled={!canClaim || claimLoading}
+										disabled={claimLoading}
 										className={`h-10 w-10 rounded-full flex items-center justify-center text-lg transition-all border ${canClaim
 												? "bg-indigo-500/20 border-indigo-500/50 text-indigo-400 hover:bg-indigo-500 hover:text-white"
 												: "bg-white/5 border-white/10 text-white/30 hover:bg-white/10"
