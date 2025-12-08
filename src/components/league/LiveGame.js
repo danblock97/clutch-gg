@@ -393,6 +393,16 @@ function getRankBorderColor(shortRank) {
 	return `color-mix(in srgb, ${base} 45%, transparent)`;
 }
 
+// Normalize Riot ID and provide streamer mode fallback
+function formatRiotId(gameName, tagLine) {
+	const name = (gameName || "").trim();
+	const tag = (tagLine || "").trim();
+	if (!name && !tag) {
+		return { name: "STREAMER MODE", tag: "" };
+	}
+	return { name: name || "STREAMER MODE", tag };
+}
+
 /* -------------------- MAIN COMPONENT -------------------- */
 export default function LiveGame({ liveGameData, region, matchDetails = [], championMasteryData = [] }) {
 	const [perkList, setPerkList] = useState([]);
@@ -753,6 +763,8 @@ export default function LiveGame({ liveGameData, region, matchDetails = [], cham
 		const rankTxt = fmtRank(p.rank);
 		const shortRank = rankTxt !== "Unranked" ? rankTxt.split(" ")[0].toLowerCase() : null;
 		const spells = [p.spell1Id, p.spell2Id];
+		const riotId = formatRiotId(p.gameName, p.tagLine);
+		const hasProfileLink = !!(p.gameName && p.gameName.trim() && p.tagLine && p.tagLine.trim());
 		const tagTheme = (txt) => {
 			const lower = (txt || "").toLowerCase();
 			if (lower.includes("hot")) return { bg: "#064e3b", border: "#10b981", color: "#ecfdf3" };
@@ -811,9 +823,19 @@ export default function LiveGame({ liveGameData, region, matchDetails = [], cham
 						))}
 					</div>
 					<div className="mt-2">
-						<Link href={`/league/profile?gameName=${encodeURIComponent(p.gameName)}&tagLine=${encodeURIComponent(p.tagLine)}&region=${encodeURIComponent(regionProp)}`} className="text-white font-semibold text-[13px] sm:text-[15px] hover:underline truncate block text-center">
-							{p.gameName}
-						</Link>
+						{hasProfileLink ? (
+							<Link
+								href={`/league/profile?gameName=${encodeURIComponent(p.gameName)}&tagLine=${encodeURIComponent(p.tagLine)}&region=${encodeURIComponent(regionProp)}`}
+								className="text-white font-semibold text-[13px] sm:text-[15px] hover:underline truncate block text-center"
+							>
+								{riotId.name}
+								{riotId.tag && <span className="text-gray-400 text-xs ml-1">#{riotId.tag}</span>}
+							</Link>
+						) : (
+							<div className="text-white font-semibold text-[13px] sm:text-[15px] truncate text-center">
+								{riotId.name}
+							</div>
+						)}
 						<div className="text-[10px] text-gray-300/90 mt-0.5 flex items-center justify-center gap-1 leading-tight">
 							{rankTxt !== "Unranked" && (
 								<span className="relative inline-block w-8 h-8 mr-1 align-middle">
@@ -1002,6 +1024,8 @@ export default function LiveGame({ liveGameData, region, matchDetails = [], cham
 							const total = p.wins + p.losses;
 							const wr = total > 0 ? ((p.wins / total) * 100).toFixed(1) : 0;
 							const winrateColor = getWinrateColor(wr);
+							const riotId = formatRiotId(p.gameName, p.tagLine);
+							const hasProfileLink = !!(p.gameName && p.gameName.trim() && p.tagLine && p.tagLine.trim());
 
 							return (
 								<tr
@@ -1023,21 +1047,29 @@ export default function LiveGame({ liveGameData, region, matchDetails = [], cham
 										</div>
 									</td>
 									<td className="py-2 px-3">
-										<Link
-											href={`/league/profile?gameName=${encodeURIComponent(
-												p.gameName
-											)}&tagLine=${encodeURIComponent(
-												p.tagLine
-											)}&region=${encodeURIComponent(region)}`}
-											className="hover:underline truncate max-w-[150px] block"
-										>
-											<span className="font-medium">
-												{p.gameName}
-												<span className="text-gray-400 text-xs ml-1">
-													#{p.tagLine}
+										{hasProfileLink ? (
+											<Link
+												href={`/league/profile?gameName=${encodeURIComponent(
+													p.gameName
+												)}&tagLine=${encodeURIComponent(
+													p.tagLine
+												)}&region=${encodeURIComponent(region)}`}
+												className="hover:underline truncate max-w-[150px] block"
+											>
+												<span className="font-medium">
+													{riotId.name}
+													{riotId.tag && (
+														<span className="text-gray-400 text-xs ml-1">
+															#{riotId.tag}
+														</span>
+													)}
 												</span>
+											</Link>
+										) : (
+											<span className="font-medium truncate max-w-[150px] block">
+												{riotId.name}
 											</span>
-										</Link>
+										)}
 									</td>
 									<td className="py-2 px-3">
 										<div className="flex items-center">
@@ -1114,6 +1146,8 @@ export default function LiveGame({ liveGameData, region, matchDetails = [], cham
 							const total = p.wins + p.losses;
 							const wr = total > 0 ? ((p.wins / total) * 100).toFixed(1) : 0;
 							const winrateColor = getWinrateColor(wr);
+							const riotId = formatRiotId(p.gameName, p.tagLine);
+							const hasProfileLink = !!(p.gameName && p.gameName.trim() && p.tagLine && p.tagLine.trim());
 
 							return (
 								<tr
@@ -1135,21 +1169,29 @@ export default function LiveGame({ liveGameData, region, matchDetails = [], cham
 										</div>
 									</td>
 									<td className="py-2 px-3">
-										<Link
-											href={`/league/profile?gameName=${encodeURIComponent(
-												p.gameName
-											)}&tagLine=${encodeURIComponent(
-												p.tagLine
-											)}&region=${encodeURIComponent(region)}`}
-											className="hover:underline truncate max-w-[150px] block"
-										>
-											<span className="font-medium">
-												{p.gameName}
-												<span className="text-gray-400 text-xs ml-1">
-													#{p.tagLine}
+										{hasProfileLink ? (
+											<Link
+												href={`/league/profile?gameName=${encodeURIComponent(
+													p.gameName
+												)}&tagLine=${encodeURIComponent(
+													p.tagLine
+												)}&region=${encodeURIComponent(region)}`}
+												className="hover:underline truncate max-w-[150px] block"
+											>
+												<span className="font-medium">
+													{riotId.name}
+													{riotId.tag && (
+														<span className="text-gray-400 text-xs ml-1">
+															#{riotId.tag}
+														</span>
+													)}
 												</span>
+											</Link>
+										) : (
+											<span className="font-medium truncate max-w-[150px] block">
+												{riotId.name}
 											</span>
-										</Link>
+										)}
 									</td>
 									<td className="py-2 px-3">
 										<div className="flex items-center">
