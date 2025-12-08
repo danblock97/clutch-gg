@@ -27,6 +27,21 @@ function normalizeParam(value, fallback = "") {
   return trimmed || fallback;
 }
 
+function getParamAny(params, keys = [], fallback = "") {
+  for (const key of keys) {
+    const val = getParam(params, key);
+    if (val !== "" && val != null) return val;
+  }
+  return fallback;
+}
+
+function parseHandle(handle) {
+  const clean = normalizeParam(handle);
+  if (!clean || !clean.includes("#")) return { gameName: "", tagLine: "" };
+  const [gn, tl] = clean.split("#");
+  return { gameName: normalizeParam(gn), tagLine: normalizeParam(tl) };
+}
+
 async function getClaim(gameName, tagLine, region, mode) {
   // Resolve the riot account (case-insensitive) and include claimed flags
   const { data: account } = await supabase
@@ -52,11 +67,26 @@ async function getClaim(gameName, tagLine, region, mode) {
   return claim || null;
 }
 
+function getHeader(headersLike, key) {
+  if (!headersLike) return null;
+  if (typeof headersLike.get === "function") return headersLike.get(key);
+  return headersLike[key] ?? headersLike[key?.toLowerCase?.()] ?? headersLike[key?.toUpperCase?.()] ?? null;
+}
+
 export default async function CardPage({ searchParams }) {
-  const gameName = normalizeParam(getParam(searchParams, "gameName"));
-  const tagLine = normalizeParam(getParam(searchParams, "tagLine"));
-  const region = normalizeParam(getParam(searchParams, "region", "euw1")).toLowerCase();
-  const mode = normalizeParam(getParam(searchParams, "mode", "league")).toLowerCase();
+  // In Next 13/14+ searchParams may be a promise; normalize it before use
+  const params = await searchParams;
+
+  const fromHandle = parseHandle(
+    getParamAny(params, ["handle", "summoner", "summonerName", "player", "ign", "name"])
+  );
+
+  const gameName = normalizeParam(
+    getParamAny(params, ["gameName", "gamename", "name"], fromHandle.gameName)
+  );
+  const tagLine = normalizeParam(getParamAny(params, ["tagLine", "tagline"], fromHandle.tagLine));
+  const region = normalizeParam(getParamAny(params, ["region", "platform", "shard"], "euw1")).toLowerCase();
+  const mode = normalizeParam(getParamAny(params, ["mode"], "league")).toLowerCase();
 
   if (!gameName || !tagLine || !region || !["league", "tft"].includes(mode)) {
     return (
@@ -83,8 +113,8 @@ export default async function CardPage({ searchParams }) {
 
   // Build absolute URL for server-side fetch to API
   const hdrs = headers();
-  const proto = hdrs.get("x-forwarded-proto") || "http";
-  const host = hdrs.get("x-forwarded-host") || hdrs.get("host");
+  const proto = getHeader(hdrs, "x-forwarded-proto") || "http";
+  const host = getHeader(hdrs, "x-forwarded-host") || getHeader(hdrs, "host");
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || (host ? `${proto}://${host}` : "http://localhost:3000");
   const profileUrl = `${baseUrl}/api/${mode}/profile?` + new URLSearchParams({ gameName, tagLine, region: region.toUpperCase() }).toString();
   const res = await fetch(profileUrl, { cache: "no-store" });
