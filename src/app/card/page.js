@@ -6,6 +6,27 @@ import CardPageChrome from "@/components/card/CardPageChrome";
 import React from "react";
 import { headers } from "next/headers";
 
+export const dynamic = "force-dynamic";
+
+function getParam(params, key, fallback = "") {
+  if (!params) return fallback;
+  const value =
+    typeof params.get === "function"
+      ? params.get(key) ?? params.get(key.toLowerCase()) ?? params.get(key.toUpperCase())
+      : params[key] ?? params[key.toLowerCase()] ?? params[key.toUpperCase()];
+  if (Array.isArray(value)) {
+    return (value[0] ?? fallback).toString();
+  }
+  if (value == null) return fallback;
+  const str = value.toString().trim();
+  return str || fallback;
+}
+
+function normalizeParam(value, fallback = "") {
+  const trimmed = (value || "").trim();
+  return trimmed || fallback;
+}
+
 async function getClaim(gameName, tagLine, region, mode) {
   // Resolve the riot account (case-insensitive) and include claimed flags
   const { data: account } = await supabase
@@ -32,10 +53,10 @@ async function getClaim(gameName, tagLine, region, mode) {
 }
 
 export default async function CardPage({ searchParams }) {
-  const gameName = searchParams.gameName || "";
-  const tagLine = searchParams.tagLine || "";
-  const region = (searchParams.region || "euw1").toLowerCase();
-  const mode = (searchParams.mode || "league").toLowerCase();
+  const gameName = normalizeParam(getParam(searchParams, "gameName"));
+  const tagLine = normalizeParam(getParam(searchParams, "tagLine"));
+  const region = normalizeParam(getParam(searchParams, "region", "euw1")).toLowerCase();
+  const mode = normalizeParam(getParam(searchParams, "mode", "league")).toLowerCase();
 
   if (!gameName || !tagLine || !region || !["league", "tft"].includes(mode)) {
     return (
