@@ -113,9 +113,15 @@ export default async function CardPage({ searchParams }) {
 
   // Build absolute URL for server-side fetch to API
   const hdrs = headers();
-  const proto = getHeader(hdrs, "x-forwarded-proto") || "http";
+  const proto = getHeader(hdrs, "x-forwarded-proto") || "https";
   const host = getHeader(hdrs, "x-forwarded-host") || getHeader(hdrs, "host");
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || (host ? `${proto}://${host}` : "http://localhost:3000");
+  const vercelUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null;
+  const baseUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.SITE_URL ||
+    vercelUrl ||
+    (host ? `${proto}://${host}` : null) ||
+    (process.env.NODE_ENV === "development" ? "http://localhost:3000" : "https://www.clutchgg.lol");
   const profileUrl = `${baseUrl}/api/${mode}/profile?` + new URLSearchParams({ gameName, tagLine, region: region.toUpperCase() }).toString();
   const res = await fetch(profileUrl, { cache: "no-store" });
   const data = res.ok ? await res.json() : null;
