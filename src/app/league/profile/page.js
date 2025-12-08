@@ -192,7 +192,12 @@ const ProfilePageContent = () => {
 			{/* Live Game Section (Conditionally Rendered) */}
 			{state.liveGameData && state.isLiveGameOpen && (
 				<div className="max-w-screen-xl w-full mx-auto px-4 mt-4">
-					<LiveGame liveGameData={state.liveGameData} region={region} />
+					<LiveGame
+						liveGameData={state.liveGameData}
+						region={region}
+						matchDetails={state.matchDetails || []}
+						championMasteryData={state.championMasteryData || []}
+					/>
 				</div>
 			)}
 
