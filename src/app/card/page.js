@@ -116,14 +116,17 @@ export default async function CardPage({ searchParams }) {
   const hdrs = await headers();
   const proto = getHeader(hdrs, "x-forwarded-proto") || "https";
   const host = getHeader(hdrs, "x-forwarded-host") || getHeader(hdrs, "host");
+  // Prefer a trusted origin; use relative fetch to avoid Vercel security checkpoint
   const vercelUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null;
-  const baseUrl =
+  const configuredBase =
     process.env.NEXT_PUBLIC_SITE_URL ||
     process.env.SITE_URL ||
-    vercelUrl ||
-    (host ? `${proto}://${host}` : null) ||
     (process.env.NODE_ENV === "development" ? "http://localhost:3000" : "https://www.clutchgg.lol");
-  const profileUrl = `${baseUrl}/api/${mode}/profile?` + new URLSearchParams({ gameName, tagLine, region: region.toUpperCase() }).toString();
+  const inferredBase = host ? `${proto}://${host}` : null;
+  const baseUrl = configuredBase || vercelUrl || inferredBase || "";
+
+  const search = new URLSearchParams({ gameName, tagLine, region: region.toUpperCase() }).toString();
+  const profileUrl = baseUrl ? `${baseUrl}/api/${mode}/profile?${search}` : `/api/${mode}/profile?${search}`;
 
   let data = null;
   try {
