@@ -112,7 +112,8 @@ export default async function CardPage({ searchParams }) {
   }
 
   // Build absolute URL for server-side fetch to API
-  const hdrs = headers();
+  // headers() is async in Next 15+; await to access values
+  const hdrs = await headers();
   const proto = getHeader(hdrs, "x-forwarded-proto") || "https";
   const host = getHeader(hdrs, "x-forwarded-host") || getHeader(hdrs, "host");
   const vercelUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null;
