@@ -124,8 +124,35 @@ export default async function CardPage({ searchParams }) {
     (host ? `${proto}://${host}` : null) ||
     (process.env.NODE_ENV === "development" ? "http://localhost:3000" : "https://www.clutchgg.lol");
   const profileUrl = `${baseUrl}/api/${mode}/profile?` + new URLSearchParams({ gameName, tagLine, region: region.toUpperCase() }).toString();
-  const res = await fetch(profileUrl, { cache: "no-store" });
-  const data = res.ok ? await res.json() : null;
+
+  let data = null;
+  try {
+    const res = await fetch(profileUrl, {
+      cache: "no-store",
+      next: { revalidate: 0 },
+      headers: { "x-clutch-source": "card-page" },
+    });
+
+    if (!res.ok) {
+      const body = await res.text();
+      console.error(`[card-page] ${mode} profile fetch failed`, {
+        status: res.status,
+        statusText: res.statusText,
+        profileUrl,
+        body: body?.slice?.(0, 500),
+      });
+    } else {
+      data = await res.json();
+    }
+  } catch (err) {
+    console.error("[card-page] profile fetch threw", {
+      profileUrl,
+      err,
+      message: err?.message,
+      stack: err?.stack,
+    });
+  }
+
   if (!data) {
     return (
       <main className="min-h-[60vh] grid place-items-center text-center p-6">
