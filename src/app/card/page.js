@@ -128,33 +128,12 @@ export default async function CardPage({ searchParams }) {
   const search = new URLSearchParams({ gameName, tagLine, region: region.toUpperCase() }).toString();
   const profileUrl = baseUrl ? `${baseUrl}/api/${mode}/profile?${search}` : `/api/${mode}/profile?${search}`;
 
-  let data = null;
-  try {
-    const res = await fetch(profileUrl, {
-      cache: "no-store",
-      next: { revalidate: 0 },
-      headers: { "x-clutch-source": "card-page" },
-    });
-
-    if (!res.ok) {
-      const body = await res.text();
-      console.error(`[card-page] ${mode} profile fetch failed`, {
-        status: res.status,
-        statusText: res.statusText,
-        profileUrl,
-        body: body?.slice?.(0, 500),
-      });
-    } else {
-      data = await res.json();
-    }
-  } catch (err) {
-    console.error("[card-page] profile fetch threw", {
-      profileUrl,
-      err,
-      message: err?.message,
-      stack: err?.stack,
-    });
-  }
+  const res = await fetch(profileUrl, {
+    cache: "no-store",
+    next: { revalidate: 0 },
+    headers: { "x-clutch-source": "card-page" },
+  });
+  const data = res.ok ? await res.json() : null;
 
   if (!data) {
     return (
