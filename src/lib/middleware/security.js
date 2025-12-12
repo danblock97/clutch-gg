@@ -52,6 +52,10 @@ export async function securityMiddleware(req) {
 		const userAgent = req.headers.get("user-agent") || "unknown";
 		const requestPath = new URL(req.url).pathname;
 
+		// Public/anonymous exemptions
+		const isAnonymousBugCreate =
+			requestPath.startsWith("/api/linear/bugs") && req.method === "POST";
+
 		console.log("Request Info:", {
 			ip,
 			userAgent,
@@ -61,7 +65,7 @@ export async function securityMiddleware(req) {
 		});
 
 		// 3. API Key Validation for POST/PUT/DELETE requests
-		if (["POST", "PUT", "DELETE"].includes(req.method)) {
+		if (["POST", "PUT", "DELETE"].includes(req.method) && !isAnonymousBugCreate) {
 			const apiKey = req.headers.get("x-api-key");
 			if (!apiKey || !VALID_API_KEYS.has(apiKey)) {
 				return new NextResponse(JSON.stringify({ error: "Invalid API key" }), {
