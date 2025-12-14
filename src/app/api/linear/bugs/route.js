@@ -39,6 +39,7 @@ export async function POST(req) {
 		const desiredStateName = "Backlog";
 
 		const body = await req.json().catch(() => ({}));
+		const type = String(body?.type || "bug").toLowerCase();
 		const title = String(body?.title || "").trim();
 		const description = String(body?.description || "").trim();
 		const priority = String(body?.priority || "none");
@@ -84,6 +85,7 @@ export async function POST(req) {
 			);
 		}
 
+
 		const label = await getLabelByName(labelName);
 		if (!label?.id) {
 			return NextResponse.json(
@@ -92,11 +94,21 @@ export async function POST(req) {
 			);
 		}
 
+		// Determine the secondary label based on type
+		const secondaryLabelName = type === "feature" ? "Feature" : "Bug";
+		const secondaryLabel = await getLabelByName(secondaryLabelName);
+		if (!secondaryLabel?.id) {
+			return NextResponse.json(
+				{ error: `Linear label not found: '${secondaryLabelName}'` },
+				{ status: 500 }
+			);
+		}
+
 		const stateId = findWorkflowStateIdByName(team, desiredStateName);
 		const issue = await createIssue({
 			teamId: team.id,
 			stateId,
-			labelIds: [label.id],
+			labelIds: [label.id, secondaryLabel.id],
 			title,
 			description,
 			priority: mapPriority(priority),

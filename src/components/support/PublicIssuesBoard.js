@@ -32,7 +32,7 @@ function priorityStyle(priority) {
 	}
 }
 
-export default function PublicIssuesBoard() {
+export default function PublicIssuesBoard({ type = "bug" }) {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState("");
 	const [issues, setIssues] = useState([]);
@@ -46,7 +46,7 @@ export default function PublicIssuesBoard() {
 			setLoading(true);
 			setError("");
 			try {
-				const res = await fetch("/api/linear/issues", { method: "GET" });
+				const res = await fetch(`/api/linear/issues?type=${type}`, { method: "GET" });
 				const data = await res.json().catch(() => ({}));
 				if (!res.ok) throw new Error(data?.error || "Failed to load issues");
 				if (cancelled) return;
@@ -64,15 +64,15 @@ export default function PublicIssuesBoard() {
 		return () => {
 			cancelled = true;
 		};
-	}, []);
+	}, [type]);
 
 	const columns = useMemo(() => {
 		const q = query.trim().toLowerCase();
 		const filtered = q
 			? issues.filter((i) => {
-					const hay = `${i?.identifier || ""} ${i?.title || ""} ${i?.state?.name || ""}`.toLowerCase();
-					return hay.includes(q);
-				})
+				const hay = `${i?.identifier || ""} ${i?.title || ""} ${i?.state?.name || ""}`.toLowerCase();
+				return hay.includes(q);
+			})
 			: issues;
 
 		const sorted = [...filtered].sort((a, b) => {
@@ -85,7 +85,7 @@ export default function PublicIssuesBoard() {
 	}, [issues, query]);
 
 	if (loading) {
-		return <p className="text-[--text-secondary]">Loading issues…</p>;
+		return <p className="text-[--text-secondary]">Loading {type === "feature" ? "feature requests" : "bugs"}…</p>;
 	}
 
 	if (error) {
@@ -100,8 +100,9 @@ export default function PublicIssuesBoard() {
 		<div className="space-y-4">
 			<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
 				<p className="text-sm text-[--text-secondary]">
-					Showing issues tagged{" "}
-					<span className="font-semibold">{meta?.label?.name || "ClutchGG"}</span>{" "}
+					Showing {type === "feature" ? "requests" : "issues"} tagged{" "}
+					<span className="font-semibold">{meta?.label?.name || "ClutchGG"}</span> +{" "}
+					<span className="font-semibold">{type === "feature" ? "Feature" : "Bug"}</span>{" "}
 					{meta?.team?.key ? (
 						<>
 							in team <span className="font-semibold">{meta.team.key}</span>

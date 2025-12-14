@@ -65,6 +65,7 @@ export default function BugReportForm() {
 					priority,
 					turnstileToken: turnstileDisabled ? "" : turnstileToken,
 					honeypot,
+					type: "bug",
 				}),
 			});
 

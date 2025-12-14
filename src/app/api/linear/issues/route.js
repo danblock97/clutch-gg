@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
-import { getLabelByName, getTeamByKey, listIssuesByTeamAndLabel } from "@/lib/linear/linearService";
+import { getLabelByName, getTeamByKey, listIssuesByTeamAndLabels } from "@/lib/linear/linearService";
 
-export async function GET() {
+export async function GET(req) {
 	try {
+		const { searchParams } = new URL(req.url);
+		const type = searchParams.get("type") === "feature" ? "feature" : "bug";
+
 		const teamKey = process.env.LINEAR_TEAM_KEY || "OPS";
 		const labelName = process.env.LINEAR_LABEL_NAME || "ClutchGG";
 
@@ -22,9 +25,19 @@ export async function GET() {
 			);
 		}
 
-		const issues = await listIssuesByTeamAndLabel({
+		const secondaryLabelName = type === "feature" ? "Feature" : "Bug";
+		const secondaryLabel = await getLabelByName(secondaryLabelName);
+		if (!secondaryLabel?.id) {
+			return NextResponse.json(
+				{ error: `Linear label not found: '${secondaryLabelName}'` },
+				{ status: 500 }
+			);
+		}
+
+		// Use new multi-label filter
+		const issues = await listIssuesByTeamAndLabels({
 			teamId: team.id,
-			labelId: label.id,
+			labelIds: [label.id, secondaryLabel.id], // AND logic
 			first: 100,
 		});
 

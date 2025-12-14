@@ -73,12 +73,12 @@ const NavBar = ({ bannersVisible = 0 }) => {
 		};
 	}, []);
 
-    const isProfileOrMatch =
-        pathname?.includes("/profile") || pathname?.includes("/match");
-    const region = isProfileOrMatch ? searchParams?.get("region") : null;
+	const isProfileOrMatch =
+		pathname?.includes("/profile") || pathname?.includes("/match");
+	const region = isProfileOrMatch ? searchParams?.get("region") : null;
 
-    // Avoid hydration mismatch: only show user UI after mount
-    const showUser = mounted && !!user;
+	// Avoid hydration mismatch: only show user UI after mount
+	const showUser = mounted && !!user;
 
 	// Handle scroll events to change navbar appearance
 	useEffect(() => {
@@ -196,11 +196,10 @@ const NavBar = ({ bannersVisible = 0 }) => {
 		>
 			<nav
 				id="main-navbar"
-				className={`fixed top-0 left-0 right-0 z-40 transition-[background,backdrop-filter] duration-300 ${
-					scrolled
+				className={`fixed top-0 left-0 right-0 z-40 transition-[background,backdrop-filter] duration-300 ${scrolled
 						? "bg-[--background]/85 backdrop-blur-xl border-b border-white/10"
 						: "bg-transparent"
-				}`}
+					}`}
 			>
 				<div className="max-w-6xl mx-auto px-3 sm:px-5">
 					<div className="flex items-center justify-between h-14">
@@ -231,23 +230,21 @@ const NavBar = ({ bannersVisible = 0 }) => {
 								<div className="inline-flex rounded-lg border border-white/10 bg-white/5 p-0.5">
 									<button
 										onClick={() => handleGameTypeChange("league")}
-										className={`flex items-center space-x-1 px-3 py-1 rounded-md text-sm ${
-											(!mounted && !isTftPath) ||
-											(mounted && gameType === "league")
+										className={`flex items-center space-x-1 px-3 py-1 rounded-md text-sm ${(!mounted && !isTftPath) ||
+												(mounted && gameType === "league")
 												? "bg-[--primary]/15 text-[--primary]"
 												: "text-[--text-secondary] hover:text-[--text-primary]"
-										} transition-colors`}
+											} transition-colors`}
 									>
 										<FaGamepad className="text-[13px]" />
 										<span>League</span>
 									</button>
 									<button
 										onClick={() => handleGameTypeChange("tft")}
-										className={`flex items-center space-x-1 px-3 py-1 rounded-md text-sm ${
-											(!mounted && isTftPath) || (mounted && gameType === "tft")
+										className={`flex items-center space-x-1 px-3 py-1 rounded-md text-sm ${(!mounted && isTftPath) || (mounted && gameType === "tft")
 												? "bg-[--tft-primary]/15 text-[--tft-primary]"
 												: "text-[--text-secondary] hover:text-[--text-primary]"
-										} transition-colors`}
+											} transition-colors`}
 									>
 										<FaChessKnight className="text-[13px]" />
 										<span>TFT</span>
@@ -259,21 +256,35 @@ const NavBar = ({ bannersVisible = 0 }) => {
 							<div className="hidden md:flex items-center space-x-5">
 								<Link
 									href={getLeaderboardLink()}
-									className={`flex items-center gap-1 text-sm px-2.5 py-1.5 rounded-md ${
-										pathname === getLeaderboardLink() ? getActiveColorClass() : "text-[--text-secondary] hover:text-[--text-primary] hover:bg-white/5"
-									}`}
+									className={`flex items-center gap-1 text-sm px-2.5 py-1.5 rounded-md ${pathname === getLeaderboardLink() ? getActiveColorClass() : "text-[--text-secondary] hover:text-[--text-primary] hover:bg-white/5"
+										}`}
 								>
 									<FaTrophy className="text-[13px]" />
 									<span>Leaderboards</span>
 								</Link>
 								<Link
 									href="/league/datastudio"
-									className={`flex items-center gap-1 text-sm px-2.5 py-1.5 rounded-md ${
-										pathname.startsWith("/league/datastudio") ? getActiveColorClass() : "text-[--text-secondary] hover:text-[--text-primary] hover:bg-white/5"
-									}`}
+									className={`flex items-center gap-1 text-sm px-2.5 py-1.5 rounded-md ${pathname.startsWith("/league/datastudio") ? getActiveColorClass() : "text-[--text-secondary] hover:text-[--text-primary] hover:bg-white/5"
+										}`}
 								>
 									<FaDatabase className="text-[13px]" />
 									<span>Data Studio</span>
+								</Link>
+								<Link
+									href="/features"
+									className={`flex items-center gap-1 text-sm px-2.5 py-1.5 rounded-md ${pathname.startsWith("/features") ? getActiveColorClass() : "text-[--text-secondary] hover:text-[--text-primary] hover:bg-white/5"
+										}`}
+								>
+									<FaLightbulb className="text-[13px]" />
+									<span>Features</span>
+								</Link>
+								<Link
+									href="/support"
+									className={`flex items-center gap-1 text-sm px-2.5 py-1.5 rounded-md ${pathname.startsWith("/support") ? getActiveColorClass() : "text-[--text-secondary] hover:text-[--text-primary] hover:bg-white/5"
+										}`}
+								>
+									<FaBug className="text-[13px]" />
+									<span>Support</span>
 								</Link>
 							</div>
 						</div>
@@ -300,13 +311,13 @@ const NavBar = ({ bannersVisible = 0 }) => {
 									>
 										{user.profileIconId ? (
 											<div className="relative w-6 h-6 rounded-full overflow-hidden">
-                                            <Image
-                                                src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/${user.profileIconId}.jpg`}
-                                                alt="Profile Icon"
-                                                width={24}
-                                                height={24}
-                                                className="object-cover"
-                                            />
+												<Image
+													src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/${user.profileIconId}.jpg`}
+													alt="Profile Icon"
+													width={24}
+													height={24}
+													className="object-cover"
+												/>
 											</div>
 										) : (
 											<FaUser className="text-sm" />
@@ -385,30 +396,27 @@ const NavBar = ({ bannersVisible = 0 }) => {
 
 				{/* Mobile menu, show/hide based on menu state */}
 				<div
-					className={`md:hidden transition-all duration-300 ease-in-out ${
-						isMenuOpen ? "max-h-screen opacity-100 visible" : "max-h-0 opacity-0 invisible"
-					}`}
+					className={`md:hidden transition-all duration-300 ease-in-out ${isMenuOpen ? "max-h-screen opacity-100 visible" : "max-h-0 opacity-0 invisible"
+						}`}
 				>
 					<div className="px-3 pt-2 pb-3 space-y-2 sm:px-3 bg-[--card-bg] border-t border-[--card-border] shadow-lg">
 						{/* Game Type Selector (Mobile) */}
 						<div className="flex justify-center mb-2 pt-1">
 							<div className="inline-flex rounded-lg border border-[--card-border] overflow-hidden">
 								<button
-									className={`px-4 py-2 text-sm font-medium flex items-center transition-colors ${
-										(!mounted && !isTftPath) || (mounted && gameType === "league")
+									className={`px-4 py-2 text-sm font-medium flex items-center transition-colors ${(!mounted && !isTftPath) || (mounted && gameType === "league")
 											? "bg-[--primary] text-white"
 											: "bg-[--card-bg] text-[--text-secondary] hover:bg-[--card-bg-secondary]"
-									}`}
+										}`}
 									onClick={() => handleGameTypeChange("league")}
 								>
 									<FaGamepad className="mr-2" /> League
 								</button>
 								<button
-									className={`px-4 py-2 text-sm font-medium flex items-center transition-colors ${
-										(!mounted && isTftPath) || (mounted && gameType === "tft")
+									className={`px-4 py-2 text-sm font-medium flex items-center transition-colors ${(!mounted && isTftPath) || (mounted && gameType === "tft")
 											? "bg-[--tft-primary] text-white"
 											: "bg-[--card-bg] text-[--text-secondary] hover:bg-[--card-bg-secondary]"
-									}`}
+										}`}
 									onClick={() => handleGameTypeChange("tft")}
 								>
 									<FaChessKnight className="mr-2" /> TFT
@@ -433,8 +441,28 @@ const NavBar = ({ bannersVisible = 0 }) => {
 							className="block px-4 py-2.5 rounded-md hover:bg-[--card-bg-secondary] transition-colors"
 						>
 							<div className="flex items-center">
-								<FaDatabase className="mr-3 text-lg" />
-								<span>Data Studio</span>
+							</div>
+						</Link>
+
+						<Link
+							href="/features"
+							onClick={handleLinkClick}
+							className="block px-4 py-2.5 rounded-md hover:bg-[--card-bg-secondary] transition-colors"
+						>
+							<div className="flex items-center">
+								<FaLightbulb className="mr-3 text-lg" />
+								<span>Features</span>
+							</div>
+						</Link>
+
+						<Link
+							href="/support"
+							onClick={handleLinkClick}
+							className="block px-4 py-2.5 rounded-md hover:bg-[--card-bg-secondary] transition-colors"
+						>
+							<div className="flex items-center">
+								<FaBug className="mr-3 text-lg" />
+								<span>Support</span>
 							</div>
 						</Link>
 
@@ -454,26 +482,26 @@ const NavBar = ({ bannersVisible = 0 }) => {
 							</button>
 						)}
 
-							{/* User Profile or Login Button - Mobile */}
-							{showUser ? (
-								<>
+						{/* User Profile or Login Button - Mobile */}
+						{showUser ? (
+							<>
 								<button
 									onClick={() => {
-									navigateToProfile();
-									setIsMenuOpen(false);
-								}}
+										navigateToProfile();
+										setIsMenuOpen(false);
+									}}
 									className="w-full text-left block px-4 py-2.5 rounded-md hover:bg-[--card-bg-secondary] transition-colors"
 								>
 									<div className="flex items-center">
 										{user.profileIconId ? (
 											<div className="relative w-6 h-6 rounded-full overflow-hidden mr-3">
-                                            <Image
-                                                src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/${user.profileIconId}.jpg`}
-                                                alt="Profile Icon"
-                                                width={24}
-                                                height={24}
-                                                className="object-cover"
-                                            />
+												<Image
+													src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/${user.profileIconId}.jpg`}
+													alt="Profile Icon"
+													width={24}
+													height={24}
+													className="object-cover"
+												/>
 											</div>
 										) : (
 											<FaUser className="mr-3 text-lg" />
@@ -487,9 +515,9 @@ const NavBar = ({ bannersVisible = 0 }) => {
 								</button>
 								<button
 									onClick={() => {
-									logout();
-									setIsMenuOpen(false);
-								}}
+										logout();
+										setIsMenuOpen(false);
+									}}
 									className="w-full text-left block px-4 py-2.5 rounded-md hover:bg-[--card-bg-secondary] transition-colors"
 								>
 									<div className="flex items-center">
@@ -501,9 +529,9 @@ const NavBar = ({ bannersVisible = 0 }) => {
 						) : (
 							<button
 								onClick={() => {
-								loginWithRiot();
-								setIsMenuOpen(false);
-							}}
+									loginWithRiot();
+									setIsMenuOpen(false);
+								}}
 								className="w-full text-left block px-4 py-2.5 rounded-md hover:bg-[--card-bg-secondary] transition-colors"
 							>
 								<div className="flex items-center">
@@ -570,5 +598,5 @@ const NavBar = ({ bannersVisible = 0 }) => {
 export default NavBar;
 
 NavBar.propTypes = {
-    bannersVisible: PropTypes.number,
+	bannersVisible: PropTypes.number,
 };
