@@ -38,8 +38,17 @@ export default function TurnstileWidget({ siteKey, onToken, onError }) {
 	const widgetIdRef = useRef(null);
 	const [ready, setReady] = useState(false);
 
-	const stableOnToken = useMemo(() => onToken, [onToken]);
-	const stableOnError = useMemo(() => onError, [onError]);
+	// Use refs for callbacks to prevent re-initialization when they change
+	const onTokenRef = useRef(onToken);
+	const onErrorRef = useRef(onError);
+
+	useEffect(() => {
+		onTokenRef.current = onToken;
+	}, [onToken]);
+
+	useEffect(() => {
+		onErrorRef.current = onError;
+	}, [onError]);
 
 	useEffect(() => {
 		let cancelled = false;
@@ -65,20 +74,20 @@ export default function TurnstileWidget({ siteKey, onToken, onError }) {
 					sitekey: siteKey,
 					theme: "auto",
 					callback: (token) => {
-						stableOnToken?.(token);
+						onTokenRef.current?.(token);
 					},
 					"expired-callback": () => {
-						stableOnToken?.("");
+						onTokenRef.current?.("");
 					},
 					"error-callback": () => {
-						stableOnToken?.("");
-						stableOnError?.(new Error("Turnstile challenge failed"));
+						onTokenRef.current?.("");
+						onErrorRef.current?.(new Error("Turnstile challenge failed"));
 					},
 				});
 
 				setReady(true);
 			} catch (e) {
-				stableOnError?.(e);
+				onErrorRef.current?.(e);
 			}
 		}
 
@@ -95,7 +104,7 @@ export default function TurnstileWidget({ siteKey, onToken, onError }) {
 				widgetIdRef.current = null;
 			}
 		};
-	}, [siteKey, stableOnError, stableOnToken]);
+	}, [siteKey]); // Only re-run if siteKey changes
 
 	return (
 		<div className="space-y-2">

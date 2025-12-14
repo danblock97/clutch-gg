@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import TurnstileWidget from "./TurnstileWidget";
 
 const PRIORITY_OPTIONS = [
@@ -180,8 +180,8 @@ export default function BugReportForm() {
 						{siteKey ? (
 							<TurnstileWidget
 								siteKey={siteKey}
-								onToken={(token) => setTurnstileToken(token || "")}
-								onError={(e) => setError(e?.message || "Verification failed")}
+								onToken={useCallback((token) => setTurnstileToken(token || ""), [])}
+								onError={useCallback((e) => setError(e?.message || "Verification failed"), [])}
 							/>
 						) : (
 							<p className="text-sm text-[--text-secondary]">
