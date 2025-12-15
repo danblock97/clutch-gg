@@ -90,6 +90,8 @@ function getBorderColorForCost(cost) {
 			return "border-purple-500";
 		case 5:
 			return "border-yellow-500";
+		case 0: // Special / Summoned units
+			return "border-teal-400";
 		default:
 			return "border-gray-700";
 	}
@@ -108,6 +110,8 @@ function getStarColorForCost(cost) {
 			return "text-purple-400";
 		case 5:
 			return "text-yellow-400";
+		case 0: // Special / Summoned units
+			return "text-teal-400";
 		default:
 			return "text-gray-600";
 	}
@@ -233,8 +237,14 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 
 				// Fetch champions from Data Dragon for more accurate cost data
 				try {
+					const versionsResponse = await fetch(
+						"https://ddragon.leagueoflegends.com/api/versions.json"
+					);
+					const versions = await versionsResponse.json();
+					const latestVersion = versions[0]; // Get latest LoL patch version
+
 					const dataDragonResponse = await fetch(
-						"https://ddragon.leagueoflegends.com/cdn/15.7.1/data/en_US/tft-champion.json"
+						`https://ddragon.leagueoflegends.com/cdn/${latestVersion}/data/en_US/tft-champion.json`
 					);
 					const ddJson = await dataDragonResponse.json();
 					setDataDragonChampions(ddJson.data || {});
@@ -260,21 +270,53 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 
 	// Helper function to get champion cost from Data Dragon data
 	const getChampionCostFromDD = (characterId) => {
-		if (!characterId) return 0;
+		if (!characterId || !dataDragonChampions) return 0;
+		const lowerCaseId = characterId.toLowerCase();
 
-		// Extract the champion name from character_id (e.g., "TFT14_Poppy" -> "Poppy")
-		const nameMatch = characterId.match(/TFT\d+_(.+)/i);
-		const championName = nameMatch && nameMatch[1];
-		if (!championName) return 0;
-
-		// Look for the champion in Data Dragon data
-		for (const key in dataDragonChampions) {
-			if (key.includes(championName)) {
-				return dataDragonChampions[key].tier || 0;
-			}
+		// Attempt lookup using the full character ID (e.g., tft16_lucian) if available in DDragon keys
+		// Data Dragon keys usually have specific casing, so we check case-insensitively by iterating if needed
+		// properly optimized:
+		if (dataDragonChampions[characterId]) {
+			return dataDragonChampions[characterId].tier || 0;
 		}
 
-		// Fallback to Community Dragon data
+		// Try finding key case-insensitively directly
+		const ddKeys = Object.keys(dataDragonChampions);
+		const exactMatchKey = ddKeys.find(key => key.toLowerCase() === lowerCaseId);
+		if (exactMatchKey) {
+			return dataDragonChampions[exactMatchKey].tier || 0;
+		}
+
+		// Fallback: Extract name part and set number to find the correct version
+		// e.g., "tft16_lucian" -> set "16", name "lucian"
+		const match = lowerCaseId.match(/tft(\d+)_(.+)/);
+		const setNumber = match ? match[1] : null;
+		const championName = match ? match[2] : null;
+
+		if (championName) {
+			let bestMatch = null;
+
+			for (const key of ddKeys) {
+				const lowerKey = key.toLowerCase();
+				// Check if DDragon key ends with the extracted name
+				if (lowerKey.endsWith(championName)) {
+					// If we have a set number, verify the key also contains it (e.g. "tft16" or "set16")
+					if (setNumber) {
+						if (lowerKey.includes(`tft${setNumber}`) || lowerKey.includes(`set${setNumber}`)) {
+							return dataDragonChampions[key].tier || 0; // Found exact set match
+						}
+					} else {
+						// No set number in ID? Just take the first match, or keep searching?
+						// For now, keep the first match found, but set specific matches are prioritized above.
+						if (!bestMatch) bestMatch = dataDragonChampions[key];
+					}
+				}
+			}
+			// Return the best filtered match if found
+			if (bestMatch) return bestMatch.tier || 0;
+		}
+
+		// Final fallback to Community Dragon data
 		return championsData[characterId.toUpperCase()]?.cost || 0;
 	};
 
@@ -488,16 +530,15 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 									onClick={
 										breakpoint !== "mobile"
 											? () =>
-													setExpandedMatchId(
-														expandedMatchId === matchId ? null : matchId
-													)
+												setExpandedMatchId(
+													expandedMatchId === matchId ? null : matchId
+												)
 											: undefined
 									}
 									className={`tft-match-card bg-[--background-alt] p-3 rounded-md flex gap-4 ${getGradientBackground(
 										placement
-									)} shadow-sm ${
-										breakpoint !== "mobile" ? "cursor-pointer" : ""
-									} hover:bg-[--card-bg-secondary]/50 transition-colors duration-150 min-w-[768px]`} // Apply gradient here, remove placementClass
+									)} shadow-sm ${breakpoint !== "mobile" ? "cursor-pointer" : ""
+										} hover:bg-[--card-bg-secondary]/50 transition-colors duration-150 min-w-[768px]`} // Apply gradient here, remove placementClass
 								>
 									{/* Companion and placement section */}
 									<div className="flex flex-col items-start flex-shrink-0">
@@ -521,13 +562,12 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 
 											{/* Placement */}
 											<div
-												className={`font-bold text-2xl ${
-													placement === 1
-														? "text-yellow-400"
-														: placement <= 4
+												className={`font-bold text-2xl ${placement === 1
+													? "text-yellow-400"
+													: placement <= 4
 														? "text-blue-400"
 														: "text-gray-400"
-												}`}
+													}`}
 											>
 												{placement}
 												<sup className="text-lg">{placementSuffix}</sup>
@@ -854,11 +894,10 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 					<button
 						onClick={() => handlePageChange(currentPage - 1)}
 						disabled={currentPage === 1}
-						className={`px-3 py-1 rounded ${
-							currentPage === 1
-								? "bg-gray-700 cursor-not-allowed text-gray-500"
-								: "bg-gray-800 hover:bg-gray-700 text-gray-200"
-						}`}
+						className={`px-3 py-1 rounded ${currentPage === 1
+							? "bg-gray-700 cursor-not-allowed text-gray-500"
+							: "bg-gray-800 hover:bg-gray-700 text-gray-200"
+							}`}
 					>
 						Previous
 					</button>
@@ -866,11 +905,10 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 						<button
 							key={page}
 							onClick={() => handlePageChange(page)}
-							className={`px-3 py-1 rounded ${
-								currentPage === page
-									? "bg-gray-700 text-white"
-									: "bg-gray-800 hover:bg-gray-700 text-gray-200"
-							}`}
+							className={`px-3 py-1 rounded ${currentPage === page
+								? "bg-gray-700 text-white"
+								: "bg-gray-800 hover:bg-gray-700 text-gray-200"
+								}`}
 						>
 							{page}
 						</button>
@@ -878,11 +916,10 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 					<button
 						onClick={() => handlePageChange(currentPage + 1)}
 						disabled={currentPage === totalPages}
-						className={`px-3 py-1 rounded ${
-							currentPage === totalPages
-								? "bg-gray-700 cursor-not-allowed text-gray-500"
-								: "bg-gray-800 hover:bg-gray-700 text-gray-200"
-						}`}
+						className={`px-3 py-1 rounded ${currentPage === totalPages
+							? "bg-gray-700 cursor-not-allowed text-gray-500"
+							: "bg-gray-800 hover:bg-gray-700 text-gray-200"
+							}`}
 					>
 						Next
 					</button>

@@ -41,6 +41,9 @@ export default function BugReportForm() {
 		);
 	}, [description, submitting, success, title, turnstileDisabled, turnstileToken]);
 
+	const onTurnstileToken = useCallback((token) => setTurnstileToken(token || ""), []);
+	const onTurnstileError = useCallback((e) => setError(e?.message || "Verification failed"), []);
+
 	async function onSubmit(e) {
 		e.preventDefault();
 		setError("");
@@ -181,8 +184,8 @@ export default function BugReportForm() {
 						{siteKey ? (
 							<TurnstileWidget
 								siteKey={siteKey}
-								onToken={useCallback((token) => setTurnstileToken(token || ""), [])}
-								onError={useCallback((e) => setError(e?.message || "Verification failed"), [])}
+								onToken={onTurnstileToken}
+								onError={onTurnstileError}
 							/>
 						) : (
 							<p className="text-sm text-[--text-secondary]">
