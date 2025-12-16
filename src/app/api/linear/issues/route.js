@@ -45,7 +45,11 @@ export async function GET(req) {
 			{
 				ok: true,
 				label: { name: labelName },
-				team: { key: teamKey, name: team.name },
+				team: {
+					key: teamKey,
+					name: team.name,
+					states: team.states?.nodes || [],
+				},
 				issues: issues.map((i) => ({
 					id: i.id,
 					identifier: i.identifier,
@@ -54,7 +58,9 @@ export async function GET(req) {
 					state: i.state,
 					updatedAt: i.updatedAt,
 					createdAt: i.createdAt,
-					descriptionSnippet: i.description ? String(i.description).slice(0, 240) : "",
+					labels: i.labels,
+					descriptionSnippet: i.description ? String(i.description).slice(0, 120) : "",
+					assignee: i.assignee,
 				})),
 			},
 			{

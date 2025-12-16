@@ -14,6 +14,7 @@ export async function getTeamByKey(teamKey) {
               id
               name
               type
+              position
             }
           }
         }
@@ -149,6 +150,7 @@ export async function listIssuesByTeamAndLabels({ teamId, labelIds, first = 100 
           createdAt
           state { id name type }
           labels { nodes { id name } }
+          assignee { name avatarUrl }
         }
       }
     }

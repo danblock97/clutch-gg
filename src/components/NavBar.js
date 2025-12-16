@@ -24,6 +24,7 @@ import {
 	FaUser,
 	FaSignOutAlt,
 	FaDatabase,
+	FaClipboardList,
 } from "react-icons/fa";
 import PropTypes from "prop-types";
 
@@ -197,8 +198,8 @@ const NavBar = ({ bannersVisible = 0 }) => {
 			<nav
 				id="main-navbar"
 				className={`fixed top-0 left-0 right-0 z-40 transition-[background,backdrop-filter] duration-300 ${scrolled
-						? "bg-[--background]/85 backdrop-blur-xl border-b border-white/10"
-						: "bg-transparent"
+					? "bg-[--background]/85 backdrop-blur-xl border-b border-white/10"
+					: "bg-transparent"
 					}`}
 			>
 				<div className="max-w-6xl mx-auto px-3 sm:px-5">
@@ -231,9 +232,9 @@ const NavBar = ({ bannersVisible = 0 }) => {
 									<button
 										onClick={() => handleGameTypeChange("league")}
 										className={`flex items-center space-x-1 px-3 py-1 rounded-md text-sm ${(!mounted && !isTftPath) ||
-												(mounted && gameType === "league")
-												? "bg-[--primary]/15 text-[--primary]"
-												: "text-[--text-secondary] hover:text-[--text-primary]"
+											(mounted && gameType === "league")
+											? "bg-[--primary]/15 text-[--primary]"
+											: "text-[--text-secondary] hover:text-[--text-primary]"
 											} transition-colors`}
 									>
 										<FaGamepad className="text-[13px]" />
@@ -242,8 +243,8 @@ const NavBar = ({ bannersVisible = 0 }) => {
 									<button
 										onClick={() => handleGameTypeChange("tft")}
 										className={`flex items-center space-x-1 px-3 py-1 rounded-md text-sm ${(!mounted && isTftPath) || (mounted && gameType === "tft")
-												? "bg-[--tft-primary]/15 text-[--tft-primary]"
-												: "text-[--text-secondary] hover:text-[--text-primary]"
+											? "bg-[--tft-primary]/15 text-[--tft-primary]"
+											: "text-[--text-secondary] hover:text-[--text-primary]"
 											} transition-colors`}
 									>
 										<FaChessKnight className="text-[13px]" />
@@ -271,12 +272,12 @@ const NavBar = ({ bannersVisible = 0 }) => {
 									<span>Data Studio</span>
 								</Link>
 								<Link
-									href="/features"
-									className={`flex items-center gap-1 text-sm px-2.5 py-1.5 rounded-md ${pathname.startsWith("/features") ? getActiveColorClass() : "text-[--text-secondary] hover:text-[--text-primary] hover:bg-white/5"
+									href="/issues"
+									className={`flex items-center gap-1 text-sm px-2.5 py-1.5 rounded-md ${pathname.startsWith("/issues") ? getActiveColorClass() : "text-[--text-secondary] hover:text-[--text-primary] hover:bg-white/5"
 										}`}
 								>
-									<FaLightbulb className="text-[13px]" />
-									<span>Features</span>
+									<FaClipboardList className="text-[13px]" />
+									<span>Issues</span>
 								</Link>
 								<Link
 									href="/support"
@@ -405,8 +406,8 @@ const NavBar = ({ bannersVisible = 0 }) => {
 							<div className="inline-flex rounded-lg border border-[--card-border] overflow-hidden">
 								<button
 									className={`px-4 py-2 text-sm font-medium flex items-center transition-colors ${(!mounted && !isTftPath) || (mounted && gameType === "league")
-											? "bg-[--primary] text-white"
-											: "bg-[--card-bg] text-[--text-secondary] hover:bg-[--card-bg-secondary]"
+										? "bg-[--primary] text-white"
+										: "bg-[--card-bg] text-[--text-secondary] hover:bg-[--card-bg-secondary]"
 										}`}
 									onClick={() => handleGameTypeChange("league")}
 								>
@@ -414,8 +415,8 @@ const NavBar = ({ bannersVisible = 0 }) => {
 								</button>
 								<button
 									className={`px-4 py-2 text-sm font-medium flex items-center transition-colors ${(!mounted && isTftPath) || (mounted && gameType === "tft")
-											? "bg-[--tft-primary] text-white"
-											: "bg-[--card-bg] text-[--text-secondary] hover:bg-[--card-bg-secondary]"
+										? "bg-[--tft-primary] text-white"
+										: "bg-[--card-bg] text-[--text-secondary] hover:bg-[--card-bg-secondary]"
 										}`}
 									onClick={() => handleGameTypeChange("tft")}
 								>
@@ -445,13 +446,13 @@ const NavBar = ({ bannersVisible = 0 }) => {
 						</Link>
 
 						<Link
-							href="/features"
+							href="/issues"
 							onClick={handleLinkClick}
 							className="block px-4 py-2.5 rounded-md hover:bg-[--card-bg-secondary] transition-colors"
 						>
 							<div className="flex items-center">
-								<FaLightbulb className="mr-3 text-lg" />
-								<span>Features</span>
+								<FaClipboardList className="mr-3 text-lg" />
+								<span>Issues</span>
 							</div>
 						</Link>
 
