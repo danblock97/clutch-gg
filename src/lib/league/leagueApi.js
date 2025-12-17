@@ -126,27 +126,71 @@ export const fetchMatchIds = async (encryptedPUUID, platform) => {
  * Fetch detailed match data.
  */
 export const fetchMatchDetail = async (matchId, platform) => {
-	const matchDetailResponse = await fetch(
-		`https://${platform}.api.riotgames.com/lol/match/v5/matches/${matchId}`,
-		{ headers: { "X-Riot-Token": RIOT_API_KEY } }
-	);
-	if (!matchDetailResponse.ok) {
+	// 1. Try fetching from Supabase cache first
+	try {
+		const { data: cachedMatch, error } = await supabase
+			.from("league_matches")
+			.select("match_data")
+			.eq("matchid", matchId)
+			.maybeSingle();
+
+		if (!error && cachedMatch?.match_data) {
+			return cachedMatch.match_data;
+		}
+	} catch (dbError) {
+		console.warn(`Failed to fetch match ${matchId} from DB cache:`, dbError);
+	}
+
+	// 2. Fallback to Riot API
+	try {
+		const matchDetailResponse = await fetch(
+			`https://${platform}.api.riotgames.com/lol/match/v5/matches/${matchId}`,
+			{ headers: { "X-Riot-Token": RIOT_API_KEY } }
+		);
+		if (!matchDetailResponse.ok) {
+			console.error(`Riot API Error for match ${matchId}: ${matchDetailResponse.status}`);
+			return null;
+		}
+
+		const matchData = await matchDetailResponse.json();
+
+		// Extract the region from the matchId (e.g., "NA1_123456789" -> "NA1")
+		if (
+			matchData.metadata &&
+			matchData.info &&
+			matchData.info.participants &&
+			matchData.info.participants.length > 0
+		) {
+			// No additional processing needed
+		}
+
+		return matchData;
+	} catch (apiError) {
+		console.error(`Riot API Exception for match ${matchId}:`, apiError);
 		return null;
 	}
+};
 
-	const matchData = await matchDetailResponse.json();
+/**
+ * Fetch match timeline data.
+ */
+export const fetchMatchTimeline = async (matchId, platform) => {
+	// TODO: Add caching mechanism for timeline
+	try {
+		const timelineResponse = await fetch(
+			`https://${platform}.api.riotgames.com/lol/match/v5/matches/${matchId}/timeline`,
+			{ headers: { "X-Riot-Token": RIOT_API_KEY } }
+		);
+		if (!timelineResponse.ok) {
+			console.error(`Riot API Error for timeline ${matchId}: ${timelineResponse.status}`);
+			return null;
+		}
 
-	// Extract the region from the matchId (e.g., "NA1_123456789" -> "NA1")
-	if (
-		matchData.metadata &&
-		matchData.info &&
-		matchData.info.participants &&
-		matchData.info.participants.length > 0
-	) {
-		// No additional processing needed
+		return timelineResponse.json();
+	} catch (apiError) {
+		console.error(`Riot API Exception for timeline ${matchId}:`, apiError);
+		return null;
 	}
-
-	return matchData;
 };
 
 /**

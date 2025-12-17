@@ -18,7 +18,7 @@
 		"axios": "^1.12.1",
 		"brace-expansion": "^2.0.2",
 		"cheerio": "^1.0.0",
-		"dotenv": "^16.5.0",
+		"dotenv": "^16.6.1",
 		"form-data": "^4.0.4",
 		"fuse.js": "^7.1.0",
 		"html-to-image": "^1.11.11",
@@ -27,13 +27,15 @@
 		"nanoid": "^3.3.8",
 		"next": "^16.0.10",
 		"node-cron": "^3.0.3",
+		"node-fetch": "^3.3.2",
 		"prop-types": "^15.8.1",
 		"react": "^19",
 		"react-dom": "^19",
 		"react-icons": "^5.5.0",
 		"react-loading-skeleton": "^3.5.0",
 		"react-tooltip": "^5.28.0",
-		"react-type-animation": "^3.2.0"
+		"react-type-animation": "^3.2.0",
+		"recharts": "^3.6.0"
 	},
 	"devDependencies": {
 		"eslint": "^9",

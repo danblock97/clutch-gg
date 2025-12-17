@@ -1,4 +1,5 @@
 // src/components/league/MatchDetails.js
+"use client";
 import React, { useState } from "react";
 import MatchStatsTab from "./MatchStatsTab";
 import TeamAnalysisTab from "./TeamAnalysisTab";
@@ -46,11 +47,10 @@ export default function MatchDetails(props) {
 					{visibleTabs.map((tab) => (
 						<button
 							key={tab.id}
-							className={`flex items-center px-4 py-3 font-medium text-sm relative transition-colors duration-200 ${
-								activeTab === tab.id
+							className={`flex items-center px-4 py-3 font-medium text-sm relative transition-colors duration-200 ${activeTab === tab.id
 									? "text-[--primary]"
 									: "text-[--text-secondary] hover:text-[--text-primary]"
-							}`}
+								}`}
 							onClick={() => setActiveTab(tab.id)}
 						>
 							{tab.icon}

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
 	FaClock,
@@ -162,11 +163,11 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 	const [championsData, setChampionsData] = useState({});
 	const [dataDragonChampions, setDataDragonChampions] = useState({});
 	const [isDataLoaded, setIsDataLoaded] = useState(false);
-	const [expandedMatchId, setExpandedMatchId] = useState(null);
 	const [currentPage, setCurrentPage] = useState(1);
 	const [companionsData, setCompanionsData] = useState({});
 	const matchesPerPage = 10;
 	const breakpoint = useBreakpoint();
+	const router = useRouter();
 
 	// Fetch TFT data (traits, items, champions, companions)
 	useEffect(() => {
@@ -525,20 +526,12 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 							: null;
 
 						return (
-							<div key={matchId} className="mb-3 overflow-x-auto">
+							<div key={matchId} className="mb-3 overflow-x-auto relative">
 								<div
-									onClick={
-										breakpoint !== "mobile"
-											? () =>
-												setExpandedMatchId(
-													expandedMatchId === matchId ? null : matchId
-												)
-											: undefined
-									}
+									onClick={() => router.push(`/tft/match/${matchId}`)}
 									className={`tft-match-card bg-[--background-alt] p-3 rounded-md flex gap-4 ${getGradientBackground(
 										placement
-									)} shadow-sm ${breakpoint !== "mobile" ? "cursor-pointer" : ""
-										} hover:bg-[--card-bg-secondary]/50 transition-colors duration-150 min-w-[768px]`} // Apply gradient here, remove placementClass
+									)} shadow-sm cursor-pointer hover:bg-[--card-bg-secondary]/50 transition-colors duration-150 min-w-[768px] relative`}
 								>
 									{/* Companion and placement section */}
 									<div className="flex flex-col items-start flex-shrink-0">
@@ -691,33 +684,29 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 																	title={champion.name}
 																	onError={(e) => {
 																		const imageElement = e.currentTarget;
-																		// Check if the source is already the fallback URL
 																		if (
 																			typeof cdnUrl === "object" &&
 																			cdnUrl.fallback &&
 																			imageElement.src === cdnUrl.fallback
 																		) {
-																			// Fallback has already been tried and failed
-																			imageElement.style.display = "none"; // Hide the broken image
+																			imageElement.style.display = "none";
 																			const fallbackText = imageElement
 																				.closest("div")
 																				.querySelector(".fallback-text");
 																			if (fallbackText)
-																				fallbackText.style.display = "flex"; // Show text placeholder
+																				fallbackText.style.display = "flex";
 																		} else if (
 																			typeof cdnUrl === "object" &&
 																			cdnUrl.fallback
 																		) {
-																			// Primary failed, try the fallback URL
 																			imageElement.src = cdnUrl.fallback;
 																		} else {
-																			// Primary failed and there is no fallback URL (or cdnUrl wasn't an object)
-																			imageElement.style.display = "none"; // Hide the broken image
+																			imageElement.style.display = "none";
 																			const fallbackText = imageElement
 																				.closest("div")
 																				.querySelector(".fallback-text");
 																			if (fallbackText)
-																				fallbackText.style.display = "flex"; // Show text placeholder
+																				fallbackText.style.display = "flex";
 																		}
 																	}}
 																/>
@@ -801,7 +790,6 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 													</div>
 												);
 											})}
-
 											{/* Placeholder units */}
 											{Array.from({
 												length: Math.max(0, 9 - units.length),
@@ -852,79 +840,64 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 									</div>
 
 									{/* Right Column - Game Mode and expand indicator */}
-									<div className="flex flex-col items-end ml-2">
+									<div className="flex flex-col items-end ml-2 h-full justify-between">
 										{/* Game Mode */}
-										<div className="text-sm font-semibold text-[--text-primary] capitalize whitespace-nowrap mb-auto">
+										<div className="text-sm font-semibold text-[--text-primary] capitalize whitespace-nowrap">
 											{formattedGameType}
 										</div>
 
 										{/* Expand/collapse indicator - only show on non-mobile devices */}
-										{breakpoint !== "mobile" && (
-											<div className="text-gray-400 mt-auto">
-												{expandedMatchId === matchId ? (
-													<FaChevronUp className="w-4 h-4" />
-												) : (
-													<FaChevronDown className="w-4 h-4" />
-												)}
-											</div>
-										)}
+
 									</div>
+
 								</div>
 
-								{/* Expanded Match Details */}
-								{expandedMatchId === matchId && (
-									<div className="mb-4 animate-fadeIn overflow-x-auto">
-										<TFTMatchDetails
-											matchDetails={matchDetails}
-											matchId={matchId}
-											summonerData={summonerData}
-											companionsData={companionsData}
-										/>
-									</div>
-								)}
-							</div>
+
+							</div >
 						);
 					})}
-				</div>
+				</div >
 			))}
 
 			{/* Pagination Controls */}
-			{totalPages > 1 && (
-				<div className="flex justify-center items-center mt-6 space-x-1 text-sm">
-					<button
-						onClick={() => handlePageChange(currentPage - 1)}
-						disabled={currentPage === 1}
-						className={`px-3 py-1 rounded ${currentPage === 1
-							? "bg-gray-700 cursor-not-allowed text-gray-500"
-							: "bg-gray-800 hover:bg-gray-700 text-gray-200"
-							}`}
-					>
-						Previous
-					</button>
-					{Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+			{
+				totalPages > 1 && (
+					<div className="flex justify-center items-center mt-6 space-x-1 text-sm">
 						<button
-							key={page}
-							onClick={() => handlePageChange(page)}
-							className={`px-3 py-1 rounded ${currentPage === page
-								? "bg-gray-700 text-white"
+							onClick={() => handlePageChange(currentPage - 1)}
+							disabled={currentPage === 1}
+							className={`px-3 py-1 rounded ${currentPage === 1
+								? "bg-gray-700 cursor-not-allowed text-gray-500"
 								: "bg-gray-800 hover:bg-gray-700 text-gray-200"
 								}`}
 						>
-							{page}
+							Previous
 						</button>
-					))}
-					<button
-						onClick={() => handlePageChange(currentPage + 1)}
-						disabled={currentPage === totalPages}
-						className={`px-3 py-1 rounded ${currentPage === totalPages
-							? "bg-gray-700 cursor-not-allowed text-gray-500"
-							: "bg-gray-800 hover:bg-gray-700 text-gray-200"
-							}`}
-					>
-						Next
-					</button>
-				</div>
-			)}
-		</div>
+						{Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+							<button
+								key={page}
+								onClick={() => handlePageChange(page)}
+								className={`px-3 py-1 rounded ${currentPage === page
+									? "bg-gray-700 text-white"
+									: "bg-gray-800 hover:bg-gray-700 text-gray-200"
+									}`}
+							>
+								{page}
+							</button>
+						))}
+						<button
+							onClick={() => handlePageChange(currentPage + 1)}
+							disabled={currentPage === totalPages}
+							className={`px-3 py-1 rounded ${currentPage === totalPages
+								? "bg-gray-700 cursor-not-allowed text-gray-500"
+								: "bg-gray-800 hover:bg-gray-700 text-gray-200"
+								}`}
+						>
+							Next
+						</button>
+					</div>
+				)
+			}
+		</div >
 	);
 }

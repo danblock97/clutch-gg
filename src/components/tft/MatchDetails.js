@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -463,9 +464,8 @@ function ParticipantRow({
 
 	return (
 		<div
-			className={`flex items-stretch px-3 py-2 gap-2 text-sm ${
-				isCurrentPlayer ? "bg-blue-900/20" : ""
-			} hover:bg-gray-700/20 transition-colors duration-150 min-h-[60px]`}
+			className={`flex items-stretch px-3 py-2 gap-2 text-sm ${isCurrentPlayer ? "bg-blue-900/20" : ""
+				} hover:bg-gray-700/20 transition-colors duration-150 min-h-[60px]`}
 		>
 			{/* Placement */}
 			<div className="w-[4%] flex items-center justify-center text-center shrink-0">
@@ -486,9 +486,8 @@ function ParticipantRow({
 							width={36}
 							height={36}
 							className="object-cover w-full h-full"
-							title={`${companion?.name || "Companion"}${
-								companion?.speciesName ? ` (${companion.speciesName})` : ""
-							}`}
+							title={`${companion?.name || "Companion"}${companion?.speciesName ? ` (${companion.speciesName})` : ""
+								}`}
 							unoptimized
 						/>
 					</div>
@@ -499,9 +498,8 @@ function ParticipantRow({
 				{/* Summoner name and tag */}
 				{playerData?.name ? (
 					<Link
-						href={`/profile/${encodeURIComponent(playerData.name)}/${
-							playerData.tagLine || "NA1"
-						}`}
+						href={`/profile/${encodeURIComponent(playerData.name)}/${playerData.tagLine || "NA1"
+							}`}
 						className="font-semibold text-gray-100 hover:text-blue-400 truncate"
 						title={`${playerData.name}#${playerData.tagLine}`}
 					>

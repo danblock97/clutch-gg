@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Tag from "@/components/league/Tag";
 import DonutGraph from "@/components/league/DonutGraph";
@@ -90,12 +91,12 @@ const calculateClutchScore = (match, currentPlayer) => {
 	const winBonus = currentPlayer.win ? 10 : 0;
 	return Math.round(
 		kdaScore +
-			damageScore +
-			kpScore +
-			visionScore +
-			turretScore +
-			supportBonus +
-			winBonus
+		damageScore +
+		kpScore +
+		visionScore +
+		turretScore +
+		supportBonus +
+		winBonus
 	);
 };
 
@@ -191,7 +192,7 @@ const getPerformanceTags = (match, currentPlayer) => {
 	const killParticipation =
 		currentTeam.reduce((sum, p) => sum + p.kills, 0) > 0
 			? (currentPlayer.kills + currentPlayer.assists) /
-			  currentTeam.reduce((sum, p) => sum + p.kills, 0)
+			currentTeam.reduce((sum, p) => sum + p.kills, 0)
 			: 0;
 
 	const teamAvgKDA =
@@ -219,7 +220,7 @@ const getPerformanceTags = (match, currentPlayer) => {
 		const pKP =
 			currentTeam.reduce((sum, teammate) => sum + teammate.kills, 0) > 0
 				? (p.kills + p.assists) /
-				  currentTeam.reduce((sum, teammate) => sum + teammate.kills, 0)
+				currentTeam.reduce((sum, teammate) => sum + teammate.kills, 0)
 				: 0;
 		return {
 			puuid: p.puuid,
@@ -410,12 +411,12 @@ const MatchHistory = ({
 	selectedChampionId,
 }) => {
 	const [augments, setAugments] = useState([]);
-	const [expandedMatchId, setExpandedMatchId] = useState(null);
 	const [selectedLane, setSelectedLane] = useState(null);
 	const [selectedQueue, setSelectedQueue] = useState(null);
 
 	const [currentPage, setCurrentPage] = useState(1);
 	const matchesPerPage = 10;
+	const router = useRouter();
 
 	const breakpoint = useBreakpoint();
 	let maxTagsToShow = breakpoint === "mobile" ? 1 : breakpoint === "md" ? 2 : 3;
@@ -541,8 +542,8 @@ const MatchHistory = ({
 	};
 
 	const getOutcomeClass = (win, isRemake, isMVP) => {
-    if (isMVP) return "text-yellow-500 border-yellow-500";
-    if (isRemake) return "text-gray-400 border-gray-500";
+		if (isMVP) return "text-yellow-500 border-yellow-500";
+		if (isRemake) return "text-gray-400 border-gray-500";
 		return win
 			? "text-blue-400 border-blue-400"
 			: "text-red-400 border-red-400";
@@ -571,11 +572,10 @@ const MatchHistory = ({
 						<button
 							key={lane.id}
 							onClick={() => handleLaneSelect(lane.id)}
-							className={`p-1.5 rounded-md border transition-colors duration-150 ${
-								selectedLane === lane.id
-									? "bg-[#0b3a64] border-[#3a86ff]"
-									: "bg-[--card-bg] border-[--card-border] hover:border-[#3a86ff]"
-							}`}
+							className={`p-1.5 rounded-md border transition-colors duration-150 ${selectedLane === lane.id
+								? "bg-[#0b3a64] border-[#3a86ff]"
+								: "bg-[--card-bg] border-[--card-border] hover:border-[#3a86ff]"
+								}`}
 							title={lane.id}
 						>
 							<Image src={lane.icon} alt={lane.id} width={22} height={22} />
@@ -619,8 +619,8 @@ const MatchHistory = ({
 								diffDays > 0
 									? `${diffDays}d ago`
 									: diffHours > 0
-									? `${diffHours}h ago`
-									: `${diffMins}m ago`;
+										? `${diffHours}h ago`
+										: `${diffMins}m ago`;
 
 							// 2. Wins / Losses & clutch-score aggregation
 							let wins = 0;
@@ -651,9 +651,8 @@ const MatchHistory = ({
 							// 3. Total play time string (e.g., 2h 42m)
 							const hours = Math.floor(totalDurationSeconds / 3600);
 							const minutes = Math.floor((totalDurationSeconds % 3600) / 60);
-							const totalDurationStr = `${
-								hours > 0 ? `${hours}h ` : ""
-							}${minutes}m`;
+							const totalDurationStr = `${hours > 0 ? `${hours}h ` : ""
+								}${minutes}m`;
 
 							return (
 								<h2 className="text-xs font-semibold text-gray-200 my-4 flex items-center gap-1 flex-wrap">
@@ -716,9 +715,8 @@ const MatchHistory = ({
 									<Tag
 										key="triple-kill"
 										text="Triple Kill"
-										hoverText={`You got ${
-											currentPlayer.tripleKills ?? 0
-										} Triple Kills!`}
+										hoverText={`You got ${currentPlayer.tripleKills ?? 0
+											} Triple Kills!`}
 										color="bg-yellow-500 text-white"
 										icon={<FaBolt />}
 									/>
@@ -807,10 +805,10 @@ const MatchHistory = ({
 							const timeAgo = isNaN(gameCreation.getTime())
 								? "Unknown"
 								: daysDifference > 0
-								? `${daysDifference}d ago`
-								: hoursDifference > 0
-								? `${hoursDifference}h ago`
-								: `${minutesDifference}m ago`;
+									? `${daysDifference}d ago`
+									: hoursDifference > 0
+										? `${hoursDifference}h ago`
+										: `${minutesDifference}m ago`;
 
 							const kda = (
 								((currentPlayer.kills ?? 0) + (currentPlayer.assists ?? 0)) /
@@ -861,13 +859,7 @@ const MatchHistory = ({
 							return (
 								<div key={index} className="overflow-x-auto">
 									<div
-										onClick={() =>
-											setExpandedMatchId(
-												expandedMatchId === match.metadata.matchId
-													? null
-													: match.metadata.matchId
-											)
-										}
+										onClick={() => router.push(`/league/match/${match.metadata.matchId}`)}
 										className={`cursor-pointer rounded-lg shadow-lg p-2 relative flex items-center mb-2 min-w-[768px] text-xs sm:text-sm ${getGradientBackground(
 											match,
 											currentPlayer,
@@ -889,20 +881,19 @@ const MatchHistory = ({
 												</p>
 												<span className="text-md text-gray-300">{timeAgo}</span>
 												<p className="text-sm mr-2 flex items-center gap-1">
-                                            <span
-                                                className={`text-xs ${
-                                                    isRemake
-                                                        ? "text-gray-400"
-                                                        : currentPlayer.win
-                                                        ? "text-blue-400"
-                                                        : "text-red-400"
-                                                }`}
-                                            >
+													<span
+														className={`text-xs ${isRemake
+															? "text-gray-400"
+															: currentPlayer.win
+																? "text-blue-400"
+																: "text-red-400"
+															}`}
+													>
 														{isRemake
 															? "Remake"
 															: currentPlayer.win
-															? "Win"
-															: "Lose"}
+																? "Win"
+																: "Lose"}
 													</span>
 													{`${Math.floor(
 														match.info.gameDuration / 60
@@ -1029,7 +1020,7 @@ const MatchHistory = ({
 												</div>
 											)}
 										{match.info.queueId === 1700 ||
-										match.info.queueId === 1710 ? (
+											match.info.queueId === 1710 ? (
 											<div className="flex ml-auto">
 												<div className="flex flex-col items-start mr-4">
 													<div className="text-xs text-[--text-secondary] mb-1">
@@ -1074,11 +1065,10 @@ const MatchHistory = ({
 																style={{ width: "90px" }}
 															>
 																<span
-																	className={`${
-																		participant.puuid === selectedSummonerPUUID
-																			? "font-semibold text-gray-100"
-																			: ""
-																	}`}
+																	className={`${participant.puuid === selectedSummonerPUUID
+																		? "font-semibold text-gray-100"
+																		: ""
+																		}`}
 																>
 																	{truncateName(cleanBotName(participant.riotIdGameName, match.info.gameMode), 7)}
 																</span>
@@ -1105,11 +1095,10 @@ const MatchHistory = ({
 																style={{ width: "90px" }}
 															>
 																<span
-																	className={`${
-																		participant.puuid === selectedSummonerPUUID
-																			? "font-semibold text-gray-100"
-																			: ""
-																	}`}
+																	className={`${participant.puuid === selectedSummonerPUUID
+																		? "font-semibold text-gray-100"
+																		: ""
+																		}`}
 																>
 																	{truncateName(cleanBotName(participant.riotIdGameName, match.info.gameMode), 7)}
 																</span>
@@ -1119,27 +1108,7 @@ const MatchHistory = ({
 												</div>
 											</div>
 										)}
-										{/* Only show the expand/collapse arrow on non-mobile devices */}
-										{breakpoint !== "mobile" && (
-											<div className="absolute bottom-2 right-2">
-												{expandedMatchId === match.metadata.matchId ? (
-													<FaChevronUp className="text-gray-200" />
-												) : (
-													<FaChevronDown className="text-gray-200" />
-												)}
-											</div>
-										)}
 									</div>
-									{expandedMatchId === match.metadata.matchId && (
-										<div>
-											<MatchDetails
-												matchDetails={matchDetails}
-												matchId={match.metadata.matchId}
-												selectedSummonerPUUID={selectedSummonerPUUID}
-												region={region}
-											/>
-										</div>
-									)}
 								</div>
 							);
 						})}
@@ -1150,11 +1119,10 @@ const MatchHistory = ({
 						<button
 							onClick={() => handlePageChange(currentPage - 1)}
 							disabled={currentPage === 1}
-							className={`px-3 py-1 rounded ${
-								currentPage === 1
-									? "bg-gray-700 cursor-not-allowed text-gray-500"
-									: "bg-gray-800 hover:bg-gray-700 text-gray-200"
-							}`}
+							className={`px-3 py-1 rounded ${currentPage === 1
+								? "bg-gray-700 cursor-not-allowed text-gray-500"
+								: "bg-gray-800 hover:bg-gray-700 text-gray-200"
+								}`}
 						>
 							Previous
 						</button>
@@ -1162,11 +1130,10 @@ const MatchHistory = ({
 							<button
 								key={page}
 								onClick={() => handlePageChange(page)}
-								className={`px-3 py-1 rounded ${
-									currentPage === page
-										? "bg-gray-700 text-white"
-										: "bg-gray-800 hover:bg-gray-700 text-gray-200"
-								}`}
+								className={`px-3 py-1 rounded ${currentPage === page
+									? "bg-gray-700 text-white"
+									: "bg-gray-800 hover:bg-gray-700 text-gray-200"
+									}`}
 							>
 								{page}
 							</button>
@@ -1174,11 +1141,10 @@ const MatchHistory = ({
 						<button
 							onClick={() => handlePageChange(currentPage + 1)}
 							disabled={currentPage === totalPages}
-							className={`px-3 py-1 rounded ${
-								currentPage === totalPages
-									? "bg-gray-700 cursor-not-allowed text-gray-500"
-									: "bg-gray-800 hover:bg-gray-700 text-gray-200"
-							}`}
+							className={`px-3 py-1 rounded ${currentPage === totalPages
+								? "bg-gray-700 cursor-not-allowed text-gray-500"
+								: "bg-gray-800 hover:bg-gray-700 text-gray-200"
+								}`}
 						>
 							Next
 						</button>

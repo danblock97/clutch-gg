@@ -203,75 +203,73 @@ export default function StatsTab({ matchDetails, matchId }) {
 							</div>
 
 							{/* Stats Table */}
-							<div className="w-full">
-								<table className="w-full table-fixed">
+							<div className="w-full overflow-x-auto">
+								<table className="w-full min-w-[800px] table-fixed">
 									<thead>
-									<tr className="bg-[--card-bg] text-xs text-[--text-secondary]">
-										<th className="py-1 px-1 text-left w-20">Stat</th>
-										{participants.map((p, idx) => (
-											<th key={idx} className="py-1 px-1 text-center">
-												<div className="flex flex-col items-center">
-													<div className="relative w-6 h-6">
-														<Image
-															src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${p.championId}.png`}
-															alt="champion"
-															width={24}
-															height={24}
-															className="rounded-full border border-[--card-border]"
-														/>
+										<tr className="bg-[--card-bg] text-xs text-[--text-secondary]">
+											<th className="py-1 px-1 text-left w-24 sticky left-0 bg-[--card-bg] z-10 border-r border-[--card-border]">Stat</th>
+											{participants.map((p, idx) => (
+												<th key={idx} className="py-1 px-1 text-center">
+													<div className="flex flex-col items-center">
+														<div className="relative w-6 h-6">
+															<Image
+																src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${p.championId}.png`}
+																alt="champion"
+																width={24}
+																height={24}
+																className="rounded-full border border-[--card-border]"
+															/>
+														</div>
+														<span className="truncate text-xs max-w-[50px]">
+															{cleanBotName(p.riotIdGameName, match.info.gameMode)?.split('#')[0]}
+														</span>
 													</div>
-													<span className="truncate text-xs max-w-[50px]">
-                              {cleanBotName(p.riotIdGameName, match.info.gameMode)?.split('#')[0]}
-                            </span>
-												</div>
-											</th>
-										))}
-									</tr>
+												</th>
+											))}
+										</tr>
 									</thead>
 									<tbody>
-									{category.stats.map((stat, idx) => (
-										<tr
-											key={idx}
-											className={`border-b border-[--card-border]/20 hover:bg-[--card-bg-secondary] ${
-												idx % 2 === 0 ? 'bg-[--card-bg]/50' : ''
-											}`}
-										>
-											<td className="py-1 px-1 font-medium text-[--text-secondary] text-xs">{stat.label}</td>
-											{participants.map((p, pIdx) => {
-												// Get stat value - safely
-												let value;
-												try {
-													value = stat.getValue(p);
-												} catch (error) {
-													value = 0;
-												}
-
-												// Find the highest value for this stat to highlight
-												const allValues = participants.map(part => {
+										{category.stats.map((stat, idx) => (
+											<tr
+												key={idx}
+												className={`border-b border-[--card-border]/20 hover:bg-[--card-bg-secondary] ${idx % 2 === 0 ? 'bg-[--card-bg]/50' : ''
+													}`}
+											>
+												<td className="py-1 px-1 font-medium text-[--text-secondary] text-xs sticky left-0 bg-[--card-bg] z-10 border-r border-[--card-border]">{stat.label}</td>
+												{participants.map((p, pIdx) => {
+													// Get stat value - safely
+													let value;
 													try {
-														const val = stat.getValue(part);
-														return typeof val === 'number' ? val : 0;
+														value = stat.getValue(p);
 													} catch (error) {
-														return 0;
+														value = 0;
 													}
-												});
 
-												const maxValue = Math.max(...allValues.filter(val => !isNaN(val) && val !== undefined));
-												const isHighest = typeof value === 'number' && !isNaN(value) && value === maxValue && maxValue > 0;
+													// Find the highest value for this stat to highlight
+													const allValues = participants.map(part => {
+														try {
+															const val = stat.getValue(part);
+															return typeof val === 'number' ? val : 0;
+														} catch (error) {
+															return 0;
+														}
+													});
 
-												return (
-													<td
-														key={pIdx}
-														className={`py-1 px-1 text-center text-xs ${
-															isHighest ? 'font-bold text-[--primary]' : ''
-														}`}
-													>
-														{value}
-													</td>
-												);
-											})}
-										</tr>
-									))}
+													const maxValue = Math.max(...allValues.filter(val => !isNaN(val) && val !== undefined));
+													const isHighest = typeof value === 'number' && !isNaN(value) && value === maxValue && maxValue > 0;
+
+													return (
+														<td
+															key={pIdx}
+															className={`py-2 px-1 text-center text-xs whitespace-nowrap ${isHighest ? 'font-bold text-[--primary]' : ''
+																}`}
+														>
+															{value}
+														</td>
+													);
+												})}
+											</tr>
+										))}
 									</tbody>
 								</table>
 							</div>

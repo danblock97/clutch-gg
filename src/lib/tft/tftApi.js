@@ -9,13 +9,13 @@ export const fetchTFTSummonerData = async (encryptedPUUID, region) => {
 	if (!TFT_API_KEY) {
 		throw new Error("TFT_API_KEY is not configured");
 	}
-	
+
 	const url = `https://${region}.api.riotgames.com/tft/summoner/v1/summoners/by-puuid/${encryptedPUUID}`;
-	
+
 	const summonerResponse = await fetch(url, {
 		headers: { "X-Riot-Token": TFT_API_KEY }
 	});
-	
+
 	if (!summonerResponse.ok) {
 		const errorText = await summonerResponse.text();
 		console.error(`TFT Summoner API Error: ${summonerResponse.status} - ${errorText}`);
@@ -35,11 +35,11 @@ export const fetchTFTRankedData = async (puuid, region) => {
 	}
 
 	const url = `https://${region}.api.riotgames.com/tft/league/v1/by-puuid/${puuid}`;
-	
+
 	const rankedResponse = await fetch(url, {
 		headers: { "X-Riot-Token": TFT_API_KEY }
 	});
-	
+
 	if (!rankedResponse.ok) {
 		if (rankedResponse.status === 404) {
 			console.log(`TFT ranked data not found for PUUID ${puuid} in region ${region} - player may be unranked`);
@@ -71,14 +71,36 @@ export const fetchTFTMatchIds = async (encryptedPUUID, platform) => {
  * Fetch detailed TFT match data.
  */
 export const fetchTFTMatchDetail = async (matchId, platform) => {
-	const matchDetailResponse = await fetch(
-		`https://${platform}.api.riotgames.com/tft/match/v1/matches/${matchId}`,
-		{ headers: { "X-Riot-Token": TFT_API_KEY } }
-	);
-	if (!matchDetailResponse.ok) {
+	// 1. Try fetching from Supabase cache first
+	try {
+		const { data: cachedMatch, error } = await supabase
+			.from("tft_matches")
+			.select("match_data")
+			.eq("matchid", matchId)
+			.maybeSingle();
+
+		if (!error && cachedMatch?.match_data) {
+			return cachedMatch.match_data;
+		}
+	} catch (dbError) {
+		console.warn(`Failed to fetch TFT match ${matchId} from DB cache:`, dbError);
+	}
+
+	// 2. Fallback to Riot API
+	try {
+		const matchDetailResponse = await fetch(
+			`https://${platform}.api.riotgames.com/tft/match/v1/matches/${matchId}`,
+			{ headers: { "X-Riot-Token": TFT_API_KEY } }
+		);
+		if (!matchDetailResponse.ok) {
+			console.error(`Riot API Error for TFT match ${matchId}: ${matchDetailResponse.status}`);
+			return null;
+		}
+		return matchDetailResponse.json();
+	} catch (apiError) {
+		console.error(`Riot API Exception for TFT match ${matchId}:`, apiError);
 		return null;
 	}
-	return matchDetailResponse.json();
 };
 
 /**
@@ -198,7 +220,7 @@ export const fetchTFTAdditionalData = async (puuid, region) => {
 		);
 
 		// Combine tier and rank into a single field for LiveGame component compatibility
-		const combinedRank = rankedTftData 
+		const combinedRank = rankedTftData
 			? `${rankedTftData.tier} ${rankedTftData.rank}`.trim()
 			: "Unranked";
 
@@ -321,7 +343,7 @@ export const fetchTFTAdditionalGameData = async (puuid, region) => {
 
 		// Handle errors gracefully for live game data
 		const rankedData = rankedResponse.ok ? await rankedResponse.json() : [];
-		
+
 		if (!accountResponse.ok || !summonerResponse.ok) {
 			throw new Error("Failed to fetch essential TFT live game data");
 		}
@@ -337,7 +359,7 @@ export const fetchTFTAdditionalGameData = async (puuid, region) => {
 		);
 
 		// Combine tier and rank into a single field for LiveGame component compatibility
-		const combinedRank = rankedTftData 
+		const combinedRank = rankedTftData
 			? `${rankedTftData.tier} ${rankedTftData.rank}`.trim()
 			: "Unranked";
 
