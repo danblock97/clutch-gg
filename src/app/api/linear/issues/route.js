@@ -60,6 +60,7 @@ export async function GET(req) {
 					createdAt: i.createdAt,
 					labels: i.labels,
 					descriptionSnippet: i.description ? String(i.description).slice(0, 120) : "",
+					description: i.description || "",
 					assignee: i.assignee,
 				})),
 			},
