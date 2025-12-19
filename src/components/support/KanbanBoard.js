@@ -343,14 +343,14 @@ export default function KanbanBoard({ type = "all" }) {
                                                     ) : null}
 
                                                     <div className="flex items-center gap-1">
-                                                        {issue.labels?.nodes?.map(l => {
-                                                            if (l.name === "ClutchGG") return null;
-
+                                                        {issue.labels?.nodes?.filter(l => ["ClutchGG", "Bug", "Feature"].includes(l.name)).map(l => {
                                                             let styleClass = "bg-white/5 text-[--text-secondary] border-white/5";
                                                             if (l.name.toLowerCase().includes("bug")) {
                                                                 styleClass = "bg-red-500/10 text-red-200 border-red-500/20";
                                                             } else if (l.name.toLowerCase().includes("feature")) {
                                                                 styleClass = "bg-blue-500/10 text-blue-200 border-blue-500/20";
+                                                            } else if (l.name === "ClutchGG") {
+                                                                styleClass = "bg-[--primary]/10 text-[--primary] border-[--primary]/20";
                                                             }
 
                                                             return (

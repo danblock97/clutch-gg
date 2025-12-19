@@ -64,10 +64,10 @@ export default function IssueSideSheet({ issue, onClose }) {
                         </span>
                         <div className="h-4 w-px bg-white/10"></div>
                         <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium border ${issue.state?.type === "backlog" ? "border-white/10 bg-white/5 text-[--text-secondary]" :
-                                issue.state?.type === "unstarted" ? "border-white/10 bg-white/5 text-[--text-secondary]" :
-                                    issue.state?.type === "started" ? "border-blue-500/30 bg-blue-500/10 text-blue-200" :
-                                        issue.state?.type === "completed" ? "border-green-500/30 bg-green-500/10 text-green-200" :
-                                            "border-white/10 bg-white/5 text-[--text-secondary]"
+                            issue.state?.type === "unstarted" ? "border-white/10 bg-white/5 text-[--text-secondary]" :
+                                issue.state?.type === "started" ? "border-blue-500/30 bg-blue-500/10 text-blue-200" :
+                                    issue.state?.type === "completed" ? "border-green-500/30 bg-green-500/10 text-green-200" :
+                                        "border-white/10 bg-white/5 text-[--text-secondary]"
                             }`}>
                             {issue.state?.name}
                         </span>
@@ -129,12 +129,19 @@ export default function IssueSideSheet({ issue, onClose }) {
                                     Tags
                                 </label>
                                 <div className="flex flex-wrap gap-2">
-                                    {issue.labels.nodes.map(label => {
-                                        if (label.name === "ClutchGG") return null;
+                                    {issue.labels.nodes.filter(label => ["ClutchGG", "Bug", "Feature"].includes(label.name)).map(label => {
+                                        let styleClass = "border-white/10 bg-white/5 text-[--text-secondary]";
+                                        if (label.name.toLowerCase().includes("bug")) {
+                                            styleClass = "bg-red-500/10 text-red-200 border-red-500/20";
+                                        } else if (label.name.toLowerCase().includes("feature")) {
+                                            styleClass = "bg-blue-500/10 text-blue-200 border-blue-500/20";
+                                        } else if (label.name === "ClutchGG") {
+                                            styleClass = "bg-[--primary]/10 text-[--primary] border-[--primary]/20";
+                                        }
                                         return (
                                             <span
                                                 key={label.id}
-                                                className="px-2 py-1 text-xs rounded-md border border-white/10 bg-white/5 text-[--text-secondary]"
+                                                className={`px-2 py-1 text-xs rounded-md border ${styleClass}`}
                                             >
                                                 {label.name}
                                             </span>
