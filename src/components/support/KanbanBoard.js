@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { LuSignalHigh, LuSignalMedium, LuSignalLow, LuTriangleAlert, LuMinus, LuSearch, LuFilter } from "react-icons/lu";
+import { LuSignalHigh, LuSignalMedium, LuSignalLow, LuTriangleAlert, LuMinus, LuSearch, LuFilter, LuBug, LuGlobe, LuZap, LuSmartphone, LuClock } from "react-icons/lu";
 import IssueSideSheet from "./IssueSideSheet";
 
 function priorityLabel(priority) {
@@ -49,7 +49,8 @@ export default function KanbanBoard({ type = "all" }) {
 
     // New State for Search/Filter/Sheet
     const [searchQuery, setSearchQuery] = useState("");
-    const [filterType, setFilterType] = useState("all"); // 'all', 'bug', 'feature'
+    const [platformFilter, setPlatformFilter] = useState("all"); // 'all', 'web', 'app'
+    const [issueTypeFilter, setIssueTypeFilter] = useState("all"); // 'all', 'bug', 'feature'
     const [selectedIssue, setSelectedIssue] = useState(null);
 
     useEffect(() => {
@@ -177,17 +178,24 @@ export default function KanbanBoard({ type = "all" }) {
             );
         }
 
-        // 2. Filter by Type
-        if (filterType !== 'all') {
+        // 2. Filter by Platform
+        if (platformFilter !== 'all') {
             filtered = filtered.filter(i => {
                 const labels = i.labels?.nodes || [];
-                // Check if any label matches the filter type (case insensitive part match)
-                return labels.some(l => l.name.toLowerCase().includes(filterType));
+                return labels.some(l => l.name.toLowerCase().includes(platformFilter));
+            });
+        }
+
+        // 3. Filter by Issue Type
+        if (issueTypeFilter !== 'all') {
+            filtered = filtered.filter(i => {
+                const labels = i.labels?.nodes || [];
+                return labels.some(l => l.name.toLowerCase().includes(issueTypeFilter));
             });
         }
 
         return filtered;
-    }, [groupedIssues, searchQuery, filterType]);
+    }, [groupedIssues, searchQuery, platformFilter, issueTypeFilter]);
 
     // Re-group for display based on filtered results
     const displayedGroups = useMemo(() => {
@@ -244,31 +252,60 @@ export default function KanbanBoard({ type = "all" }) {
     return (
         <div className="flex flex-col h-full gap-6">
             {/* Controls */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-1">
-                <div className="relative max-w-sm w-full">
-                    <LuSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[--text-secondary] w-4 h-4" />
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-1">
+                {/* Search */}
+                <div className="relative flex-1 max-w-md">
+                    <LuSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-[--text-secondary] w-4.5 h-4.5" />
                     <input
                         type="text"
                         placeholder="Search issues..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-4 py-2 text-sm text-[--text-primary] placeholder:text-[--text-secondary]/50 focus:outline-none focus:ring-1 focus:ring-[--primary]/50 transition-all"
+                        className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-sm text-[--text-primary] placeholder:text-[--text-secondary]/50 focus:outline-none focus:ring-2 focus:ring-[--primary]/30 transition-all font-medium"
                     />
                 </div>
 
-                <div className="flex items-center gap-2 bg-white/5 border border-white/10 p-1 rounded-lg self-start sm:self-auto">
-                    {['all', 'bug', 'feature'].map((t) => (
-                        <button
-                            key={t}
-                            onClick={() => setFilterType(t)}
-                            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all capitalize ${filterType === t
-                                ? "bg-[--primary] text-white shadow-sm"
-                                : "text-[--text-secondary] hover:text-[--text-primary] hover:bg-white/5"
-                                }`}
-                        >
-                            {t}
-                        </button>
-                    ))}
+                <div className="flex items-center gap-4">
+                    {/* Device/Platform Filter */}
+                    <div className="flex items-center gap-1.5 bg-white/5 border border-white/10 p-1.5 rounded-xl">
+                        {[
+                            { id: 'all', label: 'All', icon: null },
+                            { id: 'web', label: 'Web', icon: <div className="w-4 h-4 rounded-sm border border-current flex items-center justify-center text-[10px] font-bold">W</div> },
+                            { id: 'app', label: 'App', icon: <div className="w-4 h-4 rounded-sm border border-current flex items-center justify-center text-[10px] font-bold">A</div> }
+                        ].map((t) => (
+                            <button
+                                key={t.id}
+                                onClick={() => setPlatformFilter(t.id)}
+                                className={`px-4 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all ${platformFilter === t.id
+                                    ? "bg-white text-black shadow-lg"
+                                    : "text-[--text-secondary] hover:text-[--text-primary] hover:bg-white/5"
+                                    }`}
+                            >
+                                {t.icon}
+                                {t.label}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Issue Type Filter */}
+                    <div className="flex items-center gap-1.5 bg-white/5 border border-white/10 p-1.5 rounded-xl">
+                        {[
+                            { id: 'all', label: 'All' },
+                            { id: 'bug', label: 'Bug' },
+                            { id: 'feature', label: 'Feat' }
+                        ].map((t) => (
+                            <button
+                                key={t.id}
+                                onClick={() => setIssueTypeFilter(t.id)}
+                                className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${issueTypeFilter === t.id
+                                    ? "bg-white text-black shadow-lg"
+                                    : "text-[--text-secondary] hover:text-[--text-primary] hover:bg-white/5"
+                                    }`}
+                            >
+                                {t.label}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </div>
 
@@ -281,12 +318,18 @@ export default function KanbanBoard({ type = "all" }) {
                         return (
                             <div key={state.id} className="w-80 flex-shrink-0 flex flex-col gap-4">
                                 {/* Column Header */}
-                                <div className="flex items-center justify-between px-2">
+                                <div className="flex items-center justify-between px-2 mb-2">
                                     <div className="flex items-center gap-2">
-                                        <span className="font-bold text-sm uppercase tracking-wider text-[--text-secondary]">
+                                        <div className={`w-2 h-2 rounded-full ${state.type === 'backlog' ? 'bg-gray-500' :
+                                            state.type === 'unstarted' ? 'bg-yellow-500' :
+                                                state.type === 'started' ? 'bg-blue-500' :
+                                                    state.type === 'completed' ? 'bg-green-500' :
+                                                        'bg-red-500'
+                                            }`} />
+                                        <span className="font-bold text-[13px] text-[--text-primary]">
                                             {state.name}
                                         </span>
-                                        <span className="bg-white/10 text-[--text-secondary] text-xs px-2 py-0.5 rounded-full">
+                                        <span className="text-[--text-secondary] text-[13px] font-medium ml-1">
                                             {groupIssues.length}
                                         </span>
                                     </div>
@@ -298,36 +341,16 @@ export default function KanbanBoard({ type = "all" }) {
                                         <div
                                             key={issue.id}
                                             onClick={() => setSelectedIssue(issue)}
-                                            className="bg-[--card-bg] border border-white/5 p-4 rounded-xl shadow-lg hover:border-white/10 transition group flex flex-col gap-3 cursor-pointer hover:bg-white/[0.02]"
+                                            className="bg-[--card-bg] border border-white/5 p-5 rounded-2xl shadow-xl hover:border-white/10 transition-all group flex flex-col gap-4 cursor-pointer hover:bg-white/[0.03] active:scale-[0.98]"
                                         >
-                                            <div className="flex items-start justify-between gap-3">
+                                            <div className="flex items-start justify-between">
+                                                <span className="text-[13px] font-bold font-mono text-[--text-secondary] group-hover:text-[--primary] transition-colors">
+                                                    {issue.identifier}
+                                                </span>
                                                 <div className="flex items-center gap-2">
-                                                    <div title={priorityLabel(issue.priority)}>
-                                                        <PriorityIcon priority={issue.priority} />
-                                                    </div>
-                                                    <span className="text-sm font-bold font-mono text-[--text-secondary] group-hover:text-[--primary] transition-colors">
-                                                        {issue.identifier}
-                                                    </span>
-                                                </div>
-                                                {/* Removed old badge */}
-                                            </div>
-
-                                            <div>
-                                                <h4 className="font-semibold text-sm leading-snug mb-1 block text-balance text-[--text-primary]">
-                                                    {issue.title}
-                                                </h4>
-                                                {issue.descriptionSnippet && (
-                                                    <p className="text-xs text-[--text-secondary] line-clamp-2 leading-relaxed">
-                                                        {issue.descriptionSnippet}...
-                                                    </p>
-                                                )}
-                                            </div>
-
-                                            <div className="flex items-center justify-between pt-2 border-t border-white/5 mt-auto">
-                                                <div className="flex items-center gap-2">
-                                                    {/* Assignee Avatar */}
+                                                    <PriorityIcon priority={issue.priority} />
                                                     {issue.assignee ? (
-                                                        <div className="flex items-center gap-1.5" title={`Assigned to ${issue.assignee.name}`}>
+                                                        <div title={`Assigned to ${issue.assignee.name}`}>
                                                             {issue.assignee.avatarUrl ? (
                                                                 <img
                                                                     src={issue.assignee.avatarUrl}
@@ -341,29 +364,55 @@ export default function KanbanBoard({ type = "all" }) {
                                                             )}
                                                         </div>
                                                     ) : null}
+                                                </div>
+                                            </div>
 
-                                                    <div className="flex items-center gap-1">
-                                                        {issue.labels?.nodes?.filter(l => ["ClutchGG", "Bug", "Feature"].includes(l.name)).map(l => {
-                                                            let styleClass = "bg-white/5 text-[--text-secondary] border-white/5";
-                                                            if (l.name.toLowerCase().includes("bug")) {
-                                                                styleClass = "bg-red-500/10 text-red-200 border-red-500/20";
-                                                            } else if (l.name.toLowerCase().includes("feature")) {
-                                                                styleClass = "bg-blue-500/10 text-blue-200 border-blue-500/20";
-                                                            } else if (l.name === "ClutchGG") {
-                                                                styleClass = "bg-[--primary]/10 text-[--primary] border-[--primary]/20";
-                                                            }
+                                            <div className="space-y-2">
+                                                <h4 className="font-bold text-[15px] leading-tight text-[--text-primary]">
+                                                    {issue.title}
+                                                </h4>
+                                                {issue.descriptionSnippet && (
+                                                    <p className="text-[13px] text-[--text-secondary] line-clamp-3 leading-relaxed font-medium">
+                                                        {issue.descriptionSnippet}
+                                                    </p>
+                                                )}
+                                            </div>
 
-                                                            return (
-                                                                <span key={l.id} className={`text-[10px] px-1.5 py-0.5 rounded border ${styleClass}`}>
-                                                                    {l.name}
-                                                                </span>
-                                                            );
-                                                        })}
-                                                    </div>
+                                            <div className="flex flex-col gap-3 mt-auto">
+                                                <div className="flex flex-wrap gap-2">
+                                                    {issue.labels?.nodes?.filter(l => ["ClutchGG", "Bug", "Feature", "Web", "App"].includes(l.name)).map(l => {
+                                                        let styleClass = "bg-white/5 text-[--text-secondary] border-white/5";
+                                                        let icon = null;
+
+                                                        const name = l.name.toLowerCase();
+                                                        if (name.includes("bug")) {
+                                                            styleClass = "bg-red-500/10 text-red-400 border-red-500/20";
+                                                            icon = <LuBug className="w-3 h-3" />;
+                                                        } else if (name.includes("feature")) {
+                                                            styleClass = "bg-green-500/10 text-green-400 border-green-500/20";
+                                                            icon = <LuZap className="w-3 h-3" />;
+                                                        } else if (name.includes("web")) {
+                                                            styleClass = "bg-blue-500/10 text-blue-400 border-blue-500/20";
+                                                            icon = <LuGlobe className="w-3 h-3" />;
+                                                        } else if (name.includes("app")) {
+                                                            styleClass = "bg-purple-500/10 text-purple-400 border-purple-500/20";
+                                                            icon = <LuSmartphone className="w-3 h-3" />;
+                                                        } else if (l.name === "ClutchGG") {
+                                                            styleClass = "bg-[--primary]/10 text-[--primary] border-[--primary]/20";
+                                                        }
+
+                                                        return (
+                                                            <span key={l.id} className={`text-[10px] px-2 py-1 rounded-md border font-bold flex items-center gap-1.5 uppercase tracking-wider ${styleClass}`}>
+                                                                {icon}
+                                                                {l.name}
+                                                            </span>
+                                                        );
+                                                    })}
                                                 </div>
 
-                                                <div className="text-[10px] text-[--text-secondary] whitespace-nowrap ml-2">
-                                                    {new Date(issue.updatedAt || issue.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                                <div className="flex items-center gap-1.5 text-[11px] text-[--text-secondary] font-medium">
+                                                    <LuClock className="w-3 h-3" />
+                                                    <span>Updated {new Date(issue.updatedAt || issue.createdAt).toLocaleDateString(undefined, { month: '2-digit', day: '2-digit', year: 'numeric' })}</span>
                                                 </div>
                                             </div>
                                         </div>

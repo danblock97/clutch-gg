@@ -9,20 +9,21 @@ export default function IssuesPage() {
     return (
         <div className="flex flex-col h-[calc(100vh-64px)] overflow-hidden">
             {/* Header */}
-            <div className="flex-shrink-0 border-b border-white/10 bg-[--background]">
-                <div className="px-6 py-6 max-w-[1920px] mx-auto w-full">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h1 className="text-2xl font-bold flex items-center gap-3">
-                                <div className="w-2 h-8 bg-gradient-to-b from-[--primary] to-[--secondary] rounded-full"></div>
-                                Issues Board
+            <div className="flex-shrink-0 bg-[--background]">
+                <div className="px-6 py-12 max-w-[1920px] mx-auto w-full">
+                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                        <div className="max-w-3xl">
+                            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-[--text-primary] mb-4">
+                                Public Roadmap
                             </h1>
-                            <p className="text-[--text-secondary] mt-1 ml-5 text-sm">
-                                Track development progress, known bugs, and feature requests live from our Linear workspace.
+                            <p className="text-xl text-[--text-secondary] leading-relaxed">
+                                See what we're building, what's coming next, and the status of known issues.
                             </p>
                         </div>
-                        <div>
-                            {/* Could add filters here later */}
+                        <div className="flex-shrink-0">
+                            <button className="px-6 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-sm font-semibold rounded-full border border-red-500/20 transition-all">
+                                Report an Issue
+                            </button>
                         </div>
                     </div>
                 </div>
