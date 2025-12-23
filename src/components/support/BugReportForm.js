@@ -149,10 +149,10 @@ export default function BugReportForm() {
 					<select
 						value={priority}
 						onChange={(e) => setPriority(e.target.value)}
-						className="w-full rounded-xl bg-[--card] border border-white/10 px-4 py-3 outline-none focus:ring-2 focus:ring-[--primary]"
+						className="w-full rounded-xl bg-[--card] border border-white/10 px-4 py-3 outline-none focus:ring-2 focus:ring-[--primary] text-[--text-primary]"
 					>
 						{PRIORITY_OPTIONS.map((opt) => (
-							<option key={opt.value} value={opt.value}>
+							<option key={opt.value} value={opt.value} className="bg-[#1a1a2e] text-white">
 								{opt.label}
 							</option>
 						))}
