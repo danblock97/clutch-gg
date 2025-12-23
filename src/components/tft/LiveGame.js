@@ -295,7 +295,7 @@ function getTFTSetNumber(liveGameData, matchHistory) {
 
 	// If we can't determine, check current date - this is a fallback
 	// As of late 2025, default to current set if undetectable
-	return "Set 15";
+	return "Set 16";
 }
 
 /**

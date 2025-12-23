@@ -1,3 +1,4 @@
+import Link from "next/link";
 import KanbanBoard from "@/components/support/KanbanBoard";
 
 export const metadata = {
@@ -21,9 +22,9 @@ export default function IssuesPage() {
                             </p>
                         </div>
                         <div className="flex-shrink-0">
-                            <button className="px-6 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-sm font-semibold rounded-full border border-red-500/20 transition-all">
+                            <Link href="/support" className="px-6 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-sm font-semibold rounded-full border border-red-500/20 transition-all inline-block">
                                 Report an Issue
-                            </button>
+                            </Link>
                         </div>
                     </div>
                 </div>
