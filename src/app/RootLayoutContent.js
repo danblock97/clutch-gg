@@ -11,6 +11,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import CookieConsentBanner from "@/components/CookieConsentBanner";
 import PropTypes from "prop-types";
+import Snowfall from "react-snowfall";
 
 export default function RootLayoutContent({ children }) {
 	// Only show banners if there's an actual message
@@ -39,6 +40,7 @@ export default function RootLayoutContent({ children }) {
 	return (
 		<GameTypeProvider>
 			<AuthProvider>
+				<Snowfall />
 				{isOutageBannerVisible && (
 					<OutageBanner
 						message={outageMessage}
