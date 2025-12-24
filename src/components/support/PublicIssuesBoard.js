@@ -115,7 +115,7 @@ export default function PublicIssuesBoard({ type = "bug" }) {
 						value={query}
 						onChange={(e) => setQuery(e.target.value)}
 						placeholder="Search…"
-						className="w-full sm:w-64 rounded-xl bg-[--card] border border-white/10 px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-[--primary]"
+						className="w-full sm:w-64 rounded-xl bg-[--card-bg] border border-[--card-border] px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-[--primary] text-[--text-primary] font-sans"
 					/>
 					<button
 						type="button"

@@ -124,7 +124,7 @@ export default function BugReportForm() {
 						value={title}
 						onChange={(e) => setTitle(e.target.value)}
 						placeholder="Short summary of what went wrong"
-						className="w-full rounded-xl bg-[--card] border border-white/10 px-4 py-3 outline-none focus:ring-2 focus:ring-[--primary]"
+						className="w-full rounded-xl bg-[--card-bg] border border-[--card-border] px-4 py-3 outline-none focus:ring-2 focus:ring-[--primary] text-[--text-primary] font-sans"
 						minLength={3}
 						maxLength={120}
 						required
@@ -137,7 +137,7 @@ export default function BugReportForm() {
 						value={description}
 						onChange={(e) => setDescription(e.target.value)}
 						placeholder="What happened? What did you expect? Steps to reproduce?"
-						className="w-full min-h-[180px] rounded-xl bg-[--card] border border-white/10 px-4 py-3 outline-none focus:ring-2 focus:ring-[--primary] resize-y"
+						className="w-full min-h-[180px] rounded-xl bg-[--card-bg] border border-[--card-border] px-4 py-3 outline-none focus:ring-2 focus:ring-[--primary] resize-y text-[--text-primary] font-sans"
 						minLength={10}
 						maxLength={5000}
 						required
@@ -149,10 +149,10 @@ export default function BugReportForm() {
 					<select
 						value={priority}
 						onChange={(e) => setPriority(e.target.value)}
-						className="w-full rounded-xl bg-[--card] border border-white/10 px-4 py-3 outline-none focus:ring-2 focus:ring-[--primary] text-[--text-primary]"
+						className="w-full rounded-xl bg-[--card-bg] border border-[--card-border] px-4 py-3 outline-none focus:ring-2 focus:ring-[--primary] text-[--text-primary] font-sans"
 					>
 						{PRIORITY_OPTIONS.map((opt) => (
-							<option key={opt.value} value={opt.value} className="bg-[#1a1a2e] text-white">
+							<option key={opt.value} value={opt.value} className="bg-[--card-bg-secondary] text-[--text-primary]">
 								{opt.label}
 							</option>
 						))}
