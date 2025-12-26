@@ -4,6 +4,7 @@ import React, { createContext, useState, useContext, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase, supabaseAdmin } from "@/lib/supabase";
 import { useGameType } from "@/context/GameTypeContext";
+import { buildProfileUrl } from "@/lib/utils/urlHelpers";
 
 // Create the auth context
 const AuthContext = createContext();
