@@ -7,6 +7,7 @@ import Link from "next/link";
 import SearchBar from "@/components/SearchBar";
 import { useGameType } from "@/context/GameTypeContext";
 import { useAuth } from "@/context/AuthContext";
+import { buildProfileUrl, parseProfileUrl } from "@/lib/utils/urlHelpers";
 import {
 	FaCoffee,
 	FaSearch,
@@ -114,22 +115,38 @@ const NavBar = ({ bannersVisible = 0 }) => {
 
 		// Check if we're on a profile page
 		if (pathname?.includes("/profile")) {
-			// Get the current query params
-			const gameName = searchParams.get("gameName");
-			const tagLine = searchParams.get("tagLine");
-			const region = searchParams.get("region");
+			let gameName, tagLine, region;
+
+			// First, try to parse the new URL format (path segments)
+			const parsedUrl = parseProfileUrl(pathname);
+			if (parsedUrl) {
+				gameName = parsedUrl.gameName;
+				tagLine = parsedUrl.tagLine;
+				region = parsedUrl.region;
+			} else {
+				// Fallback to query params (old URL format)
+				gameName = searchParams.get("gameName");
+				tagLine = searchParams.get("tagLine");
+				region = searchParams.get("region");
+			}
 
 			// Only redirect if we have all the necessary params
 			if (gameName && tagLine && region) {
-				// Construct the new path based on game type
-				const basePath = type === "tft" ? "/tft" : "/league";
-				router.push(
-					`${basePath}/profile?gameName=${encodeURIComponent(
-						gameName
-					)}&tagLine=${encodeURIComponent(tagLine)}&region=${encodeURIComponent(
-						region
-					)}`
-				);
+				// Construct the new clean URL for the selected game type
+				const profileUrl = buildProfileUrl(type, region, gameName, tagLine);
+				if (profileUrl) {
+					router.push(profileUrl);
+				} else {
+					// Fallback to old format if URL building fails
+					const basePath = type === "tft" ? "/tft" : "/league";
+					router.push(
+						`${basePath}/profile?gameName=${encodeURIComponent(
+							gameName
+						)}&tagLine=${encodeURIComponent(tagLine)}&region=${encodeURIComponent(
+							region
+						)}`
+					);
+				}
 			}
 		}
 		// Handle leaderboard redirect (existing logic)

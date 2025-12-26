@@ -191,7 +191,9 @@ const Profile = ({
 								alt="Player Icon"
 								width={112}
 								height={112}
+								sizes="(max-width: 640px) 96px, 112px"
 								className="w-full h-full object-cover"
+								loading="lazy"
 							/>
 						</div>
 						<div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2">

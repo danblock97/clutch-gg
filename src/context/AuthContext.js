@@ -55,15 +55,23 @@ export const AuthProvider = ({ children }) => {
 	const navigateToProfile = () => {
 		if (!user) return;
 
-		const basePath = gameType === "tft" ? "/tft" : "/league";
 		// Ensure region is in uppercase format for API compatibility
 		const normalizedRegion = user.region ? user.region.toUpperCase() : "EUW1";
-
-		router.push(
-			`${basePath}/profile?gameName=${encodeURIComponent(
-				user.gameName
-			)}&tagLine=${encodeURIComponent(user.tagLine)}&region=${normalizedRegion}`
-		);
+		
+		// Use clean URL format
+		const profileUrl = buildProfileUrl(gameType, normalizedRegion, user.gameName, user.tagLine);
+		
+		if (profileUrl) {
+			router.push(profileUrl);
+		} else {
+			// Fallback to old format
+			const basePath = gameType === "tft" ? "/tft" : "/league";
+			router.push(
+				`${basePath}/profile?gameName=${encodeURIComponent(
+					user.gameName
+				)}&tagLine=${encodeURIComponent(user.tagLine)}&region=${normalizedRegion}`
+			);
+		}
 	};
 
 	// Check if user is authenticated on mount

@@ -1,34 +1,36 @@
-import React, { Suspense } from "react";
-import ProfilePageContent from "./ProfilePageContent";
+"use client";
+
+import { useEffect, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { buildProfileUrl } from "@/lib/utils/urlHelpers";
 import Loading from "@/components/Loading";
 
-// Static metadata
-export const metadata = {
-	title: "Teamfight Tactics Profile - ClutchGG",
-	description: "View detailed Teamfight Tactics profile statistics including match history, rank progression, unit performance, and trait analysis.",
-	keywords: ["TFT profile", "Teamfight Tactics stats", "TFT match history", "auto chess", "TFT rank", "TFT units", "TFT traits"],
-	openGraph: {
-		title: "Teamfight Tactics Profile - ClutchGG",
-		description: "View detailed Teamfight Tactics profile statistics including match history, rank progression, unit performance, and trait analysis.",
-		type: "profile",
-		images: [
-			{
-				url: "/images/logo.png",
-				width: 1200,
-				height: 630,
-				alt: "Teamfight Tactics Profile",
-			},
-		],
-	},
-	twitter: {
-		card: "summary_large_image",
-		title: "Teamfight Tactics Profile - ClutchGG",
-		description: "View detailed Teamfight Tactics profile statistics including match history, rank progression, unit performance, and trait analysis.",
-		images: ["/images/logo.png"],
-	},
+// Redirect handler for old query-param URLs to new clean URLs
+const ProfilePageContent = () => {
+	const searchParams = useSearchParams();
+	const router = useRouter();
+	
+	const gameName = searchParams.get("gameName");
+	const tagLine = searchParams.get("tagLine");
+	const region = searchParams.get("region");
+
+	useEffect(() => {
+		if (gameName && tagLine && region) {
+			const newUrl = buildProfileUrl("tft", region, gameName, tagLine);
+			if (newUrl) {
+				router.replace(newUrl);
+			}
+		}
+	}, [gameName, tagLine, region, router]);
+
+	return (
+		<div className="min-h-screen flex items-center justify-center">
+			<Loading />
+		</div>
+	);
 };
 
-// Main page component (server component)
+// Main page component
 export default function TFTProfilePage() {
 	return (
 		<div className="min-h-screen">

@@ -16,7 +16,7 @@ const AstroStatsPromo = () => {
 						<div>
 							<div className="flex items-center gap-3 mb-3">
 								<div className="relative w-9 h-9 rounded-md overflow-hidden ring-2 ring-[#5865F2]/20">
-									<Image src="/images/astrostats.png" alt="AstroStats" fill className="object-cover" />
+									<Image src="/images/astrostats.png" alt="AstroStats" width={36} height={36} className="object-cover" />
 								</div>
 								<div>
 									<h3 className="text-xl font-semibold">AstroStats Discord Bot</h3>
@@ -66,8 +66,9 @@ const AstroStatsPromo = () => {
 										alt={tab === "profile" ? "AstroStats League Profile command" : "AstroStats Champion Mastery command"}
 										width={1280}
 										height={720}
+										sizes="(max-width: 768px) 100vw, 50vw"
 										className="w-full h-auto object-contain"
-										priority
+										loading="lazy"
 									/>
 								</div>
 							</div>

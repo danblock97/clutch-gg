@@ -2,6 +2,7 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { buildProfileUrl } from "@/lib/utils/urlHelpers";
 import { FaCrown, FaSkull, FaFistRaised, FaShieldAlt } from "react-icons/fa";
 
 // Helper to calculate KDA
@@ -54,7 +55,8 @@ const PlayerRow = ({ p, maxDamage, region, gameMode }) => {
             {/* Name & Rank */}
             <div className="flex-1 min-w-0 mr-2 md:mr-4">
                 <Link
-                    href={`/league/profile?gameName=${p.riotIdGameName}&tagLine=${p.riotIdTagline}&region=${region}`}
+                    href={buildProfileUrl("league", region, p.riotIdGameName, p.riotIdTagline) || 
+                        `/league/profile?gameName=${p.riotIdGameName}&tagLine=${p.riotIdTagline}&region=${region}`}
                     className="block font-bold text-sm md:text-lg text-white truncate hover:underline"
                 >
                     {p.riotIdGameName}

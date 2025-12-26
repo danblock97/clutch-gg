@@ -3,6 +3,40 @@ import { fetchTFTMatchDetail } from "@/lib/tft/tftApi";
 import Loading from "@/components/Loading";
 import TFTMatchPageClient from "./TFTMatchPageClient";
 
+export async function generateMetadata({ params }) {
+	const resolvedParams = await params;
+	const matchId = resolvedParams.matchId;
+	const platform = matchId?.split("_")[0] || "NA1";
+	
+	return {
+		title: `TFT Match ${matchId} | ClutchGG`,
+		description: `View detailed Teamfight Tactics match statistics, player placements, compositions, and augments for match ${matchId}.`,
+		alternates: {
+			canonical: `https://clutchgg.lol/tft/match/${matchId}`,
+		},
+		openGraph: {
+			title: `TFT Match ${matchId} | ClutchGG`,
+			description: `View detailed Teamfight Tactics match statistics, compositions, and player performance.`,
+			type: "website",
+			url: `https://clutchgg.lol/tft/match/${matchId}`,
+			images: [
+				{
+					url: "/images/og-image.png",
+					width: 1200,
+					height: 630,
+					alt: "Teamfight Tactics Match",
+				},
+			],
+		},
+		twitter: {
+			card: "summary_large_image",
+			title: `TFT Match ${matchId} | ClutchGG`,
+			description: `View detailed Teamfight Tactics match statistics, compositions, and player performance.`,
+			images: ["/images/og-image.png"],
+		},
+	};
+}
+
 const getPlatformFromMatchId = (matchId) => {
     if (!matchId || typeof matchId !== "string") return "NA1";
     const parts = matchId.split("_");

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState, useRef } from "react";
 import ReactDOM from "react-dom";
 import Image from "next/image";
 import Link from "next/link";
+import { buildProfileUrl } from "@/lib/utils/urlHelpers";
 import { FaChartLine, FaSkull, FaShieldAlt, FaDesktop } from "react-icons/fa";
 
 /* -------------------- GAME MODE & RANK HELPER -------------------- */
@@ -825,7 +826,8 @@ export default function LiveGame({ liveGameData, region, matchDetails = [], cham
 					<div className="mt-2">
 						{hasProfileLink ? (
 							<Link
-								href={`/league/profile?gameName=${encodeURIComponent(p.gameName)}&tagLine=${encodeURIComponent(p.tagLine)}&region=${encodeURIComponent(regionProp)}`}
+								href={buildProfileUrl("league", regionProp, p.gameName, p.tagLine) || 
+									`/league/profile?gameName=${encodeURIComponent(p.gameName)}&tagLine=${encodeURIComponent(p.tagLine)}&region=${encodeURIComponent(regionProp)}`}
 								className="text-white font-semibold text-[13px] sm:text-[15px] hover:underline truncate block text-center"
 							>
 								{riotId.name}
@@ -1049,11 +1051,12 @@ export default function LiveGame({ liveGameData, region, matchDetails = [], cham
 									<td className="py-2 px-3">
 										{hasProfileLink ? (
 											<Link
-												href={`/league/profile?gameName=${encodeURIComponent(
-													p.gameName
-												)}&tagLine=${encodeURIComponent(
-													p.tagLine
-												)}&region=${encodeURIComponent(region)}`}
+												href={buildProfileUrl("league", region, p.gameName, p.tagLine) || 
+													`/league/profile?gameName=${encodeURIComponent(
+														p.gameName
+													)}&tagLine=${encodeURIComponent(
+														p.tagLine
+													)}&region=${encodeURIComponent(region)}`}
 												className="hover:underline truncate max-w-[150px] block"
 											>
 												<span className="font-medium">
@@ -1171,11 +1174,12 @@ export default function LiveGame({ liveGameData, region, matchDetails = [], cham
 									<td className="py-2 px-3">
 										{hasProfileLink ? (
 											<Link
-												href={`/league/profile?gameName=${encodeURIComponent(
-													p.gameName
-												)}&tagLine=${encodeURIComponent(
-													p.tagLine
-												)}&region=${encodeURIComponent(region)}`}
+												href={buildProfileUrl("league", region, p.gameName, p.tagLine) || 
+													`/league/profile?gameName=${encodeURIComponent(
+														p.gameName
+													)}&tagLine=${encodeURIComponent(
+														p.tagLine
+													)}&region=${encodeURIComponent(region)}`}
 												className="hover:underline truncate max-w-[150px] block"
 											>
 												<span className="font-medium">

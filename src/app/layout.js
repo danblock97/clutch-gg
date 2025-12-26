@@ -12,19 +12,13 @@ import CookieConsentBanner from "@/components/CookieConsentBanner";
 import StructuredData from "@/components/StructuredData";
 import PropTypes from "prop-types";
 import RootLayoutContent from "./RootLayoutContent";
+import { metadata as baseMetadata } from "./metadata";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
+	...baseMetadata,
 	metadataBase: new URL("https://clutchgg.lol"),
-	title: {
-		default: "ClutchGG",
-		template: "%s | ClutchGG",
-	},
-	description:
-		"ClutchGG is your premier destination for League of Legends statistics.",
-	manifest: "/manifest.webmanifest",
-	sitemap: "/sitemap.xml",
 };
 
 export default function RootLayout({ children }) {

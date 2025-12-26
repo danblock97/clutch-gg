@@ -17,8 +17,9 @@ export default function CardPageChrome({ mode, gameName, tagLine, region, childr
   const [exportBgUrl, setExportBgUrl] = useState(null);
 
   const profileHref = useMemo(() => {
-    const params = new URLSearchParams({ gameName, tagLine, region });
-    return `/${mode}/profile?` + params.toString();
+    const { buildProfileUrl } = require("@/lib/utils/urlHelpers");
+    return buildProfileUrl(mode, region, gameName, tagLine) || 
+      `/${mode}/profile?${new URLSearchParams({ gameName, tagLine, region }).toString()}`;
   }, [mode, gameName, tagLine, region]);
 
   const onCopyLink = useCallback(async () => {

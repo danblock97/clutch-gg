@@ -3,6 +3,40 @@ import { fetchMatchDetail, fetchMatchTimeline } from "@/lib/league/leagueApi";
 import Loading from "@/components/Loading";
 import MatchPageClient from "./MatchPageClient";
 
+export async function generateMetadata({ params }) {
+	const resolvedParams = await params;
+	const matchId = resolvedParams.matchId;
+	const platform = matchId?.split("_")[0] || "NA1";
+	
+	return {
+		title: `League Match ${matchId} | ClutchGG`,
+		description: `View detailed League of Legends match statistics, player performance, and game timeline for match ${matchId}.`,
+		alternates: {
+			canonical: `https://clutchgg.lol/league/match/${matchId}`,
+		},
+		openGraph: {
+			title: `League Match ${matchId} | ClutchGG`,
+			description: `View detailed League of Legends match statistics and player performance.`,
+			type: "website",
+			url: `https://clutchgg.lol/league/match/${matchId}`,
+			images: [
+				{
+					url: "/images/og-image.png",
+					width: 1200,
+					height: 630,
+					alt: "League of Legends Match",
+				},
+			],
+		},
+		twitter: {
+			card: "summary_large_image",
+			title: `League Match ${matchId} | ClutchGG`,
+			description: `View detailed League of Legends match statistics and player performance.`,
+			images: ["/images/og-image.png"],
+		},
+	};
+}
+
 // Helper to extract platform from matchId (e.g. "NA1_12345" -> "NA1")
 const getPlatformFromMatchId = (matchId) => {
     if (!matchId || typeof matchId !== "string") return "NA1";

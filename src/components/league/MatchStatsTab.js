@@ -3,6 +3,7 @@ import ReactDOM from "react-dom";
 import NextImage from "next/image";
 import Loading from "../Loading";
 import Link from "next/link";
+import { buildProfileUrl } from "@/lib/utils/urlHelpers";
 import {
 	FaFistRaised,
 	FaShieldAlt,
@@ -325,7 +326,8 @@ export default function MatchStatsTab({
 							className="rounded-md"
 						/>
 						<Link
-							href={`/league/profile?gameName=${p.riotIdGameName}&tagLine=${p.riotIdTagline}&region=${region}`}
+							href={buildProfileUrl("league", region, p.riotIdGameName, p.riotIdTagline) || 
+								`/league/profile?gameName=${p.riotIdGameName}&tagLine=${p.riotIdTagline}&region=${region}`}
 							className="truncate hover:underline"
 						>
 							{cleanBotName(p.riotIdGameName, match.info.gameMode)}
@@ -486,7 +488,8 @@ function Participant({ p, puuid, r, getA, getPerk, arena = false }) {
 
 	return (
 		<Link
-			href={`/league/profile?gameName=${p.riotIdGameName}&tagLine=${p.riotIdTagline}&region=${r}`}
+			href={buildProfileUrl("league", r, p.riotIdGameName, p.riotIdTagline) || 
+				`/league/profile?gameName=${p.riotIdGameName}&tagLine=${p.riotIdTagline}&region=${r}`}
 		>
 			<div
 				className={`flex items-center p-3 hover:bg-[--card-bg-secondary] transition-colors duration-150 ${

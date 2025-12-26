@@ -1,6 +1,7 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { buildProfileUrl } from "@/lib/utils/urlHelpers";
 import { FaCrown, FaMedal } from "react-icons/fa";
 
 const LeaderboardTable = ({ leaderboardData, region, tier }) => {
@@ -71,11 +72,12 @@ const LeaderboardTable = ({ leaderboardData, region, tier }) => {
 							{/* Summoner Column */}
 							<div className="col-span-5">
 								<Link
-									href={`/league/profile?gameName=${encodeURIComponent(
-										entry.profileData?.gameName || "Unknown"
-									)}&tagLine=${encodeURIComponent(
-										entry.profileData?.tagLine || "Unknown"
-									)}&region=${encodeURIComponent(region)}`}
+									href={buildProfileUrl("league", region, entry.profileData?.gameName || "Unknown", entry.profileData?.tagLine || "Unknown") || 
+										`/league/profile?gameName=${encodeURIComponent(
+											entry.profileData?.gameName || "Unknown"
+										)}&tagLine=${encodeURIComponent(
+											entry.profileData?.tagLine || "Unknown"
+										)}&region=${encodeURIComponent(region)}`}
 									className="flex items-center group"
 								>
 									{/* Profile Icon */}

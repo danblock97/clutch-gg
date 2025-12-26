@@ -1,6 +1,7 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { buildProfileUrl } from "@/lib/utils/urlHelpers";
 import { FaCrown, FaMedal } from "react-icons/fa";
 
 // Re-using the League table structure and styling
@@ -101,11 +102,12 @@ const TFTLeaderboardTable = ({ leaderboardData, region, tier }) => {
 							{/* Summoner Column - Adjusted for TFT profile link */}
 							<div className="col-span-5">
 								<Link
-									href={`/tft/profile?gameName=${encodeURIComponent(
-										entry.profileData?.gameName || "Unknown"
-									)}&tagLine=${encodeURIComponent(
-										entry.profileData?.tagLine || "Unknown"
-									)}&region=${encodeURIComponent(region)}`}
+									href={buildProfileUrl("tft", region, entry.profileData?.gameName || "Unknown", entry.profileData?.tagLine || "Unknown") || 
+										`/tft/profile?gameName=${encodeURIComponent(
+											entry.profileData?.gameName || "Unknown"
+										)}&tagLine=${encodeURIComponent(
+											entry.profileData?.tagLine || "Unknown"
+										)}&region=${encodeURIComponent(region)}`}
 									className="flex items-center group"
 								>
 									{/* Profile Icon (using TFT profileIconId) */}

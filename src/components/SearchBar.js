@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import debounce from "lodash.debounce";
+import { buildProfileUrl } from "@/lib/utils/urlHelpers";
 import {
   FaSearch,
   FaHistory,
@@ -156,13 +157,19 @@ const SearchBar = ({
         console.error(e);
       }
 
-      // Route to the appropriate page based on the game type
-      const basePath = selectedGameType === "league" ? "/league" : "/tft";
-      router.push(
-        `${basePath}/profile?gameName=${encodeURIComponent(
-          gameName,
-        )}&tagLine=${encodeURIComponent(tagLine)}&region=${region}`,
-      );
+      // Route to the appropriate page using clean URLs
+      const profileUrl = buildProfileUrl(selectedGameType, region, gameName, tagLine);
+      if (profileUrl) {
+        router.push(profileUrl);
+      } else {
+        // Fallback to old format if URL building fails
+        const basePath = selectedGameType === "league" ? "/league" : "/tft";
+        router.push(
+          `${basePath}/profile?gameName=${encodeURIComponent(
+            gameName,
+          )}&tagLine=${encodeURIComponent(tagLine)}&region=${region}`,
+        );
+      }
       if (isModal && onModalClose) onModalClose();
     } else {
       // Show error in a more user-friendly way
@@ -451,15 +458,26 @@ const SearchBar = ({
                   <div
                     key={index}
                     onClick={() => {
-                      const basePath =
-                        entry.gameType === "league" ? "/league" : "/tft";
-                      router.push(
-                        `${basePath}/profile?gameName=${encodeURIComponent(
-                          entry.gameName,
-                        )}&tagLine=${encodeURIComponent(
-                          entry.tagLine,
-                        )}&region=${entry.region}`,
+                      const profileUrl = buildProfileUrl(
+                        entry.gameType,
+                        entry.region,
+                        entry.gameName,
+                        entry.tagLine
                       );
+                      if (profileUrl) {
+                        router.push(profileUrl);
+                      } else {
+                        // Fallback to old format
+                        const basePath =
+                          entry.gameType === "league" ? "/league" : "/tft";
+                        router.push(
+                          `${basePath}/profile?gameName=${encodeURIComponent(
+                            entry.gameName,
+                          )}&tagLine=${encodeURIComponent(
+                            entry.tagLine,
+                          )}&region=${entry.region}`,
+                        );
+                      }
                       if (onModalClose) onModalClose();
                     }}
                     className="text-[--text-primary] flex items-center p-2 rounded-lg hover:bg-[--card-bg-secondary] cursor-pointer transition-colors"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import NavBar from "@/components/NavBar";
 import Footer from "@/components/Footer";
 import OutageBanner from "@/components/OutageBanner";
@@ -24,6 +24,13 @@ export default function RootLayoutContent({ children }) {
 	const [isFeatureBannerVisible, setIsFeatureBannerVisible] = useState(
 		featureMessage.trim() !== ""
 	);
+	const [showSnowfall, setShowSnowfall] = useState(false);
+
+	useEffect(() => {
+		// Show snowfall only in December (month 11, 0-indexed)
+		const currentMonth = new Date().getMonth();
+		setShowSnowfall(currentMonth === 11);
+	}, []);
 
 	const handleOutageBannerClose = () => {
 		setIsOutageBannerVisible(false);
@@ -40,7 +47,7 @@ export default function RootLayoutContent({ children }) {
 	return (
 		<GameTypeProvider>
 			<AuthProvider>
-				<Snowfall />
+				{showSnowfall && <Snowfall />}
 				{isOutageBannerVisible && (
 					<OutageBanner
 						message={outageMessage}

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import { buildProfileUrl } from "@/lib/utils/urlHelpers";
 
 const regions = [
 	{ code: "euw1", name: "Europe West" },
@@ -98,11 +99,12 @@ export default function LeaderboardClient() {
 							</div>
 							<div className="col-span-5 md:col-span-4 flex items-center">
 								<Link
-									href={`/tft/profile?gameName=${encodeURIComponent(
-										player.profileData?.gameName || "Unknown"
-									)}&tagLine=${encodeURIComponent(
-										player.profileData?.tagLine || "Unknown"
-									)}&region=${selectedRegion}`}
+									href={buildProfileUrl("tft", selectedRegion, player.profileData?.gameName || "Unknown", player.profileData?.tagLine || "Unknown") || 
+										`/tft/profile?gameName=${encodeURIComponent(
+											player.profileData?.gameName || "Unknown"
+										)}&tagLine=${encodeURIComponent(
+											player.profileData?.tagLine || "Unknown"
+										)}&region=${selectedRegion}`}
 									className="hover:text-blue-400 transition-colors flex items-center"
 								>
 									{player.profileData?.profileIconId ? (

@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState, lazy, Suspense } from "react";
 import Image from "next/image";
-import { TypeAnimation } from "react-type-animation";
 import SearchBar from "./SearchBar";
 import Link from "next/link";
 import {
@@ -16,9 +15,17 @@ import { useRouter } from "next/navigation";
 import { useGameType } from "@/context/GameTypeContext";
 import AstroStatsPromo from "./AstroStatsPromo";
 
+// Lazy load TypeAnimation to reduce initial bundle size
+const TypeAnimation = lazy(() => import("react-type-animation").then(mod => ({ default: mod.TypeAnimation })));
+
 const HomePage = () => {
 	const { gameType, setGameType } = useGameType(); // Use the shared context
 	const router = useRouter();
+	const [mounted, setMounted] = useState(false);
+
+	useEffect(() => {
+		setMounted(true);
+	}, []);
 
 	// Function to handle leaderboard navigation
 	const navigateToLeaderboard = (e) => {
@@ -65,11 +72,20 @@ const HomePage = () => {
 			{/* Hero Section - Adjusted for mobile */}
 			<section className="pt-16 md:pt-24 pb-12 md:pb-16 px-4">
 				<div className="max-w-6xl mx-auto relative">
-					{/* Decorative background orbs + giant brand watermark */}
+					{/* Decorative background orbs + optimized brand watermark */}
 					<div className="absolute inset-0 -z-10">
-						{/* Huge faded logo watermark */}
+						{/* Optimized logo watermark - reduced size for performance */}
 						<div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none opacity-20">
-							<Image src="/images/logo.png" alt="ClutchGG watermark" width={2200} height={2200} className="w-[1600px] sm:w-[2200px] h-auto blur-0" />
+							<Image 
+								src="/images/logo.png" 
+								alt="ClutchGG watermark" 
+								width={800} 
+								height={800} 
+								sizes="(max-width: 640px) 400px, 800px"
+								className="w-[400px] sm:w-[600px] md:w-[800px] h-auto blur-0"
+								priority={false}
+								loading="lazy"
+							/>
 						</div>
 						<div
 							className={`orb orb-lg ${gameType === "tft" ? "orb-tft" : "orb-league"}`}
@@ -96,23 +112,29 @@ const HomePage = () => {
 						</h1>
 
 						<div className="text-lg sm:text-2xl lg:text-4xl font-bold h-10 md:h-16">
-							<TypeAnimation
-								sequence={[
-									"Match History",
-									1000,
-									"Match Details",
-									1000,
-									gameType === "tft" ? "Augments" : "Live Games",
-									1000,
-									"Ranked Stats",
-									1000,
-									"Leaderboards",
-									1000,
-								]}
-								wrapper="span"
-								speed={50}
-								repeat={Infinity}
-							/>
+							{mounted ? (
+								<Suspense fallback={<span>Match History</span>}>
+									<TypeAnimation
+										sequence={[
+											"Match History",
+											1000,
+											"Match Details",
+											1000,
+											gameType === "tft" ? "Augments" : "Live Games",
+											1000,
+											"Ranked Stats",
+											1000,
+											"Leaderboards",
+											1000,
+										]}
+										wrapper="span"
+										speed={50}
+										repeat={Infinity}
+									/>
+								</Suspense>
+							) : (
+								<span>Match History</span>
+							)}
 						</div>
 
 						<p className="text-[--text-secondary] text-base lg:text-lg max-w-2xl">

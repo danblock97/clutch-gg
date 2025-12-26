@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { buildProfileUrl } from "@/lib/utils/urlHelpers";
 import { FaUsers, FaChevronDown, FaChevronUp } from "react-icons/fa";
 
 const RecentlyPlayedWith = ({
@@ -106,11 +107,12 @@ const RecentlyPlayedWith = ({
 										100
 									).toFixed(0);
 									const { riotIdGameName, riotIdTagline } = teammate;
-									const profileLink = `/league/profile?gameName=${encodeURIComponent(
-										riotIdGameName
-									)}&tagLine=${encodeURIComponent(
-										riotIdTagline
-									)}&region=${encodeURIComponent(region)}`;
+									const profileLink = buildProfileUrl("league", region, riotIdGameName, riotIdTagline) || 
+										`/league/profile?gameName=${encodeURIComponent(
+											riotIdGameName
+										)}&tagLine=${encodeURIComponent(
+											riotIdTagline
+										)}&region=${encodeURIComponent(region)}`;
 
 									const winRateColor =
 										winRate >= 60

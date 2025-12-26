@@ -462,11 +462,12 @@ export default function LiveGame({ liveGameData, region, matchHistory }) {
 					{/* Name, Rank & Stats */}
 					<div className="flex-grow">
 						<Link
-							href={`/tft/profile?gameName=${encodeURIComponent(
-								p.gameName
-							)}&tagLine=${encodeURIComponent(
-								p.tagLine
-							)}&region=${encodeURIComponent(validRegion)}`}
+							href={buildProfileUrl("tft", validRegion, p.gameName, p.tagLine) || 
+								`/tft/profile?gameName=${encodeURIComponent(
+									p.gameName
+								)}&tagLine=${encodeURIComponent(
+									p.tagLine
+								)}&region=${encodeURIComponent(validRegion)}`}
 							className="font-bold text-white hover:text-[--tft-primary] transition-colors text-sm md:text-base truncate block"
 						>
 							{p.gameName}
@@ -591,7 +592,8 @@ export default function LiveGame({ liveGameData, region, matchHistory }) {
 
 					<div className="flex-1 min-w-0">
 						<Link
-							href={`/tft/profile?gameName=${encodeURIComponent(p.gameName)}&tagLine=${encodeURIComponent(p.tagLine)}&region=${encodeURIComponent(validRegion)}`}
+							href={buildProfileUrl("tft", validRegion, p.gameName, p.tagLine) || 
+								`/tft/profile?gameName=${encodeURIComponent(p.gameName)}&tagLine=${encodeURIComponent(p.tagLine)}&region=${encodeURIComponent(validRegion)}`}
 							className="block font-extrabold text-white text-base md:text-lg truncate hover:text-[--tft-primary] transition-colors"
 						>
 							{p.gameName}
