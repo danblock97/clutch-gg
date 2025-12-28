@@ -165,6 +165,11 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 	const [isDataLoaded, setIsDataLoaded] = useState(false);
 	const [currentPage, setCurrentPage] = useState(1);
 	const [companionsData, setCompanionsData] = useState({});
+	const [expandedMatchId, setExpandedMatchId] = useState(null);
+
+	const toggleExpand = (matchId) => {
+		setExpandedMatchId(expandedMatchId === matchId ? null : matchId);
+	};
 	const matchesPerPage = 10;
 	const breakpoint = useBreakpoint();
 	const router = useRouter();
@@ -525,10 +530,12 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 							? getCompanionIconUrl(companion.iconPath)
 							: null;
 
+						const isExpanded = expandedMatchId === matchId;
+
 						return (
 							<div key={matchId} className="mb-3 overflow-x-auto relative">
 								<div
-									onClick={() => router.push(`/tft/match/${matchId}`)}
+									onClick={() => toggleExpand(matchId)}
 									className={`tft-match-card bg-[--background-alt] p-3 rounded-md flex gap-4 ${getGradientBackground(
 										placement
 									)} shadow-sm cursor-pointer hover:bg-[--card-bg-secondary]/50 transition-colors duration-150 min-w-[768px] relative`}
@@ -846,14 +853,29 @@ export default function TFTMatchHistory({ matchDetails, summonerData }) {
 											{formattedGameType}
 										</div>
 
-										{/* Expand/collapse indicator - only show on non-mobile devices */}
-
+										{/* Expand/collapse indicator */}
+										<div className="flex items-center mt-2">
+											{isExpanded ? (
+												<FaChevronUp className="text-gray-400" />
+											) : (
+												<FaChevronDown className="text-gray-400" />
+											)}
+										</div>
 									</div>
 
 								</div>
-
-
-							</div >
+								{/* Expanded match details */}
+								{isExpanded && (
+									<div className="mt-2 mb-4">
+										<TFTMatchDetails
+											matchDetails={matchDetails}
+											matchId={matchId}
+											summonerData={summonerData}
+											companionsData={companionsData}
+										/>
+									</div>
+								)}
+							</div>
 						);
 					})}
 				</div >

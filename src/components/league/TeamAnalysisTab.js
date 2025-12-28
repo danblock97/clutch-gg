@@ -8,7 +8,7 @@ export default function TeamAnalysisTab({ matchDetails, matchId }) {
 	const match = matchDetails.find((m) => m.metadata.matchId === matchId);
 	if (!match) {
 		return (
-			<div className="card-highlight p-6 text-center">
+			<div className="p-6 text-center">
 				<p className="text-[--text-secondary]">Match data not found.</p>
 			</div>
 		);
@@ -71,8 +71,8 @@ export default function TeamAnalysisTab({ matchDetails, matchId }) {
 
 	return (
 		<div className="p-4">
-			<div className="card-highlight">
-				<div className="p-4 border-b border-[--card-border]">
+			<div className="bg-transparent">
+				<div className="p-4 border-b border-white/10">
 					<h3 className="text-base font-bold flex items-center">
 						<FaUsers className="mr-2 text-[--primary]" />
 						Team Comparison

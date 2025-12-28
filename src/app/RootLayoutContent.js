@@ -25,12 +25,37 @@ export default function RootLayoutContent({ children }) {
 		featureMessage.trim() !== ""
 	);
 	const [showSnowfall, setShowSnowfall] = useState(false);
+	const [documentHeight, setDocumentHeight] = useState(0);
 
 	useEffect(() => {
 		// Show snowfall only in December (month 11, 0-indexed)
 		const currentMonth = new Date().getMonth();
 		setShowSnowfall(currentMonth === 11);
 	}, []);
+
+	useEffect(() => {
+		if (!showSnowfall) return;
+
+		// Update document height on mount and resize
+		const updateHeight = () => {
+			setDocumentHeight(Math.max(
+				document.body.scrollHeight,
+				document.body.offsetHeight,
+				document.documentElement.clientHeight,
+				document.documentElement.scrollHeight,
+				document.documentElement.offsetHeight
+			));
+		};
+
+		updateHeight();
+		window.addEventListener('resize', updateHeight);
+		window.addEventListener('scroll', updateHeight);
+
+		return () => {
+			window.removeEventListener('resize', updateHeight);
+			window.removeEventListener('scroll', updateHeight);
+		};
+	}, [showSnowfall]);
 
 	const handleOutageBannerClose = () => {
 		setIsOutageBannerVisible(false);
@@ -47,7 +72,18 @@ export default function RootLayoutContent({ children }) {
 	return (
 		<GameTypeProvider>
 			<AuthProvider>
-				{showSnowfall && <Snowfall />}
+				{showSnowfall && (
+					<div 
+						className="fixed top-0 left-0 pointer-events-none z-[9999]" 
+						style={{ 
+							width: '100vw', 
+							height: documentHeight > 0 ? `${documentHeight}px` : '100vh',
+							minHeight: '100vh'
+						}}
+					>
+						<Snowfall />
+					</div>
+				)}
 				{isOutageBannerVisible && (
 					<OutageBanner
 						message={outageMessage}

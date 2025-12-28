@@ -413,6 +413,7 @@ const MatchHistory = ({
 	const [augments, setAugments] = useState([]);
 	const [selectedLane, setSelectedLane] = useState(null);
 	const [selectedQueue, setSelectedQueue] = useState(null);
+	const [expandedMatchId, setExpandedMatchId] = useState(null);
 
 	const [currentPage, setCurrentPage] = useState(1);
 	const matchesPerPage = 10;
@@ -539,6 +540,11 @@ const MatchHistory = ({
 	const handlePageChange = (pageNumber) => {
 		if (pageNumber < 1 || pageNumber > totalPages) return;
 		setCurrentPage(pageNumber);
+		setExpandedMatchId(null); // Reset expanded match when changing pages
+	};
+
+	const toggleExpand = (matchId) => {
+		setExpandedMatchId(expandedMatchId === matchId ? null : matchId);
 	};
 
 	const getOutcomeClass = (win, isRemake, isMVP) => {
@@ -655,7 +661,7 @@ const MatchHistory = ({
 								}${minutes}m`;
 
 							return (
-								<h2 className="text-xs font-semibold text-gray-200 my-4 flex items-center gap-1 flex-wrap">
+								<h2 className="text-base font-bold text-gray-200 my-4 flex items-center gap-1.5 flex-wrap">
 									<span>{timeAgoHeader}</span>
 									<span className="mx-1">/</span>
 									<span>
@@ -671,8 +677,8 @@ const MatchHistory = ({
 									<DonutGraph
 										score={avgClutch}
 										result={wins >= losses ? "win" : "loss"}
-										height={18}
-										width={22}
+										height={20}
+										width={24}
 									/>
 									<span className="mx-1">/</span>
 									<span>{totalDurationStr}</span>
@@ -856,10 +862,13 @@ const MatchHistory = ({
 								outcomeText = getQueueName(match.info.queueId, match.info.gameMode);
 							}
 
+							const matchId = match.metadata.matchId;
+							const isExpanded = expandedMatchId === matchId;
+
 							return (
 								<div key={index} className="overflow-x-auto">
 									<div
-										onClick={() => router.push(`/league/match/${match.metadata.matchId}`)}
+										onClick={() => toggleExpand(matchId)}
 										className={`cursor-pointer rounded-lg shadow-lg p-2 relative flex items-center mb-2 min-w-[768px] text-xs sm:text-sm ${getGradientBackground(
 											match,
 											currentPlayer,
@@ -1108,7 +1117,26 @@ const MatchHistory = ({
 												</div>
 											</div>
 										)}
+										{/* Chevron icon */}
+										<div className="flex items-center ml-2">
+											{isExpanded ? (
+												<FaChevronUp className="text-gray-400" />
+											) : (
+												<FaChevronDown className="text-gray-400" />
+											)}
+										</div>
 									</div>
+									{/* Expanded match details */}
+									{isExpanded && (
+										<div className="mt-0">
+											<MatchDetails
+												matchDetails={matchDetails}
+												matchId={matchId}
+												selectedSummonerPUUID={selectedSummonerPUUID}
+												region={region}
+											/>
+										</div>
+									)}
 								</div>
 							);
 						})}

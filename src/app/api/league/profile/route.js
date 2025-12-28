@@ -6,6 +6,7 @@ import {
 	fetchRankedData,
 	fetchMatchIds,
 	fetchMatchDetail,
+	fetchMatchTimeline,
 	upsertMatchDetail,
 	fetchLiveGameData,
 } from "@/lib/league/leagueApi";
@@ -191,7 +192,21 @@ export async function GET(req) {
 					)
 					.order("game_creation", { ascending: false });
 				if (matchesError) throw matchesError;
-				const userMatchDetails = (userMatchObjects || []).map((match) => match.match_data);
+				// Fetch timelines for cached matches
+				const userMatchDetails = await Promise.all(
+					(userMatchObjects || []).map(async (match) => {
+						const matchData = match.match_data;
+						try {
+							const timeline = await fetchMatchTimeline(match.matchid, matchPlatform);
+							if (timeline) {
+								matchData.timeline = timeline;
+							}
+						} catch (err) {
+							// Silently fail - timeline is optional
+						}
+						return matchData;
+					})
+				);
 				const responseData = {
 					profiledata: storedLeagueData.profiledata,
 					accountdata: storedLeagueData.accountdata,
@@ -217,10 +232,13 @@ export async function GET(req) {
 			fetchRankedData(puuid, normalizedRegion),
 			fetchMatchIds(puuid, matchPlatform),
 		]);
-		// Fetch match details concurrently and upsert them
-		const matchDetails = await Promise.all(
+		// Fetch match details and timelines concurrently and upsert them
+		const matchDetailsWithTimelines = await Promise.all(
 			matchIds.map(async (matchId) => {
-				const matchDetail = await fetchMatchDetail(matchId, matchPlatform);
+				const [matchDetail, timeline] = await Promise.all([
+					fetchMatchDetail(matchId, matchPlatform),
+					fetchMatchTimeline(matchId, matchPlatform).catch(() => null), // Don't fail if timeline fails
+				]);
 				if (matchDetail) {
 					try {
 						await upsertMatchDetail(matchId, summonerData.puuid, matchDetail);
@@ -230,10 +248,15 @@ export async function GET(req) {
 							upsertErr,
 						});
 					}
+					// Attach timeline to match detail
+					if (timeline) {
+						matchDetail.timeline = timeline;
+					}
 				}
 				return matchDetail;
 			})
 		);
+		const matchDetails = matchDetailsWithTimelines.filter(Boolean);
 		if (!matchDetails || matchDetails.length === 0) {
 			console.warn("[LEAGUE] No match details found for user", riotAccount.id);
 		}

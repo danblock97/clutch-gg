@@ -15,7 +15,7 @@ export default function StatsTab({ matchDetails, matchId }) {
 	// Find the match by matchId
 	const match = matchDetails.find((m) => m.metadata.matchId === matchId);
 	if (!match) return (
-		<div className="card-highlight p-6 text-center">
+		<div className="p-6 text-center">
 			<p className="text-[--text-secondary]">Match data not found.</p>
 		</div>
 	);
@@ -187,7 +187,7 @@ export default function StatsTab({ matchDetails, matchId }) {
 
 	return (
 		<div>
-			<div className="card-highlight p-4">
+			<div className="bg-transparent p-4">
 				<h3 className="text-base font-bold mb-4 flex items-center">
 					<FaInfoCircle className="mr-2 text-[--primary]" />
 					Detailed Match Statistics

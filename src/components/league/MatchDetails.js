@@ -4,7 +4,8 @@ import React, { useState } from "react";
 import MatchStatsTab from "./MatchStatsTab";
 import TeamAnalysisTab from "./TeamAnalysisTab";
 import StatsTab from "./StatsTab";
-import { FaUsers, FaChartBar, FaListAlt } from "react-icons/fa";
+import MatchDetailsTab from "./MatchDetailsTab";
+import { FaUsers, FaChartBar, FaListAlt, FaInfoCircle } from "react-icons/fa";
 
 export default function MatchDetails(props) {
 	const [activeTab, setActiveTab] = useState("overview");
@@ -12,9 +13,15 @@ export default function MatchDetails(props) {
 	const tabs = [
 		{
 			id: "overview",
-			label: "Match Stats",
+			label: "General",
 			icon: <FaUsers className="mr-2" />,
 			component: <MatchStatsTab {...props} />,
+		},
+		{
+			id: "details",
+			label: "Details",
+			icon: <FaInfoCircle className="mr-2" />,
+			component: <MatchDetailsTab {...props} />,
 		},
 		{
 			id: "analysis",
@@ -30,19 +37,21 @@ export default function MatchDetails(props) {
 		},
 	];
 
-	// Arena games should not have the analysis and stats tabs.
+	// Arena games should not have the analysis, stats, and details tabs.
 	const match = props.matchDetails?.find(
 		(m) => m.metadata.matchId === props.matchId
 	);
 	const isArena =
 		match?.info?.queueId === 1700 || match?.info?.queueId === 1710;
 
-	const visibleTabs = isArena ? tabs.filter((t) => t.id === "overview") : tabs;
+	const visibleTabs = isArena
+		? tabs.filter((t) => t.id === "overview")
+		: tabs;
 
 	return (
-		<div className="card-highlight">
+		<div className="bg-transparent -mx-2 rounded-b-lg overflow-hidden">
 			{/* Tab Navigation */}
-			<div className="border-b border-[--card-border]">
+			<div className="border-t border-white/10 border-b border-white/10 bg-white/5">
 				<div className="flex flex-wrap px-4">
 					{visibleTabs.map((tab) => (
 						<button
@@ -64,7 +73,7 @@ export default function MatchDetails(props) {
 			</div>
 
 			{/* Tab Content */}
-			<div className="pt-2">
+			<div className="pt-2 bg-white/5 rounded-b-lg">
 				{tabs.find((tab) => tab.id === activeTab)?.component}
 			</div>
 		</div>
