@@ -159,26 +159,14 @@ const Footer = () => {
 								</Link>
 							</li>
 							<li>
-								<Link
-									href="/support"
-									className="text-sm hover:text-[--primary] transition-colors inline-flex items-center"
-								>
-									<FaLightbulb className="mr-2 text-xs" />
-									Need help? Contact Us
-								</Link>
-							</li>
-              <li>
-                <button
-                  onClick={() => {
-                    const event = new CustomEvent('openCookieSettings');
-                    window.dispatchEvent(event);
-                  }}
-                  className="text-sm hover:text-[--primary] transition-colors inline-flex items-center"
-                >
-                  <FaShieldAlt className="mr-2 text-xs" />
-                  Manage Cookie Settings
-                </button>
-              </li>
+							<Link
+								href="/support"
+								className="text-sm hover:text-[--primary] transition-colors inline-flex items-center"
+							>
+								<FaLightbulb className="mr-2 text-xs" />
+								Need help? Contact Us
+							</Link>
+						</li>
 						</ul>
 					</div>
 				</div>
