@@ -179,8 +179,6 @@ export default function ProfilePageContent({ gameName, tagLine, region }) {
 					<LiveGame
 						liveGameData={state.liveGameData}
 						region={region}
-						matchDetails={state.matchDetails || []}
-						championMasteryData={state.championMasteryData || []}
 					/>
 				</div>
 			)}

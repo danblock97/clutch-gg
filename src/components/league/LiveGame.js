@@ -405,7 +405,7 @@ function formatRiotId(gameName, tagLine) {
 }
 
 /* -------------------- MAIN COMPONENT -------------------- */
-export default function LiveGame({ liveGameData, region, matchDetails = [], championMasteryData = [] }) {
+export default function LiveGame({ liveGameData, region }) {
 	const [perkList, setPerkList] = useState([]);
 	const [showSpectateInfo, setShowSpectateInfo] = useState(false);
 	const [champMap, setChampMap] = useState({});
@@ -480,174 +480,6 @@ export default function LiveGame({ liveGameData, region, matchDetails = [], cham
 
 	const isArenaQueue =
 		liveGameData.gameQueueConfigId === 1700 || liveGameData.gameQueueConfigId === 1710;
-
-	// Derive contextual tags per player (last 20 games + mastery)
-	const tagsByPuuid = useMemo(() => {
-		if (!liveGameData?.participants) return {};
-
-		const normalizeRole = (role) => {
-			const map = { MIDDLE: "MID", UTILITY: "SUPPORT" };
-			const r = (role || "").toUpperCase();
-			const normalized = map[r] || r;
-			return ["TOP", "JUNGLE", "MID", "BOTTOM", "SUPPORT"].includes(normalized) ? normalized : null;
-		};
-
-		const masteryMap = new Map();
-		(Array.isArray(championMasteryData) ? championMasteryData : []).forEach((m) => {
-			if (m?.championId) masteryMap.set(m.championId, m.championPoints || 0);
-		});
-
-		// Build last-20 participant stats per puuid (store participant + match for context)
-		const perPlayerMatches = new Map();
-		(Array.isArray(matchDetails) ? matchDetails : []).forEach((match) => {
-			const parts = match?.info?.participants;
-			if (!Array.isArray(parts)) return;
-			parts.forEach((mp) => {
-				if (!mp?.puuid) return;
-				const arr = perPlayerMatches.get(mp.puuid) || [];
-				if (arr.length >= 20) return;
-				arr.push({ me: mp, match });
-				perPlayerMatches.set(mp.puuid, arr);
-			});
-		});
-
-		const result = {};
-		(liveGameData.participants || []).forEach((p) => {
-			const puuid = p?.puuid;
-			if (!puuid) return;
-			const games = perPlayerMatches.get(puuid) || [];
-			const tags = [];
-
-			const roleCounts = games.reduce((acc, g) => {
-				const r = normalizeRole(g.me?.teamPosition || g.me?.individualPosition);
-				if (r) acc[r] = (acc[r] || 0) + 1;
-				return acc;
-			}, {});
-			const topRoles = Object.entries(roleCounts)
-				.sort((a, b) => b[1] - a[1])
-				.map((x) => x[0])
-				.slice(0, 2);
-			const currentRole = normalizeRole(p.teamPosition || p.individualPosition);
-
-			const champGames = games.filter((g) => g.me?.championId === p.championId);
-			const totalGames = games.length;
-
-			// Possible OTP: heavy champ concentration
-			if (totalGames >= 5 && champGames.length / Math.max(1, totalGames) >= 0.8) {
-				tags.push({
-					label: "Possible OTP",
-					reason: `${Math.round((champGames.length / Math.max(1, totalGames)) * 100)}% of last ${totalGames} games on this champ`,
-				});
-			}
-
-			// Autofill?: playing a non-top-2 role recently
-			if (currentRole && topRoles.length && !topRoles.includes(currentRole)) {
-				tags.push({
-					label: "Autofill?",
-					reason: `Current role ${currentRole} not in recent top roles (${topRoles.join(", ") || "n/a"})`,
-				});
-			}
-
-			// Millionaire mastery
-			const points = masteryMap.get(p.championId) || 0;
-			if (points >= 1_000_000) {
-				const cname = p.championName || champMap?.[String(p.championId)] || "champ";
-				tags.push({
-					label: `Millionaire ${cname}`,
-					reason: `${points.toLocaleString()} mastery points`,
-				});
-			}
-
-			// Streak indicators from last 5
-			const recent = games.slice(0, 5);
-			const recentWins = recent.filter((g) => g.me?.win).length;
-			const recentLosses = recent.length - recentWins;
-			if (recentWins >= 3)
-				tags.push({ label: "Hot streak", reason: `${recentWins} wins in last ${recent.length} games` });
-			else if (recentLosses >= 3)
-				tags.push({ label: "Cold streak", reason: `${recentLosses} losses in last ${recent.length} games` });
-
-			// Fresh pick: barely played this champ lately
-			if (totalGames >= 5 && champGames.length <= 1) {
-				tags.push({ label: "Fresh pick", reason: `${champGames.length} of last ${totalGames} on this champ` });
-			}
-
-			// Playmaker: high kill participation over recent games
-			if (recent.length >= 3) {
-				let kpSum = 0;
-				recent.forEach((g) => {
-					const me = g.me;
-					const teamId = me?.teamId;
-					const teamKills = (g.match?.info?.participants || [])
-						.filter((pp) => pp.teamId === teamId)
-						.reduce((sum, pp) => sum + (pp.kills || 0), 0);
-					const kp = teamKills > 0 ? ((me?.kills || 0) + (me?.assists || 0)) / teamKills : 0;
-					kpSum += kp;
-				});
-				const avgKp = kpSum / recent.length;
-				if (avgKp >= 0.7) tags.push({ label: "Playmaker", reason: `${Math.round(avgKp * 100)}% KP recent` });
-			}
-
-			// Vision control: support with strong vision score per minute
-			if (currentRole === "SUPPORT" && recent.length >= 3) {
-				const vspmAvg =
-					recent.reduce((sum, g) => {
-						const minutes = Math.max(1, (g.match?.info?.gameDuration || 0) / 60);
-						return sum + (g.me?.visionScore || 0) / minutes;
-					}, 0) / recent.length;
-				if (vspmAvg >= 1.2) tags.push({ label: "Vision control", reason: `${vspmAvg.toFixed(2)} VS/min recent` });
-			}
-
-			// First blood hunter
-			const fbCount = games.filter((g) => g.me?.firstBloodKill).length;
-			if (fbCount >= 5) tags.push({ label: "FB hunter", reason: `${fbCount} first bloods last 20` });
-
-			// Deep pool: many unique champs recently
-			const uniqueChamps = new Set(games.slice(0, 15).map((g) => g.me?.championId)).size;
-			if (uniqueChamps >= 8) tags.push({ label: "Deep pool", reason: `${uniqueChamps} champs in last 15` });
-
-			// Likely duo: same teammate appears frequently
-			const teammateCounts = new Map();
-			games.forEach((g) => {
-				const myPuuid = g.me?.puuid;
-				const teamId = g.me?.teamId;
-				(g.match?.info?.participants || []).forEach((pp) => {
-					if (!pp?.puuid || pp.puuid === myPuuid || pp.teamId !== teamId) return;
-					teammateCounts.set(pp.puuid, (teammateCounts.get(pp.puuid) || 0) + 1);
-				});
-			});
-			const maxTeammateGames = Math.max(0, ...teammateCounts.values());
-			if (maxTeammateGames >= 5) tags.push({ label: "Likely duo", reason: `${maxTeammateGames} games with same teammate` });
-
-			// Smurf heuristic: high WR, KDA, and damage share
-			const smurfSample = games.slice(0, 15);
-			if (smurfSample.length >= 8) {
-				const wins = smurfSample.filter((g) => g.me?.win).length;
-				const wr = wins / smurfSample.length;
-				const avgKda =
-					smurfSample.reduce((sum, g) => {
-						const me = g.me;
-						return (
-							sum +
-							((me?.kills || 0) + (me?.assists || 0)) / Math.max(1, me?.deaths || 0)
-						);
-					}, 0) / smurfSample.length;
-				const avgDmgShare =
-					smurfSample.reduce((sum, g) => sum + (g.me?.challenges?.teamDamagePercentage || 0), 0) /
-					smurfSample.length;
-				if (wr >= 0.65 && avgKda >= 4 && avgDmgShare >= 0.28) {
-					tags.push({
-						label: "Smurf?",
-						reason: `${Math.round(wr * 100)}% WR, ${avgKda.toFixed(1)} KDA, ${(avgDmgShare * 100).toFixed(1)}% dmg share`,
-					});
-				}
-			}
-
-			result[puuid] = tags.slice(0, 5);
-		});
-
-		return result;
-	}, [championMasteryData, champMap, liveGameData, matchDetails]);
 
 	// Order participants by team then by common role order
 	const sortedParticipants = [...(liveGameData.participants || [])].sort((a, b) => {
@@ -741,7 +573,7 @@ export default function LiveGame({ liveGameData, region, matchDetails = [], cham
 	}, (prev, next) => prev.championId === next.championId);
 
 	// Participant card component, memoized to ignore timer re-renders
-	const ParticipantCard = React.memo(function ParticipantCard({ p, perkList, champMapProp, regionProp, isArena, tags = [] }) {
+	const ParticipantCard = React.memo(function ParticipantCard({ p, perkList, champMapProp, regionProp, isArena }) {
 		const getPerkByIdLocal = (id) => perkList.find((x) => x.id === id) || null;
 		const getGamesAndWrLocal = (pp) => {
 			const total = (pp.wins || 0) + (pp.losses || 0);
@@ -766,16 +598,6 @@ export default function LiveGame({ liveGameData, region, matchDetails = [], cham
 		const spells = [p.spell1Id, p.spell2Id];
 		const riotId = formatRiotId(p.gameName, p.tagLine);
 		const hasProfileLink = !!(p.gameName && p.gameName.trim() && p.tagLine && p.tagLine.trim());
-		const tagTheme = (txt) => {
-			const lower = (txt || "").toLowerCase();
-			if (lower.includes("hot")) return { bg: "#064e3b", border: "#10b981", color: "#ecfdf3" };
-			if (lower.includes("cold")) return { bg: "#0f172a", border: "#38bdf8", color: "#e0f2fe" };
-			if (lower.includes("autofill")) return { bg: "#312e81", border: "#a855f7", color: "#ede9fe" };
-			if (lower.includes("millionaire")) return { bg: "#422006", border: "#fbbf24", color: "#fef3c7" };
-			if (lower.includes("otp")) return { bg: "#1e293b", border: "#38bdf8", color: "#e2e8f0" };
-			if (lower.includes("fresh")) return { bg: "#083344", border: "#22d3ee", color: "#cffafe" };
-			return { bg: "#0b1220", border: "#475569", color: "#e2e8f0" };
-		};
 
 		return (
 			<div className="relative group rounded-xl border bg-[#0f1117] shadow-sm hover:shadow-md transition-shadow overflow-visible" style={{ borderColor: getRankBorderColor(shortRank || "") }}>
@@ -849,95 +671,16 @@ export default function LiveGame({ liveGameData, region, matchDetails = [], cham
 							<span className="text-[9px] whitespace-nowrap">{wr}%</span>
 							<span className="text-[9px] text-gray-400 whitespace-nowrap">({p.wins}W-{p.losses}L)</span>
 						</div>
-						{tags.length > 0 && (
-							<div className="mt-1 flex flex-col items-center gap-1">
-								{(() => {
-									let topRow;
-									let bottomRow;
-									if (tags.length <= 3) {
-										topRow = tags.slice(0, 3);
-										bottomRow = [];
-									} else if (tags.length === 4) {
-										topRow = tags.slice(0, 2);
-										bottomRow = tags.slice(2, 4);
-									} else {
-										topRow = tags.slice(0, 3);
-										bottomRow = tags.slice(3, 5);
-									}
-									const count = tags.length;
-									const compact = count > 3;
-									const tagPadX = compact ? 10 : 12; // px
-									const tagPadY = compact ? 6 : 8;   // px
-									const tagFont = compact ? "10px" : "11px";
-									const tagFontSm = compact ? "11px" : "12px";
-									const tooltipFont = compact ? "11px" : "12px";
-									const tooltipPadX = compact ? 12 : 14; // px
-									const tooltipPadY = compact ? 8 : 10;  // px
-
-									const renderTag = (t, idx) => {
-										const theme = tagTheme(t.label);
-										return (
-											<span key={`${p.puuid || p.summonerId || idx}-${idx}`} className="relative group/tag inline-flex">
-												<span
-													style={{
-														padding: `${tagPadY / 16}rem ${tagPadX / 16}rem`,
-														fontSize: tagFont,
-														"--tw-text-size-sm": tagFontSm,
-														borderRadius: "9999px",
-														backgroundColor: theme.bg,
-														border: `1px solid ${theme.border}`,
-														color: theme.color,
-														boxShadow: `0 0 0 1px ${theme.border}40`,
-														pointerEvents: "auto",
-														cursor: "help",
-													}}
-												>
-													{t.label}
-												</span>
-												{t.reason && (
-													<span
-														className="absolute z-50 hidden group-hover/tag:block left-1/2 -translate-x-1/2 top-full mt-2 whitespace-pre leading-snug rounded-md font-bold shadow-lg max-w-[260px]"
-														style={{
-															fontSize: tooltipFont,
-															padding: `${tooltipPadY / 16}rem ${tooltipPadX / 16}rem`,
-															borderRadius: "10px",
-															backgroundColor: theme.bg,
-															border: `1px solid ${theme.border}`,
-															color: theme.color,
-															boxShadow: `0 4px 16px 0 ${theme.border}50`,
-														}}
-													>
-														{t.reason}
-													</span>
-												)}
-											</span>
-										);
-									};
-									return (
-										<>
-											<div className="flex justify-center gap-1 flex-wrap">
-												{topRow.map((t, idx) => renderTag(t, idx))}
-											</div>
-											{bottomRow.length > 0 && (
-												<div className="flex justify-center gap-1 flex-wrap mt-1">
-													{bottomRow.map((t, idx) => renderTag(t, idx + topRow.length))}
-												</div>
-											)}
-										</>
-									);
-								})()}
-							</div>
-						)}
 					</div>
 				</div>
 			</div>
 		);
-	}, (prev, next) => prev.p === next.p && prev.perkList === next.perkList && prev.champMapProp === next.champMapProp && prev.regionProp === next.regionProp && prev.isArena === next.isArena && prev.tags === next.tags);
+	}, (prev, next) => prev.p === next.p && prev.perkList === next.perkList && prev.champMapProp === next.champMapProp && prev.regionProp === next.regionProp && prev.isArena === next.isArena);
 
 	const renderParticipantCard = (p) => {
 		// kept for backward compatibility, route through ParticipantCard
 		return (
-			<ParticipantCard p={p} perkList={perkList} champMapProp={champMap} regionProp={region} isArena={isArenaQueue} tags={tagsByPuuid[p.puuid] || []} />
+			<ParticipantCard p={p} perkList={perkList} champMapProp={champMap} regionProp={region} isArena={isArenaQueue} />
 		);
 	};
 
@@ -949,12 +692,12 @@ export default function LiveGame({ liveGameData, region, matchDetails = [], cham
 			<div className="space-y-3">
 				<div className="grid grid-cols-5 gap-3">
 					{blueTeam.map((p) => (
-						<ParticipantCard key={`${p.teamId}-${p.summonerId || p.puuid || p.gameName}-${p.championId}`} p={p} perkList={perkList} champMapProp={champMap} regionProp={region} isArena={isArenaQueue} tags={tagsByPuuid[p.puuid] || []} />
+						<ParticipantCard key={`${p.teamId}-${p.summonerId || p.puuid || p.gameName}-${p.championId}`} p={p} perkList={perkList} champMapProp={champMap} regionProp={region} isArena={isArenaQueue} />
 					))}
 				</div>
 				<div className="grid grid-cols-5 gap-3">
 					{redTeam.map((p) => (
-						<ParticipantCard key={`${p.teamId}-${p.summonerId || p.puuid || p.gameName}-${p.championId}`} p={p} perkList={perkList} champMapProp={champMap} regionProp={region} isArena={isArenaQueue} tags={tagsByPuuid[p.puuid] || []} />
+						<ParticipantCard key={`${p.teamId}-${p.summonerId || p.puuid || p.gameName}-${p.championId}`} p={p} perkList={perkList} champMapProp={champMap} regionProp={region} isArena={isArenaQueue} />
 					))}
 				</div>
 			</div>
