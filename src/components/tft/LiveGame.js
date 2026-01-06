@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { FaTrophy, FaChartLine, FaDesktop } from "react-icons/fa";
+import { buildProfileUrl } from "@/lib/utils/urlHelpers";
 
 // (removed unused formatGameTime)
 
