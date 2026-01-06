@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useReducer, useCallback, useEffect, Suspense } from "react";
+import React, { useReducer, useCallback, useEffect, useState, useMemo } from "react";
+import useSWR from "swr";
 import Profile from "@/components/league/Profile";
 import RankedInfo from "@/components/league/RankedInfo";
 import SeasonRanks from "@/components/league/SeasonRanks";
@@ -10,16 +11,85 @@ import Last20GamesPerformance from "@/components/league/Last20GamesPerformance";
 import Loading from "@/components/Loading";
 import LiveGame from "@/components/league/LiveGame";
 import RecentlyPlayedWith from "@/components/league/RecentlyPlayedWith";
-import NoProfileFound from "@/components/league/NoProfileFound";
 import ErrorPage from "@/components/ErrorPage";
 import { fetchWithErrorHandling, extractErrorMessage } from "@/lib/errorUtils";
+
+// SWR fetcher for match details
+const matchFetcher = (url) => fetch(url).then((res) => {
+	if (!res.ok) throw new Error("Failed to fetch match");
+	return res.json();
+});
+
+// Hook to fetch multiple match details with SWR
+const useMatchDetails = (matchIds) => {
+	const [loadedMatches, setLoadedMatches] = useState({});
+	const [loadingCount, setLoadingCount] = useState(0);
+
+	// Only fetch the first 20 match IDs for performance stats
+	const matchIdsToFetch = useMemo(() => {
+		return (matchIds || []).slice(0, 20);
+	}, [matchIds]);
+
+	// Track loaded matches
+	useEffect(() => {
+		if (!matchIdsToFetch || matchIdsToFetch.length === 0) return;
+
+		let isMounted = true;
+		setLoadingCount(matchIdsToFetch.length);
+
+		// Fetch matches in parallel
+		matchIdsToFetch.forEach(async (matchId) => {
+			if (loadedMatches[matchId]) {
+				setLoadingCount(prev => Math.max(0, prev - 1));
+				return;
+			}
+
+			try {
+				const response = await fetch(`/api/league/match/${matchId}`);
+				if (response.ok) {
+					const data = await response.json();
+					if (isMounted) {
+						setLoadedMatches(prev => ({
+							...prev,
+							[matchId]: data
+						}));
+					}
+				}
+			} catch (error) {
+				console.error(`Failed to fetch match ${matchId}:`, error);
+			} finally {
+				if (isMounted) {
+					setLoadingCount(prev => Math.max(0, prev - 1));
+				}
+			}
+		});
+
+		return () => {
+			isMounted = false;
+		};
+	}, [matchIdsToFetch]); // Remove loadedMatches from dependencies to avoid re-fetching
+
+	// Convert loaded matches object to array, maintaining order from matchIds
+	const matchDetailsArray = useMemo(() => {
+		return matchIdsToFetch
+			.map(id => loadedMatches[id])
+			.filter(Boolean);
+	}, [matchIdsToFetch, loadedMatches]);
+
+	return {
+		matchDetails: matchDetailsArray,
+		isLoading: loadingCount > 0,
+		loadedCount: matchDetailsArray.length,
+		totalCount: matchIdsToFetch.length,
+	};
+};
 
 const initialState = {
 	profileData: null,
 	accountData: null,
 	rankedData: null,
 	championMasteryData: null,
-	matchDetails: null,
+	matchIds: null, // Changed from matchDetails to matchIds
 	liveGameData: null,
 	error: null,
 	isLoading: true,
@@ -39,7 +109,7 @@ function reducer(state, action) {
 				accountData: action.payload.accountdata,
 				rankedData: action.payload.rankeddata,
 				championMasteryData: action.payload.championmasterydata,
-				matchDetails: action.payload.matchdetails,
+				matchIds: action.payload.matchIds, // Changed from matchdetails to matchIds
 				liveGameData: action.payload.livegamedata,
 				isLoading: false,
 			};
@@ -65,6 +135,14 @@ function reducer(state, action) {
 export default function ProfilePageContent({ gameName, tagLine, region }) {
 	const [state, dispatch] = useReducer(reducer, initialState);
 	
+	// Lazy load match details client-side for performance stats
+	const { 
+		matchDetails: loadedMatchDetails, 
+		isLoading: matchesLoading, 
+		loadedCount, 
+		totalCount 
+	} = useMatchDetails(state.matchIds);
+
 	const fetchProfileData = useCallback(() => {
 		const controller = new AbortController();
 		const signal = controller.signal;
@@ -152,6 +230,9 @@ export default function ProfilePageContent({ gameName, tagLine, region }) {
 		);
 	}
 
+	// Determine if we have enough match data for stats components
+	const hasEnoughMatchData = loadedMatchDetails && loadedMatchDetails.length >= 5;
+
 	return (
 		<div className="min-h-screen relative flex flex-col pb-12">
 			{/* Profile Header Section */}
@@ -185,15 +266,36 @@ export default function ProfilePageContent({ gameName, tagLine, region }) {
 
 			{/* Main Content Section */}
 			<div className="max-w-screen-xl w-full mx-auto px-4 mt-8 flex flex-col gap-8">
-				{/* Performance Overview */}
-				{state.matchDetails && state.profileData && (
+				{/* Performance Overview - Shows loading indicator while matches load */}
+				{state.matchIds && state.profileData && (
 					<div className="w-full">
-						<Last20GamesPerformance
-							matchDetails={state.matchDetails}
-							selectedSummonerPUUID={state.profileData.puuid}
-							onChampionClick={handleChampionClick}
-							selectedChampionId={state.selectedChampionId}
-						/>
+						{hasEnoughMatchData ? (
+							<Last20GamesPerformance
+								matchDetails={loadedMatchDetails}
+								selectedSummonerPUUID={state.profileData.puuid}
+								onChampionClick={handleChampionClick}
+								selectedChampionId={state.selectedChampionId}
+							/>
+						) : (
+							<div className="card p-4">
+								<div className="flex items-center justify-between mb-4">
+									<h3 className="text-lg font-semibold text-[--text-primary]">
+										Recent Performance
+									</h3>
+									<span className="text-sm text-[--text-secondary]">
+										Loading matches... ({loadedCount}/{totalCount})
+									</span>
+								</div>
+								<div className="animate-pulse space-y-3">
+									<div className="h-24 bg-gray-700/50 rounded-lg"></div>
+									<div className="flex gap-4">
+										{[...Array(5)].map((_, i) => (
+											<div key={i} className="flex-1 h-16 bg-gray-700/50 rounded-lg"></div>
+										))}
+									</div>
+								</div>
+							</div>
+						)}
 					</div>
 				)}
 
@@ -217,13 +319,29 @@ export default function ProfilePageContent({ gameName, tagLine, region }) {
 							/>
 						)}
 
-						{/* Recently Played With section */}
-						{state.matchDetails && state.profileData ? (
-							<RecentlyPlayedWith
-								matchDetails={state.matchDetails}
-								selectedSummonerPUUID={state.profileData.puuid}
-								region={region}
-							/>
+						{/* Recently Played With section - Uses loaded match data */}
+						{state.matchIds && state.profileData ? (
+							hasEnoughMatchData ? (
+								<RecentlyPlayedWith
+									matchDetails={loadedMatchDetails}
+									selectedSummonerPUUID={state.profileData.puuid}
+									region={region}
+								/>
+							) : (
+								<div className="card p-4">
+									<h3 className="text-lg font-semibold text-[--text-primary] mb-4">
+										Recently Played With
+									</h3>
+									<div className="animate-pulse space-y-3">
+										{[...Array(5)].map((_, i) => (
+											<div key={i} className="flex items-center gap-3">
+												<div className="w-8 h-8 bg-gray-700/50 rounded-full"></div>
+												<div className="flex-1 h-4 bg-gray-700/50 rounded"></div>
+											</div>
+										))}
+									</div>
+								</div>
+							)
 						) : (
 							<div className="card animate-pulse-custom h-64"></div>
 						)}
@@ -238,11 +356,11 @@ export default function ProfilePageContent({ gameName, tagLine, region }) {
 						)}
 					</div>
 
-					{/* Right Column: Match History */}
+					{/* Right Column: Match History - Now uses matchIds with lazy loading */}
 					<div className="w-full lg:w-2/3">
-						{state.matchDetails ? (
+						{state.matchIds ? (
 							<MatchHistory
-								matchDetails={state.matchDetails}
+								matchIds={state.matchIds}
 								selectedSummonerPUUID={state.profileData?.puuid || null}
 								gameName={state.accountData?.gameName}
 								tagLine={state.accountData?.tagLine}
@@ -258,4 +376,3 @@ export default function ProfilePageContent({ gameName, tagLine, region }) {
 		</div>
 	);
 }
-

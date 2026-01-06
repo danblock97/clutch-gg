@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import useSWR from "swr";
 import Tag from "@/components/league/Tag";
 import DonutGraph from "@/components/league/DonutGraph";
 import MatchDetails from "@/components/league/MatchDetails";
@@ -15,10 +16,570 @@ import {
 	FaMedal,
 	FaChevronDown,
 	FaChevronUp,
-	FaAngleRight,
-	FaCalendarAlt,
 	FaCrown,
 } from "react-icons/fa";
+
+// SWR fetcher function
+const fetcher = (url) => fetch(url).then((res) => {
+	if (!res.ok) throw new Error("Failed to fetch match");
+	return res.json();
+});
+
+// Hook to fetch a single match detail
+const useMatchDetail = (matchId) => {
+	const { data, error, isLoading } = useSWR(
+		matchId ? `/api/league/match/${matchId}` : null,
+		fetcher,
+		{
+			revalidateOnFocus: false,
+			revalidateOnReconnect: false,
+			dedupingInterval: 60000, // Cache for 60 seconds
+			errorRetryCount: 2,
+		}
+	);
+
+	return {
+		matchDetail: data,
+		isLoading,
+		isError: error,
+	};
+};
+
+// Skeleton component for loading state
+const MatchSkeleton = () => (
+	<div className="rounded-lg shadow-lg p-2 relative flex items-center mb-2 min-w-[768px] bg-[--card-bg] border border-[--card-border] animate-pulse">
+		<div className="flex items-start gap-4 w-full">
+			{/* Summary column skeleton */}
+			<div className="flex flex-col items-start w-28">
+				<div className="h-5 w-20 bg-gray-700 rounded mb-2"></div>
+				<div className="h-4 w-16 bg-gray-700 rounded mb-1"></div>
+				<div className="h-3 w-12 bg-gray-700 rounded"></div>
+			</div>
+
+			{/* Champion + spells skeleton */}
+			<div className="flex flex-col gap-1">
+				<div className="flex items-center gap-2">
+					<div className="w-14 h-14 bg-gray-700 rounded-md"></div>
+					<div className="flex flex-col gap-1">
+						<div className="w-6 h-6 bg-gray-700 rounded-md"></div>
+						<div className="w-6 h-6 bg-gray-700 rounded-md"></div>
+					</div>
+					<div className="flex flex-col gap-1">
+						<div className="h-5 w-16 bg-gray-700 rounded"></div>
+						<div className="h-4 w-12 bg-gray-700 rounded"></div>
+					</div>
+				</div>
+				{/* Items skeleton */}
+				<div className="flex items-center gap-1 pt-1">
+					{[...Array(7)].map((_, i) => (
+						<div key={i} className="w-6 h-6 bg-gray-700 rounded-md"></div>
+					))}
+				</div>
+			</div>
+
+			{/* Score skeleton */}
+			<div className="flex flex-col items-center justify-center ml-12 self-center">
+				<div className="h-4 w-12 bg-gray-700 rounded mb-1"></div>
+				<div className="w-10 h-10 bg-gray-700 rounded-full"></div>
+			</div>
+		</div>
+
+		{/* Participants skeleton */}
+		<div className="flex ml-auto">
+			<div className="flex flex-col items-start mr-4">
+				{[...Array(5)].map((_, i) => (
+					<div key={i} className="flex items-center mb-1">
+						<div className="w-5 h-5 bg-gray-700 rounded-md mr-1"></div>
+						<div className="h-3 w-16 bg-gray-700 rounded"></div>
+					</div>
+				))}
+			</div>
+			<div className="flex flex-col items-start">
+				{[...Array(5)].map((_, i) => (
+					<div key={i} className="flex items-center mb-1">
+						<div className="w-5 h-5 bg-gray-700 rounded-md mr-1"></div>
+						<div className="h-3 w-16 bg-gray-700 rounded"></div>
+					</div>
+				))}
+			</div>
+		</div>
+
+		<div className="flex items-center ml-2">
+			<FaChevronDown className="text-gray-600" />
+		</div>
+	</div>
+);
+
+// Single match row component with lazy loading
+const MatchRow = ({ 
+	matchId, 
+	selectedSummonerPUUID, 
+	region, 
+	isExpanded, 
+	onToggleExpand,
+	breakpoint,
+	augments,
+}) => {
+	const { matchDetail: match, isLoading, isError } = useMatchDetail(matchId);
+
+	if (isLoading) {
+		return <MatchSkeleton />;
+	}
+
+	if (isError || !match) {
+		return (
+			<div className="rounded-lg shadow-lg p-4 mb-2 bg-red-900/20 border border-red-500/30 text-red-400 min-w-[768px]">
+				<p>Failed to load match {matchId}</p>
+			</div>
+		);
+	}
+
+	// Validate match data
+	if (!match.info || !Array.isArray(match.info.participants) || match.info.participants.length === 0) {
+		return null;
+	}
+
+	const currentPlayer = match.info.participants.find(
+		(p) => p.puuid === selectedSummonerPUUID
+	);
+
+	if (!currentPlayer) {
+		return null;
+	}
+
+	const participants = match.info.participants;
+	let maxCsPerMin = 0;
+	let maxCsPerMinParticipant = null;
+	
+	participants.forEach((participant) => {
+		const csPerMin =
+			((participant.totalMinionsKilled ?? 0) +
+				(participant.neutralMinionsKilled ?? 0)) /
+			((match.info.gameDuration ?? 1) / 60);
+		participant.csPerMin = csPerMin;
+		if (csPerMin > maxCsPerMin) {
+			maxCsPerMin = csPerMin;
+			maxCsPerMinParticipant = participant.puuid;
+		}
+	});
+
+	const tags = [...getAdditionalTags(match, currentPlayer)];
+
+	if (currentPlayer.firstBloodKill) {
+		tags.push(
+			<Tag
+				key="first-blood"
+				text="First Blood"
+				hoverText="Congrats on First Blood!"
+				color="bg-green-500 text-white"
+				icon={<FaSkullCrossbones />}
+			/>
+		);
+	}
+	if ((currentPlayer.tripleKills ?? 0) > 0) {
+		tags.push(
+			<Tag
+				key="triple-kill"
+				text="Triple Kill"
+				hoverText={`You got ${currentPlayer.tripleKills ?? 0} Triple Kills!`}
+				color="bg-yellow-500 text-white"
+				icon={<FaBolt />}
+			/>
+		);
+	}
+	if ((currentPlayer.deaths ?? 0) === 0) {
+		tags.push(
+			<Tag
+				key="unkillable"
+				text="Unkillable"
+				hoverText={`A Whole 0 Deaths! Grats on not inting!`}
+				color="bg-yellow-500 text-white"
+				icon={<FaShieldAlt />}
+			/>
+		);
+	}
+
+	const damageThreshold =
+		match.info.queueId === 450 || match.info.queueId === 1710
+			? 1700
+			: 900;
+	if (match.info.gameMode !== "URF") {
+		if (
+			(currentPlayer.challenges?.damagePerMinute ?? 0) >
+			damageThreshold
+		) {
+			tags.push(
+				<Tag
+					key="good-damage"
+					text="Good Damage"
+					hoverText={`Nice Damage Dealt: ${(
+						currentPlayer.totalDamageDealtToChampions ?? 0
+					).toLocaleString()}`}
+					color="bg-yellow-500 text-white"
+					icon={<FaFire />}
+				/>
+			);
+		}
+		if (currentPlayer.puuid === maxCsPerMinParticipant) {
+			tags.push(
+				<Tag
+					key="cs-star"
+					text="CS Star"
+					hoverText={`Most CS/min in the game: ${(
+						currentPlayer.csPerMin ?? 0
+					).toFixed(1)}`}
+					color="bg-blue-500 text-white"
+					icon={<FaStar />}
+				/>
+			);
+		}
+	}
+
+	// Calculate placement based on clutch score ranking
+	const sortedByScore = [...participants]
+		.map((p) => ({
+			puuid: p.puuid,
+			score: calculateClutchScore(match, p),
+		}))
+		.sort((a, b) => b.score - a.score);
+
+	const placement =
+		sortedByScore.findIndex(
+			(o) => o.puuid === currentPlayer.puuid
+		) + 1;
+
+	const items = Array.from(
+		{ length: 7 },
+		(_, i) => currentPlayer[`item${i}`]
+	);
+
+	const gameCreationRaw =
+		match.info.gameCreation ?? match.info.game_datetime ?? 0;
+	const gameCreation = new Date(gameCreationRaw);
+	const now = new Date();
+	const timeDifference = Math.abs(now - gameCreation);
+	const daysDifference = Math.floor(
+		timeDifference / (1000 * 60 * 60 * 24)
+	);
+	const hoursDifference = Math.floor(
+		timeDifference / (1000 * 60 * 60)
+	);
+	const minutesDifference = Math.floor(
+		timeDifference / (1000 * 60)
+	);
+	const timeAgo = isNaN(gameCreation.getTime())
+		? "Unknown"
+		: daysDifference > 0
+			? `${daysDifference}d ago`
+			: hoursDifference > 0
+				? `${hoursDifference}h ago`
+				: `${minutesDifference}m ago`;
+
+	const kda = (
+		((currentPlayer.kills ?? 0) + (currentPlayer.assists ?? 0)) /
+		Math.max(1, currentPlayer.deaths ?? 0)
+	).toFixed(1);
+
+	const winningTeam = match.info.participants.filter((p) => p.win);
+	const losingTeam = match.info.participants.filter((p) => !p.win);
+
+	const isRemake = match.info.gameDuration < 300;
+	const isMVP = tags.some((tag) => tag.key === "mvp");
+
+	const augmentsSelected = [
+		currentPlayer.playerAugment1,
+		currentPlayer.playerAugment2,
+		currentPlayer.playerAugment3,
+		currentPlayer.playerAugment4,
+	];
+
+	let outcomeText = "";
+	if (match.info.queueId === 1700 || match.info.queueId === 1710) {
+		// Arena placement logic
+	} else {
+		outcomeText = getQueueName(match.info.queueId, match.info.gameMode);
+	}
+
+	const getAugmentIcon = (id) => {
+		const augment = augments.find((aug) => aug.id === id);
+		return augment && augment.iconSmall
+			? `https://raw.communitydragon.org/latest/game/${augment.iconSmall}`
+			: "/images/placeholder.png";
+	};
+
+	return (
+		<div className="overflow-x-auto">
+			<div
+				onClick={() => onToggleExpand(matchId)}
+				className={`cursor-pointer rounded-lg shadow-lg p-2 relative flex items-center mb-2 min-w-[768px] text-xs sm:text-sm ${getGradientBackground(
+					match,
+					currentPlayer,
+					isRemake,
+					isMVP
+				)}`}
+			>
+				<div className="flex items-start gap-4 w-full">
+					{/* Summary column */}
+					<div className="flex flex-col items-start w-28">
+						<p
+							className={`font-semibold text-md ${getOutcomeClass(
+								currentPlayer.win,
+								isRemake,
+								isMVP
+							)}`}
+						>
+							{outcomeText}
+						</p>
+						<span className="text-md text-gray-300">{timeAgo}</span>
+						<p className="text-sm mr-2 flex items-center gap-1">
+							<span
+								className={`text-xs ${isRemake
+									? "text-gray-400"
+									: currentPlayer.win
+										? "text-blue-400"
+										: "text-red-400"
+									}`}
+							>
+								{isRemake
+									? "Remake"
+									: currentPlayer.win
+										? "Win"
+										: "Lose"}
+							</span>
+							{`${Math.floor(
+								match.info.gameDuration / 60
+							)}:${String(match.info.gameDuration % 60).padStart(
+								2,
+								"0"
+							)}`}
+						</p>
+					</div>
+
+					{/* Champion + spells + stats + items */}
+					<div className="flex flex-col gap-1">
+						<div className="flex items-center gap-2">
+							{/* Champion with role overlay */}
+							<div
+								className={`relative w-14 h-14 border-2 rounded-md ${getOutcomeClass(
+									currentPlayer.win,
+									isRemake,
+									isMVP
+								)}`}
+							>
+								<Image
+									src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${currentPlayer.championId}.png`}
+									alt="Champion Icon"
+									fill
+									className="object-cover"
+								/>
+								{currentPlayer.teamPosition && (
+									<Image
+										src={`https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-champ-select/global/default/svg/position-${currentPlayer.teamPosition.toLowerCase()}.svg`}
+										alt="Role Icon"
+										width={18}
+										height={18}
+										className="absolute -bottom-1 -right-1 bg-[--card-bg] rounded-sm p-0.5"
+									/>
+								)}
+							</div>
+
+							{/* Summoner spells */}
+							<div className="flex flex-col gap-1">
+								{[
+									currentPlayer.summoner1Id,
+									currentPlayer.summoner2Id,
+								].map((spellId, idx) => (
+									<Image
+										key={idx}
+										src={`/images/league/summonerSpells/${spellId}.png`}
+										alt={`Spell ${idx + 1}`}
+										width={24}
+										height={24}
+										className="rounded-md border border-gray-700"
+									/>
+								))}
+							</div>
+
+							{/* KDA stats */}
+							<div className="flex flex-col">
+								<p className="text-base font-semibold">
+									{currentPlayer.kills}/{currentPlayer.deaths}/
+									{currentPlayer.assists}
+								</p>
+								<p className="text-sm">{kda} KDA</p>
+							</div>
+						</div>
+
+						{/* Items row */}
+						<div className="flex items-center gap-1 pt-1">
+							{items.slice(0, 6).map((itemId, idx) => (
+								<Image
+									key={idx}
+									src={
+										itemId > 0
+											? `https://ddragon.leagueoflegends.com/cdn/15.8.1/img/item/${itemId}.png`
+											: "/images/placeholder.png"
+									}
+									alt="Item"
+									width={24}
+									height={24}
+									className="rounded-md border border-gray-700"
+								/>
+							))}
+							{/* Ward */}
+							<Image
+								src={
+									items[6] > 0
+										? `https://ddragon.leagueoflegends.com/cdn/15.8.1/img/item/${items[6]}.png`
+										: "/images/placeholder.png"
+								}
+								alt="Ward"
+								width={24}
+								height={24}
+								className="rounded-md border border-gray-700"
+							/>
+						</div>
+					</div>
+
+					{/* Score box with label above */}
+					<div className="flex flex-col items-center justify-center ml-12 self-center">
+						<p className="text-md text-gray-300 mb-1">C-Score</p>
+						<DonutGraph
+							score={calculateClutchScore(match, currentPlayer)}
+							result={currentPlayer.win ? "win" : "loss"}
+							height={36}
+							width={40}
+						/>
+
+						{/* Placement display */}
+						<p className="text-xs text-gray-300 mt-1 flex items-center">
+							{placement === 1 && (
+								<FaCrown className="text-yellow-400 mr-1" />
+							)}
+							{getOrdinal(placement)}
+						</p>
+					</div>
+				</div>
+				{/* Display tags for all match types EXCEPT Arena mode and remakes */}
+				{match.info.queueId !== 1700 &&
+					match.info.queueId !== 1710 &&
+					!isRemake && (
+						<div className="absolute bottom-1 left-2 flex items-center">
+							{tags.length > 0 && tags[0]}
+						</div>
+					)}
+				{match.info.queueId === 1700 ||
+					match.info.queueId === 1710 ? (
+					<div className="flex ml-auto">
+						<div className="flex flex-col items-start mr-4">
+							<div className="text-xs text-[--text-secondary] mb-1">
+								Arena Augments
+							</div>
+							<div className="flex flex-wrap gap-1 max-w-[120px]">
+								{augmentsSelected
+									.filter(Boolean)
+									.slice(0, 4)
+									.map((augmentId, idx) => (
+										<div key={idx} className="flex-shrink-0">
+											<Image
+												src={getAugmentIcon(augmentId)}
+												alt={`Augment ${idx + 1}`}
+												className="w-6 h-6 rounded border border-gray-700"
+												width={24}
+												height={24}
+											/>
+										</div>
+									))}
+							</div>
+						</div>
+					</div>
+				) : (
+					<div className="flex ml-auto">
+						<div className="flex flex-col items-start mr-4">
+							{winningTeam.map((participant, idx) => (
+								<div key={idx} className="flex items-center">
+									<div
+										className={`sm:w-5 sm:h-5 w-5 h-5 rounded-md border border-gray-700 mr-1 overflow-hidden`}
+									>
+										<Image
+											src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${participant.championId}.png`}
+											alt="Participant Champion"
+											width={20}
+											height={20}
+											className="object-cover transform scale-110"
+										/>
+									</div>
+									<p
+										className="text-xs truncate"
+										style={{ width: "90px" }}
+									>
+										<span
+											className={`${participant.puuid === selectedSummonerPUUID
+												? "font-semibold text-gray-100"
+												: ""
+												}`}
+										>
+											{truncateName(cleanBotName(participant.riotIdGameName, match.info.gameMode), 7)}
+										</span>
+									</p>
+								</div>
+							))}
+						</div>
+						<div className="flex flex-col items-start">
+							{losingTeam.map((participant, idx) => (
+								<div key={idx} className="flex items-center">
+									<div
+										className={`sm:w-5 sm:h-5 w-5 h-5 rounded-md border border-gray-700 mr-1 overflow-hidden`}
+									>
+										<Image
+											src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${participant.championId}.png`}
+											alt="Participant Champion"
+											width={20}
+											height={20}
+											className="object-cover transform scale-110"
+										/>
+									</div>
+									<p
+										className="text-xs truncate"
+										style={{ width: "90px" }}
+									>
+										<span
+											className={`${participant.puuid === selectedSummonerPUUID
+												? "font-semibold text-gray-100"
+												: ""
+												}`}
+										>
+											{truncateName(cleanBotName(participant.riotIdGameName, match.info.gameMode), 7)}
+										</span>
+									</p>
+								</div>
+							))}
+						</div>
+					</div>
+				)}
+						{/* Chevron icon */}
+				<div className="flex items-center ml-2">
+					{isExpanded ? (
+						<FaChevronUp className="text-gray-400" />
+					) : (
+						<FaChevronDown className="text-gray-400" />
+					)}
+				</div>
+			</div>
+			{/* Expanded match details */}
+			{isExpanded && match && (
+				<div className="mt-0">
+					<MatchDetails
+						matchDetails={[match]}
+						matchId={matchId}
+						selectedSummonerPUUID={selectedSummonerPUUID}
+						region={region}
+					/>
+				</div>
+			)}
+		</div>
+	);
+};
 
 function useBreakpoint() {
 	const [breakpoint, setBreakpoint] = useState("mobile");
@@ -402,8 +963,31 @@ const getOrdinal = (n) => {
 	return `${n}${s[(v - 20) % 10] || s[v] || s[0]}`;
 };
 
+const getOutcomeClass = (win, isRemake, isMVP) => {
+	if (isMVP) return "text-yellow-500 border-yellow-500";
+	if (isRemake) return "text-gray-400 border-gray-500";
+	return win
+		? "text-blue-400 border-blue-400"
+		: "text-red-400 border-red-400";
+};
+
+const truncateName = (name, maxLength) => {
+	if (!name) return "";
+	return name.length > maxLength
+		? name.substring(0, maxLength) + "..."
+		: name;
+};
+
+const cleanBotName = (name, gameMode) => {
+	if (gameMode === "RUBY" && name && name.startsWith("Ruby_")) {
+		return name.substring(5); // Remove "Ruby_" prefix
+	}
+	return name;
+};
+
 const MatchHistory = ({
-	matchDetails,
+	matchIds = [], // Now receives matchIds instead of matchDetails
+	matchDetails = [], // Keep for backward compatibility during transition
 	selectedSummonerPUUID,
 	gameName,
 	tagLine,
@@ -414,13 +998,11 @@ const MatchHistory = ({
 	const [selectedLane, setSelectedLane] = useState(null);
 	const [selectedQueue, setSelectedQueue] = useState(null);
 	const [expandedMatchId, setExpandedMatchId] = useState(null);
-
 	const [currentPage, setCurrentPage] = useState(1);
+	
 	const matchesPerPage = 10;
 	const router = useRouter();
-
 	const breakpoint = useBreakpoint();
-	let maxTagsToShow = breakpoint === "mobile" ? 1 : breakpoint === "md" ? 2 : 3;
 
 	useEffect(() => {
 		const getAugments = async () => {
@@ -434,20 +1016,19 @@ const MatchHistory = ({
 		setCurrentPage(1);
 	}, [selectedLane, selectedQueue, selectedChampionId]);
 
-	const getAugmentIcon = (id) => {
-		const augment = augments.find((aug) => aug.id === id);
-		return augment && augment.iconSmall
-			? `https://raw.communitydragon.org/latest/game/${augment.iconSmall}`
-			: "/images/placeholder.png";
-	};
+	// Use matchIds if provided, otherwise fall back to extracting from matchDetails (backward compatibility)
+	const effectiveMatchIds = useMemo(() => {
+		if (matchIds && matchIds.length > 0) {
+			return matchIds;
+		}
+		// Backward compatibility: extract matchIds from matchDetails
+		if (matchDetails && matchDetails.length > 0) {
+			return matchDetails.map(m => m?.metadata?.matchId).filter(Boolean);
+		}
+		return [];
+	}, [matchIds, matchDetails]);
 
-	// Helper function to calculate kill participation for a player
-	const calculateKillParticipation = (player, team) => {
-		const teamKills = team.reduce((sum, p) => sum + p.kills, 0);
-		return teamKills > 0 ? (player.kills + player.assists) / teamKills : 0;
-	};
-
-	if (!matchDetails || matchDetails.length === 0) {
+	if (!effectiveMatchIds || effectiveMatchIds.length === 0) {
 		return (
 			<div className="bg-gray-800 text-gray-400 p-4 rounded-lg shadow-lg">
 				No match history available
@@ -455,78 +1036,12 @@ const MatchHistory = ({
 		);
 	}
 
-	const filteredMatches = matchDetails
-		.filter(
-			(match) =>
-				match &&
-				match.info &&
-				Array.isArray(match.info.participants) &&
-				match.info.participants.length > 0 &&
-				match.info.participants.some((p) => typeof p.championId === "number")
-		)
-		.filter((match) => {
-			if (!selectedLane) return true;
-			const currentPlayer = match.info.participants.find(
-				(p) => p.puuid === selectedSummonerPUUID
-			);
-
-			return (
-				currentPlayer &&
-				currentPlayer.teamPosition &&
-				normaliseTeamPosition(currentPlayer.teamPosition) === selectedLane
-			);
-		})
-		.filter((match) => {
-			if (selectedQueue === null) return true;
-			return match.info.queueId === selectedQueue;
-		})
-		.filter((match) => {
-			if (!selectedChampionId) return true;
-			const currentPlayer = match.info.participants.find(
-				(p) => p.puuid === selectedSummonerPUUID
-			);
-			return currentPlayer && currentPlayer.championId === selectedChampionId;
-		});
-
-	// Group matches by day
-	const groupedMatches = filteredMatches.reduce((acc, match) => {
-		const gameCreationRaw =
-			match.info.gameCreation ?? match.info.game_datetime ?? 0;
-		const gameDate = new Date(gameCreationRaw);
-		const dateOptions = { year: "numeric", month: "long", day: "numeric" };
-		const dateString = gameDate.toLocaleDateString(undefined, dateOptions);
-
-		if (!acc[dateString]) {
-			acc[dateString] = [];
-		}
-		acc[dateString].push(match);
-		return acc;
-	}, {});
-
-	const totalPages = Math.ceil(
-		Object.values(groupedMatches).flat().length / matchesPerPage
-	);
+	// For filtering, we need the loaded match data
+	// We'll show skeletons for unloaded matches and filter based on loaded data
+	const totalPages = Math.ceil(effectiveMatchIds.length / matchesPerPage);
 	const startIndex = (currentPage - 1) * matchesPerPage;
 	const endIndex = startIndex + matchesPerPage;
-
-	// Get current page's matches from the grouped data
-	const paginatedGroupedMatches = {};
-	let matchesCount = 0;
-	for (const day in groupedMatches) {
-		if (groupedMatches.hasOwnProperty(day)) {
-			const matchesForDay = groupedMatches[day];
-			const matchesToAdd = [];
-			for (const match of matchesForDay) {
-				if (matchesCount >= startIndex && matchesCount < endIndex) {
-					matchesToAdd.push(match);
-				}
-				matchesCount++;
-			}
-			if (matchesToAdd.length > 0) {
-				paginatedGroupedMatches[day] = matchesToAdd;
-			}
-		}
-	}
+	const paginatedMatchIds = effectiveMatchIds.slice(startIndex, endIndex);
 
 	const handleLaneSelect = (lane) => {
 		setSelectedLane(lane === selectedLane ? null : lane);
@@ -540,32 +1055,11 @@ const MatchHistory = ({
 	const handlePageChange = (pageNumber) => {
 		if (pageNumber < 1 || pageNumber > totalPages) return;
 		setCurrentPage(pageNumber);
-		setExpandedMatchId(null); // Reset expanded match when changing pages
+		setExpandedMatchId(null);
 	};
 
 	const toggleExpand = (matchId) => {
 		setExpandedMatchId(expandedMatchId === matchId ? null : matchId);
-	};
-
-	const getOutcomeClass = (win, isRemake, isMVP) => {
-		if (isMVP) return "text-yellow-500 border-yellow-500";
-		if (isRemake) return "text-gray-400 border-gray-500";
-		return win
-			? "text-blue-400 border-blue-400"
-			: "text-red-400 border-red-400";
-	};
-
-	const truncateName = (name, maxLength) => {
-		return name.length > maxLength
-			? name.substring(0, maxLength) + "..."
-			: name;
-	};
-
-	const cleanBotName = (name, gameMode) => {
-		if (gameMode === "RUBY" && name && name.startsWith("Ruby_")) {
-			return name.substring(5); // Remove "Ruby_" prefix
-		}
-		return name;
 	};
 
 	return (
@@ -604,581 +1098,58 @@ const MatchHistory = ({
 					</select>
 				</div>
 			</div>
+			
 			<div className="mt-2">
-				{Object.entries(paginatedGroupedMatches).map(([day, matches]) => (
-					<div key={day} className="mb-2">
-						{(() => {
-							// --- Build daily summary header -----------------
-							// 1. Time since last game on this day
-							const lastGameTs = matches.reduce((latest, m) => {
-								const ts = m.info.gameCreation ?? m.info.game_datetime ?? 0;
-								return ts > latest ? ts : latest;
-							}, 0);
-
-							const now = Date.now();
-							const diffMs = Math.max(0, now - lastGameTs);
-							const diffMins = Math.floor(diffMs / (1000 * 60));
-							const diffHours = Math.floor(diffMins / 60);
-							const diffDays = Math.floor(diffHours / 24);
-
-							const timeAgoHeader =
-								diffDays > 0
-									? `${diffDays}d ago`
-									: diffHours > 0
-										? `${diffHours}h ago`
-										: `${diffMins}m ago`;
-
-							// 2. Wins / Losses & clutch-score aggregation
-							let wins = 0;
-							let totalClutch = 0;
-							let totalDurationSeconds = 0;
-
-							matches.forEach((m) => {
-								const player = m.info.participants.find(
-									(p) => p.puuid === selectedSummonerPUUID
-								);
-								if (player) {
-									if (player.win) wins += 1;
-									totalClutch += calculateClutchScore(m, player);
-								}
-								totalDurationSeconds += m.info.gameDuration ?? 0;
-							});
-
-							const losses = matches.length - wins;
-							const winRate =
-								matches.length > 0
-									? Math.round((wins / matches.length) * 100)
-									: 0;
-							const avgClutch =
-								matches.length > 0
-									? Math.round(totalClutch / matches.length)
-									: 0;
-
-							// 3. Total play time string (e.g., 2h 42m)
-							const hours = Math.floor(totalDurationSeconds / 3600);
-							const minutes = Math.floor((totalDurationSeconds % 3600) / 60);
-							const totalDurationStr = `${hours > 0 ? `${hours}h ` : ""
-								}${minutes}m`;
-
-							return (
-								<h2 className="text-base font-bold text-gray-200 my-4 flex items-center gap-1.5 flex-wrap">
-									<span>{timeAgoHeader}</span>
-									<span className="mx-1">/</span>
-									<span>
-										{matches.length} {matches.length === 1 ? "Game" : "Games"}
-									</span>
-									<span className="mx-1">/</span>
-									<span>
-										{wins}W {losses}L
-									</span>
-									<span className="mx-1">/</span>
-									<span>{winRate}%</span>
-									<span className="mx-1">/</span>
-									<DonutGraph
-										score={avgClutch}
-										result={wins >= losses ? "win" : "loss"}
-										height={20}
-										width={24}
-									/>
-									<span className="mx-1">/</span>
-									<span>{totalDurationStr}</span>
-								</h2>
-							);
-						})()}
-						{matches.map((match, index) => {
-							const participants = match.info.participants;
-							let maxCsPerMin = 0;
-							let maxCsPerMinParticipant = null;
-							participants.forEach((participant) => {
-								const csPerMin =
-									((participant.totalMinionsKilled ?? 0) +
-										(participant.neutralMinionsKilled ?? 0)) /
-									((match.info.gameDuration ?? 1) / 60);
-								participant.csPerMin = csPerMin;
-								if (csPerMin > maxCsPerMin) {
-									maxCsPerMin = csPerMin;
-									maxCsPerMinParticipant = participant.puuid;
-								}
-							});
-							const currentPlayer = participants.find(
-								(p) => p.puuid === selectedSummonerPUUID
-							);
-							const tags = [...getAdditionalTags(match, currentPlayer)];
-
-							if (currentPlayer.firstBloodKill) {
-								tags.push(
-									<Tag
-										key="first-blood"
-										text="First Blood"
-										hoverText="Congrats on First Blood!"
-										color="bg-green-500 text-white"
-										icon={<FaSkullCrossbones />}
-									/>
-								);
-							}
-							if ((currentPlayer.tripleKills ?? 0) > 0) {
-								tags.push(
-									<Tag
-										key="triple-kill"
-										text="Triple Kill"
-										hoverText={`You got ${currentPlayer.tripleKills ?? 0
-											} Triple Kills!`}
-										color="bg-yellow-500 text-white"
-										icon={<FaBolt />}
-									/>
-								);
-							}
-							if ((currentPlayer.deaths ?? 0) === 0) {
-								tags.push(
-									<Tag
-										key="unkillable"
-										text="Unkillable"
-										hoverText={`A Whole 0 Deaths! Grats on not inting!`}
-										color="bg-yellow-500 text-white"
-										icon={<FaShieldAlt />}
-									/>
-								);
-							}
-
-							const damageThreshold =
-								match.info.queueId === 450 || match.info.queueId === 1710
-									? 1700
-									: 900;
-							if (match.info.gameMode !== "URF") {
-								if (
-									(currentPlayer.challenges?.damagePerMinute ?? 0) >
-									damageThreshold
-								) {
-									tags.push(
-										<Tag
-											key="good-damage"
-											text="Good Damage"
-											hoverText={`Nice Damage Dealt: ${(
-												currentPlayer.totalDamageDealtToChampions ?? 0
-											).toLocaleString()}`}
-											color="bg-yellow-500 text-white"
-											icon={<FaFire />}
-										/>
-									);
-								}
-								if (currentPlayer.puuid === maxCsPerMinParticipant) {
-									tags.push(
-										<Tag
-											key="cs-star"
-											text="CS Star"
-											hoverText={`Most CS/min in the game: ${(
-												currentPlayer.csPerMin ?? 0
-											).toFixed(1)}`}
-											color="bg-blue-500 text-white"
-											icon={<FaStar />}
-										/>
-									);
-								}
-							}
-
-							// Calculate placement based on clutch score ranking (higher score = better)
-							const sortedByScore = [...participants]
-								.map((p) => ({
-									puuid: p.puuid,
-									score: calculateClutchScore(match, p),
-								}))
-								.sort((a, b) => b.score - a.score);
-
-							const placement =
-								sortedByScore.findIndex(
-									(o) => o.puuid === currentPlayer.puuid
-								) + 1;
-
-							const items = Array.from(
-								{ length: 7 },
-								(_, i) => currentPlayer[`item${i}`]
-							);
-							// Defensive date handling
-							const gameCreationRaw =
-								match.info.gameCreation ?? match.info.game_datetime ?? 0;
-							const gameCreation = new Date(gameCreationRaw);
-							const now = new Date();
-							const timeDifference = Math.abs(now - gameCreation);
-							const daysDifference = Math.floor(
-								timeDifference / (1000 * 60 * 60 * 24)
-							);
-							const hoursDifference = Math.floor(
-								timeDifference / (1000 * 60 * 60)
-							);
-							const minutesDifference = Math.floor(
-								timeDifference / (1000 * 60)
-							);
-							const timeAgo = isNaN(gameCreation.getTime())
-								? "Unknown"
-								: daysDifference > 0
-									? `${daysDifference}d ago`
-									: hoursDifference > 0
-										? `${hoursDifference}h ago`
-										: `${minutesDifference}m ago`;
-
-							const kda = (
-								((currentPlayer.kills ?? 0) + (currentPlayer.assists ?? 0)) /
-								Math.max(1, currentPlayer.deaths ?? 0)
-							).toFixed(1);
-
-							const csPerMinCalc = (
-								(currentPlayer.totalMinionsKilled ?? 0) /
-								((match.info.gameDuration ?? 1) / 60)
-							).toFixed(1);
-
-							const cs =
-								(currentPlayer.neutralMinionsKilled ?? 0) +
-								(currentPlayer.totalMinionsKilled ?? 0);
-							const dpm = (
-								(currentPlayer.totalDamageDealtToChampions ?? 0) /
-								((match.info.gameDuration ?? 1) / 60)
-							).toFixed(1);
-
-							const goldEarned = (
-								currentPlayer.goldEarned ?? 0
-							).toLocaleString();
-
-							const winningTeam = match.info.participants.filter((p) => p.win);
-							const losingTeam = match.info.participants.filter((p) => !p.win);
-
-							const isRemake = match.info.gameDuration < 300;
-							const isMVP = tags.some((tag) => tag.key === "mvp");
-
-							const augmentsSelected = [
-								currentPlayer.playerAugment1,
-								currentPlayer.playerAugment2,
-								currentPlayer.playerAugment3,
-								currentPlayer.playerAugment4,
-							];
-
-							let outcomeText = "";
-							let outcomeColorClass = "text-gray-200";
-
-							// For Arena keep placement info, else show queue/game mode name
-							if (match.info.queueId === 1700 || match.info.queueId === 1710) {
-								// existing placement logic remains...
-							} else {
-								// Non-Arena: big text is game mode name
-								outcomeText = getQueueName(match.info.queueId, match.info.gameMode);
-							}
-
-							const matchId = match.metadata.matchId;
-							const isExpanded = expandedMatchId === matchId;
-
-							return (
-								<div key={index} className="overflow-x-auto">
-									<div
-										onClick={() => toggleExpand(matchId)}
-										className={`cursor-pointer rounded-lg shadow-lg p-2 relative flex items-center mb-2 min-w-[768px] text-xs sm:text-sm ${getGradientBackground(
-											match,
-											currentPlayer,
-											isRemake,
-											isMVP
-										)}`}
-									>
-										<div className="flex items-start gap-4 w-full">
-											{/* Summary column */}
-											<div className="flex flex-col items-start w-28">
-												<p
-													className={`font-semibold text-md ${getOutcomeClass(
-														currentPlayer.win,
-														isRemake,
-														isMVP
-													)}`}
-												>
-													{outcomeText}
-												</p>
-												<span className="text-md text-gray-300">{timeAgo}</span>
-												<p className="text-sm mr-2 flex items-center gap-1">
-													<span
-														className={`text-xs ${isRemake
-															? "text-gray-400"
-															: currentPlayer.win
-																? "text-blue-400"
-																: "text-red-400"
-															}`}
-													>
-														{isRemake
-															? "Remake"
-															: currentPlayer.win
-																? "Win"
-																: "Lose"}
-													</span>
-													{`${Math.floor(
-														match.info.gameDuration / 60
-													)}:${String(match.info.gameDuration % 60).padStart(
-														2,
-														"0"
-													)}`}
-												</p>
-											</div>
-
-											{/* Champion + spells + stats + items */}
-											<div className="flex flex-col gap-1">
-												<div className="flex items-center gap-2">
-													{/* Champion with role overlay */}
-													<div
-														className={`relative w-14 h-14 border-2 rounded-md ${getOutcomeClass(
-															currentPlayer.win,
-															isRemake,
-															isMVP
-														)}`}
-													>
-														<Image
-															src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${currentPlayer.championId}.png`}
-															alt="Champion Icon"
-															fill
-															className="object-cover"
-														/>
-														{currentPlayer.teamPosition && (
-															<Image
-																src={`https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-champ-select/global/default/svg/position-${currentPlayer.teamPosition.toLowerCase()}.svg`}
-																alt="Role Icon"
-																width={18}
-																height={18}
-																className="absolute -bottom-1 -right-1 bg-[--card-bg] rounded-sm p-0.5"
-															/>
-														)}
-													</div>
-
-													{/* Summoner spells */}
-													<div className="flex flex-col gap-1">
-														{[
-															currentPlayer.summoner1Id,
-															currentPlayer.summoner2Id,
-														].map((spellId, idx) => (
-															<Image
-																key={idx}
-																src={`/images/league/summonerSpells/${spellId}.png`}
-																alt={`Spell ${idx + 1}`}
-																width={24}
-																height={24}
-																className="rounded-md border border-gray-700"
-															/>
-														))}
-													</div>
-
-													{/* KDA stats */}
-													<div className="flex flex-col">
-														<p className="text-base font-semibold">
-															{currentPlayer.kills}/{currentPlayer.deaths}/
-															{currentPlayer.assists}
-														</p>
-														<p className="text-sm">{kda} KDA</p>
-													</div>
-												</div>
-
-												{/* Items row */}
-												<div className="flex items-center gap-1 pt-1">
-													{items.slice(0, 6).map((itemId, idx) => (
-														<Image
-															key={idx}
-															src={
-																itemId > 0
-																	? `https://ddragon.leagueoflegends.com/cdn/15.8.1/img/item/${itemId}.png`
-																	: "/images/placeholder.png"
-															}
-															alt="Item"
-															width={24}
-															height={24}
-															className="rounded-md border border-gray-700"
-														/>
-													))}
-													{/* Ward */}
-													<Image
-														src={
-															items[6] > 0
-																? `https://ddragon.leagueoflegends.com/cdn/15.8.1/img/item/${items[6]}.png`
-																: "/images/placeholder.png"
-														}
-														alt="Ward"
-														width={24}
-														height={24}
-														className="rounded-md border border-gray-700"
-													/>
-												</div>
-											</div>
-
-											{/* Score box with label above */}
-											<div className="flex flex-col items-center justify-center ml-12 self-center">
-												<p className="text-md text-gray-300 mb-1">C-Score</p>
-												<DonutGraph
-													score={calculateClutchScore(match, currentPlayer)}
-													result={currentPlayer.win ? "win" : "loss"}
-													height={36}
-													width={40}
-												/>
-
-												{/* Placement display */}
-												<p className="text-xs text-gray-300 mt-1 flex items-center">
-													{placement === 1 && (
-														<FaCrown className="text-yellow-400 mr-1" />
-													)}
-													{getOrdinal(placement)}
-												</p>
-											</div>
-
-											{/* Participants scoreboard handled below in two-column layout */}
-										</div>
-										{/* Display tags for all match types EXCEPT Arena mode and remakes */}
-										{match.info.queueId !== 1700 &&
-											match.info.queueId !== 1710 &&
-											!isRemake && (
-												<div className="absolute bottom-1 left-2 flex items-center">
-													{tags.length > 0 && tags[0]}
-												</div>
-											)}
-										{match.info.queueId === 1700 ||
-											match.info.queueId === 1710 ? (
-											<div className="flex ml-auto">
-												<div className="flex flex-col items-start mr-4">
-													<div className="text-xs text-[--text-secondary] mb-1">
-														Arena Augments
-													</div>
-													<div className="flex flex-wrap gap-1 max-w-[120px]">
-														{augmentsSelected
-															.filter(Boolean)
-															.slice(0, 4)
-															.map((augmentId, idx) => (
-																<div key={idx} className="flex-shrink-0">
-																	<Image
-																		src={getAugmentIcon(augmentId)}
-																		alt={`Augment ${idx + 1}`}
-																		className="w-6 h-6 rounded border border-gray-700"
-																		width={24}
-																		height={24}
-																	/>
-																</div>
-															))}
-													</div>
-												</div>
-											</div>
-										) : (
-											<div className="flex ml-auto">
-												<div className="flex flex-col items-start mr-4">
-													{winningTeam.map((participant, idx) => (
-														<div key={idx} className="flex items-center">
-															<div
-																className={`sm:w-5 sm:h-5 w-5 h-5 rounded-md border border-gray-700 mr-1 overflow-hidden`}
-															>
-																<Image
-																	src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${participant.championId}.png`}
-																	alt="Participant Champion"
-																	width={20}
-																	height={20}
-																	className="object-cover transform scale-110"
-																/>
-															</div>
-															<p
-																className="text-xs truncate"
-																style={{ width: "90px" }}
-															>
-																<span
-																	className={`${participant.puuid === selectedSummonerPUUID
-																		? "font-semibold text-gray-100"
-																		: ""
-																		}`}
-																>
-																	{truncateName(cleanBotName(participant.riotIdGameName, match.info.gameMode), 7)}
-																</span>
-															</p>
-														</div>
-													))}
-												</div>
-												<div className="flex flex-col items-start">
-													{losingTeam.map((participant, idx) => (
-														<div key={idx} className="flex items-center">
-															<div
-																className={`sm:w-5 sm:h-5 w-5 h-5 rounded-md border border-gray-700 mr-1 overflow-hidden`}
-															>
-																<Image
-																	src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${participant.championId}.png`}
-																	alt="Participant Champion"
-																	width={20}
-																	height={20}
-																	className="object-cover transform scale-110"
-																/>
-															</div>
-															<p
-																className="text-xs truncate"
-																style={{ width: "90px" }}
-															>
-																<span
-																	className={`${participant.puuid === selectedSummonerPUUID
-																		? "font-semibold text-gray-100"
-																		: ""
-																		}`}
-																>
-																	{truncateName(cleanBotName(participant.riotIdGameName, match.info.gameMode), 7)}
-																</span>
-															</p>
-														</div>
-													))}
-												</div>
-											</div>
-										)}
-										{/* Chevron icon */}
-										<div className="flex items-center ml-2">
-											{isExpanded ? (
-												<FaChevronUp className="text-gray-400" />
-											) : (
-												<FaChevronDown className="text-gray-400" />
-											)}
-										</div>
-									</div>
-									{/* Expanded match details */}
-									{isExpanded && (
-										<div className="mt-0">
-											<MatchDetails
-												matchDetails={matchDetails}
-												matchId={matchId}
-												selectedSummonerPUUID={selectedSummonerPUUID}
-												region={region}
-											/>
-										</div>
-									)}
-								</div>
-							);
-						})}
-					</div>
+				{paginatedMatchIds.map((matchId) => (
+					<MatchRow
+						key={matchId}
+						matchId={matchId}
+						selectedSummonerPUUID={selectedSummonerPUUID}
+						region={region}
+						isExpanded={expandedMatchId === matchId}
+						onToggleExpand={toggleExpand}
+						breakpoint={breakpoint}
+						augments={augments}
+					/>
 				))}
-				{totalPages > 1 && (
-					<div className="flex justify-center items-center mt-6 space-x-1 text-sm">
-						<button
-							onClick={() => handlePageChange(currentPage - 1)}
-							disabled={currentPage === 1}
-							className={`px-3 py-1 rounded ${currentPage === 1
-								? "bg-gray-700 cursor-not-allowed text-gray-500"
-								: "bg-gray-800 hover:bg-gray-700 text-gray-200"
-								}`}
-						>
-							Previous
-						</button>
-						{Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-							<button
-								key={page}
-								onClick={() => handlePageChange(page)}
-								className={`px-3 py-1 rounded ${currentPage === page
-									? "bg-gray-700 text-white"
-									: "bg-gray-800 hover:bg-gray-700 text-gray-200"
-									}`}
-							>
-								{page}
-							</button>
-						))}
-						<button
-							onClick={() => handlePageChange(currentPage + 1)}
-							disabled={currentPage === totalPages}
-							className={`px-3 py-1 rounded ${currentPage === totalPages
-								? "bg-gray-700 cursor-not-allowed text-gray-500"
-								: "bg-gray-800 hover:bg-gray-700 text-gray-200"
-								}`}
-						>
-							Next
-						</button>
-					</div>
-				)}
 			</div>
+			
+			{totalPages > 1 && (
+				<div className="flex justify-center items-center mt-6 space-x-1 text-sm">
+					<button
+						onClick={() => handlePageChange(currentPage - 1)}
+						disabled={currentPage === 1}
+						className={`px-3 py-1 rounded ${currentPage === 1
+							? "bg-gray-700 cursor-not-allowed text-gray-500"
+							: "bg-gray-800 hover:bg-gray-700 text-gray-200"
+							}`}
+					>
+						Previous
+					</button>
+					{Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+						<button
+							key={page}
+							onClick={() => handlePageChange(page)}
+							className={`px-3 py-1 rounded ${currentPage === page
+								? "bg-gray-700 text-white"
+								: "bg-gray-800 hover:bg-gray-700 text-gray-200"
+								}`}
+						>
+							{page}
+						</button>
+					))}
+					<button
+						onClick={() => handlePageChange(currentPage + 1)}
+						disabled={currentPage === totalPages}
+						className={`px-3 py-1 rounded ${currentPage === totalPages
+							? "bg-gray-700 cursor-not-allowed text-gray-500"
+							: "bg-gray-800 hover:bg-gray-700 text-gray-200"
+							}`}
+					>
+						Next
+					</button>
+				</div>
+			)}
 		</div>
 	);
 };

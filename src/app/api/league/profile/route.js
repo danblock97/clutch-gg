@@ -6,7 +6,6 @@ import {
 	fetchRankedData,
 	fetchMatchIds,
 	fetchMatchDetail,
-	fetchMatchTimeline,
 	upsertMatchDetail,
 	fetchLiveGameData,
 } from "@/lib/league/leagueApi";
@@ -84,6 +83,7 @@ export async function GET(req) {
 			.ilike("tagline", normalizedTagLine)
 			.maybeSingle();
 		if (accountLookupError) throw accountLookupError;
+		
 		if (riotAccountByName && !forceUpdate) {
 			let { data: storedLeagueDataA, error: leagueDataErrorA } = await supabase
 				.from("league_data")
@@ -91,10 +91,12 @@ export async function GET(req) {
 				.eq("riot_account_id", riotAccountByName.id)
 				.maybeSingle();
 			if (leagueDataErrorA) throw leagueDataErrorA;
+			
 			if (storedLeagueDataA) {
+				// Fetch matchIds from DB
 				let { data: userMatchObjectsA, error: matchesErrorA } = await supabase
 					.from("league_matches")
-					.select("matchid, match_data, game_creation, created_at")
+					.select("matchid, game_creation")
 					.filter(
 						"match_data->metadata->participants",
 						"cs",
@@ -102,24 +104,31 @@ export async function GET(req) {
 					)
 					.order("game_creation", { ascending: false });
 				if (matchesErrorA) throw matchesErrorA;
-				const userMatchDetailsA = (userMatchObjectsA || []).map((m) => m.match_data);
-				const responseDataA = {
-					profiledata: storedLeagueDataA.profiledata,
-					accountdata: storedLeagueDataA.accountdata,
-					rankeddata: storedLeagueDataA.rankeddata,
-					championmasterydata: storedLeagueDataA.championmasterydata,
-					livegamedata: storedLeagueDataA.livegamedata,
-					updated_at: storedLeagueDataA.updated_at,
-					matchdetails: userMatchDetailsA,
-				};
-				return new Response(JSON.stringify(responseDataA), {
-					status: 200,
-					headers: { "Content-Type": "application/json" },
-				});
+				
+				const matchIds = (userMatchObjectsA || []).map((m) => m.matchid);
+				
+				// Only return cached data if we have matches
+				// If matches are empty, fall through to fetch from Riot
+				if (matchIds.length > 0) {
+					const responseDataA = {
+						profiledata: storedLeagueDataA.profiledata,
+						accountdata: storedLeagueDataA.accountdata,
+						rankeddata: storedLeagueDataA.rankeddata,
+						championmasterydata: storedLeagueDataA.championmasterydata,
+						livegamedata: storedLeagueDataA.livegamedata,
+						updated_at: storedLeagueDataA.updated_at,
+						matchIds: matchIds,
+					};
+					return new Response(JSON.stringify(responseDataA), {
+						status: 200,
+						headers: { "Content-Type": "application/json" },
+					});
+				}
+				// If no matches in DB, fall through to fetch from Riot
 			}
 		}
 
-		// Fetch account data to get the puuid. Uses 'platform'
+		// Fetch account data to get the puuid
 		const accountData = await fetchAccountData(normalizedGameName, normalizedTagLine, platform);
 
 		if (!accountData?.puuid) {
@@ -129,7 +138,7 @@ export async function GET(req) {
 			);
 		}
 
-		// Check and insert the Riot account as needed.
+		// Check and insert the Riot account as needed
 		let { data: riotAccount, error: puuidCheckError } = await supabase
 			.from("riot_accounts")
 			.select("*")
@@ -145,7 +154,6 @@ export async function GET(req) {
 				puuid: accountData.puuid,
 			};
 			try {
-				// Use supabaseAdmin for write operations when RLS is enabled
 				const { error: insertError } = await supabaseAdmin
 					.from("riot_accounts")
 					.insert([insertPayload], { returning: "representation" });
@@ -155,6 +163,7 @@ export async function GET(req) {
 						insertError.code === "23505" &&
 						insertError.message.includes("puuid")
 					) {
+						// Duplicate - ignore
 					} else {
 						throw insertError;
 					}
@@ -173,6 +182,7 @@ export async function GET(req) {
 		if (!riotAccount?.puuid) {
 			throw new Error("Riot account record is missing the puuid.");
 		}
+		
 		// Second DB-first early return after resolving by PUUID
 		if (!forceUpdate) {
 			let { data: storedLeagueData, error: leagueDataError } = await supabase
@@ -181,10 +191,11 @@ export async function GET(req) {
 				.eq("riot_account_id", riotAccount.id)
 				.maybeSingle();
 			if (leagueDataError) throw leagueDataError;
+			
 			if (storedLeagueData) {
 				let { data: userMatchObjects, error: matchesError } = await supabase
 					.from("league_matches")
-					.select("matchid, match_data, game_creation, created_at")
+					.select("matchid, game_creation")
 					.filter(
 						"match_data->metadata->participants",
 						"cs",
@@ -192,134 +203,109 @@ export async function GET(req) {
 					)
 					.order("game_creation", { ascending: false });
 				if (matchesError) throw matchesError;
-				// Fetch timelines for cached matches
-				const userMatchDetails = await Promise.all(
-					(userMatchObjects || []).map(async (match) => {
-						const matchData = match.match_data;
-						try {
-							const timeline = await fetchMatchTimeline(match.matchid, matchPlatform);
-							if (timeline) {
-								matchData.timeline = timeline;
-							}
-						} catch (err) {
-							// Silently fail - timeline is optional
-						}
-						return matchData;
-					})
-				);
-				const responseData = {
-					profiledata: storedLeagueData.profiledata,
-					accountdata: storedLeagueData.accountdata,
-					rankeddata: storedLeagueData.rankeddata,
-					championmasterydata: storedLeagueData.championmasterydata,
-					livegamedata: storedLeagueData.livegamedata,
-					updated_at: storedLeagueData.updated_at,
-					matchdetails: userMatchDetails,
-				};
-				return new Response(JSON.stringify(responseData), {
-					status: 200,
-					headers: { "Content-Type": "application/json" },
-				});
+				
+				const matchIds = (userMatchObjects || []).map((m) => m.matchid);
+				
+				// Only return cached data if we have matches
+				// If matches are empty, fall through to fetch from Riot
+				if (matchIds.length > 0) {
+					const responseData = {
+						profiledata: storedLeagueData.profiledata,
+						accountdata: storedLeagueData.accountdata,
+						rankeddata: storedLeagueData.rankeddata,
+						championmasterydata: storedLeagueData.championmasterydata,
+						livegamedata: storedLeagueData.livegamedata,
+						updated_at: storedLeagueData.updated_at,
+						matchIds: matchIds,
+					};
+					return new Response(JSON.stringify(responseData), {
+						status: 200,
+						headers: { "Content-Type": "application/json" },
+					});
+				}
+				// If no matches in DB, fall through to fetch from Riot
 			}
-			// If no cache and not forcing update, proceed to create the profile by fetching external data
 		}
 
 		const puuid = riotAccount.puuid;
 
-		// Only reach here if forceUpdate=true: perform external fetch and persist
+		// Fetch profile data from Riot API
 		const summonerData = await fetchSummonerData(puuid, normalizedRegion);
 		const [rankedData, matchIds] = await Promise.all([
 			fetchRankedData(puuid, normalizedRegion),
 			fetchMatchIds(puuid, matchPlatform),
 		]);
-		// Fetch match details and timelines concurrently and upsert them
-		const matchDetailsWithTimelines = await Promise.all(
-			matchIds.map(async (matchId) => {
-				const [matchDetail, timeline] = await Promise.all([
-					fetchMatchDetail(matchId, matchPlatform),
-					fetchMatchTimeline(matchId, matchPlatform).catch(() => null), // Don't fail if timeline fails
-				]);
-				if (matchDetail) {
-					try {
-						await upsertMatchDetail(matchId, summonerData.puuid, matchDetail);
-					} catch (upsertErr) {
-						console.error("Error upserting League match detail:", {
-							matchId,
-							upsertErr,
-						});
-					}
-					// Attach timeline to match detail
-					if (timeline) {
-						matchDetail.timeline = timeline;
+
+		// Fetch and cache match details to populate the database
+		// This ensures league_matches table has data for future cached requests
+		// We fetch matches sequentially in small batches to stay under subrequest limits
+		const matchDetailsToCache = [];
+		for (const matchId of matchIds) {
+			try {
+				// Check if already cached
+				const { data: cached } = await supabase
+					.from("league_matches")
+					.select("matchid")
+					.eq("matchid", matchId)
+					.maybeSingle();
+				
+				if (!cached) {
+					// Fetch from Riot API and cache
+					const matchDetail = await fetchMatchDetail(matchId, matchPlatform);
+					if (matchDetail) {
+						matchDetailsToCache.push({ matchId, matchDetail });
 					}
 				}
-				return matchDetail;
-			})
-		);
-		const matchDetails = matchDetailsWithTimelines.filter(Boolean);
-		if (!matchDetails || matchDetails.length === 0) {
-			console.warn("[LEAGUE] No match details found for user", riotAccount.id);
+			} catch (err) {
+				console.warn(`Failed to fetch match ${matchId}:`, err);
+			}
 		}
-		// After storing new matches, fetch ALL stored matches for this user from database
-		let { data: allUserMatchObjects, error: allMatchesError } = await supabase
-			.from("league_matches")
-			.select("matchid, match_data, game_creation, created_at")
-			.filter(
-				"match_data->metadata->participants",
-				"cs",
-				`"${riotAccount.puuid}"`
-			)
-			.order("game_creation", { ascending: false });
-		if (allMatchesError) throw allMatchesError;
-		const allMatchDetails = (allUserMatchObjects || []).map(
-			(match) => match.match_data
-		);
+
+		// Upsert all fetched matches to database
+		for (const { matchId, matchDetail } of matchDetailsToCache) {
+			try {
+				await upsertMatchDetail(matchId, puuid, matchDetail);
+			} catch (upsertErr) {
+				console.error("Error upserting match detail:", { matchId, upsertErr });
+			}
+		}
 
 		const [championMasteryData, liveGameData] = await Promise.all([
 			fetchChampionMasteryData(puuid, region),
 			fetchLiveGameData(puuid, region, platform),
 		]);
 
-		// Create JSONB data structure for simplified schema
+		// Create JSONB data structure
 		const leagueDataObj = {
 			riot_account_id: riotAccount.id,
-
-			// Profile data as JSONB
 			profiledata: {
 				summonerId: summonerData.id,
 				accountId: summonerData.accountId,
 				puuid: summonerData.puuid,
 				summonerLevel: summonerData.summonerLevel,
 				profileIconId: summonerData.profileIconId,
-			}, // Account data as JSONB
+			},
 			accountdata: {
 				gameName: riotAccount.gamename,
 				tagLine: riotAccount.tagline,
 				puuid: riotAccount.puuid,
 				region: riotAccount.region,
 			},
-
-			// Ranked data as JSONB - organize by queue type
 			rankeddata: {
 				RANKED_SOLO_5x5:
 					rankedData.find((r) => r.queueType === "RANKED_SOLO_5x5") || null,
 				RANKED_FLEX_SR:
 					rankedData.find((r) => r.queueType === "RANKED_FLEX_SR") || null,
 			},
-
-			// Champion mastery as JSONB
 			championmasterydata: championMasteryData || null,
-
-			// Live game data as JSONB
 			livegamedata: liveGameData || null,
-
 			updated_at: new Date(),
 		};
 
 		let { data: leagueRecord, error: leagueError } = await supabaseAdmin
 			.from("league_data")
 			.upsert(leagueDataObj, {
-				onConflict: "riot_account_id", // Verify this matches the unique constraint column name
+				onConflict: "riot_account_id",
 			})
 			.select()
 			.single();
@@ -336,7 +322,21 @@ export async function GET(req) {
 				updateTsError
 			);
 		}
-		// Return data in the simplified JSONB format
+
+		// Fetch all matchIds from database (including newly cached ones)
+		let { data: allMatchObjects, error: allMatchesError } = await supabase
+			.from("league_matches")
+			.select("matchid, game_creation")
+			.filter(
+				"match_data->metadata->participants",
+				"cs",
+				`"${riotAccount.puuid}"`
+			)
+			.order("game_creation", { ascending: false });
+		if (allMatchesError) throw allMatchesError;
+		
+		const allMatchIds = (allMatchObjects || []).map((m) => m.matchid);
+		
 		const responseData = {
 			profiledata: leagueRecord.profiledata,
 			accountdata: leagueRecord.accountdata,
@@ -344,7 +344,7 @@ export async function GET(req) {
 			championmasterydata: leagueRecord.championmasterydata,
 			livegamedata: leagueRecord.livegamedata,
 			updated_at: leagueRecord.updated_at,
-			matchdetails: allMatchDetails,
+			matchIds: allMatchIds,
 		};
 		return new Response(JSON.stringify(responseData), {
 			status: 200,
