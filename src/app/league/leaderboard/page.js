@@ -16,7 +16,6 @@ const Leaderboard = () => {
 	const [tier, setTier] = useState("CHALLENGER");
 	const [division, setDivision] = useState("I");
 	const [error, setError] = useState(null);
-	const [retryCountdown, setRetryCountdown] = useState(0);
 	const fetchLeaderboardData = useCallback(async () => {
 		setLoading(true);
 		setError(null);
@@ -35,7 +34,6 @@ const Leaderboard = () => {
 		} catch (error) {
 			console.error("League Leaderboard fetch error:", error);
 			setError(error);
-			setRetryCountdown(10);
 		} finally {
 			setLoading(false);
 		}
@@ -44,19 +42,6 @@ const Leaderboard = () => {
 	useEffect(() => {
 		fetchLeaderboardData();
 	}, [fetchLeaderboardData]);
-
-	// Retry logic
-	useEffect(() => {
-		if (retryCountdown > 0) {
-			const timer = setTimeout(
-				() => setRetryCountdown(retryCountdown - 1),
-				1000
-			);
-			return () => clearTimeout(timer);
-		} else if (retryCountdown === 0 && error) {
-			fetchLeaderboardData();
-		}
-	}, [retryCountdown, error, fetchLeaderboardData]);
 
 	// Get background class based on tier
 	const getTierBackgroundClass = () => {
@@ -91,6 +76,16 @@ const Leaderboard = () => {
 			document.title = "ClutchGG Leaderboards";
 		}
 	}, []);
+
+	// Show error page as full page if there's an error
+	if (error) {
+		return (
+			<ErrorPage
+				error={error}
+				onRetry={fetchLeaderboardData}
+			/>
+		);
+	}
 
 	return (
 		<div className="min-h-screen flex flex-col">
@@ -141,12 +136,6 @@ const Leaderboard = () => {
 								Loading leaderboard data...
 							</p>
 						</div>
-					) : error ? (
-						<ErrorPage
-							error={error}
-							retryCountdown={retryCountdown}
-							onRetry={fetchLeaderboardData}
-						/>
 					) : leaderboardData.length === 0 ? (
 						<div className="card-highlight py-8 text-center">
 							<h3 className="text-xl font-semibold mb-2">No Players Found</h3>

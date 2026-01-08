@@ -113,7 +113,6 @@ export default function ProfilePageContent({ gameName, tagLine, region }) {
 					error ||
 					"Please provide a valid Riot ID (gameName#tagLine) and region."
 				}
-				retryCountdown={0}
 				onRetry={() => window.location.reload()}
 			/>
 		);

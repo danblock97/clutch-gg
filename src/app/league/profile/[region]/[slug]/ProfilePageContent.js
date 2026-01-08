@@ -220,13 +220,10 @@ export default function ProfilePageContent({ gameName, tagLine, region }) {
 	}
 	if (state.error) {
 		return (
-			<div className="min-h-screen flex items-center justify-center">
-				<ErrorPage
-					error={state.error}
-					retryCountdown={0}
-					onRetry={() => window.location.reload()}
-				/>
-			</div>
+			<ErrorPage
+				error={state.error}
+				onRetry={() => window.location.reload()}
+			/>
 		);
 	}
 

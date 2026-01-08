@@ -5,6 +5,7 @@ import useSWR from "swr";
 import Tag from "@/components/league/Tag";
 import DonutGraph from "@/components/league/DonutGraph";
 import MatchDetails from "@/components/league/MatchDetails";
+import ErrorPage from "@/components/ErrorPage";
 import {
 	FaSkullCrossbones,
 	FaBolt,
@@ -128,8 +129,14 @@ const MatchRow = ({
 
 	if (isError || !match) {
 		return (
-			<div className="rounded-lg shadow-lg p-4 mb-2 bg-red-900/20 border border-red-500/30 text-red-400 min-w-[768px]">
-				<p>Failed to load match {matchId}</p>
+			<div className="min-w-[768px]">
+				<ErrorPage
+					error={`Failed to load match ${matchId}`}
+					fullPage={false}
+					showHomeButton={false}
+					showContactSupport={false}
+					onRetry={() => window.location.reload()}
+				/>
 			</div>
 		);
 	}

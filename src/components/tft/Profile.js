@@ -8,7 +8,7 @@ import TopUnits from "./TopUnits";
 import Last20GamesPerformance from "./Last20GamesPerformance";
 import LiveGame from "./LiveGame";
 import Loading from "@/components/Loading";
-import NoProfileFound from "@/components/league/NoProfileFound";
+import ErrorPage from "@/components/ErrorPage";
 import DiscordBotBanner from "@/components/DiscordBotBanner.js";
 import {
 	fetchTFTCompanions,
@@ -284,7 +284,13 @@ export default function Profile({
 	}
 
 	if (!summonerData) {
-		return <NoProfileFound />;
+		return (
+			<ErrorPage
+				error="Summoner Not Found"
+				title="Summoner Not Found"
+				onRetry={() => window.location.reload()}
+			/>
+		);
 	} // Find TFT ranked queue - ensure rankedData is an array
 	const tftRanked = Array.isArray(rankedData)
 		? rankedData.find((queue) => queue.queueType === "RANKED_TFT")

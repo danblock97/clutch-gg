@@ -1,19 +1,21 @@
-import React, { useState } from "react";
+"use client";
+
+import React from "react";
 import Image from "next/image";
-import {
-	FaExclamationTriangle,
-	FaSyncAlt,
-	FaRedo,
-	FaSadTear,
-	FaChevronDown,
-	FaChevronUp,
-	FaCode,
-} from "react-icons/fa";
+import { useRouter } from "next/navigation";
+import { FaRedo, FaHome, FaTicketAlt } from "react-icons/fa";
 import PropTypes from "prop-types";
 import { formatErrorForDisplay } from "@/lib/errorUtils";
 
-const ErrorPage = ({ error, retryCountdown, onRetry }) => {
-	const [showDetails, setShowDetails] = useState(false);
+const ErrorPage = ({
+	error,
+	onRetry,
+	showHomeButton = true,
+	showContactSupport = true,
+	title,
+	fullPage = true,
+}) => {
+	const router = useRouter();
 
 	// Format the error for display, handling both string and object errors
 	const errorInfo =
@@ -21,124 +23,208 @@ const ErrorPage = ({ error, retryCountdown, onRetry }) => {
 			? { primaryMessage: error, details: [] }
 			: formatErrorForDisplay(error || {});
 
+	// Get the raw error object for accessing status, code, hint
+	const errorObj = typeof error === "object" ? error : {};
+
+	const containerClasses = fullPage
+		? "flex flex-col items-center justify-center min-h-screen w-full px-4 py-12 text-center"
+		: "p-4 rounded-lg bg-red-900/20 border border-red-500/30 text-red-400 text-center";
+
 	return (
-		<div className="flex flex-col items-center justify-center p-8 max-w-lg mx-auto">
-			<div className="relative w-28 h-28 mb-6">
-				<div className="absolute inset-0 bg-[--error] opacity-20 rounded-full blur-xl"></div>
-				<div className="relative z-10 w-full h-full flex items-center justify-center bg-[--card-bg] rounded-full border border-[--card-border] shadow-lg">
-					<FaExclamationTriangle className="text-[--error] text-4xl" />
+		<div className={containerClasses}>
+			{/* Bee Image with Dramatic Glow Effect */}
+			{fullPage && (
+				<div className="relative mb-12">
+					{/* Multiple layered glows for more drama */}
+					<div className="absolute inset-0 bg-yellow-500/30 blur-3xl scale-150 rounded-full"></div>
+					<div className="absolute inset-0 bg-yellow-400/20 blur-2xl scale-125 rounded-full"></div>
+					<div className="absolute inset-0 bg-orange-500/10 blur-xl rounded-full"></div>
+					<Image
+						src="/images/bee-sad.png"
+						alt="Error"
+						height={200}
+						width={200}
+						className="relative z-10 drop-shadow-2xl"
+					/>
 				</div>
-			</div>
+			)}
 
-			<h2 className="text-2xl font-bold mb-4 text-center">
-				Something Went Wrong
-			</h2>
+			{/* Giant Bold Title */}
+			<h1
+				className={
+					fullPage
+						? "text-5xl sm:text-6xl md:text-7xl font-black mb-6 text-white tracking-tight leading-none"
+						: "text-lg font-bold mb-2"
+				}
+			>
+				{title || "Something Went Wrong"}
+			</h1>
 
-			<div className="card-highlight p-4 mb-6 w-full text-center">
-				<p className="text-[--text-secondary] mb-3">Error Details:</p>
-				<div className="bg-[--card-bg] p-3 rounded-lg text-sm overflow-x-auto text-left">
-					<div className="font-mono text-[--error] mb-2">
-						{errorInfo.primaryMessage}
-					</div>
+			{/* Primary Error Message - Big and Bold */}
+			{fullPage && (
+				<p className="text-2xl sm:text-3xl md:text-4xl font-bold text-red-400 mb-12 max-w-4xl leading-tight">
+					{errorInfo.primaryMessage}
+				</p>
+			)}
 
-					{/* Show additional details if available */}
-					{errorInfo.details && errorInfo.details.length > 0 && (
-						<div className="mt-3">
-							<button
-								onClick={() => setShowDetails(!showDetails)}
-								className="flex items-center text-[--text-secondary] hover:text-[--primary] transition-colors text-xs mb-2"
-							>
-								{showDetails ? (
-									<FaChevronUp className="mr-1" />
-								) : (
-									<FaChevronDown className="mr-1" />
-								)}
-								{showDetails ? "Hide Details" : "Show Details"}
-							</button>
-
-							{showDetails && (
-								<div className="border-t border-[--card-border] pt-2">
-									{errorInfo.details.map((detail, index) => (
-										<div
-											key={index}
-											className="text-[--text-secondary] text-xs mb-1 font-mono"
-										>
-											{detail}
-										</div>
-									))}
-
-									{/* Development-only stack traces */}
-									{process.env.NODE_ENV === "development" &&
-										(errorInfo.stack || errorInfo.serverStack) && (
-											<div className="mt-3 border-t border-[--card-border] pt-2">
-												<div className="flex items-center text-[--warning] text-xs mb-2">
-													<FaCode className="mr-1" />
-													Development Stack Traces
-												</div>
-												{errorInfo.stack && (
-													<details className="text-xs text-[--text-secondary] mb-2">
-														<summary className="cursor-pointer hover:text-[--primary]">
-															Client Stack
-														</summary>
-														<pre className="mt-1 whitespace-pre-wrap break-all">
-															{errorInfo.stack}
-														</pre>
-													</details>
-												)}
-												{errorInfo.serverStack && (
-													<details className="text-xs text-[--text-secondary]">
-														<summary className="cursor-pointer hover:text-[--primary]">
-															Server Stack
-														</summary>
-														<pre className="mt-1 whitespace-pre-wrap break-all">
-															{errorInfo.serverStack}
-														</pre>
-													</details>
-												)}
-											</div>
-										)}
+			{/* Error Details Grid - Clean, no borders */}
+			{fullPage && (
+				<div className="w-full max-w-3xl space-y-8 mb-12">
+					{/* Status Code */}
+					{errorObj.status && (
+						<div className="space-y-2">
+							<div className="text-lg font-semibold text-gray-400 uppercase tracking-wider">
+								Status Code
+							</div>
+							<div className="text-5xl font-black text-white font-mono">
+								{errorObj.status}
+							</div>
+							{errorObj.statusText && (
+								<div className="text-xl text-gray-300">
+									{errorObj.statusText}
 								</div>
 							)}
 						</div>
 					)}
+
+					{/* Error Code */}
+					{errorObj.code && (
+						<div className="space-y-2">
+							<div className="text-lg font-semibold text-gray-400 uppercase tracking-wider">
+								Error Code
+							</div>
+							<div className="text-4xl font-black text-red-400 font-mono tracking-wide">
+								{errorObj.code}
+							</div>
+						</div>
+					)}
+
+					{/* Hint */}
+					{errorObj.hint && (
+						<div className="space-y-2">
+							<div className="text-lg font-semibold text-yellow-400 uppercase tracking-wider">
+								💡 Hint
+							</div>
+							<div className="text-2xl font-semibold text-yellow-300">
+								{errorObj.hint}
+							</div>
+						</div>
+					)}
+
+					{/* Additional Details */}
+					{errorInfo.details && errorInfo.details.length > 0 && (
+						<div className="space-y-3">
+							<div className="text-lg font-semibold text-gray-400 uppercase tracking-wider">
+								Details
+							</div>
+							<div className="space-y-2">
+								{errorInfo.details.map((detail, index) => (
+									<div
+										key={index}
+										className="text-base text-gray-300 font-mono"
+									>
+										{detail}
+									</div>
+								))}
+							</div>
+						</div>
+					)}
+
+					{/* Development Stack Traces - More prominent */}
+					{process.env.NODE_ENV === "development" &&
+						(errorInfo.stack || errorInfo.serverStack) && (
+							<div className="space-y-4 pt-8">
+								<div className="text-xl font-bold text-yellow-400 uppercase tracking-wider">
+									🔧 Development Stack Traces
+								</div>
+								{errorInfo.stack && (
+									<div className="space-y-2">
+										<h4 className="text-lg font-bold text-yellow-300">
+											Client Stack:
+										</h4>
+										<pre className="text-sm text-gray-400 whitespace-pre-wrap break-all font-mono leading-relaxed max-h-96 overflow-y-auto">
+											{errorInfo.stack}
+										</pre>
+									</div>
+								)}
+								{errorInfo.serverStack && (
+									<div className="space-y-2">
+										<h4 className="text-lg font-bold text-yellow-300">
+											Server Stack:
+										</h4>
+										<pre className="text-sm text-gray-400 whitespace-pre-wrap break-all font-mono leading-relaxed max-h-96 overflow-y-auto">
+											{errorInfo.serverStack}
+										</pre>
+									</div>
+								)}
+							</div>
+						)}
 				</div>
+			)}
+
+			{/* Inline variant - simplified */}
+			{!fullPage && (
+				<div className="space-y-2">
+					<p className="font-mono text-sm text-[--error] break-words">
+						{errorInfo.primaryMessage}
+					</p>
+				</div>
+			)}
+
+			{/* Action Buttons - Bigger and bolder */}
+			<div className="flex flex-col sm:flex-row gap-6 w-full max-w-3xl">
+				{/* Retry Button */}
+				{onRetry && (
+					<button
+						onClick={onRetry}
+						className="btn-primary flex-1 py-5 px-8 text-xl font-bold flex items-center justify-center transition-transform hover:scale-105"
+					>
+						<FaRedo className="mr-3 text-2xl" />
+						Try Again
+					</button>
+				)}
+
+				{/* Home Button */}
+				{showHomeButton && fullPage && (
+					<button
+						onClick={() => router.push("/")}
+						className="btn-outline flex-1 py-5 px-8 text-xl font-bold flex items-center justify-center transition-transform hover:scale-105"
+					>
+						<FaHome className="mr-3 text-2xl" />
+						Back to Home
+					</button>
+				)}
+
+				{/* Contact Support Button */}
+				{showContactSupport && fullPage && (
+					<button
+						onClick={() => router.push("/support")}
+						className="btn-secondary flex-1 py-5 px-8 text-xl font-bold flex items-center justify-center transition-transform hover:scale-105"
+					>
+						<FaTicketAlt className="mr-3 text-2xl" />
+						Contact Support
+					</button>
+				)}
 			</div>
 
-			{retryCountdown > 0 ? (
-				<div className="flex flex-col items-center">
-					<p className="text-[--warning] mb-3 flex items-center">
-						<FaSyncAlt className="animate-spin mr-2" />
-						Retrying automatically in {retryCountdown} second
-						{retryCountdown !== 1 ? "s" : ""}
-					</p>
-					<div className="w-full bg-[--card-bg] h-2 rounded-full overflow-hidden">
-						<div
-							className="h-full bg-[--warning] transition-all duration-1000 ease-linear"
-							style={{ width: `${(retryCountdown / 10) * 100}%` }}
-						></div>
-					</div>
-				</div>
-			) : (
-				<div className="flex flex-col items-center">
-					<button onClick={onRetry} className="btn-primary flex items-center">
-						<FaRedo className="mr-2" />
-						Try Again Now
-					</button>
-
-					<p className="mt-6 text-sm text-[--text-secondary] text-center max-w-xs">
-						If this problem persists, please join our Discord server for
-						support, or try again later.
-					</p>
-				</div>
+			{/* Footer - Bigger text */}
+			{fullPage && (
+				<p className="mt-12 text-lg text-gray-400 text-center max-w-2xl">
+					If this problem persists, please join our Discord server for support,
+					or try again later.
+				</p>
 			)}
 		</div>
 	);
 };
 
-export default ErrorPage;
-
 ErrorPage.propTypes = {
 	error: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
-	retryCountdown: PropTypes.number.isRequired,
-	onRetry: PropTypes.func.isRequired,
+	onRetry: PropTypes.func,
+	showHomeButton: PropTypes.bool,
+	showContactSupport: PropTypes.bool,
+	title: PropTypes.string,
+	fullPage: PropTypes.bool,
 };
+
+export default ErrorPage;
