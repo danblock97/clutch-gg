@@ -24,6 +24,7 @@ export default function FeatureRequestForm() {
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState(false);
+    const [submissionCount, setSubmissionCount] = useState(0);
 
     useEffect(() => {
         if (!success) return;
@@ -76,6 +77,7 @@ export default function FeatureRequestForm() {
             }
 
             setSuccess(true);
+            setSubmissionCount(prev => prev + 1);
 
             setTitle("");
             setDescription("");
@@ -180,6 +182,7 @@ export default function FeatureRequestForm() {
                         </p>
                         {siteKey ? (
                             <TurnstileWidget
+                                key={submissionCount}
                                 siteKey={siteKey}
                                 onToken={useCallback((token) => setTurnstileToken(token || ""), [])}
                                 onError={useCallback((e) => setError(e?.message || "Verification failed"), [])}

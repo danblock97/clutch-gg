@@ -70,6 +70,11 @@ export default function TurnstileWidget({ siteKey, onToken, onError }) {
 					widgetIdRef.current = null;
 				}
 
+				// Clear the container DOM to ensure clean state
+				if (containerRef.current) {
+					containerRef.current.innerHTML = '';
+				}
+
 				widgetIdRef.current = window.turnstile.render(containerRef.current, {
 					sitekey: siteKey,
 					theme: "auto",
