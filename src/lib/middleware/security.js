@@ -100,7 +100,8 @@ export async function securityMiddleware(req) {
 			}
 
 			// Validate region if present
-			if (region && !/^[a-z]{2,4}[0-9]$/i.test(region)) {
+			// Region format: 2-4 letters optionally followed by a digit (e.g., NA1, EUW1, KR, RU)
+			if (region && !/^[a-z]{2,4}[0-9]?$/i.test(region)) {
 				return new NextResponse(
 					JSON.stringify({ error: "Invalid region format" }),
 					{ status: 400, headers: { "Content-Type": "application/json" } }

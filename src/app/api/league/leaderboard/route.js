@@ -23,7 +23,7 @@ export async function GET(req) {
 	const queue = searchParams.get("queue") || "RANKED_SOLO_5x5";
 	const tier = searchParams.get("tier") || "CHALLENGER";
 	const division = searchParams.get("division") || "I";
-	const region = searchParams.get("region") || "euw1";
+	const region = (searchParams.get("region") || "euw1").toLowerCase();
 	const apiUrl = `https://${region}.api.riotgames.com/lol/league-exp/v4/entries/${queue}/${tier}/${division}?page=1&limit=200`;
 
 	try {

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
-
+import Image from "next/image";
 import Loading from "@/components/Loading";
 import Dropdowns from "@/components/league/Dropdowns";
 import LeaderboardTable from "@/components/league/LeaderboardTable";
@@ -137,10 +137,24 @@ const Leaderboard = () => {
 							</p>
 						</div>
 					) : leaderboardData.length === 0 ? (
-						<div className="card-highlight py-8 text-center">
-							<h3 className="text-xl font-semibold mb-2">No Players Found</h3>
-							<p className="text-[--text-secondary]">
-								There are no players in {tier} {division} for this region.
+						<div className="card-highlight py-12 px-6 text-center">
+							<div className="flex justify-center mb-6">
+								<div className="relative">
+									<div className="absolute inset-0 bg-yellow-500/20 blur-2xl scale-150 rounded-full"></div>
+									<Image
+										src="/images/bee-sad.png"
+										alt="No players found"
+										height={120}
+										width={120}
+										className="relative z-10 drop-shadow-xl"
+									/>
+								</div>
+							</div>
+							<h3 className="text-2xl font-bold mb-3">Nobody here but us bees... 🐝</h3>
+							<p className="text-[--text-secondary] text-lg max-w-md mx-auto">
+								{["CHALLENGER", "GRANDMASTER", "MASTER"].includes(tier.toUpperCase())
+									? `Looks like there aren't any ${tier.charAt(0) + tier.slice(1).toLowerCase()} players in this region yet. Try a different region or come back later!`
+									: `No players found in ${tier.charAt(0) + tier.slice(1).toLowerCase()} ${division} for this region. Maybe try another tier or region?`}
 							</p>
 						</div>
 					) : (

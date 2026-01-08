@@ -22,7 +22,7 @@ export async function GET(req) {
 	const { searchParams } = new URL(req.url);
 	const tier = searchParams.get("tier") || "CHALLENGER";
 	const division = searchParams.get("division") || "I";
-	const region = searchParams.get("region") || "euw1";
+	const region = (searchParams.get("region") || "euw1").toLowerCase();
 
 	if (!TFT_API_KEY) {
 		return NextResponse.json(
