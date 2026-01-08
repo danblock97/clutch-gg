@@ -16,10 +16,7 @@ export default function MatchDetailsTab({
 	selectedSummonerPUUID,
 	region,
 }) {
-	const [selectedChampions, setSelectedChampions] = useState({
-		team100: null,
-		team200: null,
-	});
+	const [selectedChampion, setSelectedChampion] = useState(null);
 	const [timeline, setTimeline] = useState(null);
 	const [isLoadingTimeline, setIsLoadingTimeline] = useState(false);
 	const [championAbilities, setChampionAbilities] = useState(null);
@@ -60,34 +57,30 @@ export default function MatchDetailsTab({
 		(p) => p.puuid === selectedSummonerPUUID
 	);
 
-	// Initialize selected champions with current player and their lane opponent
+	// Initialize selected champion with current player
 	useEffect(() => {
-		if (currentPlayer && !selectedChampions.team100 && !selectedChampions.team200) {
-			const currentTeam = currentPlayer.teamId === 100 ? team100 : team200;
-			const enemyTeam = currentPlayer.teamId === 100 ? team200 : team100;
-			
-			// Find lane opponent (same position)
-			const laneOpponent = enemyTeam.find(
-				(p) => p.teamPosition === currentPlayer.teamPosition
-			);
-
-			setSelectedChampions({
-				team100: currentPlayer.teamId === 100 ? currentPlayer.participantId : (laneOpponent?.participantId || null),
-				team200: currentPlayer.teamId === 200 ? currentPlayer.participantId : (laneOpponent?.participantId || null),
-			});
+		if (currentPlayer && !selectedChampion) {
+			setSelectedChampion(currentPlayer.participantId);
 		}
-	}, [currentPlayer, team100, team200]);
+	}, [currentPlayer, selectedChampion]);
 
-	const selectedPlayer100 = participants.find(
-		(p) => p.participantId === selectedChampions.team100
+	// Get the selected player and their lane opponent
+	const selectedPlayer = participants.find(
+		(p) => p.participantId === selectedChampion
 	);
-	const selectedPlayer200 = participants.find(
-		(p) => p.participantId === selectedChampions.team200
-	);
+
+	// Find lane opponent (same role, different team)
+	const laneOpponent = selectedPlayer
+		? participants.find(
+				(p) =>
+					p.teamId !== selectedPlayer.teamId &&
+					p.teamPosition === selectedPlayer.teamPosition
+			)
+		: null;
 
 	// Fetch champion ability data for spell icons
 	useEffect(() => {
-		if (!selectedPlayer100?.championId) return;
+		if (!selectedPlayer?.championId) return;
 
 		const fetchChampionAbilities = async () => {
 			try {
@@ -101,7 +94,7 @@ export default function MatchDetailsTab({
 
 				// Get champion data from Community Dragon to get alias
 				const championRes = await fetch(
-					`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champions/${selectedPlayer100.championId}.json`
+					`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champions/${selectedPlayer.championId}.json`
 				);
 				if (!championRes.ok) return;
 				const champion = await championRes.json();
@@ -128,11 +121,11 @@ export default function MatchDetailsTab({
 		};
 
 		fetchChampionAbilities();
-	}, [selectedPlayer100?.championId]);
+	}, [selectedPlayer?.championId]);
 
-	// Calculate laning phase stats at 15 minutes
+	// Calculate laning phase stats at 15 minutes (compare selected player vs lane opponent)
 	const laningStats = useMemo(() => {
-		if (!timeline || !timeline.info || !timeline.info.frames || !selectedPlayer100 || !selectedPlayer200) {
+		if (!timeline || !timeline.info || !timeline.info.frames || !selectedPlayer || !laneOpponent) {
 			return null;
 		}
 
@@ -159,29 +152,29 @@ export default function MatchDetailsTab({
 
 		if (!frame15 || !frame15.participantFrames) return null;
 
-		const p100Frame = frame15.participantFrames[selectedPlayer100.participantId];
-		const p200Frame = frame15.participantFrames[selectedPlayer200.participantId];
+		const selectedFrame = frame15.participantFrames[selectedPlayer.participantId];
+		const opponentFrame = frame15.participantFrames[laneOpponent.participantId];
 
-		if (!p100Frame || !p200Frame) return null;
+		if (!selectedFrame || !opponentFrame) return null;
 
-		// Calculate differences from team 100 player's perspective
-		const csDiff = p100Frame.minionsKilled - p200Frame.minionsKilled;
-		const goldDiff = p100Frame.totalGold - p200Frame.totalGold;
-		const xpDiff = p100Frame.xp - p200Frame.xp;
+		// Calculate differences from selected player's perspective
+		const csDiff = selectedFrame.minionsKilled - opponentFrame.minionsKilled;
+		const goldDiff = selectedFrame.totalGold - opponentFrame.totalGold;
+		const xpDiff = selectedFrame.xp - opponentFrame.xp;
 
 		// Check who reached level 2 first
 		let firstLevel2Player = null;
 		for (let i = 0; i <= frame15Index && i < timeline.info.frames.length; i++) {
 			const frame = timeline.info.frames[i];
 			if (frame && frame.participantFrames) {
-				const p100 = frame.participantFrames[selectedPlayer100.participantId];
-				const p200 = frame.participantFrames[selectedPlayer200.participantId];
-				if (p100 && p100.level >= 2 && (!p200 || p200.level < 2)) {
-					firstLevel2Player = selectedPlayer100.participantId;
+				const selected = frame.participantFrames[selectedPlayer.participantId];
+				const opponent = frame.participantFrames[laneOpponent.participantId];
+				if (selected && selected.level >= 2 && (!opponent || opponent.level < 2)) {
+					firstLevel2Player = selectedPlayer.participantId;
 					break;
 				}
-				if (p200 && p200.level >= 2 && (!p100 || p100.level < 2)) {
-					firstLevel2Player = selectedPlayer200.participantId;
+				if (opponent && opponent.level >= 2 && (!selected || selected.level < 2)) {
+					firstLevel2Player = laneOpponent.participantId;
 					break;
 				}
 			}
@@ -191,13 +184,13 @@ export default function MatchDetailsTab({
 			csDiff: csDiff,
 			goldDiff: goldDiff,
 			xpDiff: xpDiff,
-			firstLevel2: firstLevel2Player === selectedPlayer100.participantId,
+			firstLevel2: firstLevel2Player === selectedPlayer.participantId,
 		};
-	}, [timeline, selectedPlayer100, selectedPlayer200]);
+	}, [timeline, selectedPlayer, laneOpponent]);
 
 	// Build order from timeline events
 	const buildOrder = useMemo(() => {
-		if (!timeline || !timeline.info || !timeline.info.frames || !selectedPlayer100) {
+		if (!timeline || !timeline.info || !timeline.info.frames || !selectedPlayer) {
 			return [];
 		}
 
@@ -207,7 +200,7 @@ export default function MatchDetailsTab({
 				frame.events.forEach((event) => {
 					if (
 						event.type === "ITEM_PURCHASED" &&
-						event.participantId === selectedPlayer100.participantId
+						event.participantId === selectedPlayer.participantId
 					) {
 						purchases.push({
 							itemId: event.itemId,
@@ -220,11 +213,11 @@ export default function MatchDetailsTab({
 		});
 
 		return purchases;
-	}, [timeline, selectedPlayer100]);
+	}, [timeline, selectedPlayer]);
 
 	// Skill order from timeline events
 	const skillOrder = useMemo(() => {
-		if (!timeline || !timeline.info || !timeline.info.frames || !selectedPlayer100) {
+		if (!timeline || !timeline.info || !timeline.info.frames || !selectedPlayer) {
 			return [];
 		}
 
@@ -234,7 +227,7 @@ export default function MatchDetailsTab({
 				frame.events.forEach((event) => {
 					if (
 						event.type === "SKILL_LEVEL_UP" &&
-						event.participantId === selectedPlayer100.participantId
+						event.participantId === selectedPlayer.participantId
 					) {
 						skills.push({
 							skillSlot: event.skillSlot, // 1=Q, 2=W, 3=E, 4=R
@@ -249,76 +242,76 @@ export default function MatchDetailsTab({
 		// Sort by timestamp to show chronological order of upgrades
 		skills.sort((a, b) => a.timestamp - b.timestamp);
 		return skills;
-	}, [timeline, selectedPlayer100]);
+	}, [timeline, selectedPlayer]);
 
 	// Spell casts and pings
-	const spellCasts = selectedPlayer100
+	const spellCasts = selectedPlayer
 		? {
-				Q: selectedPlayer100.spell1Casts || 0,
-				W: selectedPlayer100.spell2Casts || 0,
-				E: selectedPlayer100.spell3Casts || 0,
-				R: selectedPlayer100.spell4Casts || 0,
-				D: selectedPlayer100.summoner1Casts || 0,
-				F: selectedPlayer100.summoner2Casts || 0,
+				Q: selectedPlayer.spell1Casts || 0,
+				W: selectedPlayer.spell2Casts || 0,
+				E: selectedPlayer.spell3Casts || 0,
+				R: selectedPlayer.spell4Casts || 0,
+				D: selectedPlayer.summoner1Casts || 0,
+				F: selectedPlayer.summoner2Casts || 0,
 			}
 		: null;
 
 	// Pings - only show pings that have images available
-	const mainPings = selectedPlayer100
+	const mainPings = selectedPlayer
 		? [
 				{
 					key: "onMyWay",
 					name: "On My Way",
-					count: selectedPlayer100.challenges?.onMyWayPings || selectedPlayer100.onMyWayPings || 0,
+					count: selectedPlayer.challenges?.onMyWayPings || selectedPlayer.onMyWayPings || 0,
 					icon: "/images/league/ping-icons/onMyWayPings.webp",
 				},
 				{
 					key: "push",
 					name: "Push",
-					count: selectedPlayer100.challenges?.pushPings || selectedPlayer100.pushPings || 0,
+					count: selectedPlayer.challenges?.pushPings || selectedPlayer.pushPings || 0,
 					icon: "/images/league/ping-icons/pushPings.webp",
 				},
 				{
 					key: "needVision",
 					name: "Need Vision",
-					count: selectedPlayer100.challenges?.needVisionPings || selectedPlayer100.needVisionPings || 0,
+					count: selectedPlayer.challenges?.needVisionPings || selectedPlayer.needVisionPings || 0,
 					icon: "/images/league/ping-icons/needVisionPings.webp",
 				},
 				{
 					key: "enemyVision",
 					name: "Vision Here",
-					count: selectedPlayer100.challenges?.enemyVisionPings || selectedPlayer100.enemyVisionPings || 0,
+					count: selectedPlayer.challenges?.enemyVisionPings || selectedPlayer.enemyVisionPings || 0,
 					icon: "/images/league/ping-icons/enemyVisionPings.webp",
 				},
 				{
 					key: "enemyMissing",
 					name: "Missing",
-					count: selectedPlayer100.challenges?.enemyMissingPings || selectedPlayer100.enemyMissingPings || 0,
+					count: selectedPlayer.challenges?.enemyMissingPings || selectedPlayer.enemyMissingPings || 0,
 					icon: "/images/league/ping-icons/enemyMissingPings.webp",
 				},
 				{
 					key: "assistMe",
 					name: "Assistance",
-					count: selectedPlayer100.challenges?.assistMePings || selectedPlayer100.assistMePings || 0,
+					count: selectedPlayer.challenges?.assistMePings || selectedPlayer.assistMePings || 0,
 					icon: "/images/league/ping-icons/assistMePings.webp",
 				},
 			]
 		: [];
 
 	const gameDurationMinutes = match.info.gameDuration / 60;
-	const globalStats = selectedPlayer100
+	const globalStats = selectedPlayer
 		? {
 				csPerMin: (
-					(selectedPlayer100.totalMinionsKilled +
-						selectedPlayer100.neutralMinionsKilled) /
+					(selectedPlayer.totalMinionsKilled +
+						selectedPlayer.neutralMinionsKilled) /
 					gameDurationMinutes
 				).toFixed(1),
-				vsPerMin: ((selectedPlayer100.visionScore || 0) / gameDurationMinutes).toFixed(1),
+				vsPerMin: ((selectedPlayer.visionScore || 0) / gameDurationMinutes).toFixed(1),
 				dmgPerMin: (
-					(selectedPlayer100.totalDamageDealtToChampions || 0) /
+					(selectedPlayer.totalDamageDealtToChampions || 0) /
 					gameDurationMinutes
 				).toFixed(0),
-				goldPerMin: ((selectedPlayer100.goldEarned || 0) / gameDurationMinutes).toFixed(0),
+				goldPerMin: ((selectedPlayer.goldEarned || 0) / gameDurationMinutes).toFixed(0),
 			}
 		: null;
 
@@ -332,24 +325,19 @@ export default function MatchDetailsTab({
 						{team100.map((p) => {
 							const role = p.teamPosition || p.individualPosition;
 							const hasRole = role && role !== "Invalid";
-							
+
 							return (
 								<button
 									key={p.participantId}
-									onClick={() =>
-										setSelectedChampions({
-											...selectedChampions,
-											team100: p.participantId,
-										})
-									}
+									onClick={() => setSelectedChampion(p.participantId)}
 									className={`relative flex flex-col items-center gap-1 transition-all ${
-										selectedChampions.team100 === p.participantId
+										selectedChampion === p.participantId
 											? "scale-110"
 											: "hover:scale-105"
 									}`}
 								>
 									<div className={`relative w-14 h-14 rounded-md border-2 transition-all ${
-										selectedChampions.team100 === p.participantId
+										selectedChampion === p.participantId
 											? "border-[--primary]"
 											: "border-[--card-border] hover:border-gray-500"
 									}`}>
@@ -389,24 +377,19 @@ export default function MatchDetailsTab({
 						{team200.map((p) => {
 							const role = p.teamPosition || p.individualPosition;
 							const hasRole = role && role !== "Invalid";
-							
+
 							return (
 								<button
 									key={p.participantId}
-									onClick={() =>
-										setSelectedChampions({
-											...selectedChampions,
-											team200: p.participantId,
-										})
-									}
+									onClick={() => setSelectedChampion(p.participantId)}
 									className={`relative flex flex-col items-center gap-1 transition-all ${
-										selectedChampions.team200 === p.participantId
+										selectedChampion === p.participantId
 											? "scale-110"
 											: "hover:scale-105"
 									}`}
 								>
 									<div className={`relative w-14 h-14 rounded-md border-2 transition-all ${
-										selectedChampions.team200 === p.participantId
+										selectedChampion === p.participantId
 											? "border-[--primary]"
 											: "border-[--card-border] hover:border-gray-500"
 									}`}>
@@ -435,7 +418,7 @@ export default function MatchDetailsTab({
 				</div>
 			</div>
 
-			{selectedPlayer100 && (
+			{selectedPlayer && (
 				<>
 					{/* Stats in one line with borders */}
 					<div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -488,19 +471,19 @@ export default function MatchDetailsTab({
 								<div className="flex items-center justify-between">
 									<span className="text-[--text-secondary] text-[11px] lowercase">placed</span>
 									<span className="text-[--text-primary] font-semibold text-right text-xs">
-										{selectedPlayer100.wardsPlaced || 0}
+										{selectedPlayer.wardsPlaced || 0}
 									</span>
 								</div>
 								<div className="flex items-center justify-between">
 									<span className="text-[--text-secondary] text-[11px] lowercase">killed</span>
 									<span className="text-[--text-primary] font-semibold text-right text-xs">
-										{selectedPlayer100.wardsKilled || 0}
+										{selectedPlayer.wardsKilled || 0}
 									</span>
 								</div>
 								<div className="flex items-center justify-between">
 									<span className="text-[--text-secondary] text-[11px] lowercase">control</span>
 									<span className="text-[--text-primary] font-semibold text-right text-xs">
-										{selectedPlayer100.visionWardsBoughtInGame || 0}
+										{selectedPlayer.visionWardsBoughtInGame || 0}
 									</span>
 								</div>
 							</div>
@@ -714,8 +697,8 @@ export default function MatchDetailsTab({
 															<Image
 																src={`/images/league/summonerSpells/${
 																	spell === "D"
-																		? selectedPlayer100.summoner1Id
-																		: selectedPlayer100.summoner2Id
+																		? selectedPlayer.summoner1Id
+																		: selectedPlayer.summoner2Id
 																}.png`}
 																alt={spell}
 																fill
@@ -757,7 +740,7 @@ export default function MatchDetailsTab({
 						)}
 
 						{/* Pings */}
-						{selectedPlayer100 && (
+						{selectedPlayer && (
 							<div className="border border-[--card-border] rounded-lg p-3 bg-[--card-bg]">
 								<h3 className="text-sm font-semibold mb-3 text-[--text-primary]">PINGS</h3>
 								{mainPings.length > 0 ? (
