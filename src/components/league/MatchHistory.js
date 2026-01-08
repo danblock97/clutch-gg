@@ -424,7 +424,7 @@ const MatchRow = ({
 									key={idx}
 									src={
 										itemId > 0
-											? `https://ddragon.leagueoflegends.com/cdn/15.8.1/img/item/${itemId}.png`
+											? `https://ddragon.leagueoflegends.com/cdn/16.1.1/img/item/${itemId}.png`
 											: "/images/placeholder.png"
 									}
 									alt="Item"
@@ -437,7 +437,7 @@ const MatchRow = ({
 							<Image
 								src={
 									items[6] > 0
-										? `https://ddragon.leagueoflegends.com/cdn/15.8.1/img/item/${items[6]}.png`
+										? `https://ddragon.leagueoflegends.com/cdn/16.1.1/img/item/${items[6]}.png`
 										: "/images/placeholder.png"
 								}
 								alt="Ward"

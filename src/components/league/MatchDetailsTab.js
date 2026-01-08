@@ -23,7 +23,7 @@ export default function MatchDetailsTab({
 	const [timeline, setTimeline] = useState(null);
 	const [isLoadingTimeline, setIsLoadingTimeline] = useState(false);
 	const [championAbilities, setChampionAbilities] = useState(null);
-	const [ddragonVersion, setDdragonVersion] = useState("15.8.1");
+	const [ddragonVersion, setDdragonVersion] = useState("16.1.1");
 
 	const match = matchDetails?.find((m) => m.metadata.matchId === matchId);
 	if (!match) {
@@ -96,7 +96,7 @@ export default function MatchDetailsTab({
 					"https://ddragon.leagueoflegends.com/api/versions.json"
 				);
 				const versions = await versionsRes.json();
-				const latestVersion = versions[0] || "15.8.1";
+				const latestVersion = versions[0] || "16.1.1";
 				setDdragonVersion(latestVersion);
 
 				// Get champion data from Community Dragon to get alias

@@ -97,7 +97,7 @@ const PlayerRow = ({ p, maxDamage, region, gameMode }) => {
                     <div key={i} className="w-6 h-6 md:w-10 md:h-10 bg-gray-800 rounded border border-gray-700 relative overflow-hidden">
                         {item > 0 && (
                             <Image
-                                src={`https://ddragon.leagueoflegends.com/cdn/15.8.1/img/item/${item}.png`}
+                                src={`https://ddragon.leagueoflegends.com/cdn/16.1.1/img/item/${item}.png`}
                                 alt={`Item ${item}`}
                                 fill
                                 className="object-cover"
@@ -109,7 +109,7 @@ const PlayerRow = ({ p, maxDamage, region, gameMode }) => {
                 <div className="w-6 h-6 md:w-10 md:h-10 bg-gray-800 rounded-full border border-gray-700 relative overflow-hidden ml-1 md:ml-2">
                     {trinket > 0 && (
                         <Image
-                            src={`https://ddragon.leagueoflegends.com/cdn/15.8.1/img/item/${trinket}.png`}
+                            src={`https://ddragon.leagueoflegends.com/cdn/16.1.1/img/item/${trinket}.png`}
                             alt={`Trinket ${trinket}`}
                             fill
                             className="object-cover"

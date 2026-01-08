@@ -109,7 +109,7 @@ export default function LeaderboardClient() {
 								>
 									{player.profileData?.profileIconId ? (
 										<Image
-											src={`https://ddragon.leagueoflegends.com/cdn/14.8.1/img/profileicon/${player.profileData.profileIconId}.png`}
+											src={`https://ddragon.leagueoflegends.com/cdn/16.1.1/img/profileicon/${player.profileData.profileIconId}.png`}
 											alt="Profile icon"
 											width={32}
 											height={32}

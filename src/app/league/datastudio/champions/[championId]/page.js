@@ -17,7 +17,7 @@ async function getChampionData(championId) {
 		"https://ddragon.leagueoflegends.com/api/versions.json"
 	);
 	if (!versionsRes.ok) {
-		return { champion, championDdragon: null, version: "14.12.1" };
+		return { champion, championDdragon: null, version: "16.1.1" };
 	}
 	const versions = await versionsRes.json();
 	const latestVersion = versions[0];
