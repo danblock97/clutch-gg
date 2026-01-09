@@ -134,6 +134,7 @@ function reducer(state, action) {
 
 export default function ProfilePageContent({ gameName, tagLine, region }) {
 	const [state, dispatch] = useReducer(reducer, initialState);
+	const [isFirstSearch, setIsFirstSearch] = useState(false);
 	
 	// Lazy load match details client-side for performance stats
 	const { 
@@ -150,7 +151,11 @@ export default function ProfilePageContent({ gameName, tagLine, region }) {
 		(async () => {
 			dispatch({ type: "FETCH_START" });
 			try {
-				const url = `/api/league/profile?gameName=${gameName}&tagLine=${tagLine}&region=${region}`;
+				const url = `/api/league/profile?gameName=${encodeURIComponent(
+					gameName
+				)}&tagLine=${encodeURIComponent(tagLine)}&region=${encodeURIComponent(
+					region
+				)}`;
 				const data = await fetchWithErrorHandling(url, { signal });
 				dispatch({ type: "FETCH_SUCCESS", payload: data });
 			} catch (error) {
@@ -170,6 +175,39 @@ export default function ProfilePageContent({ gameName, tagLine, region }) {
 			abortFetch && abortFetch();
 		};
 	}, [fetchProfileData]);
+
+	useEffect(() => {
+		let isMounted = true;
+		setIsFirstSearch(false);
+
+		const checkCache = async () => {
+			try {
+				const url = `/api/league/profile?gameName=${encodeURIComponent(
+					gameName
+				)}&tagLine=${encodeURIComponent(tagLine)}&region=${encodeURIComponent(
+					region
+				)}&checkOnly=true`;
+				const response = await fetch(url);
+				if (!response.ok) return;
+				const data = await response.json();
+				if (isMounted) {
+					setIsFirstSearch(!data.isCached);
+				}
+			} catch (error) {
+				if (isMounted) {
+					setIsFirstSearch(false);
+				}
+			}
+		};
+
+		if (gameName && tagLine && region) {
+			checkCache();
+		}
+
+		return () => {
+			isMounted = false;
+		};
+	}, [gameName, tagLine, region]);
 
 	const toggleLiveGame = () => dispatch({ type: "TOGGLE_LIVE_GAME" });
 	const triggerUpdate = async () => {
@@ -214,7 +252,7 @@ export default function ProfilePageContent({ gameName, tagLine, region }) {
 	if (state.isLoading) {
 		return (
 			<div className="min-h-screen flex items-center justify-center">
-				<Loading />
+				<Loading variant={isFirstSearch ? "profile-first-time" : "profile"} />
 			</div>
 		);
 	}

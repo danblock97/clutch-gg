@@ -33,6 +33,7 @@ export async function GET(req) {
 	const tagLine = searchParams.get("tagLine");
 	const region = searchParams.get("region");
 	const forceUpdate = searchParams.get("forceUpdate") === "true";
+	const checkOnly = searchParams.get("checkOnly") === "true";
 
 	if (!gameName || !tagLine || !region) {
 		return new Response(
@@ -54,6 +55,36 @@ export async function GET(req) {
 				JSON.stringify({ error: `Invalid region: ${region}` }),
 				{ status: 400, headers: { "Content-Type": "application/json" } }
 			);
+		}
+
+		if (checkOnly) {
+			let { data: riotAccount, error: accountLookupError } = await supabase
+				.from("riot_accounts")
+				.select("*")
+				.ilike("region", normalizedRegion)
+				.ilike("gamename", normalizedGameName)
+				.ilike("tagline", normalizedTagLine)
+				.maybeSingle();
+			if (accountLookupError) throw accountLookupError;
+
+			if (!riotAccount) {
+				return new Response(JSON.stringify({ isCached: false }), {
+					status: 200,
+					headers: { "Content-Type": "application/json" },
+				});
+			}
+
+			let { data: storedTftData, error: tftLookupError } = await supabase
+				.from("tft_data")
+				.select("id, riot_account_id")
+				.eq("riot_account_id", riotAccount.id)
+				.maybeSingle();
+			if (tftLookupError) throw tftLookupError;
+
+			return new Response(JSON.stringify({ isCached: Boolean(storedTftData) }), {
+				status: 200,
+				headers: { "Content-Type": "application/json" },
+			});
 		}
 
 		// DB-first: try to resolve account and cached TFT data before calling external APIs

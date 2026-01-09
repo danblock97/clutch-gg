@@ -52,6 +52,7 @@ export async function GET(req) {
 	const tagLine = searchParams.get("tagLine");
 	const region = searchParams.get("region");
 	const forceUpdate = searchParams.get("forceUpdate") === "true";
+	const checkOnly = searchParams.get("checkOnly") === "true";
 
 	if (!gameName || !tagLine || !region) {
 		return new Response(
@@ -72,6 +73,55 @@ export async function GET(req) {
 				JSON.stringify({ error: `Invalid region: ${region}` }),
 				{ status: 400, headers: { "Content-Type": "application/json" } }
 			);
+		}
+
+		if (checkOnly) {
+			let { data: riotAccountByName, error: accountLookupError } = await supabase
+				.from("riot_accounts")
+				.select("*")
+				.ilike("region", normalizedRegion)
+				.ilike("gamename", normalizedGameName)
+				.ilike("tagline", normalizedTagLine)
+				.maybeSingle();
+			if (accountLookupError) throw accountLookupError;
+
+			if (!riotAccountByName) {
+				return new Response(JSON.stringify({ isCached: false }), {
+					status: 200,
+					headers: { "Content-Type": "application/json" },
+				});
+			}
+
+			let { data: storedLeagueData, error: leagueDataError } = await supabase
+				.from("league_data")
+				.select("id, riot_account_id")
+				.eq("riot_account_id", riotAccountByName.id)
+				.maybeSingle();
+			if (leagueDataError) throw leagueDataError;
+
+			if (!storedLeagueData) {
+				return new Response(JSON.stringify({ isCached: false }), {
+					status: 200,
+					headers: { "Content-Type": "application/json" },
+				});
+			}
+
+			let { data: userMatchObjects, error: matchesError } = await supabase
+				.from("league_matches")
+				.select("matchid")
+				.filter(
+					"match_data->metadata->participants",
+					"cs",
+					`"${riotAccountByName.puuid}"`
+				)
+				.limit(1);
+			if (matchesError) throw matchesError;
+
+			const hasMatches = (userMatchObjects || []).length > 0;
+			return new Response(JSON.stringify({ isCached: hasMatches }), {
+				status: 200,
+				headers: { "Content-Type": "application/json" },
+			});
 		}
 
 		// DB-first: try to resolve Riot account by name/tag/region and return cached data if available

@@ -12,6 +12,7 @@ export default function ProfilePageContent({ gameName, tagLine, region }) {
 	const [error, setError] = useState(null);
 	const [isUpdating, setIsUpdating] = useState(false);
 	const [isLoadingLadderRanking, setIsLoadingLadderRanking] = useState(false);
+	const [isFirstSearch, setIsFirstSearch] = useState(false);
 	
 	const fetchProfileData = useCallback(async () => {
 		if (!gameName || !tagLine || !region) {
@@ -42,6 +43,39 @@ export default function ProfilePageContent({ gameName, tagLine, region }) {
 	useEffect(() => {
 		fetchProfileData();
 	}, [fetchProfileData]);
+
+	useEffect(() => {
+		let isMounted = true;
+		setIsFirstSearch(false);
+
+		const checkCache = async () => {
+			try {
+				const url = `/api/tft/profile?gameName=${encodeURIComponent(
+					gameName
+				)}&tagLine=${encodeURIComponent(tagLine)}&region=${encodeURIComponent(
+					region
+				)}&checkOnly=true`;
+				const response = await fetch(url);
+				if (!response.ok) return;
+				const data = await response.json();
+				if (isMounted) {
+					setIsFirstSearch(!data.isCached);
+				}
+			} catch (error) {
+				if (isMounted) {
+					setIsFirstSearch(false);
+				}
+			}
+		};
+
+		if (gameName && tagLine && region) {
+			checkCache();
+		}
+
+		return () => {
+			isMounted = false;
+		};
+	}, [gameName, tagLine, region]);
 
 	// Add the trigger update function - similar to League implementation
 	// Set isLoadingLadderRanking to true when profileData is available
@@ -102,7 +136,7 @@ export default function ProfilePageContent({ gameName, tagLine, region }) {
 	if (isLoading) {
 		return (
 			<div className="min-h-screen flex items-center justify-center">
-				<Loading />
+				<Loading variant={isFirstSearch ? "profile-first-time" : "profile"} />
 			</div>
 		);
 	}
@@ -127,4 +161,3 @@ export default function ProfilePageContent({ gameName, tagLine, region }) {
 		/>
 	);
 }
-
