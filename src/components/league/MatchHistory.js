@@ -26,6 +26,97 @@ const fetcher = (url) => fetch(url).then((res) => {
 	return res.json();
 });
 
+const PREFETCHED_IMAGES = new Set();
+const PREFETCHED_TIMELINES = new Set();
+const PREFETCHED_CHAMPION_ABILITIES = new Set();
+let cachedDdragonVersion = null;
+let ddragonVersionPromise = null;
+
+const prefetchImages = (sources) => {
+	if (typeof window === "undefined" || !Array.isArray(sources)) return;
+
+	sources.forEach((src) => {
+		if (!src || PREFETCHED_IMAGES.has(src)) return;
+		const img = new window.Image();
+		img.src = src;
+		PREFETCHED_IMAGES.add(src);
+	});
+};
+
+const getLatestDdragonVersion = async () => {
+	if (cachedDdragonVersion) return cachedDdragonVersion;
+	if (!ddragonVersionPromise) {
+		ddragonVersionPromise = fetch(
+			"https://ddragon.leagueoflegends.com/api/versions.json"
+		)
+			.then((res) => (res.ok ? res.json() : []))
+			.then((versions) => {
+				cachedDdragonVersion = versions?.[0] || "16.1.1";
+				return cachedDdragonVersion;
+			})
+			.catch(() => "16.1.1");
+	}
+	return ddragonVersionPromise;
+};
+
+const prefetchChampionAbilityIcons = async (championId) => {
+	if (!championId || PREFETCHED_CHAMPION_ABILITIES.has(championId)) return;
+	PREFETCHED_CHAMPION_ABILITIES.add(championId);
+
+	try {
+		const latestVersion = await getLatestDdragonVersion();
+		const championRes = await fetch(
+			`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champions/${championId}.json`
+		);
+		if (!championRes.ok) return;
+		const champion = await championRes.json();
+		if (!champion?.alias) return;
+
+		const ddRes = await fetch(
+			`https://ddragon.leagueoflegends.com/cdn/${latestVersion}/data/en_US/champion/${champion.alias}.json`
+		);
+		if (!ddRes.ok) return;
+		const ddData = await ddRes.json();
+		const championDdragon = ddData?.data?.[champion.alias];
+		if (!championDdragon?.spells) return;
+
+		prefetchImages(
+			championDdragon.spells.map(
+				(spell) =>
+					`https://ddragon.leagueoflegends.com/cdn/${latestVersion}/img/${spell.image.group}/${spell.image.full}`
+			)
+		);
+	} catch (error) {
+		console.warn(`Failed to prefetch abilities for ${championId}:`, error);
+	}
+};
+
+const prefetchTimelineItemIcons = (timeline, participantId) => {
+	if (!timeline?.info?.frames || !participantId) return;
+
+	const itemIds = new Set();
+	timeline.info.frames.forEach((frame) => {
+		frame.events?.forEach((event) => {
+			if (
+				event.type === "ITEM_PURCHASED" &&
+				event.participantId === participantId &&
+				event.itemId
+			) {
+				itemIds.add(event.itemId);
+			}
+		});
+	});
+
+	if (!itemIds.size) return;
+
+	prefetchImages(
+		Array.from(itemIds).map(
+			(itemId) =>
+				`https://ddragon.leagueoflegends.com/cdn/16.1.1/img/item/${itemId}.png`
+		)
+	);
+};
+
 // Hook to fetch a single match detail
 const useMatchDetail = (matchId) => {
 	const { data, error, isLoading } = useSWR(
@@ -122,6 +213,51 @@ const MatchRow = ({
 	augments,
 }) => {
 	const { matchDetail: match, isLoading, isError } = useMatchDetail(matchId);
+	const participants = match?.info?.participants;
+	const currentPlayer = participants?.find(
+		(p) => p.puuid === selectedSummonerPUUID
+	);
+
+	useEffect(() => {
+		if (!match || !currentPlayer?.participantId) return;
+
+		participants?.forEach((participant) => {
+			prefetchImages([
+				`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${participant.championId}.png`,
+				`/images/league/summonerSpells/${participant.summoner1Id}.png`,
+				`/images/league/summonerSpells/${participant.summoner2Id}.png`,
+			]);
+			prefetchChampionAbilityIcons(participant.championId);
+		});
+
+		if (match.timeline) {
+			prefetchTimelineItemIcons(match.timeline, currentPlayer.participantId);
+			return;
+		}
+
+		if (PREFETCHED_TIMELINES.has(matchId)) return;
+		PREFETCHED_TIMELINES.add(matchId);
+
+		const controller = new AbortController();
+
+		(async () => {
+			try {
+				const response = await fetch(
+					`/api/league/timeline?matchId=${matchId}`,
+					{ signal: controller.signal }
+				);
+				if (!response.ok) return;
+				const timeline = await response.json();
+				prefetchTimelineItemIcons(timeline, currentPlayer.participantId);
+			} catch (error) {
+				if (error.name !== "AbortError") {
+					console.warn(`Failed to prefetch timeline for ${matchId}:`, error);
+				}
+			}
+		})();
+
+		return () => controller.abort();
+	}, [match, matchId, currentPlayer?.participantId]);
 
 	if (isLoading) {
 		return <MatchSkeleton />;
@@ -146,15 +282,10 @@ const MatchRow = ({
 		return null;
 	}
 
-	const currentPlayer = match.info.participants.find(
-		(p) => p.puuid === selectedSummonerPUUID
-	);
-
 	if (!currentPlayer) {
 		return null;
 	}
 
-	const participants = match.info.participants;
 	let maxCsPerMin = 0;
 	let maxCsPerMinParticipant = null;
 	
