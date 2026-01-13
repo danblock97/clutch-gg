@@ -1138,36 +1138,49 @@ const MatchHistory = ({
 	const [expandedMatchId, setExpandedMatchId] = useState(null);
 	const [currentPage, setCurrentPage] = useState(1);
 	const [matchQueueMap, setMatchQueueMap] = useState({}); // Map of matchId -> queueId
+	const [matchRoleMap, setMatchRoleMap] = useState({}); // Map of matchId -> teamPosition
 	
 	const matchesPerPage = 10;
 	const router = useRouter();
 	const breakpoint = useBreakpoint();
 
-	// Load queueIds for all matches to enable filtering
+	// Load queueIds and role data for all matches to enable filtering
 	useEffect(() => {
 		if (!matchIds || matchIds.length === 0) return;
 
 		let isMounted = true;
 		const queueMap = {};
+		const roleMap = {};
 
-		// Load queueIds in batches to avoid overwhelming the API
-		const loadQueueIds = async () => {
+		// Load queueIds and roles in batches to avoid overwhelming the API
+		const loadMatchData = async () => {
 			const batchSize = 10;
 			for (let i = 0; i < matchIds.length; i += batchSize) {
 				if (!isMounted) break;
 				
 				const batch = matchIds.slice(i, i + batchSize);
+				const batchQueueMap = {};
+				const batchRoleMap = {};
+				
 				const promises = batch.map(async (matchId) => {
 					try {
 						const response = await fetch(`/api/league/match/${matchId}`);
 						if (response.ok) {
 							const matchData = await response.json();
 							if (matchData?.info?.queueId) {
+								batchQueueMap[matchId] = matchData.info.queueId;
 								queueMap[matchId] = matchData.info.queueId;
+							}
+							const participant = matchData?.info?.participants?.find(p => p.puuid === selectedSummonerPUUID);
+							const teamPosition = participant?.teamPosition || participant?.individualPosition || null;
+							if (teamPosition) {
+								const normalizedRole = normaliseTeamPosition(teamPosition);
+								batchRoleMap[matchId] = normalizedRole;
+								roleMap[matchId] = normalizedRole;
 							}
 						}
 					} catch (error) {
-						console.warn(`Failed to load queueId for match ${matchId}:`, error);
+						console.warn(`Failed to load match data for match ${matchId}:`, error);
 					}
 				});
 
@@ -1175,17 +1188,18 @@ const MatchHistory = ({
 				
 				// Update state incrementally for better UX
 				if (isMounted) {
-					setMatchQueueMap(prev => ({ ...prev, ...queueMap }));
+					setMatchQueueMap(prev => ({ ...prev, ...batchQueueMap }));
+					setMatchRoleMap(prev => ({ ...prev, ...batchRoleMap }));
 				}
 			}
 		};
 
-		loadQueueIds();
+		loadMatchData();
 
 		return () => {
 			isMounted = false;
 		};
-	}, [matchIds]);
+	}, [matchIds, selectedSummonerPUUID]);
 
 	useEffect(() => {
 		const getAugments = async () => {
@@ -1211,29 +1225,39 @@ const MatchHistory = ({
 		return [];
 	}, [matchIds, matchDetails]);
 
-	// Filter matchIds based on selectedQueue
+	// Filter matchIds based on selectedQueue and selectedLane
 	const effectiveMatchIds = useMemo(() => {
-		if (!selectedQueue) {
-			// No filter selected, return all matches
-			return baseMatchIds;
+		let filtered = baseMatchIds;
+
+		// Filter by queueId if selected
+		if (selectedQueue) {
+			filtered = filtered.filter(matchId => {
+				const queueId = matchQueueMap[matchId];
+				if (queueId === undefined) {
+					// QueueId not loaded yet, include it to show loading skeleton
+					return true;
+				}
+				// QueueId loaded, only include if it matches
+				return queueId === selectedQueue;
+			});
 		}
 
-		// Filter matches by queueId
-		// Include matches that:
-		// 1. Have loaded queueId that matches the filter, OR
-		// 2. Haven't loaded queueId yet (show loading skeleton, will filter out once loaded if doesn't match)
-		const filtered = baseMatchIds.filter(matchId => {
-			const queueId = matchQueueMap[matchId];
-			if (queueId === undefined) {
-				// QueueId not loaded yet, include it to show loading skeleton
-				return true;
-			}
-			// QueueId loaded, only include if it matches
-			return queueId === selectedQueue;
-		});
+		// Filter by role/lane if selected
+		if (selectedLane) {
+			const normalizedSelectedLane = normaliseTeamPosition(selectedLane);
+			filtered = filtered.filter(matchId => {
+				const role = matchRoleMap[matchId];
+				if (role === undefined) {
+					// Role not loaded yet, include it to show loading skeleton
+					return true;
+				}
+				// Role loaded, only include if it matches
+				return role === normalizedSelectedLane;
+			});
+		}
 
 		return filtered;
-	}, [baseMatchIds, selectedQueue, matchQueueMap]);
+	}, [baseMatchIds, selectedQueue, selectedLane, matchQueueMap, matchRoleMap]);
 
 	// Early return only if there are no matches at all (not due to filtering)
 	if (!baseMatchIds || baseMatchIds.length === 0) {
