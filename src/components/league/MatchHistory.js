@@ -1139,6 +1139,7 @@ const MatchHistory = ({
 	const [currentPage, setCurrentPage] = useState(1);
 	const [matchQueueMap, setMatchQueueMap] = useState({}); // Map of matchId -> queueId
 	const [matchRoleMap, setMatchRoleMap] = useState({}); // Map of matchId -> teamPosition
+	const [matchChampionMap, setMatchChampionMap] = useState({}); // Map of matchId -> championId
 	
 	const matchesPerPage = 10;
 	const router = useRouter();
@@ -1151,8 +1152,9 @@ const MatchHistory = ({
 		let isMounted = true;
 		const queueMap = {};
 		const roleMap = {};
+		const championMap = {};
 
-		// Load queueIds and roles in batches to avoid overwhelming the API
+		// Load queueIds, roles, and championIds in batches to avoid overwhelming the API
 		const loadMatchData = async () => {
 			const batchSize = 10;
 			for (let i = 0; i < matchIds.length; i += batchSize) {
@@ -1161,6 +1163,7 @@ const MatchHistory = ({
 				const batch = matchIds.slice(i, i + batchSize);
 				const batchQueueMap = {};
 				const batchRoleMap = {};
+				const batchChampionMap = {};
 				
 				const promises = batch.map(async (matchId) => {
 					try {
@@ -1178,6 +1181,11 @@ const MatchHistory = ({
 								batchRoleMap[matchId] = normalizedRole;
 								roleMap[matchId] = normalizedRole;
 							}
+							// Store championId for filtering
+							if (participant?.championId !== undefined) {
+								batchChampionMap[matchId] = participant.championId;
+								championMap[matchId] = participant.championId;
+							}
 						}
 					} catch (error) {
 						console.warn(`Failed to load match data for match ${matchId}:`, error);
@@ -1190,6 +1198,7 @@ const MatchHistory = ({
 				if (isMounted) {
 					setMatchQueueMap(prev => ({ ...prev, ...batchQueueMap }));
 					setMatchRoleMap(prev => ({ ...prev, ...batchRoleMap }));
+					setMatchChampionMap(prev => ({ ...prev, ...batchChampionMap }));
 				}
 			}
 		};
@@ -1225,7 +1234,7 @@ const MatchHistory = ({
 		return [];
 	}, [matchIds, matchDetails]);
 
-	// Filter matchIds based on selectedQueue and selectedLane
+	// Filter matchIds based on selectedQueue, selectedLane, and selectedChampionId
 	const effectiveMatchIds = useMemo(() => {
 		let filtered = baseMatchIds;
 
@@ -1256,8 +1265,21 @@ const MatchHistory = ({
 			});
 		}
 
+		// Filter by championId if selected
+		if (selectedChampionId) {
+			filtered = filtered.filter(matchId => {
+				const championId = matchChampionMap[matchId];
+				if (championId === undefined) {
+					// ChampionId not loaded yet, include it to show loading skeleton
+					return true;
+				}
+				// ChampionId loaded, only include if it matches (compare as numbers)
+				return Number(championId) === Number(selectedChampionId);
+			});
+		}
+
 		return filtered;
-	}, [baseMatchIds, selectedQueue, selectedLane, matchQueueMap, matchRoleMap]);
+	}, [baseMatchIds, selectedQueue, selectedLane, selectedChampionId, matchQueueMap, matchRoleMap, matchChampionMap]);
 
 	// Early return only if there are no matches at all (not due to filtering)
 	if (!baseMatchIds || baseMatchIds.length === 0) {
