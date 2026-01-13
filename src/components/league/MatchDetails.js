@@ -49,7 +49,7 @@ export default function MatchDetails(props) {
 		: tabs;
 
 	return (
-		<div className="bg-transparent -mx-2 rounded-b-lg overflow-hidden">
+		<div className="bg-transparent -mx-2 md:mx-0 rounded-b-lg overflow-hidden">
 			{/* Tab Navigation */}
 			<div className="border-t border-white/10 border-b border-white/10 bg-white/5">
 				<div className="flex flex-wrap px-4">

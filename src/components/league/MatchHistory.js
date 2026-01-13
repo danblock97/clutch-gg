@@ -446,7 +446,7 @@ const MatchRow = ({
 	};
 
 	return (
-		<div className="overflow-x-auto">
+		<div className="overflow-x-auto max-w-full">
 			<div
 				onClick={() => onToggleExpand(matchId)}
 				className={`cursor-pointer rounded-lg shadow-lg p-2 relative flex items-center mb-2 min-w-[768px] text-xs sm:text-sm ${getGradientBackground(
@@ -706,7 +706,7 @@ const MatchRow = ({
 			</div>
 			{/* Expanded match details */}
 			{isExpanded && match && (
-				<div className="mt-0">
+				<div className="mt-0 min-w-[768px] md:min-w-0">
 					<MatchDetails
 						matchDetails={[match]}
 						matchId={matchId}

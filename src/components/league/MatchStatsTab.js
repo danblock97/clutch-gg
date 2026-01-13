@@ -356,8 +356,8 @@ export default function MatchStatsTab({
 					</span>
 				</div>
 
-				<div className="overflow-x-auto">
-					<div className="min-w-[980px]">
+				<div className="overflow-x-hidden">
+					<div className="w-full">
 						{teamArr.map((p) => (
 							<StatsRow
 								key={p.participantId}
@@ -553,7 +553,7 @@ export default function MatchStatsTab({
 								);
 						  })}
 				</div>
-				<div className="grid grid-cols-[76px_52px_52px_110px_8px_54px] items-start gap-1.5 ml-2">
+				<div className="grid grid-cols-[76px_52px_52px_110px_54px] items-start gap-1.5 ml-2 flex-shrink-0">
 					<div className="text-center">
 						<div className="font-semibold text-sm">
 							{p.kills} / <span className="text-rose-300">{p.deaths}</span> / {p.assists}
@@ -580,7 +580,6 @@ export default function MatchStatsTab({
 							<span className="text-[--text-secondary]"> ({dmgPerMin}/m)</span>
 						</div>
 					</div>
-					<div />
 					<div className="flex items-start justify-center h-full">
 						<div className="text-base font-semibold text-sky-300 leading-none">
 							{p.clutchScore}
