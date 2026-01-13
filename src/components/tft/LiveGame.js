@@ -586,7 +586,7 @@ export default function LiveGame({ liveGameData, region, matchHistory }) {
 							fill
 							className="object-cover"
 						/>
-						<div className="absolute -bottom-1 -right-1 neon-chip bg-[--tft-secondary]/20 border-[--tft-secondary]/40 text-white">
+						<div className="absolute -bottom-1 -right-1 neon-chip bg-[--tft-secondary]/20 border-[--tft-secondary]/40 text-white whitespace-nowrap">
 							{p.summonerLevel}
 						</div>
 					</div>

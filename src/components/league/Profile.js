@@ -196,7 +196,7 @@ const Profile = ({
 							/>
 						</div>
 						<div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2">
-							<span className="px-2 py-0.5 rounded-md bg-[--card-bg] border border-[--card-border] text-[--text-secondary] text-[10px] font-bold shadow-sm">
+							<span className="px-2 py-0.5 rounded-md bg-[--card-bg] border border-[--card-border] text-[--text-secondary] text-[10px] font-bold shadow-sm whitespace-nowrap">
 								Lvl {profileData.summonerLevel}
 							</span>
 						</div>
