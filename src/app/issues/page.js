@@ -8,7 +8,7 @@ export const metadata = {
 
 export default function IssuesPage() {
     return (
-        <div className="flex flex-col h-[calc(100vh-64px)] overflow-hidden">
+        <div className="flex flex-col min-h-[calc(100vh-64px)] bg-[--background]">
             {/* Header */}
             <div className="flex-shrink-0 bg-[--background]">
                 <div className="px-6 py-12 max-w-[1920px] mx-auto w-full">
@@ -30,9 +30,9 @@ export default function IssuesPage() {
                 </div>
             </div>
 
-            {/* Board Area */}
-            <div className="flex-1 overflow-x-auto overflow-y-hidden bg-[--background]">
-                <div className="h-full px-6 py-8 min-w-max">
+            {/* Board Area - Page-level scroll */}
+            <div className="flex-1 bg-[--background]">
+                <div className="px-6 py-8 min-w-max">
                     <KanbanBoard type="all" />
                 </div>
             </div>

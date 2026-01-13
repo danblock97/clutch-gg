@@ -250,9 +250,9 @@ export default function KanbanBoard({ type = "all" }) {
 
 
     return (
-        <div className="flex flex-col h-full gap-6">
+        <div className="flex flex-col gap-6">
             {/* Controls */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-1">
+            <div className="flex-shrink-0 flex flex-col md:flex-row md:items-center justify-between gap-6 px-1">
                 {/* Search */}
                 <div className="relative flex-1 max-w-md">
                     <LuSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-[--text-secondary] w-4.5 h-4.5" />
@@ -309,7 +309,8 @@ export default function KanbanBoard({ type = "all" }) {
                 </div>
             </div>
 
-            <div className="overflow-x-auto pb-6">
+            {/* Board Container - Single scroll area, grows naturally */}
+            <div>
                 <div className="flex gap-4 min-w-max px-1">
                     {teamStates.map((state) => {
                         const group = displayedGroups[state.id];
@@ -318,7 +319,7 @@ export default function KanbanBoard({ type = "all" }) {
                         return (
                             <div key={state.id} className="w-80 flex-shrink-0 flex flex-col gap-4">
                                 {/* Column Header */}
-                                <div className="flex items-center justify-between px-2 mb-2">
+                                <div className="flex-shrink-0 flex items-center justify-between px-2 mb-2">
                                     <div className="flex items-center gap-2">
                                         <div className={`w-2 h-2 rounded-full ${state.type === 'backlog' ? 'bg-gray-500' :
                                             state.type === 'unstarted' ? 'bg-yellow-500' :
@@ -335,13 +336,13 @@ export default function KanbanBoard({ type = "all" }) {
                                     </div>
                                 </div>
 
-                                {/* Column Content */}
-                                <div className="flex flex-col gap-3 min-h-[200px]">
+                                {/* Column Content - No per-column scroll, flows naturally */}
+                                <div className="flex flex-col gap-3">
                                     {groupIssues.map(issue => (
                                         <div
                                             key={issue.id}
                                             onClick={() => setSelectedIssue(issue)}
-                                            className="bg-[--card-bg] border border-white/5 p-5 rounded-2xl shadow-xl hover:border-white/10 transition-all group flex flex-col gap-4 cursor-pointer hover:bg-white/[0.03] active:scale-[0.98]"
+                                            className="flex-shrink-0 bg-[--card-bg] border border-white/5 p-5 rounded-2xl shadow-xl hover:border-white/10 transition-all group flex flex-col gap-4 cursor-pointer hover:bg-white/[0.03] active:scale-[0.98]"
                                         >
                                             <div className="flex items-start justify-between">
                                                 <span className="text-[13px] font-bold font-mono text-[--text-secondary] group-hover:text-[--primary] transition-colors">
