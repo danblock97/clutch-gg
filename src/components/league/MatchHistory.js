@@ -1137,10 +1137,55 @@ const MatchHistory = ({
 	const [selectedQueue, setSelectedQueue] = useState(null);
 	const [expandedMatchId, setExpandedMatchId] = useState(null);
 	const [currentPage, setCurrentPage] = useState(1);
+	const [matchQueueMap, setMatchQueueMap] = useState({}); // Map of matchId -> queueId
 	
 	const matchesPerPage = 10;
 	const router = useRouter();
 	const breakpoint = useBreakpoint();
+
+	// Load queueIds for all matches to enable filtering
+	useEffect(() => {
+		if (!matchIds || matchIds.length === 0) return;
+
+		let isMounted = true;
+		const queueMap = {};
+
+		// Load queueIds in batches to avoid overwhelming the API
+		const loadQueueIds = async () => {
+			const batchSize = 10;
+			for (let i = 0; i < matchIds.length; i += batchSize) {
+				if (!isMounted) break;
+				
+				const batch = matchIds.slice(i, i + batchSize);
+				const promises = batch.map(async (matchId) => {
+					try {
+						const response = await fetch(`/api/league/match/${matchId}`);
+						if (response.ok) {
+							const matchData = await response.json();
+							if (matchData?.info?.queueId) {
+								queueMap[matchId] = matchData.info.queueId;
+							}
+						}
+					} catch (error) {
+						console.warn(`Failed to load queueId for match ${matchId}:`, error);
+					}
+				});
+
+				await Promise.all(promises);
+				
+				// Update state incrementally for better UX
+				if (isMounted) {
+					setMatchQueueMap(prev => ({ ...prev, ...queueMap }));
+				}
+			}
+		};
+
+		loadQueueIds();
+
+		return () => {
+			isMounted = false;
+		};
+	}, [matchIds]);
 
 	useEffect(() => {
 		const getAugments = async () => {
@@ -1155,7 +1200,7 @@ const MatchHistory = ({
 	}, [selectedLane, selectedQueue, selectedChampionId]);
 
 	// Use matchIds if provided, otherwise fall back to extracting from matchDetails (backward compatibility)
-	const effectiveMatchIds = useMemo(() => {
+	const baseMatchIds = useMemo(() => {
 		if (matchIds && matchIds.length > 0) {
 			return matchIds;
 		}
@@ -1166,7 +1211,32 @@ const MatchHistory = ({
 		return [];
 	}, [matchIds, matchDetails]);
 
-	if (!effectiveMatchIds || effectiveMatchIds.length === 0) {
+	// Filter matchIds based on selectedQueue
+	const effectiveMatchIds = useMemo(() => {
+		if (!selectedQueue) {
+			// No filter selected, return all matches
+			return baseMatchIds;
+		}
+
+		// Filter matches by queueId
+		// Include matches that:
+		// 1. Have loaded queueId that matches the filter, OR
+		// 2. Haven't loaded queueId yet (show loading skeleton, will filter out once loaded if doesn't match)
+		const filtered = baseMatchIds.filter(matchId => {
+			const queueId = matchQueueMap[matchId];
+			if (queueId === undefined) {
+				// QueueId not loaded yet, include it to show loading skeleton
+				return true;
+			}
+			// QueueId loaded, only include if it matches
+			return queueId === selectedQueue;
+		});
+
+		return filtered;
+	}, [baseMatchIds, selectedQueue, matchQueueMap]);
+
+	// Early return only if there are no matches at all (not due to filtering)
+	if (!baseMatchIds || baseMatchIds.length === 0) {
 		return (
 			<div className="bg-gray-800 text-gray-400 p-4 rounded-lg shadow-lg">
 				No match history available
@@ -1174,8 +1244,7 @@ const MatchHistory = ({
 		);
 	}
 
-	// For filtering, we need the loaded match data
-	// We'll show skeletons for unloaded matches and filter based on loaded data
+	// Paginate filtered matchIds
 	const totalPages = Math.ceil(effectiveMatchIds.length / matchesPerPage);
 	const startIndex = (currentPage - 1) * matchesPerPage;
 	const endIndex = startIndex + matchesPerPage;
@@ -1187,7 +1256,8 @@ const MatchHistory = ({
 
 	const handleQueueSelect = (e) => {
 		const value = e.target.value;
-		setSelectedQueue(value === "" ? null : Number(value));
+		const parsedValue = value === "" ? null : Number(value);
+		setSelectedQueue(parsedValue);
 	};
 
 	const handlePageChange = (pageNumber) => {
@@ -1238,21 +1308,30 @@ const MatchHistory = ({
 			</div>
 			
 			<div className="mt-2">
-				{paginatedMatchIds.map((matchId) => (
-					<MatchRow
-						key={matchId}
-						matchId={matchId}
-						selectedSummonerPUUID={selectedSummonerPUUID}
-						region={region}
-						isExpanded={expandedMatchId === matchId}
-						onToggleExpand={toggleExpand}
-						breakpoint={breakpoint}
-						augments={augments}
-					/>
-				))}
+				{effectiveMatchIds.length === 0 ? (
+					<div className="bg-gray-800 text-gray-400 p-8 rounded-lg shadow-lg text-center">
+						<p className="text-lg font-semibold mb-2">No matches found</p>
+						<p className="text-sm text-gray-500">
+							No matches match the selected filter. Try selecting a different game mode or clearing the filter.
+						</p>
+					</div>
+				) : (
+					paginatedMatchIds.map((matchId) => (
+						<MatchRow
+							key={matchId}
+							matchId={matchId}
+							selectedSummonerPUUID={selectedSummonerPUUID}
+							region={region}
+							isExpanded={expandedMatchId === matchId}
+							onToggleExpand={toggleExpand}
+							breakpoint={breakpoint}
+							augments={augments}
+						/>
+					))
+				)}
 			</div>
 			
-			{totalPages > 1 && (
+			{effectiveMatchIds.length > 0 && totalPages > 1 && (
 				<div className="flex justify-center items-center mt-6 space-x-1 text-sm">
 					<button
 						onClick={() => handlePageChange(currentPage - 1)}
