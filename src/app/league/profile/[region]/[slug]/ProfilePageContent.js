@@ -12,6 +12,7 @@ import Loading from "@/components/Loading";
 import LiveGame from "@/components/league/LiveGame";
 import RecentlyPlayedWith from "@/components/league/RecentlyPlayedWith";
 import ErrorPage from "@/components/ErrorPage";
+import DiscordBotBanner from "@/components/DiscordBotBanner";
 import { fetchWithErrorHandling, extractErrorMessage } from "@/lib/errorUtils";
 
 // SWR fetcher for match details
@@ -389,6 +390,9 @@ export default function ProfilePageContent({ gameName, tagLine, region }) {
 						) : (
 							<div className="card animate-pulse-custom h-48"></div>
 						)}
+
+						{/* Discord Bot Banner */}
+						<DiscordBotBanner />
 					</div>
 
 					{/* Right Column: Match History - Now uses matchIds with lazy loading */}

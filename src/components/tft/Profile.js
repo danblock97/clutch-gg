@@ -473,10 +473,6 @@ export default function Profile({
 							</div>
 						</div>
 					</div>
-					{/* Mobile Banner */}
-					<div className="lg:hidden mt-4">
-						<DiscordBotBanner />
-					</div>
 				</div>
 			</div>
 
@@ -491,7 +487,7 @@ export default function Profile({
 
 				<div className="flex flex-col lg:flex-row gap-6">
 					{/* Left Column */}
-					<div className="w-full lg:w-1/3">
+					<div className="w-full lg:w-1/3 space-y-6">
 						<TFTRankedInfo rankedData={rankedData} />
 
 						{/* Top Traits Component */}
@@ -499,6 +495,9 @@ export default function Profile({
 
 						{/* Top Units Component */}
 						<TopUnits matchDetails={matchDetails} summonerData={summonerData} championsData={championsData} />
+
+						{/* Discord Bot Banner */}
+						<DiscordBotBanner />
 					</div>
 
 					{/* Right Column */}

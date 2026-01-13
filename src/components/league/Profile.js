@@ -1,7 +1,6 @@
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
-import DiscordBotBanner from "@/components/DiscordBotBanner.js";
 import { scrapeLeagueLadderRanking } from "@/lib/opggApi.js";
 import {
 	FaSync,
@@ -352,18 +351,6 @@ const Profile = ({
 						)}
 					</div>
 				</div>
-
-				{/* Mobile Banner */}
-				<div className="md:hidden mt-4">
-					<DiscordBotBanner />
-				</div>
-			</div>
-			{/* Desktop Banner Absolute or integrated */}
-			<div className="hidden md:block absolute top-6 right-6 z-0 opacity-80 hover:opacity-100 transition-opacity">
-				{/*  Simplified banner placement or removed for cleaner look? 
-                      User asked for "minimal". Let's keep it but make it less obtrusive if possible, 
-                      or just keep standard placement. Let's stick to standard flow to avoid overlapping content.
-                  */}
 			</div>
 		</div>
 	);
