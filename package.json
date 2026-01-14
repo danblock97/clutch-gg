@@ -23,7 +23,7 @@
 		"lodash.debounce": "^4.0.8",
 		"mongodb": "^6.10.0",
 		"nanoid": "^3.3.8",
-		"next": "^16.1.0",
+		"next": "^16.1.1",
 		"node-cron": "^3.0.3",
 		"node-fetch": "^3.3.2",
 		"prop-types": "^15.8.1",
