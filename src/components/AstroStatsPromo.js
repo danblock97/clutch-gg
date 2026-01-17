@@ -129,7 +129,7 @@ const AstroStatsPromo = () => {
 							{/* CTAs */}
 							<div className="flex flex-wrap gap-3 pt-2">
 								<Link 
-									href="https://discord.com/oauth2/authorize?client_id=1088929834054369280" 
+									href="https://discord.com/oauth2/authorize?client_id=1088929834748616785&permissions=378944&integration_type=0&scope=bot+applications.commands" 
 									target="_blank" 
 									className="group relative inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#5865F2] hover:bg-[#4752C4] text-white font-semibold text-sm transition-all duration-300 shadow-lg shadow-[#5865F2]/25 hover:shadow-[#5865F2]/40 hover:scale-[1.02]"
 								>

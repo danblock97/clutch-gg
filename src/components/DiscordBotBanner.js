@@ -6,7 +6,7 @@ import { FaDiscord, FaArrowRight } from "react-icons/fa";
 export default function DiscordBotBanner() {
 	return (
 		<Link
-			href="https://discord.com/oauth2/authorize?client_id=1088929834748616785&permissions=2147747840&scope=bot"
+			href="https://discord.com/oauth2/authorize?client_id=1088929834748616785&permissions=378944&integration_type=0&scope=bot+applications.commands"
 			className="block group"
 			target="_blank"
 			rel="noopener noreferrer"
