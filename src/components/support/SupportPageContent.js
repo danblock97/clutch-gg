@@ -84,6 +84,45 @@ export default function SupportPageContent() {
           </div>
         </div>
 
+        {/* Status Page Card */}
+        <div className="relative group">
+          <div className="absolute -inset-0.5 rounded-2xl blur opacity-30 group-hover:opacity-50 transition duration-1000 bg-gradient-to-r from-blue-500/20 to-cyan-500/20"></div>
+          <div className="relative bg-[--card-bg] border border-white/10 p-6 sm:p-8 rounded-2xl shadow-xl backdrop-blur-sm h-full flex flex-col">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20">
+                <svg
+                  className="w-5 h-5 text-blue-300"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <h2 className="text-xl font-bold">Service Status</h2>
+            </div>
+            <p className="text-[--text-secondary] mb-6 flex-grow">
+              Check live updates on system health and any active incidents.
+            </p>
+            <a
+              href="https://clutchgg-status.statuspage.io"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 font-semibold rounded-xl
+                                bg-gradient-to-r from-blue-500 to-cyan-500 text-white
+                                hover:from-blue-600 hover:to-cyan-600
+                                shadow-md hover:shadow-lg transition-all duration-200"
+            >
+              View Status Page
+            </a>
+          </div>
+        </div>
+
         {/* Jira Forms Card */}
         <div className="relative group">
           <div className="absolute -inset-0.5 rounded-2xl blur opacity-30 group-hover:opacity-50 transition duration-1000 bg-gradient-to-r from-violet-500/20 to-purple-500/20"></div>
