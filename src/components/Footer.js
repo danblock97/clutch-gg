@@ -17,7 +17,6 @@ import Image from "next/image";
 
 const Footer = () => {
 	const currentYear = new Date().getFullYear();
-
 	return (
 		<footer className="bg-[--card-bg] border-t border-[--card-border]">
 			{/* Main Footer Section */}
@@ -121,16 +120,6 @@ const Footer = () => {
 									AstroStats - Discord Bot
 								</Link>
 							</li>
-							<li>
-								<Link
-									href="https://buymeacoffee.com/danblock97"
-									target="_blank"
-									className="text-sm hover:text-[--primary] transition-colors inline-flex items-center"
-								>
-									<FaCoffee className="mr-2 text-xs" />
-									Support Us
-								</Link>
-							</li>
 						</ul>
 					</div>
 
@@ -167,6 +156,15 @@ const Footer = () => {
 								Need help? Contact Us
 							</Link>
 						</li>
+							<li>
+								<Link
+									href="/support-this-app"
+									className="text-sm hover:text-[--primary] transition-colors inline-flex items-center"
+								>
+									<FaCoffee className="mr-2 text-xs" />
+									Support this app
+								</Link>
+							</li>
 						</ul>
 					</div>
 				</div>

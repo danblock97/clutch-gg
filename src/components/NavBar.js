@@ -310,6 +310,18 @@ const NavBar = ({ bannersVisible = 0 }) => {
 
             {/* Right Side - Actions */}
             <div className="flex items-center space-x-3">
+              <Link
+                href="/support-this-app"
+                className={`hidden md:inline-flex items-center gap-2 rounded-full text-white h-8 px-3 shadow-sm transition-colors ${
+                  gameType === "tft"
+                    ? "bg-gradient-to-r from-[--tft-primary] to-[--tft-secondary] hover:from-[--tft-primary-dark] hover:to-[--tft-secondary]"
+                    : "bg-gradient-to-r from-[--primary] to-[--secondary] hover:from-[--primary-dark] hover:to-[--secondary]"
+                }`}
+              >
+                <FaCoffee className="text-sm" />
+                <span className="text-sm font-semibold">Support This App</span>
+              </Link>
+
               {/* Search Button - Show on profile or match pages */}
               {isProfileOrMatch && (
                 <button
@@ -583,17 +595,16 @@ const NavBar = ({ bannersVisible = 0 }) => {
               </div>
             </a>
 
-            <a
-              href="https://ko-fi.com/clutchgg"
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              href="/support-this-app"
+              onClick={handleLinkClick}
               className="block px-4 py-2.5 rounded-md hover:bg-[--card-bg-secondary] transition-colors"
             >
               <div className="flex items-center">
                 <FaCoffee className="mr-3 text-lg" />
-                <span>Support Us</span>
+                <span>Support This App</span>
               </div>
-            </a>
+            </Link>
           </div>
         </div>
       </nav>
