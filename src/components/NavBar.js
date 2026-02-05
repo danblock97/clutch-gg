@@ -9,7 +9,6 @@ import { useGameType } from "@/context/GameTypeContext";
 import { useAuth } from "@/context/AuthContext";
 import { buildProfileUrl, parseProfileUrl } from "@/lib/utils/urlHelpers";
 import {
-  FaCoffee,
   FaSearch,
   FaBars,
   FaTimes,
@@ -241,33 +240,59 @@ const NavBar = ({ bannersVisible = 0 }) => {
                 </span>
               </Link>
 
-              {/* Game Type Buttons (Desktop) */}
-              <div className="hidden md:flex items-center">
-                <div className="inline-flex rounded-lg border border-white/10 bg-white/5 p-0.5">
-                  <button
-                    onClick={() => handleGameTypeChange("league")}
-                    className={`flex items-center space-x-1 px-3 py-1 rounded-md text-sm ${
-                      (!mounted && !isTftPath) ||
-                      (mounted && gameType === "league")
-                        ? "bg-[--primary]/15 text-[--primary]"
-                        : "text-[--text-secondary] hover:text-[--text-primary]"
-                    } transition-colors`}
-                  >
-                    <FaGamepad className="text-[13px]" />
-                    <span>League</span>
-                  </button>
-                  <button
-                    onClick={() => handleGameTypeChange("tft")}
-                    className={`flex items-center space-x-1 px-3 py-1 rounded-md text-sm ${
-                      (!mounted && isTftPath) || (mounted && gameType === "tft")
-                        ? "bg-[--tft-primary]/15 text-[--tft-primary]"
-                        : "text-[--text-secondary] hover:text-[--text-primary]"
-                    } transition-colors`}
-                  >
-                    <FaChessKnight className="text-[13px]" />
-                    <span>TFT</span>
-                  </button>
-                </div>
+              {/* Game Type Dropdown (All sizes) */}
+              <div className="relative" ref={gameTypeDropdownRef}>
+                <button
+                  onClick={() =>
+                    setIsGameTypeDropdownOpen(!isGameTypeDropdownOpen)
+                  }
+                  className="inline-flex items-center gap-2 h-8 px-3 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 text-[--text-primary] transition-colors"
+                  aria-expanded={isGameTypeDropdownOpen}
+                  aria-haspopup="true"
+                >
+                  <span className="text-sm inline-flex items-center">
+                    {getCurrentGameTypeDisplay()}
+                  </span>
+                  <span className="hidden sm:inline text-[--text-secondary] text-xs">
+                    Mode
+                  </span>
+                  {isGameTypeDropdownOpen ? (
+                    <FaChevronUp className="text-xs" />
+                  ) : (
+                    <FaChevronDown className="text-xs" />
+                  )}
+                </button>
+                {isGameTypeDropdownOpen && (
+                  <div className="absolute left-0 mt-2 w-40 bg-[--card-bg] rounded-md shadow-lg py-1 z-50 border border-[--card-border]">
+                    <button
+                      onClick={() => handleGameTypeChange("league")}
+                      className={`w-full text-left block px-4 py-2 text-sm transition-colors ${
+                        (!mounted && !isTftPath) ||
+                        (mounted && gameType === "league")
+                          ? "text-[--primary] bg-[--primary]/10"
+                          : "text-[--text-primary] hover:bg-[--card-bg-secondary]"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <FaGamepad className="text-xs" />
+                        <span>League</span>
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => handleGameTypeChange("tft")}
+                      className={`w-full text-left block px-4 py-2 text-sm transition-colors ${
+                        (!mounted && isTftPath) || (mounted && gameType === "tft")
+                          ? "text-[--tft-primary] bg-[--tft-primary]/10"
+                          : "text-[--text-primary] hover:bg-[--card-bg-secondary]"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <FaChessKnight className="text-xs" />
+                        <span>TFT</span>
+                      </div>
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Desktop Navigation Links */}
@@ -310,26 +335,14 @@ const NavBar = ({ bannersVisible = 0 }) => {
 
             {/* Right Side - Actions */}
             <div className="flex items-center space-x-3">
-              <Link
-                href="/support-this-app"
-                className={`hidden md:inline-flex items-center gap-2 rounded-full text-white h-8 px-3 shadow-sm transition-colors ${
-                  gameType === "tft"
-                    ? "bg-gradient-to-r from-[--tft-primary] to-[--tft-secondary] hover:from-[--tft-primary-dark] hover:to-[--tft-secondary]"
-                    : "bg-gradient-to-r from-[--primary] to-[--secondary] hover:from-[--primary-dark] hover:to-[--secondary]"
-                }`}
-              >
-                <FaCoffee className="text-sm" />
-                <span className="text-sm font-semibold">Support This App</span>
-              </Link>
-
               {/* Search Button - Show on profile or match pages */}
               {isProfileOrMatch && (
                 <button
                   onClick={() => setIsSearchModalOpen(true)}
-                  className={`hidden md:inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 text-[--text-primary] h-8 px-3 transition-colors`}
+                  className={`hidden md:inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 text-[--text-primary] h-8 px-2.5 lg:px-3 transition-colors`}
                 >
                   <FaSearch className="text-[13px]" />
-                  <span className="text-sm">Search</span>
+                  <span className="text-sm hidden xl:inline">Search</span>
                 </button>
               )}
 
@@ -438,33 +451,6 @@ const NavBar = ({ bannersVisible = 0 }) => {
           }`}
         >
           <div className="px-3 pt-2 pb-3 space-y-2 sm:px-3 bg-[--card-bg] border-t border-[--card-border] shadow-lg">
-            {/* Game Type Selector (Mobile) */}
-            <div className="flex justify-center mb-2 pt-1">
-              <div className="inline-flex rounded-lg border border-[--card-border] overflow-hidden">
-                <button
-                  className={`px-4 py-2 text-sm font-medium flex items-center transition-colors ${
-                    (!mounted && !isTftPath) ||
-                    (mounted && gameType === "league")
-                      ? "bg-[--primary] text-white"
-                      : "bg-[--card-bg] text-[--text-secondary] hover:bg-[--card-bg-secondary]"
-                  }`}
-                  onClick={() => handleGameTypeChange("league")}
-                >
-                  <FaGamepad className="mr-2" /> League
-                </button>
-                <button
-                  className={`px-4 py-2 text-sm font-medium flex items-center transition-colors ${
-                    (!mounted && isTftPath) || (mounted && gameType === "tft")
-                      ? "bg-[--tft-primary] text-white"
-                      : "bg-[--card-bg] text-[--text-secondary] hover:bg-[--card-bg-secondary]"
-                  }`}
-                  onClick={() => handleGameTypeChange("tft")}
-                >
-                  <FaChessKnight className="mr-2" /> TFT
-                </button>
-              </div>
-            </div>
-
             <Link
               href={getLeaderboardLink()}
               className="block px-4 py-2.5 rounded-md hover:bg-[--card-bg-secondary] transition-colors"
@@ -595,16 +581,7 @@ const NavBar = ({ bannersVisible = 0 }) => {
               </div>
             </a>
 
-            <Link
-              href="/support-this-app"
-              onClick={handleLinkClick}
-              className="block px-4 py-2.5 rounded-md hover:bg-[--card-bg-secondary] transition-colors"
-            >
-              <div className="flex items-center">
-                <FaCoffee className="mr-3 text-lg" />
-                <span>Support This App</span>
-              </div>
-            </Link>
+            {/* Support link removed from navbar; moved to footer */}
           </div>
         </div>
       </nav>
