@@ -123,7 +123,7 @@ export default function SupportPageContent() {
           </div>
         </div>
 
-        {/* Jira Forms Card */}
+        {/* Support Form Card */}
         <div className="relative group">
           <div className="absolute -inset-0.5 rounded-2xl blur opacity-30 group-hover:opacity-50 transition duration-1000 bg-gradient-to-r from-violet-500/20 to-purple-500/20"></div>
           <div className="relative bg-[--card-bg] border border-white/10 p-6 sm:p-8 rounded-2xl shadow-xl backdrop-blur-sm h-full flex flex-col">
@@ -143,61 +143,35 @@ export default function SupportPageContent() {
                   />
                 </svg>
               </div>
-              <h2 className="text-xl font-bold">Jira Forms</h2>
+              <h2 className="text-xl font-bold">Support Form</h2>
             </div>
             <p className="text-[--text-secondary] mb-6 flex-grow">
-              Use our Jira forms to report bugs or request new features.
+              Submit feedback, report bugs, or request new features.
             </p>
-            <div className="flex flex-col gap-3">
-              <a
-                href="https://danblock97.atlassian.net/jira/software/c/form/71b2fc08-665e-44cd-b62a-430be2c2da05?atlOrigin=eyJpIjoiYWI3NDgyODQ1ZDJlNDBiNDlmNTJiZjgxNjllMmE3MzEiLCJwIjoiaiJ9"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 font-semibold rounded-xl
+            <a
+              href="https://silver-bakery-f7c.notion.site/7c380487ae9a418bb04649688939e5c9?pvs=105"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 font-semibold rounded-xl
                                 bg-gradient-to-r from-violet-500 to-purple-500 text-white
                                 hover:from-violet-600 hover:to-purple-600
                                 shadow-md hover:shadow-lg transition-all duration-200"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
               >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
-                Report a Bug
-              </a>
-              <a
-                href="https://danblock97.atlassian.net/jira/software/c/form/95af9daf-99d9-4549-8ee1-7fa0cd653dfe?atlOrigin=eyJpIjoiMmJjYTc3MWJjNTdmNDI5YmI1OGVkODI0NmUwMmU0NDAiLCJwIjoiaiJ9"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 font-semibold rounded-xl
-                                bg-gradient-to-r from-violet-500 to-purple-500 text-white
-                                hover:from-violet-600 hover:to-purple-600
-                                shadow-md hover:shadow-lg transition-all duration-200"
-              >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                  />
-                </svg>
-                Request a Feature
-              </a>
-            </div>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+              Open Support Form
+            </a>
           </div>
         </div>
       </div>
