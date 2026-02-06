@@ -1,5 +1,7 @@
 "use client";
 
+import Script from "next/script";
+
 export default function SupportPageContent() {
   return (
     <div className="relative mx-auto max-w-4xl px-4 py-12 min-h-[calc(100vh-200px)] flex flex-col">
@@ -109,16 +111,23 @@ export default function SupportPageContent() {
             <p className="text-[--text-secondary] mb-6 flex-grow">
               Check live updates on system health and any active incidents.
             </p>
+            <div className="rounded-xl border border-white/10 bg-black/10 p-3">
+              <Script
+                id="clutchgg-statuspage-embed"
+                src="https://clutchgg-status.statuspage.io/embed/script.js"
+                strategy="afterInteractive"
+              />
+            </div>
             <a
               href="https://clutchgg-status.statuspage.io"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 font-semibold rounded-xl
+              className="mt-4 inline-flex items-center justify-center gap-2 px-6 py-3 font-semibold rounded-xl
                                 bg-gradient-to-r from-blue-500 to-cyan-500 text-white
                                 hover:from-blue-600 hover:to-cyan-600
                                 shadow-md hover:shadow-lg transition-all duration-200"
             >
-              View Status Page
+              View Full Status Page
             </a>
           </div>
         </div>
