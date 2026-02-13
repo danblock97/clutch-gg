@@ -89,8 +89,8 @@ export async function securityMiddleware(req) {
         );
       }
 
-      // Tagline can be 3-5 characters, letters and numbers only
-      if (tagLine && !/^[a-zA-Z0-9]{3,5}$/.test(tagLine)) {
+      // Tagline can contain international letters/numbers (e.g., Japanese)
+      if (tagLine && !/^[\p{L}\p{N}]{3,5}$/u.test(tagLine.trim())) {
         return new NextResponse(
           JSON.stringify({ error: "Invalid tagLine format" }),
           { status: 400, headers: { "Content-Type": "application/json" } },

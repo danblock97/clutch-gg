@@ -7,7 +7,9 @@ export const fetchAccountData = async (gameName, tagLine, platform) => {
 			throw new Error('Riot API key is not configured');
 		}
 
-		const url = `https://${platform}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${gameName}/${tagLine}`;
+		const encodedGameName = encodeURIComponent(gameName);
+		const encodedTagLine = encodeURIComponent(tagLine);
+		const url = `https://${platform}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodedGameName}/${encodedTagLine}`;
 
 		const accountResponse = await fetch(url, {
 			headers: { 
