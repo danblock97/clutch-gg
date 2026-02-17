@@ -71,6 +71,8 @@ export async function GET(req) {
 				"Cache-Control": "no-cache",
 				Pragma: "no-cache",
 			},
+			// Avoid axios proxy-from-env path, which uses deprecated url.parse().
+			proxy: false,
 			timeout: 10000,
 		});
 
