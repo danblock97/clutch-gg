@@ -69,7 +69,7 @@ const TFTLeaderboardTable = ({ leaderboardData, region, tier }) => {
 	return (
 		<div className="space-y-6">
 			<div className="space-y-4">
-				<div className="flex items-center justify-between text-[10px] uppercase tracking-[0.4em] text-[--text-secondary]">
+				<div className="flex items-center justify-between gap-3 text-[9px] uppercase tracking-[0.25em] text-[--text-secondary] sm:text-[10px] sm:tracking-[0.4em]">
 					<span>{tierLabel}</span>
 					<span>Spotlight · Top {highlightPlayers.length}</span>
 				</div>
@@ -88,9 +88,9 @@ const TFTLeaderboardTable = ({ leaderboardData, region, tier }) => {
 							return (
 								<div
 									key={entry.puuid || `${entry.summonerName || "player"}-${index}`}
-									className={`relative rounded-[26px] border border-transparent p-6 shadow-[0_20px_50px_rgba(0,0,0,0.6)] ${getTopCardGradient(
+									className={`relative overflow-hidden rounded-[26px] border border-transparent p-4 shadow-[0_20px_50px_rgba(0,0,0,0.6)] sm:p-6 ${getTopCardGradient(
 										index
-									)} overflow-hidden`}
+									)}`}
 								>
 									<div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent opacity-60"></div>
 									<div className="relative z-10 space-y-4">
@@ -106,8 +106,8 @@ const TFTLeaderboardTable = ({ leaderboardData, region, tier }) => {
 											</span>
 										</div>
 
-										<Link href={buildLink(entry)} className="flex gap-4 items-center">
-											<div className="relative h-16 w-16 rounded-full border border-white/30 bg-gradient-to-br from-white/10 to-transparent">
+										<Link href={buildLink(entry)} className="flex min-w-0 items-center gap-3 sm:gap-4">
+											<div className="relative h-14 w-14 rounded-full border border-white/30 bg-gradient-to-br from-white/10 to-transparent sm:h-16 sm:w-16">
 												{entry.profileData?.profileIconId ? (
 													<Image
 														src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/${entry.profileData.profileIconId}.jpg`}
@@ -121,20 +121,22 @@ const TFTLeaderboardTable = ({ leaderboardData, region, tier }) => {
 													</div>
 												)}
 											</div>
-											<div className="flex-1">
-												<div className="text-lg font-semibold text-white">{entry.profileData?.gameName || "Unknown"}</div>
+											<div className="min-w-0 flex-1">
+												<div className="truncate text-base font-semibold text-white sm:text-lg">
+													{entry.profileData?.gameName || "Unknown"}
+												</div>
 												<div className="text-[12px] text-[--text-secondary]">
 													#{entry.profileData?.tagLine || "0000"}
 												</div>
 											</div>
 										</Link>
 
-										<div className="text-4xl font-bold text-cyan-400 tracking-tight flex items-center gap-2">
+										<div className="flex items-center gap-2 text-3xl font-bold tracking-tight text-cyan-400 sm:text-4xl">
 											<FaCrown className="text-cyan-300" />
 											{entry.leaguePoints} LP
 										</div>
 
-										<div className="flex flex-wrap items-center justify-between gap-3 text-sm text-[--text-secondary]">
+										<div className="flex flex-wrap items-center justify-between gap-3 text-xs text-[--text-secondary] sm:text-sm">
 											<div>
 												<p className="text-xs uppercase tracking-[0.2em] text-[--text-secondary]">Record</p>
 												<span className="text-white font-semibold">
@@ -165,8 +167,8 @@ const TFTLeaderboardTable = ({ leaderboardData, region, tier }) => {
 				</div>
 			</div>
 
-			<div className="rounded-[28px] border border-[--card-border] bg-[--card-bg-secondary]/60 backdrop-blur-xl shadow-[0_40px_80px_rgba(0,0,0,0.65)] overflow-hidden">
-				<div className="grid grid-cols-[2.4fr,1.6fr,2.5fr] px-6 py-4 text-[10px] font-semibold uppercase tracking-[0.3em] text-[--text-secondary] border-b border-[--card-border]">
+			<div className="overflow-hidden rounded-[28px] border border-[--card-border] bg-[--card-bg-secondary]/60 shadow-[0_40px_80px_rgba(0,0,0,0.65)] backdrop-blur-xl">
+				<div className="hidden grid-cols-[2.4fr,1.6fr,2.5fr] border-b border-[--card-border] px-6 py-4 text-[10px] font-semibold uppercase tracking-[0.3em] text-[--text-secondary] sm:grid">
 					<div>Player</div>
 					<div>Rank</div>
 					<div>Winrate</div>
@@ -190,16 +192,16 @@ const TFTLeaderboardTable = ({ leaderboardData, region, tier }) => {
 							return (
 								<div
 									key={entry.puuid || `${entry.summonerName || "player"}-${currentRank}`}
-									className={`grid grid-cols-[2.4fr,1.5fr,2.8fr] items-center px-6 py-4 text-sm ${
+									className={`grid grid-cols-1 gap-3 px-3 py-4 text-xs sm:grid-cols-[2.4fr,1.5fr,2.8fr] sm:items-center sm:gap-0 sm:px-6 sm:py-4 sm:text-sm ${
 										isEven ? "bg-[--card-bg]/80" : "bg-[--card-bg-secondary]/60"
 									}`}
 								>
-									<div className="flex items-center gap-3">
-										<span className="text-[11px] text-[--text-secondary] w-8 text-right">
+									<div className="flex min-w-0 items-center gap-2 sm:gap-3">
+										<span className="w-7 text-right text-[10px] text-[--text-secondary] sm:w-8 sm:text-[11px]">
 											#{currentRank}
 										</span>
-										<Link href={buildLink(entry)} className="flex items-center gap-3">
-											<div className="relative h-12 w-12 overflow-hidden rounded-full border border-white/10 bg-[--card-bg]">
+										<Link href={buildLink(entry)} className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+											<div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border border-white/10 bg-[--card-bg] sm:h-12 sm:w-12">
 												{entry.profileData?.profileIconId ? (
 													<Image
 														src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/${entry.profileData.profileIconId}.jpg`}
@@ -207,38 +209,38 @@ const TFTLeaderboardTable = ({ leaderboardData, region, tier }) => {
 														fill
 														className="object-cover"
 													/>
-												) : (
-													<div className="flex h-full w-full items-center justify-center bg-white/5 text-[--text-secondary]">
-														?
-													</div>
-												)}
-									</div>
-											<div className="overflow-hidden">
-												<div className="text-white font-semibold truncate text-sm">
+													) : (
+														<div className="flex h-full w-full items-center justify-center bg-white/5 text-[--text-secondary]">
+															?
+														</div>
+													)}
+											</div>
+											<div className="min-w-0 overflow-hidden">
+												<div className="truncate text-xs font-semibold text-white sm:text-sm">
 													{entry.profileData?.gameName || "Unknown"}
 												</div>
-												<div className="text-[--text-secondary] text-xs">
+												<div className="text-[11px] text-[--text-secondary] sm:text-xs">
 													#{entry.profileData?.tagLine || "0000"}
 												</div>
 											</div>
 										</Link>
 									</div>
 
-									<div className="flex flex-col items-start gap-2 px-2">
-										<div className="flex items-center gap-3">
+									<div className="flex flex-col items-start gap-1.5 sm:gap-2 sm:px-2">
+										<div className="flex items-center gap-2 sm:gap-3">
 											<Image
 												src={getRankEmblemSrc(entry.tier || tier)}
 												alt={`${entry.tier || "Iron"} emblem`}
 												width={44}
 												height={44}
-												className="h-11 w-11"
+												className="h-9 w-9 sm:h-11 sm:w-11"
 											/>
-											<span className="text-2xl font-extrabold text-cyan-400">
+											<span className="text-xl font-extrabold text-cyan-400 sm:text-2xl">
 												{entry.leaguePoints} LP
 											</span>
 										</div>
 										{includeDivision && entry.rank && (
-											<span className="text-[--text-secondary] text-xs uppercase">
+											<span className="text-[10px] uppercase text-[--text-secondary] sm:text-xs">
 												{entry.rank}
 											</span>
 										)}
@@ -246,12 +248,12 @@ const TFTLeaderboardTable = ({ leaderboardData, region, tier }) => {
 
 									<div className="flex flex-col gap-1">
 										<div className="relative">
-											<div className="h-10 rounded-full bg-white/10"></div>
+											<div className="h-9 rounded-full bg-white/10 sm:h-10"></div>
 											<div
-												className={`absolute inset-y-1 left-0 h-8 rounded-full bg-gradient-to-r ${winrate.color}`}
+												className={`absolute inset-y-1 left-0 h-7 rounded-full bg-gradient-to-r sm:h-8 ${winrate.color}`}
 												style={{ width: `${winrate.percent}%` }}
 											></div>
-											<div className="absolute inset-0 flex items-center justify-between px-4 text-[12px] text-white">
+											<div className="absolute inset-0 flex items-center justify-between px-3 text-[11px] text-white sm:px-4 sm:text-[12px]">
 												<span>{wins}W / {losses}L</span>
 												<span>{winrate.display}</span>
 											</div>
