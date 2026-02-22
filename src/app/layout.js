@@ -4,10 +4,11 @@ import StructuredData from "@/components/StructuredData";
 import PropTypes from "prop-types";
 import RootLayoutContent from "./RootLayoutContent";
 import { metadata as baseMetadata } from "./metadata";
-import { Analytics } from "@vercel/analytics/next";
-import { SpeedInsights } from "@vercel/speed-insights/next";
+import { GoogleAnalytics } from '@next/third-parties/google'
 
 const inter = Inter({ subsets: ["latin"] });
+
+const gaId = process.env.NEXT_PUBLIC_GA_ID;
 
 export const metadata = {
   ...baseMetadata,
@@ -20,8 +21,7 @@ export default function RootLayout({ children }) {
       <body className={inter.className}>
         <StructuredData type="WebSite" />
         <RootLayoutContent>{children}</RootLayoutContent>
-        <Analytics />
-        <SpeedInsights />
+        <GoogleAnalytics gaId={gaId} />
       </body>
     </html>
   );
