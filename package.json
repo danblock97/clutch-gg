@@ -5,6 +5,7 @@
 	"scripts": {
 		"dev": "next dev",
 		"build": "next build",
+		"refresh-leaderboards": "node scripts/refresh-leaderboards.js",
 		"update-profiles": "node scripts/update-profiles.js",
 		"populate-accounts": "node scripts/populate-accounts-direct.js"
 	},

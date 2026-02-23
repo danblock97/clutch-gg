@@ -4,7 +4,6 @@ import StructuredData from "@/components/StructuredData";
 import PropTypes from "prop-types";
 import RootLayoutContent from "./RootLayoutContent";
 import { metadata as baseMetadata } from "./metadata";
-import { GoogleAnalytics } from '@next/third-parties/google'
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,8 +19,7 @@ export default function RootLayout({ children }) {
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <StructuredData type="WebSite" />
-        <RootLayoutContent>{children}</RootLayoutContent>
-        <GoogleAnalytics gaId={gaId} />
+        <RootLayoutContent gaId={gaId}>{children}</RootLayoutContent>
       </body>
     </html>
   );

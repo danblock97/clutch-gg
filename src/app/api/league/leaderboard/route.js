@@ -1,101 +1,78 @@
 import { NextResponse } from "next/server";
+import { fetchLeagueLeaderboardFromRiot } from "@/lib/leaderboards/leagueService";
 import {
-	fetchSummonerData,
-	fetchAccountDataByPUUID,
-} from "@/lib/league/leagueApi";
+	buildLeaderboardCacheHeaders,
+	getLeaderboardSnapshot,
+	isSnapshotFresh,
+	upsertLeaderboardSnapshot,
+} from "@/lib/leaderboards/cache";
 
-const RIOT_API_KEY = process.env.RIOT_API_KEY;
-
-// Simple retry helper (1 extra attempt)
-async function fetchWithRetry(fn, args, retries = 1) {
-	try {
-		return await fn(...args);
-	} catch (error) {
-		if (retries > 0) {
-			return await fetchWithRetry(fn, args, retries - 1);
-		}
-		throw error;
-	}
+function isTruthy(value) {
+	return ["1", "true", "yes"].includes((value || "").toLowerCase());
 }
 
 export async function GET(req) {
 	const { searchParams } = new URL(req.url);
-	const queue = searchParams.get("queue") || "RANKED_SOLO_5x5";
-	const tier = searchParams.get("tier") || "CHALLENGER";
-	const division = searchParams.get("division") || "I";
-	const region = (searchParams.get("region") || "euw1").toLowerCase();
-	const apiUrl = `https://${region}.api.riotgames.com/lol/league-exp/v4/entries/${queue}/${tier}/${division}?page=1&limit=200`;
+	const params = {
+		queue: searchParams.get("queue") || "RANKED_SOLO_5x5",
+		tier: searchParams.get("tier") || "CHALLENGER",
+		division: searchParams.get("division") || "I",
+		region: searchParams.get("region") || "euw1",
+	};
+	const forceRefresh = isTruthy(searchParams.get("refresh"));
+
+	const cacheKey = {
+		game: "lol",
+		...params,
+	};
+
+	let snapshot = null;
+	try {
+		snapshot = await getLeaderboardSnapshot(cacheKey);
+	} catch (cacheReadError) {
+		console.warn("Failed to read LOL leaderboard snapshot:", cacheReadError);
+	}
+
+	if (!forceRefresh && snapshot && isSnapshotFresh(snapshot)) {
+		return NextResponse.json(snapshot.payload || [], {
+			headers: buildLeaderboardCacheHeaders({
+				cacheStatus: "hit",
+				snapshot,
+			}),
+		});
+	}
 
 	try {
-		const response = await fetch(apiUrl, {
-			headers: { "X-Riot-Token": RIOT_API_KEY },
-		});
+		const data = await fetchLeagueLeaderboardFromRiot(params);
 
-		if (!response.ok) {
-			const errorBody = await response.text();
-			console.error(
-				`Riot API returned non-OK status: ${response.status} - ${errorBody}`
-			);
-			return NextResponse.json(
-				{ error: `Riot API Error: ${errorBody}` },
-				{ status: response.status }
-			);
-		}
-
-		let leaderboardData = [];
 		try {
-			leaderboardData = await response.json();
-		} catch (parseErr) {
-			console.error("Failed to parse Riot API JSON:", parseErr);
-			return NextResponse.json([], { status: 200 });
+			await upsertLeaderboardSnapshot(cacheKey, data);
+			snapshot = await getLeaderboardSnapshot(cacheKey);
+		} catch (cacheWriteError) {
+			console.warn("Failed to write LOL leaderboard snapshot:", cacheWriteError);
 		}
 
-		if (!Array.isArray(leaderboardData) || leaderboardData.length === 0) {
-			return NextResponse.json([], { status: 200 });
-		}
-
-		const detailedResults = await Promise.allSettled(
-			leaderboardData.map(async (entry) => {
-				try {
-					const [accountData, summonerData] = await Promise.all([
-						fetchWithRetry(fetchAccountDataByPUUID, [entry.puuid]),
-						fetchWithRetry(fetchSummonerData, [entry.puuid, region]),
-					]);
-
-					return {
-						...entry,
-						profileData: {
-							gameName: accountData.gameName,
-							tagLine: accountData.tagLine,
-							profileIconId: summonerData.profileIconId,
-						},
-					};
-				} catch (error) {
-					// Suppressing enrichment error messages, returning fallback data instead.
-					return {
-						...entry,
-						profileData: {
-							gameName: "Unknown",
-							tagLine: "Unknown",
-							profileIconId: null,
-						},
-					};
-				}
-			})
-		);
-
-		const detailedData = detailedResults
-			.filter((result) => result.status === "fulfilled" && result.value)
-			.map((result) => result.value);
-
-		return NextResponse.json(detailedData, {
-			headers: { "Cache-Control": "s-maxage=300, stale-while-revalidate" },
+		return NextResponse.json(data, {
+			headers: buildLeaderboardCacheHeaders({
+				cacheStatus: forceRefresh ? "refresh" : "miss",
+				snapshot,
+			}),
 		});
 	} catch (error) {
-		console.error("Error in leaderboard API route:", error);
+		console.error("Error in LOL leaderboard API route:", error);
+
+		if (snapshot?.payload) {
+			return NextResponse.json(snapshot.payload, {
+				headers: buildLeaderboardCacheHeaders({
+					cacheStatus: "stale",
+					snapshot,
+				}),
+			});
+		}
+
 		return NextResponse.json(
-			{ error: "Internal Server Error" },
-			{ status: 500 }
+			{ error: error.message || "Internal Server Error" },
+			{ status: error.status || 500 }
 		);
 	}
 }
