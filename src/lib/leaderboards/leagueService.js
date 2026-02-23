@@ -11,6 +11,11 @@ import {
 
 const RIOT_API_KEY = process.env.RIOT_API_KEY;
 const ENRICH_CONCURRENCY = Number(process.env.LOL_LEADERBOARD_ENRICH_CONCURRENCY || 8);
+const ALLOWED_LEAGUE_QUEUES = new Map([
+	["RANKED_SOLO_5X5", "RANKED_SOLO_5x5"],
+	["RANKED_SOLO_5x5", "RANKED_SOLO_5x5"],
+	["RANKED_FLEX_SR", "RANKED_FLEX_SR"],
+]);
 
 function createHttpError(status, message) {
 	const error = new Error(message);
@@ -30,8 +35,11 @@ async function fetchWithRetry(fn, args, retries = 1) {
 }
 
 export function normalizeLeagueLeaderboardParams(input = {}) {
+	const rawQueue = (input.queue || LOL_DEFAULT_QUEUE).toString().trim();
+	const normalizedQueue = ALLOWED_LEAGUE_QUEUES.get(rawQueue.toUpperCase()) || LOL_DEFAULT_QUEUE;
+
 	return {
-		queue: (input.queue || LOL_DEFAULT_QUEUE).toString().toUpperCase(),
+		queue: normalizedQueue,
 		tier: (input.tier || DEFAULT_TIER).toString().toUpperCase(),
 		division: (input.division || DEFAULT_DIVISION).toString().toUpperCase(),
 		region: (input.region || "EUW1").toString().toLowerCase(),

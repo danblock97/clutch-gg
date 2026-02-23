@@ -6,6 +6,7 @@ import {
 	isSnapshotFresh,
 	upsertLeaderboardSnapshot,
 } from "@/lib/leaderboards/cache";
+import { LOL_DEFAULT_QUEUE } from "@/lib/leaderboards/constants";
 
 function isTruthy(value) {
 	return ["1", "true", "yes"].includes((value || "").toLowerCase());
@@ -14,7 +15,7 @@ function isTruthy(value) {
 export async function GET(req) {
 	const { searchParams } = new URL(req.url);
 	const params = {
-		queue: searchParams.get("queue") || "RANKED_SOLO_5x5",
+		queue: searchParams.get("queue") || LOL_DEFAULT_QUEUE,
 		tier: searchParams.get("tier") || "CHALLENGER",
 		division: searchParams.get("division") || "I",
 		region: searchParams.get("region") || "euw1",
