@@ -53,14 +53,17 @@ export async function securityMiddleware(req) {
     const ip = req.headers.get("x-forwarded-for") || "127.0.0.1";
     const userAgent = req.headers.get("user-agent") || "unknown";
     const requestPath = new URL(req.url).pathname;
+    const isUptimeKuma = userAgent.startsWith("Uptime-Kuma/");
 
-    console.log("Request Info:", {
-      ip,
-      userAgent,
-      path: requestPath,
-      method: req.method,
-      timestamp: new Date().toISOString(),
-    });
+    if (!isUptimeKuma) {
+      console.log("Request Info:", {
+        ip,
+        userAgent,
+        path: requestPath,
+        method: req.method,
+        timestamp: new Date().toISOString(),
+      });
+    }
 
     // 3. API Key Validation for POST/PUT/DELETE requests
     if (["POST", "PUT", "DELETE"].includes(req.method)) {
