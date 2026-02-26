@@ -24,6 +24,21 @@ const ALLOWED_ORIGINS = new Set([...DEFAULT_ORIGINS, ...ENV_ORIGINS]);
 
 export async function securityMiddleware(req) {
   try {
+    const requestUrl = new URL(req.url);
+    const userAgent = req.headers.get("user-agent") || "unknown";
+
+    const logRejectedRequest = (reason, status, extra = {}) => {
+      console.warn("Rejected Request:", {
+        reason,
+        status,
+        method: req.method,
+        path: requestUrl.pathname,
+        userAgent,
+        timestamp: new Date().toISOString(),
+        ...extra,
+      });
+    };
+
     // 1. CORS / Origin Protection
     const origin = req.headers.get("origin");
     const host = req.headers.get("host");
@@ -42,6 +57,7 @@ export async function securityMiddleware(req) {
         isAllowed = false;
       }
       if (!isAllowed) {
+        logRejectedRequest("unauthorized_origin", 403, { origin, host });
         return new NextResponse(
           JSON.stringify({ error: "Unauthorized origin" }),
           { status: 403, headers: { "Content-Type": "application/json" } },
@@ -49,26 +65,11 @@ export async function securityMiddleware(req) {
       }
     }
 
-    // 2. Request Logging (optional - can be removed if not needed)
-    const ip = req.headers.get("x-forwarded-for") || "127.0.0.1";
-    const userAgent = req.headers.get("user-agent") || "unknown";
-    const requestPath = new URL(req.url).pathname;
-    const isUptimeKuma = userAgent.startsWith("Uptime-Kuma/");
-
-    if (!isUptimeKuma) {
-      console.log("Request Info:", {
-        ip,
-        userAgent,
-        path: requestPath,
-        method: req.method,
-        timestamp: new Date().toISOString(),
-      });
-    }
-
-    // 3. API Key Validation for POST/PUT/DELETE requests
+    // 2. API Key Validation for POST/PUT/DELETE requests
     if (["POST", "PUT", "DELETE"].includes(req.method)) {
       const apiKey = req.headers.get("x-api-key");
       if (!apiKey || !VALID_API_KEYS.has(apiKey)) {
+        logRejectedRequest("invalid_api_key", 401);
         return new NextResponse(JSON.stringify({ error: "Invalid API key" }), {
           status: 401,
           headers: { "Content-Type": "application/json" },
@@ -76,9 +77,9 @@ export async function securityMiddleware(req) {
       }
     }
 
-    // 4. Input Validation for GET requests
+    // 3. Input Validation for GET requests
     if (req.method === "GET") {
-      const { searchParams } = new URL(req.url);
+      const { searchParams } = requestUrl;
       const gameName = searchParams.get("gameName");
       const tagLine = searchParams.get("tagLine");
       const region = searchParams.get("region");
@@ -86,6 +87,7 @@ export async function securityMiddleware(req) {
       // Validate gameName and tagLine if present
       // Riot usernames can contain letters (including international), numbers, spaces, and some special characters
       if (gameName && !/^[\p{L}\p{N}\s\-_\.]{3,16}$/u.test(gameName.trim())) {
+        logRejectedRequest("invalid_game_name_format", 400);
         return new NextResponse(
           JSON.stringify({ error: "Invalid gameName format" }),
           { status: 400, headers: { "Content-Type": "application/json" } },
@@ -94,6 +96,7 @@ export async function securityMiddleware(req) {
 
       // Tagline can contain international letters/numbers (e.g., Japanese)
       if (tagLine && !/^[\p{L}\p{N}]{3,5}$/u.test(tagLine.trim())) {
+        logRejectedRequest("invalid_tag_line_format", 400);
         return new NextResponse(
           JSON.stringify({ error: "Invalid tagLine format" }),
           { status: 400, headers: { "Content-Type": "application/json" } },
@@ -103,6 +106,7 @@ export async function securityMiddleware(req) {
       // Validate region if present
       // Region format: 2-4 letters optionally followed by a digit (e.g., NA1, EUW1, KR, RU)
       if (region && !/^[a-z]{2,4}[0-9]?$/i.test(region)) {
+        logRejectedRequest("invalid_region_format", 400);
         return new NextResponse(
           JSON.stringify({ error: "Invalid region format" }),
           { status: 400, headers: { "Content-Type": "application/json" } },
@@ -110,7 +114,7 @@ export async function securityMiddleware(req) {
       }
     }
 
-    // 5. Add security headers
+    // 4. Add security headers
     const response = NextResponse.next();
     response.headers.set("X-Content-Type-Options", "nosniff");
     response.headers.set("X-Frame-Options", "DENY");
