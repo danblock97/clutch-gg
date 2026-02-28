@@ -31,10 +31,6 @@ export const fetchChampionMasteryData = async (
 
 	for (let attempt = 1; attempt <= retries; attempt++) {
 		try {
-			console.log(
-				`Fetching champion mastery data (attempt ${attempt}/${retries})`
-			);
-
 			const championMasteryResponse = await fetch(url, {
 				headers: {
 					"X-Riot-Token": RIOT_API_KEY,
@@ -51,7 +47,6 @@ export const fetchChampionMasteryData = async (
 			if (championMasteryResponse.status === 429) {
 				const retryAfter = championMasteryResponse.headers.get("Retry-After");
 				const waitTime = (retryAfter ? parseInt(retryAfter) : 2) * 1000;
-				console.log(`Rate limited. Waiting ${waitTime}ms before retry...`);
 				await new Promise((resolve) => setTimeout(resolve, waitTime));
 				continue;
 			}
@@ -61,9 +56,6 @@ export const fetchChampionMasteryData = async (
 				championMasteryResponse.status === 503
 			) {
 				const waitTime = attempt * 1000; // Exponential backoff
-				console.log(
-					`Server error (${championMasteryResponse.status}). Waiting ${waitTime}ms before retry...`
-				);
 				await new Promise((resolve) => setTimeout(resolve, waitTime));
 				continue;
 			}
@@ -78,7 +70,6 @@ export const fetchChampionMasteryData = async (
 				console.error("All retry attempts failed:", error);
 				throw error;
 			}
-			console.warn(`Attempt ${attempt} failed:`, error);
 		}
 	}
 

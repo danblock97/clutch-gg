@@ -87,7 +87,7 @@ const prefetchChampionAbilityIcons = async (championId) => {
 			)
 		);
 	} catch (error) {
-		console.warn(`Failed to prefetch abilities for ${championId}:`, error);
+		// Prefetch failure is non-critical, silently ignore
 	}
 };
 
@@ -250,9 +250,7 @@ const MatchRow = ({
 				const timeline = await response.json();
 				prefetchTimelineItemIcons(timeline, currentPlayer.participantId);
 			} catch (error) {
-				if (error.name !== "AbortError") {
-					console.warn(`Failed to prefetch timeline for ${matchId}:`, error);
-				}
+				// Prefetch failure is non-critical, silently ignore
 			}
 		})();
 
@@ -1188,7 +1186,7 @@ const MatchHistory = ({
 							}
 						}
 					} catch (error) {
-						console.warn(`Failed to load match data for match ${matchId}:`, error);
+						// Silently ignore individual match enrichment failures
 					}
 				});
 

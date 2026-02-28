@@ -42,7 +42,6 @@ export const fetchTFTRankedData = async (puuid, region) => {
 
 	if (!rankedResponse.ok) {
 		if (rankedResponse.status === 404) {
-			console.log(`TFT ranked data not found for PUUID ${puuid} in region ${region} - player may be unranked`);
 			return []; // Player is unranked or has no ranked data.
 		}
 		const errorBody = await rankedResponse.text();
