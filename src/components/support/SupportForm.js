@@ -157,7 +157,13 @@ export default function SupportForm() {
 
   useEffect(() => {
     if (typeof navigator !== "undefined") {
-      setForm((prev) => ({ ...prev, browserInfo: navigator.userAgent }));
+      const parts = [
+        `UA: ${navigator.userAgent}`,
+        `Platform: ${navigator.platform || "Unknown"}`,
+        `Screen: ${window.screen?.width ?? "?"}x${window.screen?.height ?? "?"}`,
+        `Language: ${navigator.language || "Unknown"}`,
+      ];
+      setForm((prev) => ({ ...prev, browserInfo: parts.join(" | ") }));
     }
   }, []);
 

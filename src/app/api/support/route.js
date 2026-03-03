@@ -151,13 +151,15 @@ export async function POST(request) {
     }
 
     lines.push('', '---', '');
-    lines.push(`**System Info:** \`${browserInfo || 'Unknown'}\``);
+    if (browserInfo) {
+      lines.push(`**System Info:** \`${browserInfo}\``);
+    }
     lines.push(`**Submitted:** ${timestamp || new Date().toISOString()}`);
 
     const markdownDescription = lines.join('\n');
 
-    // Resolve or create labels: "Support" + lowercased category
-    const labelNames = ['Support', category.toLowerCase().replace(/\s+/g, '-')];
+    // Labels come only from the category dropdown
+    const labelNames = [category.toLowerCase().replace(/\s+/g, '-')];
     const labelIds = (
       await Promise.all(labelNames.map((n) => resolveOrCreateLabel(teamId, n)))
     ).filter(Boolean);
