@@ -66,7 +66,12 @@ export async function securityMiddleware(req) {
     }
 
     // 2. API Key Validation for POST/PUT/DELETE requests
-    if (["POST", "PUT", "DELETE"].includes(req.method)) {
+    // Public routes that don't require an internal API key
+    const PUBLIC_POST_ROUTES = ["/api/support"];
+    if (
+      ["POST", "PUT", "DELETE"].includes(req.method) &&
+      !PUBLIC_POST_ROUTES.includes(requestUrl.pathname)
+    ) {
       const apiKey = req.headers.get("x-api-key");
       if (!apiKey || !VALID_API_KEYS.has(apiKey)) {
         logRejectedRequest("invalid_api_key", 401);
