@@ -1,12 +1,29 @@
-"use client";
-
-import SupportForm from "./SupportForm";
-
 export default function SupportPageContent() {
+  const jiraLinks = [
+    {
+      title: "Feature Request",
+      description: "Share an idea or improvement you want to see in ClutchGG.",
+      href: "https://danblock97.atlassian.net/jira/software/c/form/1949fe96-9259-44df-b2f0-b423fe7c5766?atlOrigin=eyJpIjoiMTYzZTQwYjQ5NTNmNGRkMWE1ZGQwNTA4MzhiZjI2NjIiLCJwIjoiaiJ9",
+      accent: "from-cyan-500/30 to-blue-500/30",
+      iconBg: "bg-cyan-500/10 border-cyan-500/20",
+      iconColor: "text-cyan-300",
+      linkColor: "text-cyan-300 hover:text-cyan-200",
+      cta: "Open Feature Form",
+    },
+    {
+      title: "Bug Report",
+      description: "Report something broken, unexpected, or not working correctly.",
+      href: "https://danblock97.atlassian.net/jira/software/c/form/e8f1a9ee-a59c-43de-934c-a403c5ddc62e?atlOrigin=eyJpIjoiMTQ2MjBhZTkzNWI2NDk3ZmI5NTZiMzdiNTkyZTQ2YjMiLCJwIjoiaiJ9",
+      accent: "from-rose-500/30 to-orange-500/30",
+      iconBg: "bg-rose-500/10 border-rose-500/20",
+      iconColor: "text-rose-300",
+      linkColor: "text-rose-300 hover:text-rose-200",
+      cta: "Open Bug Form",
+    },
+  ];
+
   return (
     <div className="relative mx-auto max-w-3xl px-4 py-12 min-h-[calc(100vh-200px)] flex flex-col">
-
-      {/* Header */}
       <header className="text-center mb-10">
         <div className="inline-flex items-center justify-center gap-3 mb-6">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl border border-blue-500/20 bg-blue-500/10 shadow-[0_0_15px_-3px_rgba(59,130,246,0.2)]">
@@ -29,22 +46,55 @@ export default function SupportPageContent() {
           </h1>
         </div>
         <p className="text-lg text-[--text-secondary] max-w-2xl mx-auto leading-relaxed">
-          Tell us what&apos;s going on and we&apos;ll get back to you based on your priority level.
+          Use the Jira forms below to submit feature requests or bug reports, or contact us directly if you need help another way.
         </p>
         <div className="mx-auto mt-8 h-px w-24 rounded-full bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
       </header>
 
-      {/* Form Card */}
-      <div className="relative group mb-8">
-        <div className="absolute -inset-0.5 rounded-2xl blur opacity-20 bg-gradient-to-r from-blue-500/30 to-violet-500/30 transition-opacity group-hover:opacity-30 duration-700" />
-        <div className="relative bg-[--card-bg] border border-white/10 p-6 sm:p-8 rounded-2xl shadow-xl backdrop-blur-sm">
-          <SupportForm />
-        </div>
+      <div className="grid gap-4 sm:grid-cols-2 mb-8">
+        {jiraLinks.map((link) => (
+          <div key={link.title} className="relative group">
+            <div
+              className={`absolute -inset-0.5 rounded-2xl blur opacity-20 bg-gradient-to-r ${link.accent} transition-opacity duration-700 group-hover:opacity-35`}
+            />
+            <div className="relative bg-[--card-bg] border border-white/10 p-6 rounded-2xl shadow-xl backdrop-blur-sm h-full flex flex-col">
+              <div className={`inline-flex items-center justify-center w-11 h-11 rounded-xl border shrink-0 mb-4 ${link.iconBg}`}>
+                <svg
+                  className={`w-5 h-5 ${link.iconColor}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                  />
+                </svg>
+              </div>
+              <h2 className="text-xl font-bold mb-2">{link.title}</h2>
+              <p className="text-sm text-[--text-secondary] mb-6 flex-grow">
+                {link.description}
+              </p>
+              <a
+                href={link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`inline-flex items-center gap-2 text-sm font-semibold transition-colors ${link.linkColor}`}
+              >
+                {link.cta}
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5h5m0 0v5m0-5L10 14" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 9v10h10" />
+                </svg>
+              </a>
+            </div>
+          </div>
+        ))}
       </div>
 
-      {/* Alternative contact options */}
       <div className="grid gap-4 sm:grid-cols-2">
-        {/* Email */}
         <div className="relative group">
           <div className="absolute -inset-0.5 rounded-2xl blur opacity-20 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 group-hover:opacity-40 transition-opacity duration-700" />
           <div className="relative neon-card p-5 flex items-center gap-4">
@@ -75,7 +125,6 @@ export default function SupportPageContent() {
           </div>
         </div>
 
-        {/* Discord */}
         <div className="relative group">
           <div className="absolute -inset-0.5 rounded-2xl blur opacity-20 bg-[#5865F2]/20 group-hover:opacity-40 transition-opacity duration-700" />
           <div className="relative neon-card p-5 flex items-center gap-4">
@@ -102,7 +151,6 @@ export default function SupportPageContent() {
           </div>
         </div>
       </div>
-
     </div>
   );
 }
