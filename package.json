@@ -5,7 +5,6 @@
 	"scripts": {
 		"dev": "next dev",
 		"build": "next build",
-		"refresh-leaderboards": "node scripts/refresh-leaderboards.js",
 		"update-profiles": "node scripts/update-profiles.js",
 		"populate-accounts": "node scripts/populate-accounts-direct.js"
 	},
@@ -26,7 +25,6 @@
 		"mongodb": "^6.10.0",
 		"nanoid": "^3.3.8",
 		"next": "^16.1.5",
-		"node-cron": "^3.0.3",
 		"node-fetch": "^3.3.2",
 		"prop-types": "^15.8.1",
 		"react": "^19",
