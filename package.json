@@ -35,7 +35,7 @@
 		"react-type-animation": "^3.2.0",
 		"recharts": "^3.6.0",
 		"swr": "^2.3.8",
-		"tar": ">=7.5.8"
+		"tar": ">=7.5.10"
 	},
 	"devDependencies": {
 		"eslint": "^9",
@@ -43,7 +43,7 @@
 		"glob": ">=10.5.0",
 		"js-yaml": ">=4.1.1",
 		"postcss": "^8",
-		"supabase": "^2.40.7",
+		"supabase": "^2.77.0",
 		"tailwindcss": "^3.4.14"
 	},
 	"type": "module"
