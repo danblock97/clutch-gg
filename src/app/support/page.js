@@ -3,7 +3,7 @@ import SupportPageContent from "@/components/support/SupportPageContent";
 export const metadata = {
   title: "Support | ClutchGG",
   description:
-    "Get help with ClutchGG through GitHub issues, Discord, or direct support contact options.",
+    "Get help and support for ClutchGG. Submit bug reports and feature requests through Jira forms, or contact us directly.",
 };
 
 export default function SupportPage() {
