@@ -47,3 +47,7 @@ certificates
 
 # migrations
 migrations/
+
+# keep GitHub issue templates and repo metadata tracked
+!.github/
+!.github/**
