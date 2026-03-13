@@ -148,14 +148,24 @@ const Footer = () => {
 								</Link>
 							</li>
 							<li>
-							<Link
-								href="/support"
-								className="text-sm hover:text-[--primary] transition-colors inline-flex items-center"
-							>
-								<FaLightbulb className="mr-2 text-xs" />
-								Need help? Contact Us
-							</Link>
-						</li>
+								<Link
+									href="/support"
+									className="text-sm hover:text-[--primary] transition-colors inline-flex items-center"
+								>
+									<FaLightbulb className="mr-2 text-xs" />
+									Need help? Contact Us
+								</Link>
+							</li>
+							<li>
+								<Link
+									href="https://clutchgg-status.statuspage.io/"
+									target="_blank"
+									className="text-sm hover:text-[--primary] transition-colors inline-flex items-center"
+								>
+									<FaBullhorn className="mr-2 text-xs" />
+									System Status
+								</Link>
+							</li>
 							<li>
 								<Link
 									href="/support-this-app"
