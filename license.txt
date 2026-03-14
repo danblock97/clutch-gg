@@ -1,0 +1,57 @@
+Copyright (c) 2026 Dan Block. All rights reserved.
+
+This software and associated source code (the "Software") are made available
+publicly for viewing and educational purposes only.
+
+1. Grant of Limited License
+
+Subject to the terms of this license, you are granted a limited,
+non-exclusive, non-transferable, revocable license to:
+
+- View the source code of the Software.
+- Download the Software for personal, non-commercial use.
+- Modify the Software for personal use only.
+
+2. Restrictions
+
+You may NOT, without prior written permission from the copyright holder:
+
+- Redistribute the Software or any modified versions.
+- Sublicense or sell the Software.
+- Use the Software for commercial purposes.
+- Host the Software or modified versions as a service.
+- Publish the Software as part of another project.
+- Distribute compiled binaries derived from the Software.
+
+3. Contributions
+
+Any contributions submitted to this repository (including pull requests,
+patches, or suggestions) grant the copyright holder a perpetual,
+irrevocable, worldwide license to use, modify, and redistribute
+those contributions as part of the Software.
+
+4. Ownership
+
+The Software is licensed, not sold. All rights, title, and interest in the
+Software remain with the copyright holder.
+
+5. No Warranty
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+
+6. Limitation of Liability
+
+IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES,
+OR OTHER LIABILITY ARISING FROM THE SOFTWARE OR USE OF THE SOFTWARE.
+
+7. Termination
+
+This license terminates automatically if you violate any of its terms.
+Upon termination, you must delete all copies of the Software.
+
+8. Contact
+
+For commercial licensing inquiries or permissions, contact:
+contact@danblock.dev
