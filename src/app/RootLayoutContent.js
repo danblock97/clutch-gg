@@ -5,12 +5,11 @@ import NavBar from "@/components/NavBar";
 import Footer from "@/components/Footer";
 import OutageBanner from "@/components/OutageBanner";
 import FeatureAnnouncementBanner from "@/components/FeatureAnnouncementBanner";
-import CookieConsentManager from "@/components/CookieConsentManager";
 import { GameTypeProvider } from "@/context/GameTypeContext";
 import { AuthProvider } from "@/context/AuthContext";
 import PropTypes from "prop-types";
 
-export default function RootLayoutContent({ children, gaId }) {
+export default function RootLayoutContent({ children }) {
 	const [outageMessage, setOutageMessage] = useState("");
 	const [featureMessage, setFeatureMessage] = useState("");
 	const [isOutageBannerVisible, setIsOutageBannerVisible] = useState(false);
@@ -65,7 +64,6 @@ export default function RootLayoutContent({ children, gaId }) {
 				</Suspense>
 				<div>{children}</div>
 				<Footer />
-				<CookieConsentManager gaId={gaId} />
 			</AuthProvider>
 		</GameTypeProvider>
 	);
@@ -73,5 +71,4 @@ export default function RootLayoutContent({ children, gaId }) {
 
 RootLayoutContent.propTypes = {
 	children: PropTypes.node.isRequired,
-	gaId: PropTypes.string,
 };

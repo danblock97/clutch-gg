@@ -383,6 +383,133 @@ export default function LiveGame({ liveGameData, region }) {
 		);
 	}, (prev, next) => prev.p === next.p && prev.perkList === next.perkList && prev.champMapProp === next.champMapProp && prev.regionProp === next.regionProp && prev.isArena === next.isArena);
 
+	const MobileParticipantRow = React.memo(function MobileParticipantRow({
+		p,
+		perkList,
+		regionProp,
+	}) {
+		const getPerkByIdLocal = (id) => perkList.find((x) => x.id === id) || null;
+		const total = (p.wins || 0) + (p.losses || 0);
+		const wr = total > 0 ? Math.round((p.wins / total) * 1000) / 10 : 0;
+		const rankTxt = fmtRank(p.rank);
+		const shortRank = rankTxt !== "Unranked" ? rankTxt.split(" ")[0].toLowerCase() : null;
+		const spells = [p.spell1Id, p.spell2Id].filter(Boolean);
+		const primaryRuneId = Array.isArray(p?.perks?.perkIds) ? p.perks.perkIds[0] : null;
+		const primaryRune = primaryRuneId ? getPerkByIdLocal(primaryRuneId) : null;
+		const primaryRuneIcon = primaryRune?.iconPath
+			? mapCDragonAssetPath(primaryRune.iconPath)
+			: null;
+		const riotId = formatRiotId(p.gameName, p.tagLine);
+		const hasProfileLink = !!(p.gameName && p.gameName.trim() && p.tagLine && p.tagLine.trim());
+		const profileUrl =
+			buildProfileUrl("league", regionProp, p.gameName, p.tagLine) ||
+			`/league/profile?gameName=${encodeURIComponent(p.gameName || "")}&tagLine=${encodeURIComponent(p.tagLine || "")}&region=${encodeURIComponent(regionProp)}`;
+		const championName = p.championName || champMap[String(p.championId)] || "Unknown";
+
+		return (
+			<div
+				className="relative overflow-hidden rounded-2xl border bg-[#10141d] p-3 shadow-sm"
+				style={{ borderColor: getRankBorderColor(shortRank || "") }}
+			>
+				<div className="absolute inset-0 bg-gradient-to-r from-white/[0.03] via-transparent to-transparent pointer-events-none" />
+				<div className="relative flex items-start gap-3">
+					<div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-black/30">
+						<Image
+							src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${p.championId}.png`}
+							alt={championName}
+							fill
+							className="object-cover"
+							sizes="56px"
+						/>
+					</div>
+
+					<div className="min-w-0 flex-1">
+						<div className="flex items-start justify-between gap-3">
+							<div className="min-w-0">
+								<div className="truncate text-base font-semibold text-white">
+									{hasProfileLink ? (
+										<Link href={profileUrl} className="hover:underline">
+											{riotId.name}
+											{riotId.tag && (
+												<span className="ml-1 text-sm text-gray-400">#{riotId.tag}</span>
+											)}
+										</Link>
+									) : (
+										<span>{riotId.name}</span>
+									)}
+								</div>
+								<div className="truncate text-sm font-medium text-gray-300">
+									{championName}
+								</div>
+							</div>
+
+							<div className="shrink-0 text-right">
+								<div
+									className="text-[11px] font-black uppercase tracking-[0.18em]"
+									style={{ color: shortRank ? getRankColorVar(shortRank) : "#9ca3af" }}
+								>
+									{rankTxt === "Unranked"
+										? "Unranked"
+										: `${rankTxt}${typeof p.lp === "number" ? ` • ${p.lp} LP` : ""}`}
+								</div>
+								<div className="mt-1 text-xs text-gray-400">
+									{total > 0 ? `${total} games` : "No ranked games"}
+								</div>
+							</div>
+						</div>
+
+						<div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+							<div className="rounded-full bg-white/6 px-2.5 py-1 font-semibold text-white">
+								{wr}% WR
+							</div>
+							{rankTxt !== "Unranked" && (
+								<div className="rounded-full bg-white/6 px-2.5 py-1 text-gray-300">
+									{p.wins}W-{p.losses}L
+								</div>
+							)}
+						</div>
+
+						<div className="mt-3 flex items-center justify-between gap-3">
+							<div className="flex items-center gap-1.5">
+								{spells.map((id, i) => (
+									<div
+										key={`mobile-s-${i}`}
+										className="relative h-7 w-7 overflow-hidden rounded-lg border border-white/10"
+									>
+										<Image
+											src={`/images/league/summonerSpells/${id}.png`}
+											alt=""
+											fill
+											className="object-cover"
+											sizes="28px"
+										/>
+									</div>
+								))}
+								<div className="relative h-7 w-7 overflow-hidden rounded-lg border border-white/10 bg-black/20">
+									{primaryRuneIcon ? (
+										<Image
+											src={primaryRuneIcon}
+											alt=""
+											fill
+											className="object-cover"
+											sizes="28px"
+										/>
+									) : (
+										<div className="h-full w-full bg-gray-700/50" />
+									)}
+								</div>
+							</div>
+
+							<div className="text-right text-[11px] text-gray-400">
+								{rankTxt !== "Unranked" ? "Solo queue snapshot" : "No ranked snapshot"}
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		);
+	}, (prev, next) => prev.p === next.p && prev.perkList === next.perkList && prev.regionProp === next.regionProp);
+
 	// --- Card grid view (replaces table)
 	const renderCardGrid = () => {
 		const blueTeam = sortedParticipants.filter((p) => p.teamId === 100).slice(0, 5);
@@ -399,6 +526,55 @@ export default function LiveGame({ liveGameData, region }) {
 						<ParticipantCard key={`${p.teamId}-${p.summonerId || p.puuid || p.gameName}-${p.championId}`} p={p} perkList={perkList} champMapProp={champMap} regionProp={region} isArena={isArenaQueue} />
 					))}
 				</div>
+			</div>
+		);
+	};
+
+	const renderMobileRoster = () => {
+		const teams = [
+			{
+				id: "blue",
+				label: "Blue Side",
+				accent: "text-blue-300",
+				border: "border-blue-500/20",
+				participants: sortedParticipants.filter((p) => p.teamId === 100).slice(0, 5),
+			},
+			{
+				id: "red",
+				label: "Red Side",
+				accent: "text-red-300",
+				border: "border-red-500/20",
+				participants: sortedParticipants.filter((p) => p.teamId === 200).slice(0, 5),
+			},
+		];
+
+		return (
+			<div className="space-y-4 px-3 pb-3 md:hidden">
+				{teams.map((team) => (
+					<section
+						key={team.id}
+						className={`overflow-hidden rounded-2xl border bg-[#0d1119] ${team.border}`}
+					>
+						<div className="flex items-center justify-between border-b border-white/5 px-3 py-2.5">
+							<h3 className={`text-sm font-bold uppercase tracking-[0.2em] ${team.accent}`}>
+								{team.label}
+							</h3>
+							<span className="text-[11px] text-gray-500">
+								{team.participants.length} players
+							</span>
+						</div>
+						<div className="space-y-2 p-2">
+							{team.participants.map((p) => (
+								<MobileParticipantRow
+									key={`${team.id}-${p.summonerId || p.puuid || p.gameName}-${p.championId}`}
+									p={p}
+									perkList={perkList}
+									regionProp={region}
+								/>
+							))}
+						</div>
+					</section>
+				))}
 			</div>
 		);
 	};
@@ -465,7 +641,8 @@ export default function LiveGame({ liveGameData, region }) {
 				</div>
 
 				{/* Card grid view for Arena as well */}
-				{renderCardGrid()}
+				<div className="hidden md:block">{renderCardGrid()}</div>
+				{renderMobileRoster()}
 
 				{/* Footer with game details */}
 				<div className="py-2 px-4 text-[11px] text-[--text-secondary] border-t border-gray-700/30 flex justify-between">
@@ -517,7 +694,8 @@ export default function LiveGame({ liveGameData, region }) {
 			</div>
 
 			{/* Card grid view */}
-			{renderCardGrid()}
+			<div className="hidden md:block">{renderCardGrid()}</div>
+			{renderMobileRoster()}
 
 			{/* Footer with game details */}
 			<div className="py-2 px-4 text-[11px] text-[--text-secondary] border-t border-gray-700/30 flex justify-between">

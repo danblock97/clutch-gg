@@ -7,8 +7,6 @@ import { metadata as baseMetadata } from "./metadata";
 
 const inter = Inter({ subsets: ["latin"] });
 
-const gaId = process.env.NEXT_PUBLIC_GA_ID;
-
 export const metadata = {
   ...baseMetadata,
   metadataBase: new URL("https://clutchgg.lol"),
@@ -19,7 +17,7 @@ export default function RootLayout({ children }) {
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <StructuredData type="WebSite" />
-        <RootLayoutContent gaId={gaId}>{children}</RootLayoutContent>
+        <RootLayoutContent>{children}</RootLayoutContent>
       </body>
     </html>
   );
