@@ -227,15 +227,35 @@ const Last20GamesPerformance = ({
 
   // Sort champions by games played
   const topChampions = useMemo(() => {
-    return Object.entries(performanceStats.championPerformance)
+    const champions = Object.entries(performanceStats.championPerformance)
       .map(([championId, stats]) => ({
         championId: Number(championId),
         ...stats,
         winRate: ((stats.wins / Math.max(1, stats.games)) * 100).toFixed(0),
       }))
-      .sort((a, b) => b.games - a.games)
-      .slice(0, 3);
-  }, [performanceStats.championPerformance]);
+      .sort((a, b) => {
+        if (b.games !== a.games) return b.games - a.games;
+        if (b.wins !== a.wins) return b.wins - a.wins;
+        return b.kda - a.kda;
+      });
+
+    const repeatedChampions = champions.filter((champ) => champ.games > 1);
+    const singleGameChampions = champions.filter((champ) => champ.games === 1);
+    const displayedChampions = [...repeatedChampions];
+
+    let coveredGames = repeatedChampions.reduce(
+      (total, champ) => total + champ.games,
+      0
+    );
+
+    for (const champ of singleGameChampions) {
+      if (coveredGames >= last20Matches.length) break;
+      displayedChampions.push(champ);
+      coveredGames += champ.games;
+    }
+
+    return displayedChampions;
+  }, [last20Matches.length, performanceStats.championPerformance]);
 
   return (
     <div className="w-full rounded-xl overflow-hidden bg-white/5">
@@ -458,4 +478,3 @@ const Sparkline = ({ data, color }) => {
 };
 
 export default Last20GamesPerformance;
-
